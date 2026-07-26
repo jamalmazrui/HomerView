@@ -30,6 +30,7 @@ from scriptHandler import script
 from . import alternateMenu
 from . import convert
 from . import dialogs
+from . import documents
 from . import lbc
 from . import saveAs as saveAsModule
 from . import download
@@ -67,7 +68,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
              _("Launch or reconnect the HomerView instance of Microsoft Edge"), "launchHomerView"),
             (_("Accessibility report"), "NVDA+Alt+A",
              _("Test the page and find how to report the problems to the publisher"), "accessibilityReport"),
-            (_("Page explorer"), "NVDA+Alt+E",
+            (_("Page explorer"), "Y, or NVDA+Alt+E",
              _("Summarise the page structure and its visual aspects"), "explorePage"),
             (_("Extract main content"), "NVDA+Alt+X",
              _("Open the readable part of the page as a plain document"), "extractMainContent"),
@@ -85,17 +86,27 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
              _("Open a Word, Excel, PowerPoint, PDF or Markdown document as a web page"), "openOtherFormat"),
             (_("Save the page as"), "Control+F12",
              _("Save the current page as a web page, Markdown, or plain text"), "saveAs"),
-            (_("History"), "",
-             _("Show the pages and documents opened in HomerView"), "recentPages"),
+            (_("Recently opened"), "",
+             _("List the pages and documents opened in HomerView, so you can find one again"),
+             "recentPages"),
             (_("Alternate menu"), "NVDA+Alt+F10",
              _("List every HomerView command in one alphabetical list"), "alternateMenu"),
-            (_("Report the page address"), "NVDA+A",
+            (_("Report the page address"), "Alt+A, or NVDA+Alt+U",
              _("Report the web address of the HomerView page, from anywhere in the window"),
              "reportAddressAnywhere"),
             (_("Submit the form"), "Control+Enter",
              _("Submit the form you are filling in, from any field"), "submitForm"),
-            (_("Open Copilot"), "NVDA+Alt+P",
-             _("Copy the page text and open Copilot in the Microsoft Edge sidebar"), "openCopilot"),
+            (_("Ask Copilot about this page"), "NVDA+Alt+P",
+             _("Copy the page text and open Edge's Copilot sidebar, ready to paste and ask"),
+             "openCopilot"),
+            (_("Quick start"), "",
+             _("Open the HomerView quick start in the HomerView window"), "openQuickStart"),
+            (_("User guide"), "",
+             _("Open the full HomerView user guide in the HomerView window"), "openUserGuide"),
+            (_("History of changes"), "",
+             _("Open the HomerView history of changes in the HomerView window"), "openHistory"),
+            (_("Developer notes"), "",
+             _("Open the HomerView developer notes in the HomerView window"), "openDeveloperNotes"),
             (_("Self test"), "",
              _("Check that all three ways of reaching the browser are working"), "selfTest"),
         ):
@@ -491,7 +502,10 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             "so that every HomerView command works on it"
         ),
         category="HomerView",
-        gesture="kb:control+f10",
+        # Control+F10 was the original suggestion and was later superseded by
+        # Control+O, which is Edge's own key for this and a strict superset of
+        # what Edge does with it. One key for one command is clearer.
+        gesture="kb:control+o",
     )
     def script_openOtherFormat(self, gesture):
         # Deferred like every other dialog, so NVDA has finished the script
@@ -580,7 +594,10 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 
     @script(
         # Translators: Input help mode message for the recent pages command.
-        description=_("Shows the pages and documents opened in HomerView"),
+        description=_(
+            "Recently opened: lists the pages and documents you have opened in "
+            "HomerView, with when each was opened, so you can find something again"
+        ),
         category="HomerView",
     )
     def script_recentPages(self, gesture):
@@ -613,7 +630,9 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         # Translators: Input help mode message for the report address command.
         description=_("Reports the web address of the HomerView page, from anywhere in the window"),
         category="HomerView",
-        gesture="kb:NVDA+a",
+        # Not NVDA+A: that is Say All on NVDA's laptop layout, and a HomerView
+        # command must never shadow an NVDA default on either layout.
+        gesture="kb:NVDA+alt+u",
         speakOnDemand=True,
     )
     def script_reportAddressAnywhere(self, gesture):
@@ -654,7 +673,9 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
     @script(
         # Translators: Input help mode message for the Copilot command.
         description=_(
-            "Copies the page text, then opens Copilot in the Microsoft Edge sidebar"
+            "Ask Copilot about this page: copies the page text to the clipboard and "
+            "opens Microsoft Edge's Copilot sidebar, ready for you to paste with "
+            "Control+V and ask a question"
         ),
         category="HomerView",
         gesture="kb:NVDA+alt+p",
@@ -681,6 +702,38 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             _("Copilot opened. {characters} characters of the page are on the clipboard, "
               "ready to paste with Control+V.").format(characters=dContext.get("characters", 0))
         )
+
+    @script(
+        # Translators: Input help mode message for the quick start command.
+        description=_("Opens the HomerView quick start in the HomerView window"),
+        category="HomerView",
+    )
+    def script_openQuickStart(self, gesture):
+        documents.openDocument("readMe")
+
+    @script(
+        # Translators: Input help mode message for the user guide command.
+        description=_("Opens the HomerView user guide in the HomerView window"),
+        category="HomerView",
+    )
+    def script_openUserGuide(self, gesture):
+        documents.openDocument("guide")
+
+    @script(
+        # Translators: Input help mode message for the history command.
+        description=_("Opens the HomerView history of changes in the HomerView window"),
+        category="HomerView",
+    )
+    def script_openHistory(self, gesture):
+        documents.openDocument("history")
+
+    @script(
+        # Translators: Input help mode message for the developer notes command.
+        description=_("Opens the HomerView developer notes in the HomerView window"),
+        category="HomerView",
+    )
+    def script_openDeveloperNotes(self, gesture):
+        documents.openDocument("developer")
 
     @script(
         # Translators: Input help mode message for the self test command.

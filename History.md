@@ -1,4 +1,18 @@
-﻿# Changelog
+﻿# History of Changes
+
+## 1.9.1
+
+- Fixed a compile error in the setup script. SetupLogging was specified twice, because the 1.7.0 edit that minimised the wizard added it to the block it was rewriting without noticing the same directive already sat lower down. Inno Setup rejects a repeated directive rather than taking the last one, which is the right behaviour and caught it immediately.
+- Fixed two Start Menu shortcuts that still pointed at documents renamed in 1.9.0, so they would have installed as shortcuts to files that were no longer placed. The group now offers the quick start, the user guide, the history of changes, the developer notes, installing the add-on, and uninstalling.
+- Added a check to the build that reads the setup script and reports any directive specified twice or any file it references that does not exist. Both faults above would have been caught before compiling.
+
+## 1.9.0
+
+- Documentation now ships as four documents, each as Markdown and as a web page: README for a quick start, HomerView for the full user guide, History for what changed, and Developer for architecture and conventions.
+- The user guide is generated from the commands themselves rather than written beside them, so it cannot drift from what the program does.
+- Each document has a command in the Alternate Menu, and each is listed on the start page. Both open the web page in the HomerView window rather than handing it to the shell, which would give it to whichever browser is the default. That matters: a document opened in HomerView has every HomerView command available on it.
+- The documents are copied beside the start page on launch, so the relative links on that page resolve.
+- The installer places all eight files in the installation folder.
 
 ## 1.8.0
 

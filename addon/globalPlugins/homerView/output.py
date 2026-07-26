@@ -70,6 +70,18 @@ def showBrowseable(sHtml, sTitle):
     return "browseable"
 
 
+def lines(sTitle, lLines):
+    """Several lines of result, in a box that can be re-read and copied.
+
+    Speech alone is gone the moment it is heard. A Windows message box costs
+    one key to dismiss and buys the ability to read it again, and Control+C
+    copies the whole of it including the title, which every Windows user
+    already knows. For anything longer than a phrase that is a good trade.
+    """
+    lKept = [str(s) for s in lLines if s is not None and str(s).strip()]
+    return info(sTitle, "\n".join(lKept))
+
+
 def info(sTitle, sMessage):
     """Short facts, in a box Control+C can copy whole.
 

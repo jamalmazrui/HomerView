@@ -14,6 +14,10 @@ MainContent.htm
 HomerView.db
 HomerView.jsonl
 
+# Private correspondence. Drafts live outside the repository.
+Letter_to_*.md
+Letter_to_*.htm
+
 # Python and build output.
 __pycache__/
 *.pyc

@@ -29,6 +29,9 @@ dialogHeight = 460
 dialogWidth = 620
 
 
+dLastChoice = {}
+
+
 class CommandEntry:
     def __init__(self, sName, sGesture, sDescription, functionAction, sScope):
         self.functionAction = functionAction
@@ -39,9 +42,10 @@ class CommandEntry:
 
     @property
     def sLabel(self):
-        # Translators: Shown in the command list when a command has no key.
-        sGesture = self.sGesture or _("none")
-        return f"{self.sName}, {sGesture}"
+        # A command with no key simply shows its name. Saying "none" told the
+        # reader nothing they could act on and sounded like something had gone
+        # wrong, which for a first-time user is worse than silence.
+        return f"{self.sName}, {self.sGesture}" if self.sGesture else self.sName
 
 
 class AlternateMenuDialog(wx.Dialog):
@@ -66,9 +70,17 @@ class AlternateMenuDialog(wx.Dialog):
         boxButtons = self.CreateButtonSizer(wx.OK | wx.CANCEL)
         boxOuter.Add(boxButtons, 0, wx.EXPAND | wx.ALL, 10)
         self.SetSizerAndFit(boxOuter)
+        # Reopening the menu should put you back where you were. Someone
+        # working through several commands should not have to walk the list
+        # from the top each time.
+        iStart = 0
+        for iIndex, entry in enumerate(lEntries):
+            if entry.sName == dLastChoice.get("name"):
+                iStart = iIndex
+                break
         if lEntries:
-            self.listCommands.SetSelection(0)
-            self._showDescription(0)
+            self.listCommands.SetSelection(iStart)
+            self._showDescription(iStart)
         self.listCommands.Bind(wx.EVT_LISTBOX, self._onSelect)
         self.listCommands.Bind(wx.EVT_LISTBOX_DCLICK, lambda event: self.EndModal(wx.ID_OK))
         self.listCommands.SetFocus()
@@ -93,7 +105,13 @@ def showAlternateMenu(lEntries):
 
 def _showAlternateMenu(lEntries):
     # The command that opened this menu has no business being in it.
-    lEntries = [e for e in lEntries if "alternate menu" not in e.sName.lower()]
+    # Neither the command that opened this menu nor the one that starts the
+    # browser belongs in it: by the time the menu is open, both have happened.
+    lEntries = [
+        e for e in lEntries
+        if "alternate menu" not in e.sName.lower()
+        and "launch" not in e.sName.lower()
+    ]
     lSorted = sorted(lEntries, key=lambda entry: entry.sName.lower())
     homerLog.info(f"Alternate menu: {len(lSorted)} commands")
     gui.mainFrame.prePopup()
@@ -123,6 +141,7 @@ settleMilliseconds = 350
 
 
 def runChosenCommand(entry):
+    dLastChoice["name"] = entry.sName
     homerLog.info(f"Running {entry.sName} now that focus has settled")
     try:
         entry.functionAction()

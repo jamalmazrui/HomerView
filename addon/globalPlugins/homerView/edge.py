@@ -40,6 +40,10 @@ portProbeTimeoutSeconds = 0.4
 # about:blank, which leaves NVDA with nothing to announce. Set startPageUrl to
 # any address, such as "https://www.google.com/", to open that instead, or to
 # "about:blank" for the older behaviour.
+# Reopen the page the profile last had open, rather than the start page. The
+# profile is persistent, so its cookies and sessions come back with it.
+bReopenLastPage = True
+
 startPageFileName = "Start.htm"
 startPageUrl = ""
 
@@ -200,6 +204,62 @@ class EdgeManager:
                 logError(f"Window {iHandle} could not be activated")
         return False
 
+    def readLastSession(self):
+        """Return the address this profile had open when it last closed.
+
+        The profile is persistent, so Edge has already recorded this in its own
+        preferences. Reading it there is better than keeping a second copy that
+        could disagree with the browser, and it means cookies, sessions and
+        logins come back with the page rather than being reconstructed.
+        """
+        pathPreferences = self.pathProfile / "Default" / "Preferences"
+        try:
+            import json as jsonModule
+
+            dPreferences = jsonModule.loads(
+                pathPreferences.read_text(encoding="utf-8", errors="replace"))
+        except Exception as exception:
+            homerLog.debug(f"No previous session could be read: {exception}")
+            return ""
+        for lKeys in (
+            ("session", "startup_urls"),
+            ("browser", "last_known_urls"),
+        ):
+            vValue = dPreferences
+            for sKey in lKeys:
+                vValue = vValue.get(sKey, {}) if isinstance(vValue, dict) else {}
+            if isinstance(vValue, list) and vValue:
+                sUrl = str(vValue[0])
+                if sUrl.startswith("http"):
+                    homerLog.info(f"Previous session recorded {abbreviate(sUrl, 200)}")
+                    return sUrl
+        homerLog.info("The profile records no previous page")
+        return ""
+
+    def copyDocuments(self, pathFolder):
+        """Put the shipped documents beside the start page.
+
+        The start page links them with plain relative addresses, which only
+        resolve if they sit in the same folder. Copying them there also means a
+        link opens in this window rather than being handed to whichever browser
+        owns .htm files, which is the whole point of listing them.
+        """
+        from . import documents
+
+        iCopied = 0
+        for _sKey, sHtm, _sMarkdown, _sTitle in documents.lDocuments:
+            pathSource = documents.findInstalledDocument(sHtm)
+            if not pathSource:
+                continue
+            pathTarget = pathFolder / sHtm
+            try:
+                if not pathTarget.is_file() or pathTarget.stat().st_mtime < pathSource.stat().st_mtime:
+                    pathTarget.write_bytes(pathSource.read_bytes())
+                    iCopied += 1
+            except OSError:
+                logError(f"{sHtm} could not be placed beside the start page")
+        homerLog.info(f"Placed {iCopied} documents beside the start page")
+
     def resolveStartPage(self, sOverrideUrl=""):
         """Return the address the new window should open."""
         if sOverrideUrl:
@@ -208,6 +268,11 @@ class EdgeManager:
         if startPageUrl:
             homerLog.info(f"Start page overridden: {startPageUrl}")
             return startPageUrl
+        if bReopenLastPage:
+            sLast = self.readLastSession()
+            if sLast:
+                homerLog.info(f"Reopening the page this profile last had open: {abbreviate(sLast, 200)}")
+                return sLast
         pathFolder = logger.pathLogFile.parent if logger.pathLogFile else self.pathProfile.parent
         pathStart = pathFolder / startPageFileName
         try:
@@ -219,6 +284,7 @@ class EdgeManager:
             if not bCurrent:
                 pathStart.write_text(startPage.getStartPageText(), encoding="utf-8")
                 homerLog.info(f"Wrote the start page: {pathStart}")
+            self.copyDocuments(pathFolder)
             return pathStart.as_uri()
         except Exception:
             logError("Could not write the start page, so about:blank is used instead")
@@ -236,6 +302,7 @@ class EdgeManager:
             "browser": {"has_seen_welcome_page": True},
             "credentials_enable_service": False,
             "profile": {"exit_type": "Normal", "exited_cleanly": True},
+            "session": {"restore_on_startup": 1},
             "signin": {"allowed": bAllowSignIn, "allowed_on_next_startup": bAllowSignIn},
             "edge_copilot": {"enabled": bCopilotSupport},
             "sync": {"has_setup_completed": False, "requested": False},

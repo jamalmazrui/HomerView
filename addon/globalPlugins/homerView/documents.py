@@ -24,6 +24,75 @@ addonHandler.initTranslation()
 
 projectUrl = "https://github.com/JamalMazrui/HomerView"
 
+# Each document ships as Markdown and as a web page. The web page is what gets
+# opened, because it opens in the HomerView window where every HomerView command
+# works on it, rather than in whichever program owns .md files.
+lDocuments = [
+    ("readMe", "README.htm", "README.md", "Quick start"),
+    ("guide", "HomerView.htm", "HomerView.md", "User guide"),
+    ("history", "History.htm", "History.md", "History of changes"),
+    ("developer", "Developer.htm", "Developer.md", "Developer notes"),
+]
+
+
+def findInstalledDocument(sName):
+    """Find a document beside the log, in the installation folder, or in the add-on."""
+    import os
+    from pathlib import Path
+
+    from . import logger
+
+    lFolders = []
+    if logger.pathLogFile:
+        lFolders.append(logger.pathLogFile.parent)
+        lFolders.append(logger.pathLogFile.parent / "docs")
+    for sVariable in ("PROGRAMFILES", "PROGRAMFILES(X86)"):
+        sRoot = os.environ.get(sVariable, "")
+        if sRoot:
+            lFolders.append(Path(sRoot) / "HomerView")
+    lFolders.append(Path(__file__).resolve().parents[2])
+    lFolders.append(Path(__file__).resolve().parents[2] / "doc" / "en")
+    for pathFolder in lFolders:
+        try:
+            pathCandidate = pathFolder / sName
+            if pathCandidate.is_file():
+                homerLog.info(f"Document {sName} found at {pathCandidate}")
+                return pathCandidate
+        except OSError:
+            continue
+    homerLog.warning(f"Document {sName} was not found in {len(lFolders)} folders")
+    return None
+
+
+def openDocument(sKey):
+    """Open one of the shipped documents in the HomerView window.
+
+    Opening it as a file rather than handing it to the shell matters: the shell
+    would give a .htm file to whichever browser is the default, which is not
+    HomerView and may not even be Edge. Opening it through the protocol puts it
+    in the HomerView window, where the reader has every HomerView command.
+    """
+    from .service import service
+
+    for sName, sHtm, sMarkdown, sTitle in lDocuments:
+        if sName != sKey:
+            continue
+        pathDocument = findInstalledDocument(sHtm) or findInstalledDocument(sMarkdown)
+        if not pathDocument:
+            # Translators: Reported when a shipped document could not be found.
+            ui.message(_("{title} was not found. It is in the project at {url}").format(
+                title=sTitle, url=projectUrl))
+            return
+        if not service.isConnected():
+            # Translators: Reported when the browser is not running.
+            ui.message(_("Press NVDA+Alt+H first, so the document opens in HomerView"))
+            return
+        homerLog.info(f"Opening {sTitle} at {pathDocument}")
+        service.openReportPage(pathDocument.as_uri())
+        # Translators: Reported when a document is opened.
+        ui.message(_("{title} opened").format(title=sTitle))
+        return
+
 
 def readVersion():
     from . import logger
@@ -185,7 +254,7 @@ def show(sWhich):
         lbc.dialogInfo(_("About HomerView"), buildAboutText())
         return
     elif sWhich == "history":
-        pathDocument = findDocument(["CHANGELOG.md", "Changelog.md"])
+        pathDocument = findDocument(["History.md", "CHANGELOG.md"])
         sHtml = (
             renderMarkdown(pathDocument.read_text(encoding="utf-8-sig", errors="replace"))
             if pathDocument

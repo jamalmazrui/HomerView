@@ -1,0 +1,92 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>HomerView for Developers</title>
+<style>body{font-family:Segoe UI,Arial,sans-serif;line-height:1.5;margin:0 auto;max-width:60em;padding:1em}pre{background:#f4f4f4;padding:1em;white-space:pre-wrap}code{background:#f4f4f4}</style>
+</head>
+<body>
+<main>
+<h1>What this is</h1>
+<p>HomerView is an NVDA global plugin that launches its own copy of Microsoft Edge</p>
+<p>with the Chrome DevTools Protocol enabled, and then uses three separate views of</p>
+<p>the same page. Most of what it does that is hard to do elsewhere comes from</p>
+<p>having all three at once.</p>
+<p>The browser&#x27;s own window, reached through NVDA&#x27;s object model and the Windows</p>
+<p>API. That is where the address bar, the tab strip and the toolbars live, none of</p>
+<p>which exist in the page.</p>
+<p>The page as NVDA built it, through the browse mode tree interceptor. That is the</p>
+<p>reading order the user navigates, with its landmarks, headings and text ranges.</p>
+<p>The page as the browser sees it, through the protocol, in both directions:</p>
+<p>queries that ask, and commands that act. The self test exercises all three and</p>
+<p>reports each separately, because a protocol connection can answer every query</p>
+<p>while having lost the ability to act.</p>
+<h1>The rules the code follows</h1>
+<p>No network call runs on NVDA&#x27;s main thread. Everything that touches the browser</p>
+<p>is queued to a single worker, and results return through wx.CallAfter. A vague</p>
+<p>report of sluggishness becomes a specific line, because every task records the</p>
+<p>thread it ran on and warns if it is the wrong one.</p>
+<p>The test for &quot;is this object inside HomerView&#x27;s browser&quot; performs no input or</p>
+<p>output, because it runs for every object NVDA creates. It is an integer set</p>
+<p>membership check against the browser&#x27;s process identifiers.</p>
+<p>A dialog opened from inside a script waits for the script to return first.</p>
+<p>Otherwise NVDA has not processed the focus change, announces nothing, and keeps</p>
+<p>sending arrow keys to the page underneath.</p>
+<p>No command takes a key NVDA uses by default, on either the desktop or the</p>
+<p>laptop layout.</p>
+<h1>Where the code lives</h1>
+<pre><code>
+addon/globalPlugins/homerView/
+    __init__.py       the global plugin: commands that work anywhere
+    pageBuffer.py     the browse mode class and every page command
+    service.py        the worker thread, connection state, process identity
+    cdp.py            the protocol session, reader thread, event dispatch
+    webSocket.py      a loopback-only RFC 6455 client, standard library only
+    edge.py           finding and launching the browser
+    homer/            the shared toolkit: inix, lbc, say, web
+</code></pre>
+<p>The rest are one file per capability: axe, ace, act, capture, contacts,</p>
+<p>convert, copilot, documents, download, exportReport, find, history, mainContent,</p>
+<p>metadata, output, pageExplorer, report, saveAs, selfTest, settings, wcag.</p>
+<h1>The shared Homer toolkit</h1>
+<p>The homer package holds what is not about HomerView: order-preserving inix</p>
+<p>files, Layout by Code dialogs, a single way to announce text, and dependency</p>
+<p>free HTTP that behaves like a browser. Three rules make it shareable.</p>
+<p>No module imports NVDA at the top level, so every one is importable and testable</p>
+<p>in a plain interpreter and the same code serves a program that is not an add-on.</p>
+<p>Nothing depends on anything beyond the standard library except wx, which NVDA is</p>
+<p>built on. No module knows about HomerView.</p>
+<p>To reuse it, copy the folder into your add-on and import relatively. NVDA has no</p>
+<p>dependency manager for add-ons: a library add-on on sys.path works until load</p>
+<p>order changes or somebody removes it, and the add-on store cannot declare or</p>
+<p>protect that dependency. Copying costs a re-copy when a fix lands; sharing costs</p>
+<p>silent breakage in someone else&#x27;s add-on.</p>
+<h1>Building and releasing</h1>
+<pre><code>
+buildAll.cmd     builds the add-on, then compiles the installer
+tagRelease       tags the version and publishes the release
+</code></pre>
+<p>buildAll must run first. tagRelease reads the version from the built installer&#x27;s</p>
+<p>version resource and expects to find HomerView_setup.exe in the repository root.</p>
+<p>The add-on package has a stable name, HomerView.nvda-addon, so the setup script</p>
+<p>never needs editing for a version. A copy named for the version is written</p>
+<p>beside it for release assets. The version itself lives in the add-on&#x27;s</p>
+<p>manifest.ini, which is what NVDA reads, and in AppVersion in the setup script.</p>
+<p>Every build script writes a log beside itself.</p>
+<h1>Conventions</h1>
+<p>Camel Type: lowerCamelCase for names, Hungarian prefixes on typed variables,</p>
+<p>functions rather than subprocedures, constants named like variables.</p>
+<p>Files a Windows program reads are UTF-8 with a byte order mark and Windows line</p>
+<p>endings. Generated web pages use the .htm extension.</p>
+<p>Keys are written in the order Alt, Control, Shift, with the letter last and</p>
+<p>upper case regardless of Shift.</p>
+<h1>What is deliberately not here</h1>
+<p>No language model. The page explorer is rule-based, the act command matches</p>
+<p>rather than infers, and no page content leaves the machine. A local model</p>
+<p>service is detected and logged if one is running, and nothing uses it.</p>
+<p>No bundled converters. LibreOffice, pandoc, Calibre and 2htm are found rather</p>
+<p>than shipped, because an add-on folder is replaced wholesale on every update and</p>
+<p>sits in a roaming profile that some managed environments will not execute from.</p>
+</main>
+</body>
+</html>

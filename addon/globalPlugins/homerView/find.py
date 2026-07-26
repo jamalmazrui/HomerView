@@ -102,6 +102,7 @@ def findInBuffer(treeInterceptor, sPattern, bRegex, bBackwards, bCaseSensitive=F
     dLastFind.update(
         {"pattern": sPattern, "regex": bRegex, "caseSensitive": bCaseSensitive}
     )
+    rememberPattern()
     try:
         info = treeInterceptor.makeTextInfo(textInfos.POSITION_FIRST)
         info.move(textInfos.UNIT_CHARACTER, match.start())
@@ -118,6 +119,21 @@ def findInBuffer(treeInterceptor, sPattern, bRegex, bBackwards, bCaseSensitive=F
         # Translators: Reported when a match was found but could not be reached.
         ui.message(_("Found, but the cursor could not be moved there"))
         return False
+
+
+def rememberPattern():
+    """Keep the last pattern between sessions, not merely within one."""
+    from . import settings
+
+    settings.setRecent("findPattern", dLastFind.get("pattern", ""))
+
+
+def restorePattern():
+    from . import settings
+
+    if not dLastFind.get("pattern"):
+        dLastFind["pattern"] = settings.getRecent("findPattern", "")
+    return dLastFind["pattern"]
 
 
 def repeatFind(treeInterceptor, bBackwards):

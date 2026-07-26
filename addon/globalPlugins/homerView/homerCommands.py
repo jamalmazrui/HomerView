@@ -145,13 +145,17 @@ def sayYield(treeInterceptor):
     sText, bSelected = homerText.textOrAll(treeInterceptor)
     iCharacters, iWords, iLines = homerText.countYield(sText)
     homerLog.info(f"Yield: {iCharacters} characters, {iWords} words, {iLines} lines, selected={bSelected}")
-    if bSelected:
-        # Translators: Reported for the size of the selected text.
-        sMessage = _("Selected: {characters} characters, {words} words, {lines} lines")
-    else:
-        # Translators: Reported for the size of the whole page.
-        sMessage = _("Page: {characters} characters, {words} words, {lines} lines")
-    ui.message(sMessage.format(characters=iCharacters, words=iWords, lines=iLines))
+    from . import output
+
+    output.lines(
+        # Translators: Title of the box reporting how much text there is.
+        _("Selected text") if bSelected else _("Page text"),
+        [
+            _("{count} characters").format(count=iCharacters),
+            _("{count} words").format(count=iWords),
+            _("{count} lines").format(count=iLines),
+        ],
+    )
 
 
 def countNodes(treeInterceptor, sType):
@@ -172,14 +176,22 @@ def sayYieldStructure(treeInterceptor):
         "frames": countNodes(treeInterceptor, "frame"),
         "form fields": countNodes(treeInterceptor, "formField"),
     }
+    from . import output
+
     homerLog.info(f"Yield structure: {dCounts}")
-    ui.message(", ".join(f"{iCount} {sName}" for sName, iCount in dCounts.items()))
+    output.lines(
+        # Translators: Title of the box reporting what a page is built from.
+        _("What this page holds"),
+        [f"{iCount} {sName}" for sName, iCount in dCounts.items() if iCount],
+    )
 
 
 def sayPosition(treeInterceptor):
     """Say where the browse cursor is, as Homer's Address command does."""
     iLine, iColumn, iPercent = homerText.caretPosition(treeInterceptor)
     homerLog.info(f"Position: line {iLine}, column {iColumn}, {iPercent} percent")
+    # A position is a phrase, so it stays spoken: a box for three words would
+    # cost a keystroke and buy nothing.
     # NVDA's own position command leads with the percentage, which is the part
     # a reader actually wants; the line and column follow for precision.
     # Translators: Reported for the cursor position within the page.
@@ -617,6 +629,69 @@ def actOnPage():
     lbc.afterScript(_actOnPageNow)
 
 
+def describeScript(sScript):
+    """Say what running this script would do, without doing any of it.
+
+    A script that acts on a page is worth checking before it runs. Test reads
+    each line the way the runner will, and reports the verb, the target and the
+    value it found, so a mistyped instruction is caught before it clicks
+    something.
+    """
+    from . import act
+
+    lLines = [s.strip() for s in str(sScript or "").splitlines()]
+    lLines = [s for s in lLines if s and not s.startswith("#")]
+    if not lLines:
+        return _("There is nothing to run yet.")
+    lParts = [_("{count} instructions would run, in this order:").format(count=len(lLines))]
+    for iIndex, sLine in enumerate(lLines, 1):
+        sVerb, sTarget, sValue = act.parsePhrase(sLine)
+        if not sTarget:
+            lParts.append(
+                _("{index}. {line} — no target named, so the script would stop here").format(
+                    index=iIndex, line=sLine))
+            break
+        if sValue:
+            lParts.append(_("{index}. {verb} \"{value}\" into whatever best matches \"{target}\"").format(
+                index=iIndex, target=sTarget, value=sValue, verb=sVerb))
+        else:
+            lParts.append(_("{index}. {verb} whatever best matches \"{target}\"").format(
+                index=iIndex, target=sTarget, verb=sVerb))
+    lParts.append("")
+    lParts.append(_("Each instruction acts on the closest match by role and name. "
+                    "The script stops at the first line that matches nothing."))
+    return "\n".join(lParts)
+
+
+def scriptHelpText():
+    """What can be written in a script."""
+    return "\n".join([
+        _("Write one instruction a line. A line beginning with a hash is a comment."),
+        "",
+        _("What you can do:"),
+        _("  click, press, open, follow, select, choose — activate something"),
+        _("  type, enter, fill — put text into a field, as in: type Jamal into search"),
+        _("  check, tick, uncheck, untick — set a check box"),
+        _("  focus — move to something without activating it"),
+        _("  read — say the text of something"),
+        "",
+        _("Naming what to act on:"),
+        _("  Use the words you would hear. Click sign in. Type London into city."),
+        _("  You may name the kind as well: the search field, the Download link."),
+        _("  Naming a kind makes matches of that kind more likely to win, "
+          "rather than ruling others out."),
+        "",
+        _("Example:"),
+        _("  # sign in, then search"),
+        _("  click sign in"),
+        _("  type me@example.org into email"),
+        _("  click submit"),
+        "",
+        _("This is HomerView's own matching, not a language model. Nothing about "
+          "the page leaves your computer."),
+    ])
+
+
 def _actOnPageNow():
     """Ask what to do, find what could be meant, and do it."""
     from . import act
@@ -729,6 +804,73 @@ def reportActed(dSummary):
         return
     # Translators: Reported after an action on the page.
     ui.message(_("Done"))
+
+
+def runAccessibilityCheck():
+    """Ask which engine to use, then run it.
+
+    Two engines disagree usefully. axe checks WCAG. The IBM ruleset checks a
+    superset that also covers EN 301 549 and Section 508, and it separates a
+    recommendation from a failure. Offering both under one key means a reader
+    chooses what they need rather than remembering two keys, and leaves room
+    for a third engine without another binding.
+    """
+    from . import lbc
+    from . import settings
+
+    lChoices = [
+        _("Deque axe-core, with a report and how to reach the publisher"),
+        _("IBM Equal Access, saving JSON, CSV, a spreadsheet and a web page"),
+        _("Both, one after the other"),
+    ]
+    sPrevious = settings.getRecent("accessibilityEngine", lChoices[0])
+    iStart = lChoices.index(sPrevious) if sPrevious in lChoices else 0
+    sChoice = lbc.dialogChoose(
+        # Translators: Title of the dialog choosing an accessibility engine.
+        _("Test this page for accessibility"),
+        # Translators: Prompt above the list of accessibility engines.
+        _("Which engine should test this page?"),
+        lChoices, iStart)
+    if not sChoice:
+        homerLog.info("Accessibility check cancelled")
+        return
+    settings.setRecent("accessibilityEngine", sChoice)
+    homerLog.info(f"Accessibility engine chosen: {sChoice}")
+    if sChoice == lChoices[0]:
+        runAxeReport()
+    elif sChoice == lChoices[1]:
+        runIbmChecker()
+    else:
+        runAxeReport()
+        runIbmChecker()
+
+
+def runAxeReport():
+    from .service import service
+
+    if not service.isConnected():
+        # Translators: Reported when HomerView has no connection.
+        ui.message(_("HomerView is not connected"))
+        return
+    # Translators: Reported while the accessibility test runs.
+    ui.message(_("Testing the page and looking for reporting channels"))
+    service.submit("accessibilityReport", service.taskAccessibilityReport,
+                   showAxeReport, lambda exception: ui.message(str(exception)))
+
+
+def showAxeReport(dSummary):
+    from . import output
+
+    dCounts = dSummary.get("counts", {})
+    output.lines(
+        # Translators: Title of the box reporting an accessibility scan.
+        _("Accessibility report"),
+        [
+            _("{count} violations").format(count=dCounts.get("violations", 0)),
+            _("{count} needing review").format(count=dCounts.get("incomplete", 0)),
+            _("Saved to {path}").format(path=dSummary.get("reportPath", "")),
+        ],
+    )
 
 
 def runIbmChecker():
@@ -894,6 +1036,50 @@ def reportSubmitted(dResult):
     else:
         # Translators: Reported when a form could not be submitted.
         ui.message(_("That form could not be submitted"))
+
+
+def moveByUnit(treeInterceptor, sUnit, bForward, sWhatNone):
+    """Move the browse cursor by a unit and read where it landed.
+
+    NVDA leaves the cursor where it was when a movement finds nothing, and so
+    does this. The keys are EdSharp's, which NVDA leaves unassigned in browse
+    mode, so nothing is displaced.
+    """
+    try:
+        info = treeInterceptor.makeTextInfo(textInfos.POSITION_CARET)
+        iMoved = info.move(sUnit, 1 if bForward else -1)
+        if not iMoved:
+            ui.message(sWhatNone)
+            return
+        info.updateCaret()
+        info.expand(sUnit)
+        sText = (info.text or "").strip()
+        homerLog.info(f"Moved by {sUnit}: {abbreviate(sText, 120)}")
+        speech.speakText(sText or sWhatNone)
+    except Exception:
+        logError(f"Moving by {sUnit} failed")
+        # Translators: Reported when a movement command failed.
+        ui.message(_("That movement is not supported here"))
+
+
+def moveBySentence(treeInterceptor, bForward):
+    moveByUnit(
+        treeInterceptor,
+        textInfos.UNIT_SENTENCE,
+        bForward,
+        # Translators: Reported at the first or last sentence.
+        _("No next sentence") if bForward else _("No previous sentence"),
+    )
+
+
+def moveByParagraph(treeInterceptor, bForward):
+    moveByUnit(
+        treeInterceptor,
+        textInfos.UNIT_PARAGRAPH,
+        bForward,
+        # Translators: Reported at the first or last paragraph.
+        _("No next paragraph") if bForward else _("No previous paragraph"),
+    )
 
 
 def lastPercent(treeInterceptor):

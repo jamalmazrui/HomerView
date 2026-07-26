@@ -107,6 +107,8 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
              _("Open the HomerView history of changes in the HomerView window"), "openHistory"),
             (_("Developer notes"), "",
              _("Open the HomerView developer notes in the HomerView window"), "openDeveloperNotes"),
+            (_("Elevate version"), "Control+F11, or NVDA+Alt+F11",
+             _("Check for a newer HomerView and install it"), "elevateVersion"),
             (_("Self test"), "",
              _("Check that all three ways of reaching the browser are working"), "selfTest"),
         ):
@@ -743,6 +745,15 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
     )
     def script_openDeveloperNotes(self, gesture):
         documents.openDocument("developer")
+
+    @script(
+        # Translators: Input help mode message for the elevate version command.
+        description=_("Checks for a newer HomerView and installs it"),
+        category="HomerView",
+        gesture="kb:NVDA+alt+f11",
+    )
+    def script_elevateVersion(self, gesture):
+        homerCommandsModule.elevateVersion()
 
     @script(
         # Translators: Input help mode message for the self test command.

@@ -57,7 +57,8 @@ class AlternateMenuDialog(wx.Dialog):
         self.lEntries = lEntries
         boxOuter = wx.BoxSizer(wx.VERTICAL)
         # Translators: Label of the list of commands.
-        labelList = wx.StaticText(self, label=_("Command, and key:"))
+        labelList = wx.StaticText(
+            self, label=_("Command, and key. Control+J finds, F3 repeats:"))
         boxOuter.Add(labelList, 0, wx.ALL, 10)
         self.listCommands = wx.ListBox(
             self,
@@ -81,6 +82,10 @@ class AlternateMenuDialog(wx.Dialog):
         if lEntries:
             self.listCommands.SetSelection(iStart)
             self._showDescription(iStart)
+        # The same find and copy chords every Lbc list answers.
+        from .homer.lbc import ListSearch
+
+        ListSearch.bind(self.listCommands)
         self.listCommands.Bind(wx.EVT_LISTBOX, self._onSelect)
         self.listCommands.Bind(wx.EVT_LISTBOX_DCLICK, lambda event: self.EndModal(wx.ID_OK))
         self.listCommands.SetFocus()

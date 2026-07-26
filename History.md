@@ -1,5 +1,32 @@
 ﻿# History of Changes
 
+## 1.13.0
+
+- Brought the Python Lbc up to the level of the C# one, and every list in HomerView gained the result. Control+J asks for a substring, not case sensitive, and moves to the first item containing it; Control+Shift+J searches backwards; F3 and Shift+F3 repeat without asking again. The search wraps and the term survives closing one dialog and opening another, because someone who has just searched for the same thing twice should not type it a third time.
+- Every Lbc control now answers the same chords, so a user does not have to remember which kind of control they are in. Control+C copies the current line or the current list item, Alt+C appends the same to the clipboard, Control+A selects all and says so, Control+Shift+A clears the selection and says so.
+- Shift+F1 speaks the tip for whatever has focus, from any control rather than only a text field. A tip belongs where there is no room for it on screen, which for a screen reader user is everywhere.
+- Added a check list for choosing several items, which is the accessible way to offer multiple selection: a check box on each item says whether it is chosen, where an extended-selection list box has nothing on the item that says so. Added a history box for a field that remembers what was typed before, and F4 opens a pick list on any field given one.
+- Added named access to controls, so a dialog can be read and written by name rather than by remembering the order things were added, and an initial focus can be asked for.
+- Added a shared version module to the toolkit, holding the comparison and the GitHub release lookup that DbDo, EdSharp and FileDir each wrote separately. Versions compare as numbers, because compared as text 1.11.0 sorts before 1.9.2 and upgrades quietly stop being offered.
+- The Alternate Menu list is searchable with these keys, and its label says so.
+
+## 1.12.1
+
+- Elevate Version moved from F11 to Control+F11, and F11 is left to Microsoft Edge.
+- The reason is not that full screen is valuable to a screen reader user, because entering it is not: hiding the address bar and the tab strip saves screen space, which is worth nothing to someone who is not looking at the screen, and it removes those controls from the accessibility tree, which is a small loss rather than a gain.
+- The reason is that F11 also leaves a full screen that a page imposed. A video site, a presentation, a map or a kiosk page can put the browser into full screen through the Fullscreen API without being asked, and while Escape usually leaves, a page that handles Escape itself can swallow it. F11 always works. Taking it would mean that on the day a page traps someone, the key that frees them opens a HomerView update dialog instead. A command used a few times a year is not worth that.
+- Control+F11 is unassigned in Microsoft Edge, in Windows and in NVDA, and it sits beside Control+F12 for Save Page As, which makes the pair easy to remember. NVDA+Alt+F11 still works anywhere.
+
+## 1.12.0
+
+- Added Elevate Version, on F11 in a page and NVDA+Alt+F11 anywhere. It asks GitHub what the latest release is, compares it with what is running, and offers to download and install it.
+- The design follows DbDo's, which was the fullest of the three and had the sharpest reasoning behind each step. The version is looked up through the releases API, falling back to fetching the releases page and reading the tag out of the address it redirects to, because the API rate limits unauthenticated callers and the redirect does not.
+- Being already current does not end the command. It offers to install the same version again, which is what someone wants when an installation did not take. That is not hypothetical: a tester ran an older add-on for a whole session because an installer checkbox was unchecked, and this is how he could have repaired it himself.
+- Running a version newer than the public release is reported rather than treated as a fault, and no downgrade is offered. That is the normal state of the developer's own machine.
+- Versions are compared as numbers rather than as text, so 1.11.0 is correctly newer than 1.9.2. Compared as text it is not, and this project passed that point some releases ago.
+- One thing differs from DbDo, and it is the point of the command here. DbDo downloads an installer and lets it take over. HomerView's program files matter less than its add-on, because the add-on is what NVDA loads and until NVDA has it nothing works. So the add-on package is downloaded and handed to NVDA, which shows its own confirmation and restarts itself. The installer is named afterwards for the documentation and the converters.
+- On the key: Homer binds Elevate Version to F11, and Microsoft Edge uses F11 for full screen. F11 is therefore bound only inside a HomerView page, where a screen reader user rarely wants full screen, and NVDA+Alt+F11 is offered as a key that shadows nothing anywhere.
+
 ## 1.11.0
 
 - NVDA+Alt+H now looks for a HomerView window before doing anything else, and brings it to the front if it finds one. The command means one thing to the person pressing it, namely put me in HomerView, and what that requires differs; it is now tried in order of how much it disturbs. Activating a window that is already open is instant and loses nothing.

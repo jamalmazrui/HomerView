@@ -1,5 +1,11 @@
 ﻿# Changelog
 
+## 1.0.5
+
+- Fixed the release failure. tagRelease reads the version from the built installer's version resource and looks for that installer in the repository root, but the setup script was writing it to a dist folder, where tagRelease was never going to look. The installer now lands in the root.
+- The underlying reason it was missing at all is that nothing had compiled it. buildAddon.cmd builds the add-on package and stops there, so HomerView_setup.exe did not exist yet.
+- Added buildAll.cmd, which does both steps in the order tagRelease expects: the add-on package, then the installer. It finds the Inno Setup compiler where its own installer puts it rather than asking for it on the path, checks that the installer was actually produced, and reports the version it read back from the file, which is the same version tagRelease will read. Run buildAll, then tagRelease.
+
 ## 1.0.4
 
 - Fixed silent results from the Alternate Menu. The commands were not failing: the log shows Url reference and Say yield structure both running and producing their answers, and the user heard nothing.

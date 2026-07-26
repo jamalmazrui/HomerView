@@ -1,5 +1,22 @@
 ﻿# History of Changes
 
+## 1.11.0
+
+- NVDA+Alt+H now looks for a HomerView window before doing anything else, and brings it to the front if it finds one. The command means one thing to the person pressing it, namely put me in HomerView, and what that requires differs; it is now tried in order of how much it disturbs. Activating a window that is already open is instant and loses nothing.
+- When several HomerView windows are open, the one most recently in front is chosen. EnumWindows walks in z order, so the first window it offers is the one the user means.
+- This works after NVDA has restarted. The browser's process identifier is written into the profile folder at launch, so a later session can find the window without needing a protocol connection, which is exactly the case that used to open a second window.
+- If a window is found but its debugging connection has gone, HomerView reconnects quietly where it can, and where it cannot it says the window is open but commands will not work in it, rather than opening a second window nobody asked for.
+- Only when no window exists at all does a browser start, and then the previous behaviour applies: the page the profile last had open, or the start page.
+- The spoken result now matches what happened: a short acknowledgement for a window brought forward, and a plain explanation when Windows refuses to raise it or when the connection is missing.
+
+## 1.10.0
+
+- The installer proposes the Program Files folder again. It always did, but UsePreviousAppDir was set to yes, so on any machine where an earlier version had installed to C drive HomerView, the installer kept proposing that recorded path instead of the default and an upgrade never moved. It is now no; the directory page is still shown, so anyone who chose a different drive can choose it again.
+- The session log and the history database moved out of the installation folder and into the user's local application data. A program folder should be written by its installer and read afterwards. Writing there at run time either demands administrator rights for ever or has the writes redirected somewhere the user cannot find, and the folder is per machine, so two people sharing a computer shared one log.
+- Removed the permission grant that gave every user modify rights on the installation folder. That was solving the wrong problem: it traded a real security boundary for a convenience the correct location made unnecessary.
+- Uninstalling no longer removes the log, the database or the settings. They are the user's data on the user's filesystem, and removing a program is not a reason to discard what it recorded.
+- Added a section to the developer notes setting out where each kind of file belongs on Windows and why, and applying the same rule to 2htm, DbDo and urlFido.
+
 ## 1.9.2
 
 - The checkbox that hands the add-on to NVDA is checked by default. It was unchecked in 1.5.1, and a tester who sensibly accepted every default went on running an older add-on for a whole session without knowing it, reporting faults that had already been fixed. Accepting the defaults must produce a working installation rather than a folder of files, and the reason is now written beside the line so it does not drift back.

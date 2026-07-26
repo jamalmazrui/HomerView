@@ -972,6 +972,21 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 
     def _reportLaunched(self, dConnection):
         homerLog.info(f"Launch reported to the user: {dConnection}")
+        if dConnection.get("existing"):
+            if not dConnection.get("activated"):
+                # Translators: Reported when Windows refused to raise the window.
+                ui.message(_(
+                    "HomerView is already running, but Windows would not bring its window "
+                    "forward. Try Alt+Tab."))
+            elif not dConnection.get("port"):
+                # Translators: Reported when the window is open but unusable.
+                ui.message(_(
+                    "HomerView window opened, but its connection is gone, so commands will "
+                    "not work. Close it and press NVDA+Alt+H again."))
+            else:
+                # Translators: Reported when an existing window was brought forward.
+                ui.message(_("HomerView"))
+            return
         sCarried = dConnection.get("carried") or ""
         if sCarried:
             # Translators: Reported when the page from another Edge window was

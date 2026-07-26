@@ -136,8 +136,8 @@ says which one to install.
 - Generated pages and reports: a HomerView folder inside the temporary folder,
   which Windows clears on its own.
 - Downloads and saved files: your downloads folder.
-- The session log: HomerView.log in the installation folder.
-- What you have opened: HomerView.db beside the log.
+- The session log and the history database: your local application data folder.
+
 
 # Why the browser is a separate copy
 

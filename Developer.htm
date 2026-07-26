@@ -87,6 +87,63 @@ tagRelease       tags the version and publishes the release
 <p>No bundled converters. LibreOffice, pandoc, Calibre and 2htm are found rather</p>
 <p>than shipped, because an add-on folder is replaced wholesale on every update and</p>
 <p>sits in a roaming profile that some managed environments will not execute from.</p>
+<h1>Where files belong on Windows</h1>
+<p>This is settled here once, because four programs in this family face the same</p>
+<p>question and answering it differently in each would be a nuisance to everyone.</p>
+<p>Windows offers five places, and the choice follows from what a file is rather</p>
+<p>than from what is convenient.</p>
+<p><strong>The program folder</strong>, <code>C:\Program Files\&lt;Product&gt;</code>, reached in an installer</p>
+<p>script as <code>{autopf}</code>. Written once by the installer, which has administrator</p>
+<p>rights, and read for ever after. Nothing a program writes at run time belongs</p>
+<p>here. Windows once quietly redirected such writes to a per-user store, which</p>
+<p>hid them from the user and from the program&#x27;s own uninstaller, and that</p>
+<p>redirection has been discouraged for years. Granting the Users group write</p>
+<p>access to escape the problem trades a real security boundary for a convenience,</p>
+<p>and it also means two people sharing a computer share one file.</p>
+<p><strong>Local application data</strong>, <code>%LOCALAPPDATA%</code>, which is</p>
+<p><code>C:\Users\&lt;name&gt;\AppData\Local\&lt;Product&gt;</code>. Per user and per machine, and not</p>
+<p>copied anywhere. This is where a log, a database, a cache, a downloaded tool or</p>
+<p>a browser profile belongs. Anything that grows, anything specific to this</p>
+<p>computer, anything that would be meaningless on another one.</p>
+<p><strong>Roaming application data</strong>, <code>%APPDATA%</code>, which is</p>
+<p><code>C:\Users\&lt;name&gt;\AppData\Roaming\&lt;Product&gt;</code>. Per user, and in a domain it</p>
+<p>follows the person to whatever computer they sign in to. This is for</p>
+<p>preferences, and only for preferences. The whole folder is copied at sign in</p>
+<p>and sign out, so a log or a database placed here makes every sign in slower for</p>
+<p>no benefit to anyone.</p>
+<p><strong>Machine-wide data</strong>, <code>C:\ProgramData\&lt;Product&gt;</code>. Shared by every user of the</p>
+<p>computer. Worth using only when data genuinely is shared, and it needs thought</p>
+<p>about permissions, because a folder every user can write is a folder any user</p>
+<p>can tamper with.</p>
+<p><strong>The user&#x27;s own folders</strong>, Documents and Downloads. Only for files the user</p>
+<p>asked for and will manage themselves. A saved report or a downloaded file, yes.</p>
+<p>A log, never: the user did not ask for it and should not have to tidy it.</p>
+<p><strong>The temporary folder</strong>, <code>%TEMP%</code>. Generated working files that Windows may</p>
+<p>clear whenever it likes. Reports and converted documents live here, because</p>
+<p>they are a way of reading something rather than a document in their own right.</p>
+<h2>Where HomerView puts each thing</h2>
+<ul>
+<li>Program files, documentation and the converters: the installation folder.</li>
+<li>The session log and the history database: local application data.</li>
+<li>Preferences and recently typed values: roaming application data.</li>
+<li>The browser profile: local application data, because it is large and</li>
+</ul>
+<p>machine-specific.</p>
+<ul>
+<li>Generated reports and converted documents: the temporary folder.</li>
+<li>Downloads and files saved on request: the user&#x27;s downloads folder.</li>
+</ul>
+<h2>The same rule applied to the other tools</h2>
+<p>2htm converts a document and writes the result where the user asked. It needs no</p>
+<p>per-user folder at all beyond a log, which belongs in local application data.</p>
+<p>DbDo and urlFido keep settings, which belong in roaming application data as</p>
+<p><code>%APPDATA%\&lt;Product&gt;\&lt;Product&gt;.inix</code>, and write logs and any cached data to</p>
+<p>local application data. Neither should write to its own installation folder,</p>
+<p>and neither installer should loosen permissions on it.</p>
+<p>A shared <code>%APPDATA%\Homer</code> folder for settings common to the family would be</p>
+<p>defensible, but only for settings genuinely shared. A setting that belongs to</p>
+<p>one program should stay with that program, so that removing it removes its</p>
+<p>settings too.</p>
 </main>
 </body>
 </html>

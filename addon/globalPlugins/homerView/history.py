@@ -63,6 +63,10 @@ class HistoryStore:
         try:
             from . import logger
 
+            # Beside the log, in local application data. A record of what was
+            # opened is data rather than a preference: it is specific to this
+            # machine, it grows, and it is of no use on another computer, so it
+            # does not belong in a roaming profile.
             pathFolder = logger.pathLogFile.parent if logger.pathLogFile else paths.getTempFolder()
         except Exception:
             pathFolder = paths.getTempFolder()

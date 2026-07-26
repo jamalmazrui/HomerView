@@ -34,6 +34,7 @@ appPathsKey = r"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\msedge.exe"
 launchTimeoutSeconds = 25.0
 pollIntervalSeconds = 0.25
 portFileName = "DevToolsActivePort"
+processFileName = "HomerView.pid"
 portProbeTimeoutSeconds = 0.4
 
 # HomerView writes a small start page beside the log and opens that, rather than
@@ -152,24 +153,56 @@ class EdgeManager:
                 return pathEdge
         return None
 
-    def activateWindow(self):
-        """Bring a top level window of the HomerView browser to the front.
+    def recordBrowserProcess(self):
+        """Remember which process this profile's browser is, for a later session.
 
-        The protocol can raise a tab within its own window, but it cannot make
-        that window the foreground window of Windows, which is what the user
-        actually needs when they were reading somewhere else a moment ago.
+        NVDA restarts often, and when it does, HomerView forgets everything it
+        knew about a browser that is still sitting there. The process
+        identifier is written into the profile folder, which is where a fact
+        about that profile belongs, so a later session can find the window
+        again without a protocol connection.
         """
-        if not self.iProcessId:
-            return False
+        try:
+            (self.pathProfile / processFileName).write_text(
+                str(self.iProcessId), encoding="utf-8")
+            homerLog.debug(f"Recorded browser process {self.iProcessId}")
+        except OSError:
+            logError("The browser process could not be recorded")
+
+    def readBrowserProcess(self):
+        try:
+            sText = (self.pathProfile / processFileName).read_text(encoding="utf-8").strip()
+            return int(sText) if sText.isdigit() else 0
+        except (OSError, ValueError):
+            return 0
+
+    def findExistingWindows(self):
+        """Return visible windows of this profile's browser, front-most first.
+
+        EnumWindows walks in z order, so the first handle it offers is the one
+        most recently in front. That is the window a user means when they ask
+        for the one they were last using.
+
+        The search uses the process identifiers this session knows, and falls
+        back to the one recorded in the profile, which is what makes this work
+        after NVDA has restarted and forgotten everything.
+        """
+        setProcessIds = set(self.setProcessIds)
+        iRecorded = self.readBrowserProcess()
+        if iRecorded:
+            setProcessIds.add(iRecorded)
+        if not setProcessIds:
+            homerLog.debug("No browser process is known, so no window can be looked for")
+            return []
         lHandles = []
 
         def collect(iHandle, iParameter):
             iOwner = ctypes.c_ulong()
             ctypes.windll.user32.GetWindowThreadProcessId(iHandle, ctypes.byref(iOwner))
-            if iOwner.value in self.setProcessIds and ctypes.windll.user32.IsWindowVisible(iHandle):
-                iLength = ctypes.windll.user32.GetWindowTextLengthW(iHandle)
-                if iLength > 0:
-                    lHandles.append(iHandle)
+            if (iOwner.value in setProcessIds
+                    and ctypes.windll.user32.IsWindowVisible(iHandle)
+                    and ctypes.windll.user32.GetWindowTextLengthW(iHandle) > 0):
+                lHandles.append(iHandle)
             return True
 
         prototype = ctypes.WINFUNCTYPE(ctypes.c_bool, ctypes.c_void_p, ctypes.c_void_p)
@@ -177,31 +210,39 @@ class EdgeManager:
             ctypes.windll.user32.EnumWindows(prototype(collect), 0)
         except Exception:
             logError("The browser windows could not be enumerated")
+            return []
+        homerLog.info(
+            f"Found {len(lHandles)} existing HomerView window(s) for process(es) "
+            f"{sorted(setProcessIds)}"
+        )
+        return lHandles
+
+    def activateHandle(self, iHandle):
+        """Bring one window to the front and say whether Windows allowed it."""
+        try:
+            ctypes.windll.user32.ShowWindow(iHandle, 9)  # SW_RESTORE
+            bResult = bool(ctypes.windll.user32.SetForegroundWindow(iHandle))
+            iForeground = ctypes.windll.user32.GetForegroundWindow()
+            bReally = int(iForeground) == int(iHandle)
+            homerLog.info(
+                f"Activated window {iHandle}: call returned {bResult}, "
+                f"foreground is now {iForeground}, actually in front: {bReally}"
+            )
+            return bReally
+        except Exception:
+            logError(f"Window {iHandle} could not be activated")
             return False
-        homerLog.info(f"Found {len(lHandles)} visible HomerView browser windows")
-        for iHandle in lHandles:
-            try:
-                ctypes.windll.user32.ShowWindow(iHandle, 9)  # SW_RESTORE
-                bResult = bool(ctypes.windll.user32.SetForegroundWindow(iHandle))
-                # Windows refuses foreground changes from a process that does
-                # not already own the foreground, and the call can still report
-                # success while only flashing the taskbar button. Asking which
-                # window is actually in front is the only honest check.
-                iForeground = ctypes.windll.user32.GetForegroundWindow()
-                bReally = int(iForeground) == int(iHandle)
-                homerLog.info(
-                    f"Activated window {iHandle}: call returned {bResult}, "
-                    f"foreground is now {iForeground}, actually in front: {bReally}"
-                )
-                if bReally:
-                    return True
-                homerLog.warning(
-                    "Windows declined to bring the HomerView window to the front. "
-                    "Its taskbar button may be flashing instead. Press Alt+Tab, or "
-                    "NVDA+Alt+H again once another HomerView window has focus."
-                )
-            except Exception:
-                logError(f"Window {iHandle} could not be activated")
+
+    def activateWindow(self):
+        """Bring a top level window of the HomerView browser to the front.
+
+        The protocol can raise a tab within its own window, but it cannot make
+        that window the foreground window of Windows, which is what the user
+        actually needs when they were reading somewhere else a moment ago.
+        """
+        for iHandle in self.findExistingWindows():
+            if self.activateHandle(iHandle):
+                return True
         return False
 
     def readLastSession(self):
@@ -413,6 +454,7 @@ class EdgeManager:
         homerLog.info(f"Edge command line: {lArguments}")
         self.process = subprocess.Popen(lArguments, close_fds=True)
         self.iProcessId = self.process.pid
+        self.recordBrowserProcess()
         self.bLauncherExited = False
         homerLog.info(f"Edge started with process id {self.iProcessId}")
         # The process we start very often exits within a fraction of a second

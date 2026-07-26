@@ -604,24 +604,33 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         homerLog.info("Command: recent pages")
         lRows = history.recent("", 60)
         dStore = history.describe()
-        lParts = ["<h1>HomerView history</h1>"]
+        lParts = ["<h1>Recently opened</h1>"]
         lParts.append(
-            f"<p>Stored in {selfTest.escape(dStore.get('path', ''))} "
-            f"using {selfTest.escape(dStore.get('backend', ''))}.</p>"
+            f"<p>{len(lRows)} entries, newest first, from "
+            f"{selfTest.escape(dStore.get('path', ''))}.</p>"
         )
         if not lRows:
             lParts.append("<p>Nothing has been recorded yet in this installation.</p>")
         else:
-            lParts.append("<table><thead><tr><th>When</th><th>What</th><th>Title</th>"
-                          "<th>Address</th></tr></thead><tbody>")
+            # A list rather than a table. The reader is using a screen reader,
+            # and a list is quicker to move through than four columns of which
+            # three are usually the same.
+            lParts.append("<ul>")
             for dRow in lRows:
-                lParts.append(
-                    f"<tr><td>{selfTest.escape(dRow.get('recordedUtc', ''))}</td>"
-                    f"<td>{selfTest.escape(dRow.get('kind', ''))}</td>"
-                    f"<td>{selfTest.escape(dRow.get('title', ''))}</td>"
-                    f"<td>{selfTest.escape(dRow.get('address', ''))}</td></tr>"
-                )
-            lParts.append("</tbody></table>")
+                sWhen = str(dRow.get("recordedUtc", ""))[:16].replace("T", " at ")
+                sTitle = str(dRow.get("title", "")).strip()
+                sAddress = str(dRow.get("address", "")).strip()
+                sKind = str(dRow.get("kind", "")).replace("Opened", " opened").replace(
+                    "Viewed", " viewed").replace("Information", " information").replace(
+                    "Scan", " scan")
+                lPieces = [selfTest.escape(sTitle or sAddress or "untitled")]
+                if sAddress and sTitle:
+                    lPieces.append(
+                        f'<a href="{selfTest.escape(sAddress)}">'
+                        f"{selfTest.escape(sAddress)}</a>")
+                lPieces.append(selfTest.escape(f"{sKind}, {sWhen}"))
+                lParts.append("<li>" + "<br>".join(lPieces) + "</li>")
+            lParts.append("</ul>")
         # Translators: Title of the history window.
         sTitle = _("HomerView history")
         output.show("\n".join(lParts), sTitle)

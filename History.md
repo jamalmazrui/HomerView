@@ -1,5 +1,12 @@
 ﻿# History of Changes
 
+## 1.9.2
+
+- The checkbox that hands the add-on to NVDA is checked by default. It was unchecked in 1.5.1, and a tester who sensibly accepted every default went on running an older add-on for a whole session without knowing it, reporting faults that had already been fixed. Accepting the defaults must produce a working installation rather than a folder of files, and the reason is now written beside the line so it does not drift back.
+- The welcome page and the finish page both say plainly that the program files alone do nothing, that NVDA will ask for confirmation, and that NVDA must restart before any command works.
+- The page explorer no longer fails when a field arrives as a number or a string where a list was expected. Both ends of that script have been edited more than once, and a summary that fails entirely because one field changed shape is a poor trade. Every collection is now read through a conversion that accepts either.
+- The Recently Opened list is a list rather than a table. The reader is using a screen reader, and moving through a list is quicker than four columns of which three are usually the same.
+
 ## 1.9.1
 
 - Fixed a compile error in the setup script. SetupLogging was specified twice, because the 1.7.0 edit that minimised the wizard added it to the block it was rewriting without noticing the same directive already sat lower down. Inno Setup rejects a repeated directive rather than taking the last one, which is the right behaviour and caught it immediately.

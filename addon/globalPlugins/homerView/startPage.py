@@ -18,7 +18,7 @@ weights have been published, which is not the same thing as the service being
 open. None of them belong here under this rule.
 """
 
-startPageVersion = "6"
+startPageVersion = "8"
 
 startPageText = """<!doctype html>
 <html lang="en">
@@ -63,29 +63,34 @@ side effect.</li>
 <p>This window belongs to HomerView. Press Control+L to type a web address.</p>
 <h2>Commands in a web page</h2>
 <ul>
-<li>Alt+A reports the web address. Press twice to spell it, three times to copy it.</li>
-<li>J moves to the main content landmark. Shift+J finds it when the page declares none.</li>
-<li>Y summarises the structure of the page.</li>
-<li>Alt+K tests the page for accessibility, asking which engine to use.</li>
-<li>Control and Alt with the up and down arrows move by paragraph and by sentence.</li>
-<li>Alt+F8 reads the whole page. Control+F8 copies it.</li>
-<li>Control+F finds text or a regular expression. F3 repeats it.</li>
-<li>Alt+F10 lists every command in one alphabetical list.</li>
-<li>Control+F11 checks for a newer HomerView and installs it.</li>
+<li><strong>J</strong> jumps to the main content.</li>
+<li><strong>Shift+J</strong> finds the main content when the page declares none.</li>
+<li><strong>Y</strong> summarises the structure of the page.</li>
+<li><strong>Alt+A</strong> reports the web address. Twice spells it, three times copies it.</li>
+<li><strong>Alt+F8</strong> reads the whole page. <strong>Control+F8</strong> copies it.</li>
+<li><strong>Control+F</strong> finds text, not case sensitive. <strong>Control+F3</strong> finds a
+regular expression. <strong>F3</strong> repeats either.</li>
+<li><strong>Alt+W</strong> finds the next place the word at the cursor appears.</li>
+<li><strong>Alt+K</strong> tests the page for accessibility.</li>
+<li><strong>Control</strong> and <strong>Alt</strong> with the up and down arrows move by
+paragraph and by sentence.</li>
+<li><strong>Control+F11</strong> checks for a newer HomerView and installs it.</li>
 </ul>
 <h2>Commands anywhere</h2>
 <ul>
-<li>NVDA+Alt+H launches or reconnects HomerView Edge.</li>
-<li>NVDA+Alt+F10 lists every command, even before HomerView Edge is running.</li>
+<li><strong>NVDA+Alt+H</strong> launches HomerView Edge, or brings its window forward.</li>
+<li><strong>NVDA+Alt+F10</strong> lists every command in one alphabetical list. It works
+everywhere, including before HomerView Edge is running, and it can start it for you.</li>
 
-<li>NVDA+Alt+X extracts the readable part of the page.</li>
-<li>NVDA+Alt+W downloads files linked from the page.</li>
-<li>Control+O opens a document of almost any format.</li>
-<li>Control+F12 saves the page as a web page, Markdown, text, Word, PDF or an image.</li>
+<li><strong>NVDA+Alt+X</strong> extracts the readable part of the page.</li>
+<li><strong>NVDA+Alt+W</strong> downloads files linked from the page.</li>
+<li><strong>Control+O</strong> opens a document of almost any format.</li>
+<li><strong>Control+F12</strong> saves the page as a web page, Markdown, text, Word, PDF or
+an image.</li>
 </ul>
 <h2>Documentation</h2>
 <p>These open in this window, where every HomerView command works on them. They
-are also in the Alternate Menu on Alt+F10.</p>
+are also in the Alternate Menu, on NVDA+Alt+F10.</p>
 <ul>
 <li><a href="README.htm">Quick start</a> &mdash; the first ten minutes.</li>
 <li><a href="HomerView.htm">User guide</a> &mdash; every command and what it does.</li>

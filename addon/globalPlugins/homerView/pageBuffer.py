@@ -89,7 +89,8 @@ dHomerGestures = {
     "kb:shift+j": "proxyMainContent",
     "kb:y": "explorePage",
     "kb:alt+i": "runIbmChecker",
-    "kb:control+f": "findByPattern",
+    "kb:control+f": "findText",
+    "kb:control+shift+f": "findTextBackwards",
     "kb:control+f3": "findByPattern",
     "kb:control+o": "openOtherFormat",
     "kb:alt+w": "findWordAtCursor",
@@ -131,7 +132,10 @@ dHomerGestures = {
     "kb:alt+shift+'": "clearClipboard",
     "kb:control+'": "saveClipboard",
     "kb:control+shift+'": "appendClipboard",
-    "kb:alt+f10": "alternateMenu",
+    # The Alternate Menu is deliberately not bound here. It is on NVDA+Alt+F10
+    # alone, which works everywhere, because a command whose whole purpose is
+    # to find other commands must never be one of the things that sometimes
+    # does nothing. See the note in __init__.py.
     "kb:alt+shift+h": "hotkeySummary",
 }
 
@@ -616,10 +620,6 @@ class HomerViewBuffer:
     def script_appendClipboard(self, gesture):
         self.runSafely("appendClipboard", lambda: clipboardTools.exportClipboard(True))
 
-    @script(description=_("Lists every HomerView command in one alphabetical list"), category="HomerView")
-    def script_alternateMenu(self, gesture):
-        self.runSafely("alternateMenu", lambda: alternateMenu.showAlternateMenu(self.buildCommandEntries()))
-
     @script(description=_("Shows every HomerView command and its key as a document"), category="HomerView")
     def script_hotkeySummary(self, gesture):
         self.runSafely("hotkeySummary", lambda: alternateMenu.showHotkeySummary(self.buildCommandEntries()))
@@ -672,13 +672,33 @@ class HomerViewBuffer:
     def script_runAccessibilityCheck(self, gesture):
         self.runSafely("runAccessibilityCheck", homerCommands.runAccessibilityCheck)
 
-    @script(description=_("Finds text or a regular expression in the page"), category="HomerView")
-    def script_findByPattern(self, gesture):
-        self.runSafely("findByPattern", lambda: homerCommands.askAndFind(self, False))
+    @script(
+        description=_("Finds text in the page, not case sensitive"),
+        category="HomerView",
+    )
+    def script_findText(self, gesture):
+        self.runSafely("findText", lambda: homerCommands.askAndFind(self, False, False))
 
-    @script(description=_("Finds text or a regular expression backwards in the page"), category="HomerView")
+    @script(
+        description=_("Finds text backwards in the page, not case sensitive"),
+        category="HomerView",
+    )
+    def script_findTextBackwards(self, gesture):
+        self.runSafely("findTextBackwards", lambda: homerCommands.askAndFind(self, True, False))
+
+    @script(
+        description=_("Finds a regular expression in the page"),
+        category="HomerView",
+    )
+    def script_findByPattern(self, gesture):
+        self.runSafely("findByPattern", lambda: homerCommands.askAndFind(self, False, True))
+
+    @script(
+        description=_("Finds a regular expression backwards in the page"),
+        category="HomerView",
+    )
     def script_findByPatternBackwards(self, gesture):
-        self.runSafely("findByPatternBackwards", lambda: homerCommands.askAndFind(self, True))
+        self.runSafely("findByPatternBackwards", lambda: homerCommands.askAndFind(self, True, True))
 
     @script(description=_("Finds the next occurrence of the word at the cursor"), category="HomerView")
     def script_findWordAtCursor(self, gesture):
@@ -774,8 +794,10 @@ class HomerViewBuffer:
             self._homer("nextParagraph", _("Move to the next paragraph and read it")),
             self._homer("priorParagraph", _("Move to the previous paragraph and read it")),
             self._homer("runIbmChecker", _("Test the page with the IBM Equal Access engine")),
-            self._homer("findByPattern", _("Find text or a regular expression")),
-            self._homer("findByPatternBackwards", _("Find backwards")),
+            self._homer("findText", _("Find text, not case sensitive")),
+            self._homer("findTextBackwards", _("Find text backwards, not case sensitive")),
+            self._homer("findByPattern", _("Find a regular expression")),
+            self._homer("findByPatternBackwards", _("Find a regular expression backwards")),
             self._homer("findAgain", _("Repeat the last find")),
             self._homer("findAgainBackwards", _("Repeat the last find, backwards")),
             self._homer("listHeadings", _("List the headings on the page")),
@@ -809,7 +831,6 @@ class HomerViewBuffer:
             self._homer("clearClipboard", _("Clear the clipboard")),
             self._homer("saveClipboard", _("Save the clipboard to a text file")),
             self._homer("appendClipboard", _("Append the clipboard to a text file")),
-            self._homer("alternateMenu", _("List every HomerView command")),
             self._homer("hotkeySummary", _("Show every HomerView command as a document")),
             alternateMenu.CommandEntry(
                 _("Report the page address"), "NVDA+A",

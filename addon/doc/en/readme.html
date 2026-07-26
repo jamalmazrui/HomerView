@@ -2,36 +2,90 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>HomerView</title>
+<title>HomerView Quick Start</title>
+<style>body{font-family:Segoe UI,Arial,sans-serif;line-height:1.5;margin:0 auto;max-width:60em;padding:1em}pre{background:#f4f4f4;padding:1em;white-space:pre-wrap}code{background:#f4f4f4}</style>
 </head>
 <body>
+<main>
 <h1>HomerView</h1>
-<p>HomerView launches a dedicated instance of Microsoft Edge with the Chrome DevTools Protocol enabled, then adds browse mode commands that work only in that instance.</p>
-<h2>Getting started</h2>
-<p>Press NVDA+Alt+H to launch or reconnect HomerView Edge. The window opens a small start page that lists the commands, so NVDA has something to announce immediately. The first launch creates a fresh browser profile under your local application data folder, seeded so that Edge does not sign itself in or open its sync consent dialog. A separate profile is now required for remote debugging and cannot be shared with your ordinary Edge profile.</p>
-<p>If Microsoft Edge ever opens a dialog that blocks the address bar, HomerView says so after launching, and NVDA+Alt+D closes it.</p>
-<p>To let the HomerView profile sign in and synchronise, so that bookmarks, passwords, and extensions arrive from a Microsoft account, set bAllowSignIn to True near the top of edge.py and delete the existing profile folder once.</p>
-<h2>Browse mode commands</h2>
+<p>HomerView is an NVDA add-on that runs its own copy of Microsoft Edge and drives</p>
+<p>it through the Chrome DevTools Protocol. That combination gives a screen reader</p>
+<p>user three things at once: the browser&#x27;s own interface, the page as NVDA has</p>
+<p>built it, and the page as the browser itself sees it. Very little else has all</p>
+<p>three, and most of what HomerView does comes from having them together.</p>
+<p>It is also a document reader. A Word file, a spreadsheet, a slide deck, a PDF or</p>
+<p>an ebook can be opened and read with the same commands as a web page.</p>
+<h1>Quick start</h1>
+<p>Install the add-on, restart NVDA, and press <strong>NVDA+Alt+H</strong>.</p>
+<p>A browser window opens on the HomerView start page, which lists the commands and</p>
+<p>gives you somewhere to begin. From there:</p>
+<p>1. Press <strong>Control+L</strong> and type an address, as you would in any browser.</p>
+<p>2. Press <strong>Alt+A</strong> to hear the web address of the page you are reading. Press it</p>
+<p>twice to spell it, three times to copy it.</p>
+<p>3. Press <strong>J</strong> to jump to the main content, past the banner and the navigation.</p>
+<p>If the page never said where its main content is, <strong>Shift+J</strong> makes a</p>
+<p>sensible guess and tells you it is guessing.</p>
+<p>4. Press <strong>Y</strong> for a summary of how the page is built, including things that are</p>
+<p>on screen but leave no trace in the reading order, such as a cookie banner or</p>
+<p>a bar pinned to the top of the window.</p>
+<p>5. Press <strong>NVDA+Alt+F10</strong> for a list of every command, in one alphabetical list,</p>
+<p>with its key beside it. Press Enter to run whatever you choose. This works</p>
+<p>everywhere, including before HomerView Edge is running, and it can start it</p>
+<p>for you.</p>
+<p>If you remember only one command, make it NVDA+Alt+F10. Everything else can be</p>
+<p>found from there, including how to start HomerView in the first place.</p>
+<h1>Opening a document</h1>
+<p>Press <strong>Control+O</strong> and choose a file. Word, Excel, PowerPoint, PDF, rich text,</p>
+<p>OpenDocument, EPUB and Markdown are all converted to a web page behind the</p>
+<p>scenes and opened in the HomerView window, where every command above works on</p>
+<p>them.</p>
+<p>Conversion needs a converter. HomerView looks for LibreOffice, pandoc, 2htm and</p>
+<p>Calibre, uses whichever suits the format, and tells you which to install if none</p>
+<p>is present. LibreOffice covers the most formats and needs no Microsoft Office.</p>
+<h1>Five commands worth learning early</h1>
 <ul>
-<li>NVDA+A reports the web address of the current page, without moving focus to the address bar. Pressing twice spells it, and three times copies it to the clipboard.</li>
-<li>J moves to the main content landmark of the page. NVDA+Alt+J does the same. When a page defines no main landmark, NVDA says "no main landmark" and the cursor does not move.</li>
+<li><strong>Alt+F8</strong> reads the whole page without moving the cursor. <strong>Control+F8</strong></li>
 </ul>
-<h2>Other commands</h2>
+<p>copies it.</p>
 <ul>
-<li>NVDA+Alt+H launches or reconnects HomerView Edge.</li>
-<li>NVDA+Alt+A tests the page with axe-core, finds how to report the problems to the publisher, and opens a full report in a new tab. The files are saved as C:\HomerView\Report.html, Report.txt, and Axe.json.</li>
-<li>NVDA+Alt+E summarises the page structure, the visual aspects a reading order hides, and how best to move around it. This is HomerView's counterpart to the JAWS Page Explorer feature on Insert+Shift+E.</li>
-<li>NVDA+Alt+X extracts the readable part of the page and opens it as a plain document in a new tab.</li>
-<li>NVDA+Alt+W lists the file types linked from the page and downloads the ones you choose to your downloads folder.</li>
-<li>NVDA+Alt+D closes a Microsoft Edge dialog that is blocking the window.</li>
-<li>Report connection status has no assigned gesture.</li>
-<li>Open the HomerView log has no assigned gesture.</li>
+<li><strong>Control+F</strong> finds text, not case sensitive. <strong>Control+F3</strong> finds a regular</li>
 </ul>
-<p>Assign gestures to either in Input Gestures under the HomerView category if you want them.</p>
-<h2>Logging</h2>
-<p>HomerView writes a detailed log of each session to C:\HomerView\HomerView.log, starting from empty every time the add-on loads. The previous session is kept as HomerView.previous.log, so a crash that forces an NVDA restart does not destroy the log you need. If the installation folder cannot be written, the log falls back to your local application data folder and says so in its header.</p>
-<h2>Scope</h2>
-<p>The two browse mode commands exist only on documents belonging to the HomerView instance of Edge. Chrome, Firefox, ordinary Edge windows, and native applications are unchanged. J is chosen because NVDA leaves it unassigned, so no existing browse mode command is displaced.</p>
-<p>All HomerView commands appear in the Input Gestures dialog under the HomerView category and can be reassigned.</p>
+<p>expression. <strong>F3</strong> repeats whichever was last used.</p>
+<ul>
+<li><strong>Alt+K</strong> tests the page for accessibility problems and offers to help you</li>
+</ul>
+<p>report them to whoever publishes the site.</p>
+<ul>
+<li><strong>Control+F12</strong> saves the page as a web page, Markdown, plain text, a Word</li>
+</ul>
+<p>document, a PDF, or an image of the whole page.</p>
+<ul>
+<li><strong>NVDA+Alt+W</strong> lists the kinds of file linked from the page and downloads the</li>
+</ul>
+<p>ones you choose.</p>
+<h1>When something does not work</h1>
+<p>Commands only work in windows HomerView itself opened. An Edge window that was</p>
+<p>already running has no debugging connection and cannot be given one, which is a</p>
+<p>limitation of the browser rather than of HomerView. Press NVDA+Alt+H and use the</p>
+<p>window it opens.</p>
+<p>If a command does nothing, open the Alternate Menu with <strong>Alt+F10</strong> and run it</p>
+<p>from there. If it fails, it now says what failed and that the log has the</p>
+<p>detail.</p>
+<h1>The rest of the documentation</h1>
+<ul>
+<li><strong>HomerView.md</strong> is the full user guide: every command, what it does, and why</li>
+</ul>
+<p>it is bound where it is.</p>
+<ul>
+<li><strong>History.md</strong> records what changed in each version.</li>
+<li><strong>Developer.md</strong> covers the architecture, the shared Homer toolkit, and how to</li>
+</ul>
+<p>build and release.</p>
+<p>All three can be opened from the Alternate Menu, and all are listed on the</p>
+<p>HomerView start page.</p>
+<h1>Licence</h1>
+<p>HomerView is free software under the GNU General Public License, version 2, the</p>
+<p>same licence as NVDA itself.</p>
+</main>
 </body>
 </html>

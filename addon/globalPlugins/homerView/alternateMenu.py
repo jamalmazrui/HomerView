@@ -110,13 +110,11 @@ def showAlternateMenu(lEntries):
 
 def _showAlternateMenu(lEntries):
     # The command that opened this menu has no business being in it.
-    # Neither the command that opened this menu nor the one that starts the
-    # browser belongs in it: by the time the menu is open, both have happened.
-    lEntries = [
-        e for e in lEntries
-        if "alternate menu" not in e.sName.lower()
-        and "launch" not in e.sName.lower()
-    ]
+    # The command that opened this menu has no business being in it. Launching
+    # the browser does belong, because this menu opens before the browser
+    # exists, and someone who has just found the menu should be able to start
+    # HomerView from it rather than being told to press another key first.
+    lEntries = [e for e in lEntries if "alternate menu" not in e.sName.lower()]
     lSorted = sorted(lEntries, key=lambda entry: entry.sName.lower())
     homerLog.info(f"Alternate menu: {len(lSorted)} commands")
     gui.mainFrame.prePopup()

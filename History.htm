@@ -8,6 +8,30 @@
 <body>
 <main>
 <h1>History of Changes</h1>
+<h2>1.15.0</h2>
+<ul>
+<li>Added HomerView to the NVDA menu, under Tools, with items for launching the browser, listing every command, opening the quick start, the user guide and the history of changes, checking for a newer version, and About. This is one of the two places an experienced user looks before touching the keyboard, and it matters more here than for most add-ons: someone who has not yet learned a single key can start the browser and open the guide from a menu they already know how to reach.</li>
+<li>Added a HomerView page to NVDA&#x27;s Settings dialog, which is the other place they look. It offers the three settings worth changing and lists every folder HomerView writes to, because where a program keeps things is a question users ask and a settings page is where they look for the answer. The panel reads and writes HomerView.inix rather than keeping a second copy, so a value changed here is the same value a person editing the file by hand would see.</li>
+<li>Both are removed when the add-on is unloaded, which is what lets it be reloaded or updated without leaving a dead menu item and a duplicate settings page behind.</li>
+<li>The manifest&#x27;s description named four commands out of more than sixty and predated most of what the add-on does. It now describes what HomerView actually is and ends by naming the one key worth remembering.</li>
+<li>The author field carries a contact route, as the add-on store expects.</li>
+<li>The Help button on the add-on now opens the quick start rather than an older file left behind, and every shipped document declares its language.</li>
+<li>Checked every command against the conventions an experienced user relies on: all have a description, so input help speaks something useful, and all are in one HomerView category in Input Gestures, so they can be found and reassigned together. Every translatable string carries a translator comment.</li>
+</ul>
+<h2>1.14.0</h2>
+<ul>
+<li>The Alternate Menu is on NVDA+Alt+F10 alone. The shorter Alt+F10, which worked only inside a HomerView page, has been removed.</li>
+<li>Brevity is usually the right call and here it is not. This is the command a person reaches for when they do not know what they are looking for. A key that answers in a page and does nothing in the address bar is indistinguishable, from the keyboard, from a key that is broken, and a discovery command that appears broken is worse than a longer one that never is. This project has watched that exact failure more than once, with a command silently out of scope and a tester reasonably concluding it did not work.</li>
+<li>The one key carries the NVDA modifier, so NVDA takes it before any program sees it. It works in the address bar, in a form field, in another application, and before Microsoft Edge has been started.</li>
+<li>Launch HomerView Edge is back in the menu. It was removed when the menu was thought to open only from a page, where launching had already happened. The global plugin is loaded from the moment NVDA starts, so the menu opens before the browser exists, and someone who has just found the menu should be able to start HomerView from it rather than being told to press another key first.</li>
+</ul>
+<h2>1.13.1</h2>
+<ul>
+<li>Control+F and Control+F3 were the same command, so both asked for a regular expression and neither did a plain search. They are now distinct, as EdSharp has them: Control+F finds text without case sensitivity, Control+F3 finds a regular expression, and Control+Shift+F and Control+Shift+F3 do each backwards. F3 and Shift+F3 repeat whichever was last used. The two dialogs also ask different questions, so it is clear which kind of search is being started.</li>
+<li>Rewrote the list of commands on the start page so that each line begins with its key. Reading a sentence to reach the key is slower than reading the key first, and J for jumping to the main content was buried far enough into its sentence to look unassigned.</li>
+<li>The start page and the published command list now name Alt+F10 for the Alternate Menu before NVDA+Alt+F10. Both work; the shorter one should be the one a reader learns, with the longer named as what to use before the browser is running.</li>
+<li>On using W and Shift+W for Word Find: W is not free. NVDA uses it in browse mode to move to the next spelling error, and Shift+W to the previous. Word Find therefore stays on Alt+W and Alt+Shift+W. The letters still free in NVDA browse mode are J, Y and Z, and HomerView already uses J and Y.</li>
+</ul>
 <h2>1.13.0</h2>
 <ul>
 <li>Brought the Python Lbc up to the level of the C# one, and every list in HomerView gained the result. Control+J asks for a substring, not case sensitive, and moves to the first item containing it; Control+Shift+J searches backwards; F3 and Shift+F3 repeat without asking again. The search wraps and the term survives closing one dialog and opening another, because someone who has just searched for the same thing twice should not type it a third time.</li>

@@ -416,13 +416,13 @@ def showPageInformation(dSummary):
     output.show(dSummary.get("html", ""), sTitle)
 
 
-def askAndFind(treeInterceptor, bBackwards):
+def askAndFind(treeInterceptor, bBackwards, bRegex=True):
     from . import lbc
 
-    lbc.afterScript(_askAndFindNow, treeInterceptor, bBackwards)
+    lbc.afterScript(_askAndFindNow, treeInterceptor, bBackwards, bRegex)
 
 
-def _askAndFindNow(treeInterceptor, bBackwards):
+def _askAndFindNow(treeInterceptor, bBackwards, bRegex=True):
     """Ask for a pattern and search for it.
 
     Regular expressions are the default here because the command is bound to
@@ -436,7 +436,7 @@ def _askAndFindNow(treeInterceptor, bBackwards):
         if sPattern is None or not sPattern.strip():
             homerLog.info("Find cancelled")
             return
-        find.findInBuffer(treeInterceptor, sPattern, True, bBackwards)
+        find.findInBuffer(treeInterceptor, sPattern, bRegex, bBackwards)
 
     lbc.dialogInput(
         # Translators: Title of the find dialog.

@@ -40,7 +40,7 @@ portProbeTimeoutSeconds = 0.4
 # about:blank, which leaves NVDA with nothing to announce. Set startPageUrl to
 # any address, such as "https://www.google.com/", to open that instead, or to
 # "about:blank" for the older behaviour.
-startPageFileName = "Start.html"
+startPageFileName = "Start.htm"
 startPageUrl = ""
 
 # Set this to True to let the HomerView profile be signed in and synchronised,
@@ -50,13 +50,19 @@ startPageUrl = ""
 # in urlFido and bookFido.
 bAllowSignIn = False
 
+# Microsoft Edge's Copilot needs two things: an account, which means sign-in
+# must be allowed, and the background networking its sidebar uses. Everything
+# that keeps the first launch quiet is kept either way, so the sync dialog, the
+# promotional screens and the automatic sign-in stay suppressed and signing in
+# remains something chosen rather than something done to the user.
+bCopilotSupport = True
+
 # Applied on every launch. The disable-features list is best-effort: the
 # Chromium entries are long standing, while Edge's implicit sign-in feature has
 # been named differently across versions, so several spellings are passed. An
 # unrecognised feature name is ignored rather than rejected, so listing extras
 # is safe.
 lArgumentsAlways = [
-    "--disable-background-networking",
     "--disable-client-side-phishing-detection",
     "--disable-component-update",
     "--disable-default-apps",
@@ -74,6 +80,11 @@ lArgumentsAlways = [
 # Applied only when bAllowSignIn is False.
 lArgumentsIsolated = [
     "--disable-sync",
+]
+
+# Dropped when Copilot support is on, because the sidebar needs it.
+lArgumentsWithoutCopilot = [
+    "--disable-background-networking",
 ]
 
 dHiveNames = {
@@ -226,6 +237,7 @@ class EdgeManager:
             "credentials_enable_service": False,
             "profile": {"exit_type": "Normal", "exited_cleanly": True},
             "signin": {"allowed": bAllowSignIn, "allowed_on_next_startup": bAllowSignIn},
+            "edge_copilot": {"enabled": bCopilotSupport},
             "sync": {"has_setup_completed": False, "requested": False},
         }
         pathDefault = self.pathProfile / "Default"
@@ -311,6 +323,18 @@ class EdgeManager:
         lArguments.extend(lArgumentsAlways)
         if not bAllowSignIn:
             lArguments.extend(lArgumentsIsolated)
+        if not bCopilotSupport:
+            lArguments.extend(lArgumentsWithoutCopilot)
+        homerLog.info(
+            f"Copilot support: {bCopilotSupport}. Background networking is "
+            f"{'enabled' if bCopilotSupport else 'disabled'}, sign-in is "
+            f"{'allowed' if bAllowSignIn else 'not allowed'}."
+        )
+        if bCopilotSupport and not bAllowSignIn:
+            homerLog.warning(
+                "Copilot support is on but sign-in is not allowed, so Copilot will have no "
+                "account. Set bAllowSignIn to True and delete the profile folder to use it."
+            )
         lArguments.extend([
             "--remote-debugging-port=0",
             "--remote-debugging-address=127.0.0.1",

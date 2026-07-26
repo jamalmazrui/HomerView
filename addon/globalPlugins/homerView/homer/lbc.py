@@ -392,6 +392,14 @@ def dialogInput(sTitle="Input", sLabel="", sValue="", functionDone=None):
     return build()
 
 
+def dialogText(sTitle="Text", sLabel="", sValue="", iWidth=560, iHeight=260):
+    """Ask for several lines of text. Returns the text, or None if cancelled."""
+    dialog = Dialog(sTitle=sTitle)
+    dialog.addMemo(sLabel or "Text:", sValue, sName="text", iWidth=iWidth, iHeight=iHeight)
+    dResults = dialog.complete()
+    return dResults.get("text") if dResults.get("result") == wx.ID_OK else None
+
+
 def dialogChoose(sTitle="Choose", sMessage="", lNames=None, iSelection=0, functionDone=None):
     """Offer a list, synchronously or through a callback. See dialogInput."""
 

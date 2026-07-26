@@ -94,6 +94,8 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
              "reportAddressAnywhere"),
             (_("Submit the form"), "Control+Enter",
              _("Submit the form you are filling in, from any field"), "submitForm"),
+            (_("Open Copilot"), "NVDA+Alt+P",
+             _("Copy the page text and open Copilot in the Microsoft Edge sidebar"), "openCopilot"),
             (_("Self test"), "",
              _("Check that all three ways of reaching the browser are working"), "selfTest"),
         ):
@@ -548,20 +550,21 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             homerLog.info("Save cancelled at the format choice")
             return
         sFormat = sChoice.split(" - ")[0].strip()
-        sSuggested = f"page.{sFormat}"
+        sExtension = sFormat if sFormat != "dom.htm" else "dom.htm"
+        sSuggested = f"page.{sExtension}"
         try:
             obj = api.getFocusObject()
             sTitle = (getattr(getattr(obj, "treeInterceptor", None), "rootNVDAObject", None) or obj)
             sName = (getattr(sTitle, "name", "") or "").strip()
             if sName:
-                sSuggested = "".join(c for c in sName if c not in '\\/*?:"<>|')[:80] + f".{sFormat}"
+                sSuggested = "".join(c for c in sName if c not in '\\/*?:"<>|')[:80] + f".{sExtension}"
         except Exception:
             pass
         sPath = lbc.dialogSaveFile(
             # Translators: Title of the dialog for saving the page.
             _("Save the HomerView page"),
             str(paths.getDownloadsFolder() / sSuggested),
-            f"{sFormat} files (*.{sFormat})|*.{sFormat}|All files (*.*)|*.*",
+            f"{sExtension} files (*.{sExtension})|*.{sExtension}|All files (*.*)|*.*",
         )
         if not sPath:
             homerLog.info("Save cancelled at the file dialog")
@@ -647,6 +650,37 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
     )
     def script_submitForm(self, gesture):
         homerCommandsModule.submitForm()
+
+    @script(
+        # Translators: Input help mode message for the Copilot command.
+        description=_(
+            "Copies the page text, then opens Copilot in the Microsoft Edge sidebar"
+        ),
+        category="HomerView",
+        gesture="kb:NVDA+alt+p",
+    )
+    def script_openCopilot(self, gesture):
+        homerLog.info("Command: open Copilot")
+        if not service.isConnected():
+            # Translators: Reported when HomerView has no connection.
+            ui.message(_("Press NVDA+Alt+H first to start HomerView Edge"))
+            return
+        # Translators: Reported while Copilot is opened.
+        ui.message(_("Opening Copilot"))
+        service.submit("openCopilot", service.taskOpenCopilot, self._reportCopilot,
+                       self._reportError)
+
+    def _reportCopilot(self, dContext):
+        homerLog.info(f"Copilot: {dContext}")
+        if not dContext.get("sent"):
+            # Translators: Reported when the Copilot shortcut could not be sent.
+            ui.message(_("Copilot could not be opened. The log has the detail."))
+            return
+        # Translators: Reported after opening Copilot. The placeholder is a count.
+        ui.message(
+            _("Copilot opened. {characters} characters of the page are on the clipboard, "
+              "ready to paste with Control+V.").format(characters=dContext.get("characters", 0))
+        )
 
     @script(
         # Translators: Input help mode message for the self test command.

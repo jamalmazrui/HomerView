@@ -46,7 +46,7 @@ lImpactNames = ["critical", "serious", "moderate", "minor"]
 maximumEmailViolations = 5
 maximumPatternRows = 10
 maximumSnippetCharacters = 400
-reportHtmlFileName = "Report.html"
+reportHtmlFileName = "Report.htm"
 reportTextFileName = "Report.txt"
 
 dImpactMeaning = {

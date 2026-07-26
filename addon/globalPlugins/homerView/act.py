@@ -270,6 +270,67 @@ def performAction(cdpSession, sSessionId, dCandidate, sVerb, sValue):
     return "clicked"
 
 
+def runScript(cdpSession, sScript):
+    """Run several instructions in order, reporting each.
+
+    A single instruction is useful; a sequence is what makes a task repeatable.
+    Sign in, accept the cookie notice, search for a term and open the first
+    result is four instructions that a reader would otherwise perform by hand
+    every time.
+
+    Execution stops at the first instruction that matches nothing, because
+    carrying on after losing the thread would act on the wrong thing. Blank
+    lines are skipped and a line beginning with a hash is a comment, so a
+    script can be annotated and kept.
+    """
+    logSection("Command: run a script")
+    lLines = [s.strip() for s in str(sScript or "").splitlines()]
+    lLines = [s for s in lLines if s and not s.startswith("#")]
+    homerLog.info(f"Script has {len(lLines)} instructions")
+    lResults = []
+    for iIndex, sLine in enumerate(lLines, 1):
+        homerLog.info(f"Instruction {iIndex} of {len(lLines)}: {abbreviate(sLine, 160)}")
+        sVerb, sTarget, sValue = parsePhrase(sLine)
+        if not sTarget:
+            lResults.append({"line": sLine, "outcome": "no target named"})
+            break
+        lSurvey, sSessionId = survey(cdpSession)
+        lScored = findCandidates(lSurvey, sTarget)
+        if not lScored:
+            lResults.append({"line": sLine, "outcome": "nothing matched"})
+            break
+        iScore, dCandidate = lScored[0]
+        sResult = performAction(cdpSession, sSessionId, dCandidate, sVerb, sValue)
+        lResults.append({
+            "line": sLine, "match": describeCandidate(dCandidate),
+            "outcome": sResult, "score": iScore,
+        })
+        homerLog.info(f"  {describeCandidate(dCandidate)} -> {sResult}")
+    return {"results": lResults, "total": len(lLines)}
+
+
+def findOllama():
+    """Return the local model service if one is running, or an empty string.
+
+    Ollama listens on the loopback address and needs no key, no account and no
+    network. That is the only shape of language model this project will use:
+    asking a remote service would mean sending the page somewhere, which is the
+    thing HomerView exists to avoid.
+    """
+    import json as jsonModule
+    import urllib.request
+
+    try:
+        with urllib.request.urlopen("http://127.0.0.1:11434/api/tags", timeout=1.5) as response:
+            dTags = jsonModule.loads(response.read().decode("utf-8"))
+        lModels = [d.get("name", "") for d in dTags.get("models", [])]
+        homerLog.info(f"A local model service is running with {len(lModels)} models: {lModels[:6]}")
+        return lModels
+    except Exception as exception:
+        homerLog.debug(f"No local model service on the loopback address: {exception}")
+        return []
+
+
 def survey(cdpSession):
     """Return the page's actionable controls, with the session to act on."""
     logSection("Command: act on the page")

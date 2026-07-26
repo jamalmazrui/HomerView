@@ -4,7 +4,7 @@ HomerView is an NVDA add-on that launches a dedicated instance of Microsoft Edge
 with the Chrome DevTools Protocol enabled, then adds browse mode commands that
 work only in that instance.
 
-This release, 1.0.5, carries the two initial browse mode commands and the
+This release, 1.5.1, carries the two initial browse mode commands and the
 connection machinery they need.
 
 - NVDA+A reports the web address of the current page.
@@ -46,6 +46,8 @@ C:\HomerView
             alternateMenu.py  Command list, Alt+F10, and the hotkey summary
             clipboardTools.py Homer clipboard commands on the apostrophe key
             contacts.py     Finding how to reach a site's publisher
+            capture.py      Image, PDF, accessibility tree and markup
+            copilot.py      Microsoft Edge Copilot support
             convert.py      Opening other formats through 2htm
             ace.py          The IBM Equal Access engine
             act.py          Acting on the page by description
@@ -90,14 +92,14 @@ C:\HomerView
 
 Run `buildAll.cmd`, which builds the add-on and then compiles the installer
 in the order `tagRelease` expects. `buildAddon.cmd` builds only the add-on. It packages the `addon` folder into
-`build\HomerView-1.0.5.nvda-addon` and writes `buildAddon.log`.
+`build\HomerView.nvda-addon` and writes `buildAddon.log`.
 
 Compile `HomerView_setup.iss` with Inno Setup 6 afterwards. The installer
 expects the add-on package to exist in `build`.
 
 ## Installing during development
 
-Open `build\HomerView-1.0.5.nvda-addon`, approve it in NVDA, and restart NVDA.
+Open `build\HomerView.nvda-addon`, approve it in NVDA, and restart NVDA.
 The installer is only needed for distribution.
 
 ## Requirements

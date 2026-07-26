@@ -92,6 +92,8 @@ def showAlternateMenu(lEntries):
 
 
 def _showAlternateMenu(lEntries):
+    # The command that opened this menu has no business being in it.
+    lEntries = [e for e in lEntries if "alternate menu" not in e.sName.lower()]
     lSorted = sorted(lEntries, key=lambda entry: entry.sName.lower())
     homerLog.info(f"Alternate menu: {len(lSorted)} commands")
     gui.mainFrame.prePopup()

@@ -46,6 +46,7 @@ addonHandler.initTranslation()
 maximumSpokenUrls = 200
 
 dActContext = {}
+dLastScript = {}
 dSelectionStart = {}
 dLastPercent = {}
 

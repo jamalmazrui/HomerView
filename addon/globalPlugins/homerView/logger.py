@@ -23,7 +23,18 @@ import sys
 from pathlib import Path
 
 logFileName = "HomerView.log"
-logFolderPreferred = r"C:\HomerView"
+# The log lives with the user's local application data, not in the program
+# folder. A program folder is written once by an installer with administrator
+# rights and read thereafter; a program that writes there at run time either
+# demands administrator rights forever or has its writes redirected somewhere
+# the user cannot find. Windows has been moving away from that redirection for
+# years, and the folder is per-machine anyway, so two users of one computer
+# would share a log.
+#
+# Local rather than roaming, because a log is specific to this machine and can
+# grow. A roaming profile is copied at every sign in and sign out, and putting
+# a log in it makes that slower for no benefit.
+logFolderName = "HomerView"
 logLevel = logging.DEBUG
 maximumPayloadCharacters = 1200
 previousLogFileName = "HomerView.previous.log"
@@ -45,9 +56,10 @@ def chooseLogFolder():
     """Return the first writable candidate folder, or None."""
     global bUsingPreferredFolder
     lCandidates = [
-        Path(logFolderPreferred),
-        Path(os.environ.get("LOCALAPPDATA", str(Path.home()))) / "HomerView",
+        Path(os.environ.get("LOCALAPPDATA", "")) / logFolderName if os.environ.get("LOCALAPPDATA") else None,
+        Path.home() / logFolderName,
     ]
+    lCandidates = [p for p in lCandidates if p]
     for iIndex, pathCandidate in enumerate(lCandidates):
         try:
             pathCandidate.mkdir(parents=True, exist_ok=True)
@@ -147,9 +159,8 @@ def writeHeader(sAddonVersion):
     homerLog.info(f"Log file: {pathLogFile}")
     if not bUsingPreferredFolder:
         homerLog.warning(
-            f"{logFolderPreferred} could not be written, so the log fell back to the "
-            "local application data folder. This usually means the installation "
-            "folder belongs to an administrator."
+            "The local application data folder could not be written, so the log fell "
+            "back to the user's home folder."
         )
     try:
         import buildVersion

@@ -66,6 +66,38 @@ def findSharedFile(sName):
     return None
 
 
+def getDataFolder():
+    """Where this machine's HomerView data lives.
+
+    Local application data, which is per user and per machine and is not copied
+    between computers. Logs, the history database and anything else that grows
+    or is meaningful only here.
+    """
+    sRoot = os.environ.get("LOCALAPPDATA", "")
+    pathFolder = Path(sRoot) / "HomerView" if sRoot else Path.home() / "HomerView"
+    try:
+        pathFolder.mkdir(parents=True, exist_ok=True)
+    except OSError:
+        pass
+    return pathFolder
+
+
+def getSettingsFolder():
+    """Where this user's HomerView preferences live.
+
+    Roaming application data, which follows the user to another computer in a
+    domain. Preferences belong to the person rather than the machine, and they
+    are small, which is what roaming requires.
+    """
+    sRoot = os.environ.get("APPDATA", "")
+    pathFolder = Path(sRoot) / "HomerView" if sRoot else Path.home() / "HomerView"
+    try:
+        pathFolder.mkdir(parents=True, exist_ok=True)
+    except OSError:
+        pass
+    return pathFolder
+
+
 def getTempFolder():
     """Return a HomerView folder inside the user's temporary folder."""
     pathFolder = Path(tempfile.gettempdir()) / tempFolderName

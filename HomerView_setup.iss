@@ -3,7 +3,7 @@
 ; Source root and installation destination: C:\HomerView
 
 #define AppName "HomerView"
-#define AppVersion "1.9.2"
+#define AppVersion "1.11.0"
 #define AppPublisher "Jamal Mazrui"
 ; A stable name on purpose. The version lives in the add-on's manifest, which is
 ; what NVDA reads, and in AppVersion above. Putting it in the file name as well
@@ -29,7 +29,12 @@ DisableDirPage=no
 DisableReadyPage=yes
 DisableFinishedPage=no
 AllowNoIcons=yes
-UsePreviousAppDir=yes
+; Deliberately no. Earlier versions installed to C:\HomerView, and with
+; UsePreviousAppDir set to yes the installer keeps proposing that recorded path
+; instead of the default below, so an upgrade never moves to Program Files. The
+; directory page is still shown, so anyone who chose a different drive can
+; choose it again; they just have to say so once more.
+UsePreviousAppDir=no
 PrivilegesRequired=admin
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
@@ -64,13 +69,15 @@ FinishedLabel=Setup has installed [name/ver] on your computer.%n%nThe checked bo
 ; is offered as a checkbox on the Finish page through [Run] below, which is one
 ; fewer wizard page than a task would need.
 
-[Dirs]
-; Grant the Users group modify rights on the installation folder so that the
-; add-on can write HomerView.log there. Without this, a standard user cannot
-; write to a folder created by an administrator, and the log falls back to the
-; local application data folder. Remove this line if a program folder writable
-; by ordinary users is not acceptable in your environment.
-Name: "{app}"; Permissions: users-modify
+; No [Dirs] section, and no loosened permissions.
+;
+; Earlier versions granted the Users group modify rights on the installation
+; folder so that HomerView could write its log there. That was solving the
+; wrong problem: a program folder should be written by the installer and read
+; afterwards, and making it writable by every user is a privilege escalation
+; surface offered in exchange for a convenience. The log and the history
+; database now live in the user's local application data, where they belong,
+; and the installation folder needs no special rights at all.
 
 [Files]
 ; Optional bundled converters. Place 2htm.exe and pandoc.exe beside this

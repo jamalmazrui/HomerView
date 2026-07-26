@@ -43,13 +43,9 @@ preferTemporaryPage=True
 
 
 def getSettingsPath():
-    sRoot = os.environ.get("APPDATA", "")
-    pathFolder = Path(sRoot) / "HomerView" if sRoot else Path.home() / "HomerView"
-    try:
-        pathFolder.mkdir(parents=True, exist_ok=True)
-    except OSError:
-        logError("The settings folder could not be created")
-    return pathFolder / settingsFileName
+    from . import paths
+
+    return paths.getSettingsFolder() / settingsFileName
 
 
 def ensureSettings():

@@ -179,11 +179,58 @@ class HomerViewService:
         return True
 
     def taskLaunch(self):
-        """Attach when possible, otherwise start a new HomerView Edge."""
+        """Show the user a HomerView window, whatever state things are in.
+
+        The command means one thing to the person pressing it: put me in
+        HomerView. What that requires differs, so it is tried in order of how
+        much it disturbs.
+
+        An existing window comes first. Bringing one to the front is instant
+        and loses nothing the user had open, and it works even after NVDA has
+        restarted and forgotten the browser, because the browser's process is
+        recorded in the profile folder. When several windows are open, the one
+        most recently in front wins, which is the one the user means.
+
+        Only when there is no window at all does a new browser start, and then
+        it opens the page the profile last had, or the start page.
+        """
         logSection("Launch requested")
         self.sCarriedUrl = ""
+
+        lHandles = self.edgeManager.findExistingWindows()
+        if lHandles:
+            homerLog.info(f"Activating the front-most of {len(lHandles)} existing windows")
+            bActivated = False
+            for iHandle in lHandles:
+                if self.edgeManager.activateHandle(iHandle):
+                    bActivated = True
+                    break
+            # The window is what the user asked for; the connection is what the
+            # commands need. Restore it quietly if it has been lost, and say so
+            # if it cannot be, rather than opening a second window they did not
+            # ask for.
+            if not self.isConnected():
+                try:
+                    if self.taskAttach():
+                        homerLog.info("Reconnected to the window that was already open")
+                    else:
+                        homerLog.warning(
+                            "A HomerView window is open but its debugging port is gone, so "
+                            "commands will not work in it. Close that window and press "
+                            "NVDA+Alt+H again."
+                        )
+                except Exception:
+                    logError("Reconnecting to the existing window failed")
+            else:
+                self.refreshProcessIds()
+            self.lPendingDialogs = []
+            dConnection = self.describeConnection()
+            dConnection["activated"] = bActivated
+            dConnection["existing"] = True
+            return dConnection
+
         if self.isConnected():
-            homerLog.info("Launch: already connected, so the window is raised instead")
+            homerLog.info("Launch: connected but no window was found, so the tab is raised")
             self.refreshProcessIds()
             self.activateBrowser()
             return self.describeConnection()

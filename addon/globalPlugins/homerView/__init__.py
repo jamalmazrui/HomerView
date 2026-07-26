@@ -89,6 +89,9 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
              _("Show the pages and documents opened in HomerView"), "recentPages"),
             (_("Alternate menu"), "NVDA+Alt+F10",
              _("List every HomerView command in one alphabetical list"), "alternateMenu"),
+            (_("Report the page address"), "NVDA+A",
+             _("Report the web address of the HomerView page, from anywhere in the window"),
+             "reportAddressAnywhere"),
             (_("Submit the form"), "Control+Enter",
              _("Submit the form you are filling in, from any field"), "submitForm"),
             (_("Self test"), "",
@@ -164,7 +167,8 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         functionScript = super().getScript(gesture)
         if (
             functionScript is not None
-            and getattr(functionScript, "__name__", "") == "script_submitForm"
+            and getattr(functionScript, "__name__", "")
+            in ("script_submitForm", "script_reportAddressAnywhere")
             and self._focusAppName() != "msedge"
         ):
             # Outside the browser this key belongs to whatever has focus.
@@ -601,6 +605,39 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         # Translators: Title of the history window.
         sTitle = _("HomerView history")
         output.show("\n".join(lParts), sTitle)
+
+    @script(
+        # Translators: Input help mode message for the report address command.
+        description=_("Reports the web address of the HomerView page, from anywhere in the window"),
+        category="HomerView",
+        gesture="kb:NVDA+a",
+        speakOnDemand=True,
+    )
+    def script_reportAddressAnywhere(self, gesture):
+        """Report the address when the browse mode command cannot.
+
+        A command bound to the browse mode document only exists while that
+        document has focus and is in browse mode. Press it from the address
+        bar, from a toolbar, or from inside a form field in focus mode, and it
+        never reaches the buffer at all: nothing runs, so nothing is spoken,
+        and the key looks broken rather than inapplicable.
+
+        This is the same command bound a second time, on the global plugin,
+        where it is reached whatever has focus. It asks the browser rather than
+        the buffer, so it works from anywhere in the window. It exists only
+        while Microsoft Edge has focus, so it shadows nothing elsewhere.
+        """
+        homerLog.info("Command: report the page address, from anywhere")
+        if not service.isConnected():
+            # Translators: Reported when HomerView has no connection.
+            ui.message(_("Press NVDA+Alt+H first to start HomerView Edge"))
+            return
+        service.submit(
+            "activePageUrl",
+            service.taskActivePageUrl,
+            lambda sUrl: ui.message(sUrl or _("The web address is unavailable")),
+            lambda exception: ui.message(_("The web address is unavailable")),
+        )
 
     @script(
         # Translators: Input help mode message for the submit form command.

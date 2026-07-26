@@ -4,7 +4,7 @@ HomerView is an NVDA add-on that launches a dedicated instance of Microsoft Edge
 with the Chrome DevTools Protocol enabled, then adds browse mode commands that
 work only in that instance.
 
-This release, 1.0.1, carries the two initial browse mode commands and the
+This release, 1.0.4, carries the two initial browse mode commands and the
 connection machinery they need.
 
 - NVDA+A reports the web address of the current page.
@@ -89,14 +89,14 @@ C:\HomerView
 ## Building
 
 Run `buildAddon.cmd`. It packages the `addon` folder into
-`build\HomerView-1.0.1.nvda-addon` and writes `buildAddon.log`.
+`build\HomerView-1.0.4.nvda-addon` and writes `buildAddon.log`.
 
 Compile `HomerView_setup.iss` with Inno Setup 6 afterwards. The installer
 expects the add-on package to exist in `build`.
 
 ## Installing during development
 
-Open `build\HomerView-1.0.1.nvda-addon`, approve it in NVDA, and restart NVDA.
+Open `build\HomerView-1.0.4.nvda-addon`, approve it in NVDA, and restart NVDA.
 The installer is only needed for distribution.
 
 ## Requirements

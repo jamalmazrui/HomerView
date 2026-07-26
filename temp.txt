@@ -1,0 +1,16 @@
+2026-07-25 21:09:20  createHomerViewRepo starting in C:\HomerView
+2026-07-25 21:09:20  Found git
+2026-07-25 21:09:20  Found gh
+2026-07-25 21:09:20  WARNING: pandoc.exe is 220 MB, which GitHub will refuse.
+2026-07-25 21:09:20           Add it to .gitignore, or track it with: git lfs track "pandoc.exe"
+2026-07-25 21:09:20  A repository already exists here
+2026-07-25 21:09:20  Staging
+warning: in the working copy of '.gitignore', LF will be replaced by CRLF the next time Git touches it
+2026-07-25 21:09:21  Committing
+git : error: No such remote 'origin'
+At C:\HomerView\createHomerViewRepo.ps1:76 char:13
++ $sOrigin = (git remote get-url origin 2>$null)
++             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (error: No such remote 'origin':String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 

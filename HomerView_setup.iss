@@ -3,9 +3,9 @@
 ; Source root and installation destination: C:\HomerView
 
 #define AppName "HomerView"
-#define AppVersion "1.0.1"
+#define AppVersion "1.0.4"
 #define AppPublisher "Jamal Mazrui"
-#define AddonFile "HomerView-1.0.1.nvda-addon"
+#define AddonFile "HomerView-1.0.4.nvda-addon"
 
 [Setup]
 AppId={{E728BC1D-448B-4D56-A549-4C5603A3A9B5}
@@ -73,6 +73,7 @@ Source: "C:\HomerView\clean.cmd"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\HomerView\createHomerViewRepo.cmd"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "C:\HomerView\createHomerViewRepo.ps1"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "C:\HomerView\.gitignore"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "C:\HomerView\.gitattributes"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "C:\HomerView\HomerView_setup.iss"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\HomerView\README.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\HomerView\CHANGELOG.md"; DestDir: "{app}"; Flags: ignoreversion

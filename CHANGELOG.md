@@ -1,5 +1,26 @@
 ﻿# Changelog
 
+## 1.0.4
+
+- Fixed silent results from the Alternate Menu. The commands were not failing: the log shows Url reference and Say yield structure both running and producing their answers, and the user heard nothing.
+- The cause is a collision. Closing the menu hands focus back to the document, and NVDA announces that document as it arrives. A command run in that same instant speaks into the announcement and is cut off by it. The log records the two events one after the other every time: the command's result, then a new document object and the overlay being inserted, which is NVDA processing the page regaining focus.
+- A chosen command now waits for the transition to finish before it runs. That is the whole fix, and it costs about a third of a second.
+- On which output belongs where, the rule this project now follows has three parts. Speech is for a short answer heard once and discarded, such as a position or a count. A message box is for a short set of facts worth keeping, because Control+C copies a Windows message box whole. A page is for anything long enough to search, save, or send. The failure here was not the wrong channel but the wrong moment: speech was correct for a count, and it was spoken into a gap where nothing could be heard.
+
+## 1.0.3
+
+- Fixed NVDA+A doing nothing without saying why. A command bound to the browse mode document exists only while that document has focus and is in browse mode. Pressed from the address bar, from a toolbar, or from inside a form field in focus mode, it never reaches the buffer at all: nothing runs, so nothing is spoken, and the key looks broken rather than inapplicable.
+- NVDA+A is now bound a second time on the global plugin, where it is reached whatever has focus. That copy asks the browser rather than the buffer, so it answers from the address bar and from focus mode as well as from the page. It exists only while Microsoft Edge has focus, so it shadows nothing elsewhere, and it says plainly when HomerView has not been started.
+- The log had already recorded this without anyone reading it correctly: of four NVDA+A presses, three reached the global plugin and never reached the buffer, while all five presses of J reached the buffer and ran. Two keys behaving differently in the same session is the signature of one of them being out of scope rather than broken.
+- J needs no equivalent. It is navigation, which is meaningful only in browse mode, and in focus mode it correctly types the letter.
+
+## 1.0.2
+
+- Fixed the repository script, which stopped at the first question it asked. With ErrorActionPreference set to Stop, PowerShell turns anything a native program writes to standard error into a terminating error. git writes "No such remote 'origin'" to standard error, and that is not a failure: it is the correct answer to "is there an origin yet". Redirecting to null does not help, because PowerShell raises the error before the redirect matters.
+- Every git call now goes through one function that lowers the preference around the call and judges the result by the exit code, as git intends. Each step also checks that result rather than assuming it worked, so a failure is reported where it happened instead of two steps later.
+- The oversize warning now also says, once, that the push will be rejected if nothing is done about it. Warning at the top and then pushing anyway wastes the upload.
+- Added .gitattributes, which declares line endings so Git stops guessing and stops warning. This project writes CRLF for everything a Windows program reads and LF for the few files other platforms parse, and saying so means a clone produces the same bytes the build expects on any machine. Executables and the built add-on are marked binary so Git never rewrites a byte of them.
+
 ## 1.0.1
 
 - About now uses a standard Windows message box rather than a custom dialog. Windows message boxes support Control+C, which copies the whole of the box including its title, and every user of Windows already knows that. A custom dialog with a read only edit box does not: it needs Control+A first, and it is one more window whose shape has to be learned.

@@ -107,6 +107,21 @@ def _showAlternateMenu(lEntries):
         return
     entry = lSorted[iSelection]
     homerLog.info(f"Alternate menu chose: {entry.sName}")
+    # Wait for focus to finish returning to the page before running anything.
+    #
+    # Closing the dialog hands focus back to the document, and NVDA announces
+    # that document as it arrives. A command run in that instant speaks into
+    # the announcement and is cut off by it: the log shows the command ran and
+    # produced its answer, and the user heard nothing. Letting the transition
+    # finish first is the whole fix, and it costs a fraction of a second.
+    wx.CallLater(settleMilliseconds, runChosenCommand, entry)
+
+
+settleMilliseconds = 350
+
+
+def runChosenCommand(entry):
+    homerLog.info(f"Running {entry.sName} now that focus has settled")
     try:
         entry.functionAction()
     except Exception as exception:

@@ -1,0 +1,20 @@
+# Line endings, declared so Git stops guessing and stops warning.
+#
+# This project writes CRLF for everything a Windows program reads, and LF for
+# the few files that tools on other platforms parse. Setting it here means a
+# clone produces the same bytes the build expects, on any machine.
+* text=auto eol=crlf
+
+.gitignore text eol=lf
+.gitattributes text eol=lf
+*.sh text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# Binaries, so Git never rewrites a byte of them.
+*.exe binary
+*.nvda-addon binary
+*.ico binary
+*.docx binary
+*.xlsx binary
+*.pdf binary

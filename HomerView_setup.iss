@@ -3,9 +3,9 @@
 ; Source root and installation destination: C:\HomerView
 
 #define AppName "HomerView"
-#define AppVersion "1.0.4"
+#define AppVersion "1.0.5"
 #define AppPublisher "Jamal Mazrui"
-#define AddonFile "HomerView-1.0.4.nvda-addon"
+#define AddonFile "HomerView-1.0.5.nvda-addon"
 
 [Setup]
 AppId={{E728BC1D-448B-4D56-A549-4C5603A3A9B5}
@@ -19,7 +19,9 @@ DisableProgramGroupPage=yes
 PrivilegesRequired=admin
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
-OutputDir=C:\HomerView\dist
+; tagRelease reads the version from this file's version resource and expects
+; to find it in the repository root, so that is where it is written.
+OutputDir=C:\HomerView
 OutputBaseFilename=HomerView_setup
 Compression=lzma2
 SolidCompression=yes
@@ -70,6 +72,8 @@ Source: "C:\HomerView\installer\*"; DestDir: "{app}\installer"; Flags: ignorever
 Source: "C:\HomerView\buildAddon.cmd"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\HomerView\buildAddon.ps1"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\HomerView\clean.cmd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\HomerView\buildAll.cmd"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "C:\HomerView\buildAll.ps1"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "C:\HomerView\createHomerViewRepo.cmd"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "C:\HomerView\createHomerViewRepo.ps1"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "C:\HomerView\.gitignore"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist

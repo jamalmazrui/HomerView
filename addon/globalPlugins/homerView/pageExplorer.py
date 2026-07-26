@@ -327,7 +327,7 @@ def headingProblems(lHeadings):
 def visualNotes(dPage):
     """Only things a reading order hides and that are worth knowing."""
     lNotes = []
-    for dDialog in dPage.get("dialogs") or []:
+    for dDialog in asList(dPage.get("dialogs")):
         sLabel = dDialog.get("label") or "untitled"
         sModal = "modal " if dDialog.get("modal") else ""
         lNotes.append(
@@ -339,14 +339,14 @@ def visualNotes(dPage):
             f'A cookie or consent banner is showing: "{dPage["consent"]}". '
             "These usually sit over the page and take the first tab stops."
         )
-    for dPinned in dPage.get("pinned") or []:
+    for dPinned in asList(dPage.get("pinned")):
         sWhere = "at the top" if dPinned.get("top", 0) < 100 else "over the page"
         lNotes.append(
             f"A {dPinned.get('role')} is pinned {sWhere} using {dPinned.get('position')} positioning, "
             f"{dPinned.get('height')} pixels tall. It stays put as the page scrolls, so it can cover "
             "content you have just moved to."
         )
-    for dHidden in dPage.get("hiddenFromAt") or []:
+    for dHidden in asList(dPage.get("hiddenFromAt")):
         lNotes.append(
             f'{dHidden.get("characters", 0)} characters are visible on screen but hidden from '
             f'screen readers with aria-hidden, beginning "{dHidden.get("text", "")}".'
@@ -359,11 +359,11 @@ def visualNotes(dPage):
         )
     if dPage.get("autoplay"):
         lNotes.append(
-            f"{dPage['autoplay']} media {plural(dPage['autoplay'], 'element')} "
-            f"{verb(dPage['autoplay'], 'is', 'are')} set to play automatically, which may talk "
+            f"{asList(dPage.get("autoplay"))} media {plural(asList(dPage.get("autoplay")), 'element')} "
+            f"{verb(asList(dPage.get("autoplay")), 'is', 'are')} set to play automatically, which may talk "
             "over speech."
         )
-    lLive = dPage.get("liveRegions") or []
+    lLive = asList(dPage.get("liveRegions"))
     if lLive:
         iAssertive = sum(1 for s in lLive if s == "assertive")
         sNote = (
@@ -376,7 +376,7 @@ def visualNotes(dPage):
                 "interrupt whatever is being read."
             )
         lNotes.append(sNote)
-    lFrames = [d for d in (dPage.get("frames") or []) if d.get("visible")]
+    lFrames = [d for d in (asList(dPage.get("frames"))) if d.get("visible")]
     if lFrames:
         lUnnamed = [d for d in lFrames if not d.get("title")]
         sNote = (
@@ -395,7 +395,7 @@ def visualNotes(dPage):
 def navigationTips(dPage):
     """Keystrokes chosen for what this page actually contains."""
     lTips = []
-    lRegions = dPage.get("regions") or []
+    lRegions = asList(dPage.get("regions"))
     lRoles = [d.get("role") for d in lRegions]
     if dPage.get("mainCharacters"):
         lTips.append(
@@ -417,13 +417,13 @@ def navigationTips(dPage):
             f"There are {len(lRegions)} landmarks. Press D and Shift+D to move between them, or "
             "NVDA+F7 for the elements list."
         )
-    lHeadings = dPage.get("headings") or []
+    lHeadings = asList(dPage.get("headings"))
     if len(lHeadings) >= 8:
         lTips.append(
             f"With {len(lHeadings)} headings, H and Shift+H are the fastest way through this page. "
             "Number keys 1 to 6 move by heading level."
         )
-    lTables = [d for d in (dPage.get("tables") or []) if d.get("headerCells")]
+    lTables = [d for d in (asList(dPage.get("tables"))) if d.get("headerCells")]
     if lTables:
         iRows = sum(d.get("rows", 0) for d in lTables)
         lTips.append(
@@ -431,7 +431,7 @@ def navigationTips(dPage):
             "Press T to move between tables, then Control+Alt with the arrow keys to move between "
             "cells, which announces row and column headers as you go."
         )
-    lLayoutTables = [d for d in (dPage.get("tables") or []) if not d.get("headerCells")]
+    lLayoutTables = [d for d in (asList(dPage.get("tables"))) if not d.get("headerCells")]
     if lLayoutTables:
         lTips.append(
             f"{len(lLayoutTables)} {plural(len(lLayoutTables), 'table')} "
@@ -458,8 +458,8 @@ def buildSummaryHtml(dPage):
     """Build the document shown in NVDA's browseable message window."""
     lParts = []
     iCharacters = dPage.get("totalCharacters", 0)
-    lRegions = dPage.get("regions") or []
-    lHeadings = dPage.get("headings") or []
+    lRegions = asList(dPage.get("regions"))
+    lHeadings = asList(dPage.get("headings"))
 
     lParts.append(f"<h1>Page explorer: {escape(dPage.get('title') or dPage.get('url'))}</h1>")
     lParts.append(f"<p>Address: {escape(dPage.get('url'))}</p>")
@@ -473,7 +473,7 @@ def buildSummaryHtml(dPage):
     if dPage.get("fields"):
         lOverview.append(f"{dPage['fields']} form {plural(dPage['fields'], 'field')}")
     if dPage.get("tables"):
-        lOverview.append(f"{len(dPage['tables'])} {plural(len(dPage['tables']), 'table')}")
+        lOverview.append(f"{len(asList(dPage.get("tables")))} {plural(len(asList(dPage.get("tables"))), 'table')}")
     if dPage.get("images"):
         lOverview.append(f"{dPage['images']} {plural(dPage['images'], 'image')}")
     lParts.append("<h2>Overview</h2>")
@@ -514,7 +514,7 @@ def buildSummaryHtml(dPage):
         lParts.extend(f"<li>{escape(s)}</li>" for s in lNotes)
         lParts.append("</ul>")
 
-    lImportant = dPage.get("importantLinks") or []
+    lImportant = asList(dPage.get("importantLinks"))
     lParts.append("<h2>Links worth knowing about</h2>")
     if lImportant:
         dByKind = {}
@@ -551,6 +551,31 @@ def buildSummaryHtml(dPage):
     return "\n".join(lParts)
 
 
+def asList(vValue):
+    """Return a list whatever the browser sent.
+
+    The analysis script returns some fields as lists and others as counts or
+    strings, and both ends have been edited more than once. A summary that
+    fails entirely because one field arrived as a number rather than a list is
+    a poor trade, so every collection is read through this.
+    """
+    if isinstance(vValue, list):
+        return vValue
+    if vValue in (None, "", 0):
+        return []
+    return [vValue]
+
+
+def asCount(vValue):
+    """Return a number whatever the browser sent."""
+    if isinstance(vValue, list):
+        return len(vValue)
+    try:
+        return int(vValue or 0)
+    except (TypeError, ValueError):
+        return 0
+
+
 def explorePage(cdpSession):
     """Analyse the focused page and return the summary to show."""
     logSection("Command: explore the page")
@@ -568,7 +593,7 @@ def explorePage(cdpSession):
     )
     return {
         "html": buildSummaryHtml(dPage),
-        "regions": len(dPage.get("regions") or []),
+        "regions": len(asList(dPage.get("regions"))),
         "title": dPage.get("title") or dPage.get("url", ""),
         "visualCount": len(visualNotes(dPage)),
     }

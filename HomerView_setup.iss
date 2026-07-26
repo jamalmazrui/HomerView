@@ -3,7 +3,7 @@
 ; Source root and installation destination: C:\HomerView
 
 #define AppName "HomerView"
-#define AppVersion "1.9.1"
+#define AppVersion "1.9.2"
 #define AppPublisher "Jamal Mazrui"
 ; A stable name on purpose. The version lives in the add-on's manifest, which is
 ; what NVDA reads, and in AppVersion above. Putting it in the file name as well
@@ -57,7 +57,8 @@ SetupLogging=yes
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Messages]
-WelcomeLabel2=This will install [name/ver], an NVDA add-on that drives Microsoft Edge through the Chrome DevTools Protocol.%n%nHomerView is free software under the GNU General Public License version 2. The full text installs as License.txt.%n%nAfter installing, tick the box on the last page to add the add-on to NVDA.
+WelcomeLabel2=This will install [name/ver], an NVDA add-on that drives Microsoft Edge through the Chrome DevTools Protocol.%n%nHomerView is free software under the GNU General Public License version 2. The full text installs as License.txt.%n%nAccepting the defaults throughout will install the add-on into NVDA as well as copying the program files. NVDA will ask you to confirm, and will need to restart afterwards.
+FinishedLabel=Setup has installed [name/ver] on your computer.%n%nThe checked box below hands the add-on to NVDA, which will ask you to confirm it and then restart. Until that happens, HomerView is only a folder of files and none of its commands will work.%n%nAfter NVDA restarts, press NVDA+Alt+H to begin, or NVDA+Alt+F10 for a list of every command.
 
 ; No [Tasks] section. The one optional step, installing the add-on into NVDA,
 ; is offered as a checkbox on the Finish page through [Run] below, which is one
@@ -124,7 +125,16 @@ Name: "{group}\Uninstall HomerView"; Filename: "{uninstallexe}"
 ; shellexec is required: a .nvda-addon file is not executable, so Windows has to
 ; hand it to whatever is registered for that extension, which is NVDA. Without
 ; the flag Inno Setup would try to run it as a program and fail.
-Filename: "{app}\build\{#AddonFile}"; Description: "Install the HomerView add-on in NVDA now"; Flags: postinstall shellexec skipifsilent
+; This is the step that matters, and it is checked by default on purpose. The
+; program files alone do nothing: HomerView is an NVDA add-on, and until this
+; runs, NVDA has not been given it. A user who presses Enter through the wizard
+; to accept the defaults, which is the sensible way to install anything, must
+; end up with a working installation rather than a folder of files.
+;
+; Version 1.5.1 had this unchecked, and a tester who accepted every default
+; went on running an older add-on for a whole session without knowing it. That
+; is the failure this comment exists to prevent recurring.
+Filename: "{app}\build\{#AddonFile}"; Description: "Install the HomerView add-on in NVDA (recommended)"; Flags: postinstall shellexec skipifsilent
 
 [UninstallDelete]
 Type: files; Name: "{app}\HomerView.log"

@@ -31,11 +31,13 @@ gives you somewhere to begin. From there:
 4. Press **Y** for a summary of how the page is built, including things that are
    on screen but leave no trace in the reading order, such as a cookie banner or
    a bar pinned to the top of the window.
-5. Press **Alt+F10** for a list of every command, in one alphabetical list, with
-   its key beside it. Press Enter to run whatever you choose.
+5. Press **NVDA+Alt+F10** for a list of every command, in one alphabetical list,
+   with its key beside it. Press Enter to run whatever you choose. This works
+   everywhere, including before HomerView Edge is running, and it can start it
+   for you.
 
-If you remember only one command, make it Alt+F10. Everything else can be found
-from there.
+If you remember only one command, make it NVDA+Alt+F10. Everything else can be
+found from there, including how to start HomerView in the first place.
 
 # Opening a document
 
@@ -52,8 +54,8 @@ is present. LibreOffice covers the most formats and needs no Microsoft Office.
 
 - **Alt+F8** reads the whole page without moving the cursor. **Control+F8**
   copies it.
-- **Control+F** finds text or a regular expression, and moves the browse cursor
-  to it. **F3** repeats the search.
+- **Control+F** finds text, not case sensitive. **Control+F3** finds a regular
+  expression. **F3** repeats whichever was last used.
 - **Alt+K** tests the page for accessibility problems and offers to help you
   report them to whoever publishes the site.
 - **Control+F12** saves the page as a web page, Markdown, plain text, a Word

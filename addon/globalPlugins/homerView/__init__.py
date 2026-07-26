@@ -23,6 +23,8 @@ import addonHandler
 from . import output
 import api
 import globalPluginHandler
+import gui
+import gui.settingsDialogs
 import ui
 from controlTypes import Role
 from scriptHandler import script
@@ -57,6 +59,8 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         # Reattach silently to an Edge instance left running by an earlier NVDA
         # session. This is queued rather than called, so NVDA never waits for it.
         service.submit("attach", service.taskAttach)
+        self._addSettingsPanel()
+        self._addMenuItem()
         service.functionOpenDocument = lambda: self.script_openOtherFormat(None)
         self._publishCommands()
         homerLog.info("Global plugin ready")
@@ -128,6 +132,69 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
                 homerLog.info(f"  global {sKey} -> {getattr(dMap[sKey], '__name__', dMap[sKey])}")
         except Exception:
             logError("The global gesture map could not be recorded")
+
+    def _addSettingsPanel(self):
+        """Put HomerView in NVDA's Settings dialog.
+
+        An experienced user looks in Preferences before they look in the
+        documentation. An add-on with no page there looks as though it has
+        nothing to configure, which here would be untrue.
+        """
+        try:
+            from . import settingsPanel
+
+            gui.settingsDialogs.NVDASettingsDialog.categoryClasses.append(
+                settingsPanel.HomerViewSettingsPanel)
+            self.classSettingsPanel = settingsPanel.HomerViewSettingsPanel
+            homerLog.info("Added the HomerView page to NVDA's settings")
+        except Exception:
+            self.classSettingsPanel = None
+            logError("The settings panel could not be added")
+
+    def _addMenuItem(self):
+        """Put HomerView in the NVDA menu, under Tools.
+
+        This is the other place a user explores first, and it matters more here
+        than for most add-ons: someone who has not yet learned a single key can
+        start the browser and open the guide from a menu they already know how
+        to reach.
+        """
+        self.menuItems = []
+        try:
+            menuTools = gui.mainFrame.sysTrayIcon.toolsMenu
+            self.menuHomerView = wx.Menu()
+            for sLabel, sHelp, functionCommand in (
+                # Translators: An item in the HomerView menu.
+                (_("&Launch HomerView Edge"), _("Start the browser, or bring its window forward"),
+                 lambda event: self.script_launchHomerView(None)),
+                # Translators: An item in the HomerView menu.
+                (_("&All commands..."), _("List every HomerView command"),
+                 lambda event: self.script_alternateMenu(None)),
+                # Translators: An item in the HomerView menu.
+                (_("&Quick start"), _("Open the HomerView quick start"),
+                 lambda event: documents.openDocument("readMe")),
+                # Translators: An item in the HomerView menu.
+                (_("&User guide"), _("Open the full HomerView user guide"),
+                 lambda event: documents.openDocument("guide")),
+                # Translators: An item in the HomerView menu.
+                (_("&History of changes"), _("Open the HomerView history of changes"),
+                 lambda event: documents.openDocument("history")),
+                # Translators: An item in the HomerView menu.
+                (_("Check for a &newer version..."), _("Check for a newer HomerView and install it"),
+                 lambda event: self.script_elevateVersion(None)),
+                # Translators: An item in the HomerView menu.
+                (_("A&bout HomerView"), _("Show the version and where HomerView keeps its files"),
+                 lambda event: documents.show("about")),
+            ):
+                item = self.menuHomerView.Append(wx.ID_ANY, sLabel, sHelp)
+                gui.mainFrame.sysTrayIcon.Bind(wx.EVT_MENU, functionCommand, item)
+                self.menuItems.append(item)
+            # Translators: The HomerView submenu in NVDA's Tools menu.
+            self.itemHomerView = menuTools.AppendSubMenu(self.menuHomerView, _("Homer&View"))
+            homerLog.info("Added the HomerView menu to NVDA's Tools menu")
+        except Exception:
+            self.itemHomerView = None
+            logError("The NVDA menu item could not be added")
 
     def terminate(self):
         homerLog.info(
@@ -467,7 +534,24 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         gesture="kb:NVDA+alt+f10",
     )
     def script_alternateMenu(self, gesture):
-        """The menu, reachable from anywhere.
+        """The menu, on one key that always works.
+
+        There was a second, shorter key, Alt+F10, bound inside a HomerView page
+        in the Homer tradition. It has been removed, and the reasoning is worth
+        recording because brevity is usually the right call and here it is not.
+
+        This is the command a person reaches for when they do not know what
+        they are looking for. A key that answers in a page and does nothing in
+        the address bar is indistinguishable, from the keyboard, from a key
+        that is broken; and a discovery command that appears broken is worse
+        than a longer one that never is. This project has watched that exact
+        failure more than once, with a command silently out of scope and a
+        tester reasonably concluding it did not work.
+
+        So there is one key. It carries the NVDA modifier, which means NVDA
+        takes it before any program sees it, so it works in the address bar, in
+        a form field, in another application, and before Microsoft Edge has
+        been started at all.
 
         Alt+F10 exists inside a HomerView page, matching the Homer interface.
         This one works everywhere, including before Edge has been launched,
@@ -489,8 +573,8 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
                     _("Page commands are not listed"), "",
                     _(
                         "The reading, selection and clipboard commands exist only inside a "
-                        "HomerView page. Press NVDA+Alt+H to launch HomerView Edge, then open "
-                        "this menu again from a page."
+                        "HomerView page. Choose Launch HomerView Edge above, then open this "
+                        "menu again from the page."
                     ),
                     lambda: None, "Anywhere",
                 )

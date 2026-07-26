@@ -39,12 +39,33 @@ Modules:
     inix    Order preserving ini and inix configuration files.
     lbc     Layout by Code: accessible dialogs built in code.
     say     One way to announce text, whatever is listening.
+    version Comparing and checking versions against a GitHub release.
     web     Dependency free HTTP with browser-like behaviour.
+
+**What Lbc gives every dialog.** These are the same conveniences the C#
+Lbc provides, and they exist because a person who cannot see the dialog needs
+to be told things a sighted user can simply look at.
+
+    Control+Enter    accept the dialog from any control, including a
+                     multi-line field or a list, which swallow plain Enter
+    Shift+F1         speak the tip for the control that has focus
+    Control+A        select all, and say so
+    Control+Shift+A  clear the selection, and say so
+    Control+C        copy the current line, or the current list item
+    Alt+C            append the same to the clipboard
+    Control+J        find a substring in a list, not case sensitive
+    Control+Shift+J  the same, backwards
+    F3, Shift+F3     repeat that search without being asked again
+    F4               open a pick list, where the field was given one
+
+OK and Cancel never carry a mnemonic, because Windows already gives Cancel to
+Escape and OK to Enter, and spending two accelerators on them takes letters a
+field could use.
 """
 
 toolkitVersion = "1.0.0"
 
-__all__ = ["inix", "lbc", "say", "web"]
+__all__ = ["inix", "lbc", "say", "version", "web"]
 
 # --- A shared Homer folder, when one exists -------------------------------
 #

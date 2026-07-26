@@ -96,6 +96,7 @@ dHomerGestures = {
     "kb:alt+shift+w": "findWordAtCursorBackwards",
     "kb:f1": "showHelp",
     "kb:alt+f1": "showAbout",
+    "kb:control+f11": "elevateVersion",
     "kb:shift+f1": "showHistory",
     "kb:control+shift+f3": "findByPatternBackwards",
     "kb:f3": "findAgain",
@@ -694,6 +695,13 @@ class HomerViewBuffer:
     def script_openOtherFormat(self, gesture):
         self.runSafely("openOtherFormat", lambda: homerCommands.openDocument())
 
+    @script(
+        description=_("Checks for a newer HomerView and installs it"),
+        category="HomerView",
+    )
+    def script_elevateVersion(self, gesture):
+        self.runSafely("elevateVersion", homerCommands.elevateVersion)
+
     @script(description=_("Shows the HomerView user guide"), category="HomerView")
     def script_showHelp(self, gesture):
         self.runSafely("showHelp", lambda: homerCommands.showDocument("help"))
@@ -777,6 +785,7 @@ class HomerViewBuffer:
             self._homer("findWordAtCursor", _("Find the next occurrence of the word at the cursor")),
             self._homer("findWordAtCursorBackwards", _("Find the previous occurrence of the word at the cursor")),
             self._homer("openOtherFormat", _("Open a document of any popular format")),
+            self._homer("elevateVersion", _("Check for a newer HomerView and install it")),
             self._homer("showHelp", _("Show the HomerView user guide")),
             self._homer("showAbout", _("Show what HomerView is and where it keeps its files")),
             self._homer("showHistory", _("Show the history of changes to HomerView")),

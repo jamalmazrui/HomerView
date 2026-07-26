@@ -1082,5 +1082,79 @@ def moveByParagraph(treeInterceptor, bForward):
     )
 
 
+def elevateVersion():
+    """Check for a newer HomerView and install it."""
+    from . import lbc
+
+    lbc.afterScript(_elevateVersionNow)
+
+
+def _elevateVersionNow():
+    from . import elevate
+    from . import lbc
+    from . import output
+    from .service import service
+
+    # Translators: Reported while the version check runs.
+    ui.message(_("Checking for a newer version"))
+    try:
+        dCheck = elevate.checkForUpdate()
+    except Exception as exception:
+        lbc.dialogInfo(_("Elevate version"), str(exception))
+        return
+
+    sInstalled, sLatest = dCheck["installed"], dCheck["latest"]
+    iComparison = dCheck["comparison"]
+
+    if iComparison < 0:
+        # The developer's own machine, and not a fault.
+        lbc.dialogInfo(
+            _("Elevate version"),
+            _("HomerView is running a newer version than the latest public release.\n\n"
+              "Installed: {installed}\nPublished: {latest}\n\nNo change offered.").format(
+                installed=sInstalled, latest=sLatest))
+        return
+
+    if iComparison == 0:
+        sQuestion = _(
+            "HomerView is already up to date.\n\n"
+            "Installed: {installed}\nPublished: {latest}\n\n"
+            "Install this version again anyway? That repairs an installation that did "
+            "not take.").format(installed=sInstalled, latest=sLatest)
+    else:
+        sQuestion = _(
+            "A newer HomerView is available.\n\n"
+            "Installed: {installed}\nAvailable: {latest}\n\n"
+            "Download it and hand it to NVDA now? NVDA will ask you to confirm, and "
+            "will restart afterwards.").format(installed=sInstalled, latest=sLatest)
+    if lbc.dialogConfirm(_("Elevate version"), sQuestion) is not True:
+        homerLog.info("Elevate version declined")
+        return
+
+    # Translators: Reported while the add-on downloads.
+    ui.message(_("Downloading"))
+    try:
+        dResult = elevate.installAddon()
+    except Exception as exception:
+        lbc.dialogInfo(
+            _("Elevate version"),
+            _("The download failed.\n\n{reason}\n\nYou can download it directly from "
+              "{url}").format(reason=exception, url=elevate.latestPageUrl))
+        return
+
+    if dResult.get("opened"):
+        lbc.dialogInfo(
+            _("Elevate version"),
+            _("The add-on has been handed to NVDA. Confirm the installation when NVDA "
+              "asks, and let it restart.\n\nThe program files, the documentation and the "
+              "converters are updated separately by the installer at {url}").format(
+                url=elevate.latestPageUrl))
+    else:
+        lbc.dialogInfo(
+            _("Elevate version"),
+            _("The add-on downloaded but could not be opened. Run this file yourself:\n\n"
+              "{path}").format(path=dResult.get("path", "")))
+
+
 def lastPercent(treeInterceptor):
     return dLastPercent.get(id(treeInterceptor))

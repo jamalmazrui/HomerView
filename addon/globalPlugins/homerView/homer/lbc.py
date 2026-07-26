@@ -177,6 +177,169 @@ def writeIniValue(sPath, sSection, sName, sValue):
         return False
 
 
+class ListSearch:
+    """Find in a list box, as the C# Lbc does.
+
+    A list of forty commands is faster to search than to walk, and a list box
+    offers only first-letter jumping, which finds the wrong thing when several
+    entries share a letter. Control+J asks for a substring and moves to the
+    first match; F3 and Shift+F3 repeat it without asking again.
+
+    The term is held on the class rather than the instance, so a search
+    survives closing one dialog and opening another. Someone who has just
+    searched for the same thing twice should not have to type it a third time.
+    """
+
+    sTerm = ""
+
+    @staticmethod
+    def items(listBox):
+        try:
+            return [listBox.GetString(i) for i in range(listBox.GetCount())]
+        except Exception:
+            return []
+
+    @staticmethod
+    def findFrom(listBox, iFrom, bForward, sNeedle):
+        """Return the index of the next match, wrapping, or minus one."""
+        lItems = ListSearch.items(listBox)
+        if not lItems or not sNeedle:
+            return -1
+        sNeedle = sNeedle.lower()
+        iCount = len(lItems)
+        iStep = 1 if bForward else -1
+        for iOffset in range(1, iCount + 1):
+            iIndex = (iFrom + iStep * iOffset) % iCount
+            if sNeedle in lItems[iIndex].lower():
+                return iIndex
+        return -1
+
+    @staticmethod
+    def moveTo(listBox, iIndex):
+        listBox.SetSelection(iIndex)
+        try:
+            listBox.EnsureVisible(iIndex)
+        except Exception:
+            pass
+        # A selection changed in code does not raise the event a screen reader
+        # listens for, so the item is announced here.
+        from . import say as sayModule
+
+        sayModule.say(listBox.GetString(iIndex))
+
+    @staticmethod
+    def prompt(listBox, bForward=True):
+        from . import say as sayModule
+
+        sTerm = dialogInput(
+            "Find backwards" if not bForward else "Find",
+            "Find substring, not case sensitive:",
+            ListSearch.sTerm,
+        )
+        if sTerm is None or not sTerm.strip():
+            return
+        ListSearch.sTerm = sTerm.strip()
+        iFrom = listBox.GetSelection()
+        iFound = ListSearch.findFrom(
+            listBox, iFrom if iFrom >= 0 else -1, bForward, ListSearch.sTerm)
+        if iFound < 0:
+            sayModule.say("Not found")
+            return
+        ListSearch.moveTo(listBox, iFound)
+
+    @staticmethod
+    def again(listBox, bForward=True):
+        from . import say as sayModule
+
+        if not ListSearch.sTerm:
+            sayModule.say("Press Control+J first to search")
+            return
+        iFrom = listBox.GetSelection()
+        iFound = ListSearch.findFrom(
+            listBox, iFrom if iFrom >= 0 else -1, bForward, ListSearch.sTerm)
+        if iFound < 0:
+            sayModule.say("Not found")
+            return
+        ListSearch.moveTo(listBox, iFound)
+
+    @staticmethod
+    def copyItem(listBox, bAppend):
+        """Control+C copies the current item, Alt+C appends it.
+
+        Every Lbc control answers the same chords, so a user does not have to
+        remember which kind of control they are in.
+        """
+        from . import say as sayModule
+
+        iIndex = listBox.GetSelection()
+        if iIndex < 0:
+            sayModule.say("No item")
+            return
+        sItem = listBox.GetString(iIndex)
+        if bAppend:
+            setClipboard(clipboardJoin(sItem))
+            sayModule.say("Appended to clipboard")
+        else:
+            setClipboard(sItem)
+            sayModule.say("Copied item")
+
+    @staticmethod
+    def bind(listBox):
+        """Attach the find and copy chords to one list box."""
+        def onKey(event):
+            iKey = event.GetKeyCode()
+            bControl, bShift = event.ControlDown(), event.ShiftDown()
+            if bControl and iKey == ord("J"):
+                ListSearch.prompt(listBox, not bShift)
+            elif iKey == wx.WXK_F3:
+                ListSearch.again(listBox, not bShift)
+            elif bControl and iKey == ord("C"):
+                ListSearch.copyItem(listBox, False)
+            elif event.AltDown() and iKey == ord("C"):
+                ListSearch.copyItem(listBox, True)
+            else:
+                event.Skip()
+        listBox.Bind(wx.EVT_KEY_DOWN, onKey)
+        return listBox
+
+
+def setClipboard(sText):
+    """Put text on the clipboard, through wx so no other library is needed."""
+    try:
+        if wx.TheClipboard.Open():
+            try:
+                wx.TheClipboard.SetData(wx.TextDataObject(str(sText)))
+            finally:
+                wx.TheClipboard.Close()
+            return True
+    except Exception:
+        pass
+    return False
+
+
+def getClipboard():
+    try:
+        if wx.TheClipboard.Open():
+            try:
+                data = wx.TextDataObject()
+                if wx.TheClipboard.GetData(data):
+                    return data.GetText()
+            finally:
+                wx.TheClipboard.Close()
+    except Exception:
+        pass
+    return ""
+
+
+def clipboardJoin(sText):
+    """Append to what is already on the clipboard, on its own line."""
+    sExisting = getClipboard()
+    if not sExisting:
+        return str(sText)
+    sSeparator = "" if sExisting.endswith("\n") else "\r\n"
+    return f"{sExisting}{sSeparator}{sText}"
+
+
 class Dialog(wx.Dialog):
     """A dialog assembled a band at a time, top to bottom.
 
@@ -188,8 +351,11 @@ class Dialog(wx.Dialog):
     def __init__(self, parent=None, sTitle="Dialog", bResizable=True):
         iStyle = wx.DEFAULT_DIALOG_STYLE | (wx.RESIZE_BORDER if bResizable else 0)
         super().__init__(parent=parent or getHostParent(), title=sTitle, style=iStyle)
+        self.controlInitialFocus = None
         self.dControls = OrderedDict()
+        self.dLookups = {}
         self.dResults = {}
+        self.dTips = {}
         self.functionHandler = None
         self.iBand = 0
         self.lSizers = [wx.BoxSizer(wx.VERTICAL)]
@@ -215,6 +381,101 @@ class Dialog(wx.Dialog):
 
     def _remember(self, sName, control):
         self.dControls[sName or control.GetName()] = control
+        return control
+
+    # --- Control conveniences -------------------------------------------
+
+    def bindTextChords(self, textCtrl, sTip="", lLookup=None):
+        """Give a text control the chords every Lbc control answers.
+
+        Control+A selects all and Control+Shift+A clears the selection, because
+        a screen reader user cannot see what is selected and needs to be told.
+        Control+C copies the current line and Alt+C appends it, matching the
+        list box and the browser commands, so one habit serves everywhere.
+        Shift+F1 speaks the tip for the control that has focus, which is where
+        a hint belongs when there is no room for it on screen. F4 offers a pick
+        list when one was supplied.
+        """
+        self.dTips[textCtrl] = sTip
+        if lLookup:
+            self.dLookups[textCtrl] = list(lLookup)
+
+        def currentLine():
+            sText = textCtrl.GetValue()
+            if not textCtrl.IsMultiLine():
+                return sText
+            iPosition = textCtrl.GetInsertionPoint()
+            iStart = sText.rfind("\n", 0, iPosition) + 1
+            iEnd = sText.find("\n", iPosition)
+            return sText[iStart:iEnd if iEnd >= 0 else len(sText)].rstrip("\r")
+
+        def onKey(event):
+            from . import say as sayModule
+
+            iKey = event.GetKeyCode()
+            bControl, bShift, bAlt = event.ControlDown(), event.ShiftDown(), event.AltDown()
+            if bControl and bShift and iKey == ord("A"):
+                textCtrl.SetSelection(textCtrl.GetInsertionPoint(), textCtrl.GetInsertionPoint())
+                sayModule.say("Selection cleared")
+            elif bControl and iKey == ord("A"):
+                textCtrl.SetSelection(-1, -1)
+                sayModule.say("Selected all")
+            elif bControl and iKey == ord("C") and not textCtrl.GetStringSelection():
+                setClipboard(currentLine())
+                sayModule.say("Copied line")
+            elif bAlt and iKey == ord("C"):
+                sText = textCtrl.GetStringSelection() or currentLine()
+                setClipboard(clipboardJoin(sText))
+                sayModule.say("Appended to clipboard")
+            elif bShift and iKey == wx.WXK_F1:
+                sayModule.say(self.dTips.get(textCtrl) or "No tip for this field")
+            elif iKey == wx.WXK_F4 and self.dLookups.get(textCtrl):
+                sChoice = dialogChoose(
+                    "Choose a value", "", sorted(self.dLookups[textCtrl], key=str.lower))
+                if sChoice:
+                    textCtrl.SetValue(sChoice)
+            else:
+                event.Skip()
+
+        textCtrl.Bind(wx.EVT_KEY_DOWN, onKey)
+        return textCtrl
+
+    def findControl(self, sName):
+        """Return a control by the name it was registered under."""
+        return self.dControls.get(sName)
+
+    def getValue(self, sName, vDefault=""):
+        """Read one control's value without knowing what kind it is."""
+        control = self.findControl(sName)
+        if control is None:
+            return vDefault
+        for functionRead in (
+            lambda: control.GetStringSelection(),
+            lambda: control.GetValue(),
+        ):
+            try:
+                return functionRead()
+            except Exception:
+                continue
+        return vDefault
+
+    def setValue(self, sName, vValue):
+        control = self.findControl(sName)
+        if control is None:
+            return False
+        try:
+            if isinstance(control, (wx.ListBox, wx.Choice)):
+                control.SetStringSelection(str(vValue))
+            else:
+                control.SetValue(vValue)
+            return True
+        except Exception:
+            return False
+
+    def setInitialFocus(self, sName):
+        control = self.findControl(sName)
+        if control is not None:
+            self.controlInitialFocus = control
         return control
 
     # --- Controls -------------------------------------------------------
@@ -244,7 +505,8 @@ class Dialog(wx.Dialog):
         checkBox.SetValue(bool(bValue))
         return self._remember(sName or stripMnemonic(sLabel), self._place(checkBox))
 
-    def addInputBox(self, sLabel="", sValue="", sName="", iWidth=defaultInputWidth):
+    def addInputBox(self, sLabel="", sValue="", sName="", iWidth=defaultInputWidth,
+                    sTip="", lLookup=None):
         """A labelled single line field.
 
         The label is copied into the field's accessible name. A label placed
@@ -260,10 +522,11 @@ class Dialog(wx.Dialog):
                 textCtrl.GetAccessible().SetName(stripMnemonic(sLabel))
             except Exception:
                 pass
+        self.bindTextChords(textCtrl, sTip, lLookup)
         return self._remember(sName or stripMnemonic(sLabel), self._place(textCtrl, 1))
 
     def addMemo(self, sLabel="", sValue="", bReadOnly=False, sName="",
-                iWidth=defaultEditWidth, iHeight=defaultEditHeight):
+                iWidth=defaultEditWidth, iHeight=defaultEditHeight, sTip=""):
         if sLabel:
             self.addStaticText(sLabel)
             self.addBand()
@@ -271,10 +534,11 @@ class Dialog(wx.Dialog):
         textCtrl = wx.TextCtrl(self, value=str(sValue), size=(iWidth, iHeight), style=iStyle)
         if sLabel:
             textCtrl.SetName(stripMnemonic(sLabel))
+        self.bindTextChords(textCtrl, sTip)
         return self._remember(sName or stripMnemonic(sLabel), self._place(textCtrl, 1))
 
     def addListBox(self, sLabel="", lNames=None, iSelection=0, sName="",
-                   iWidth=defaultListWidth, iHeight=defaultListHeight):
+                   iWidth=defaultListWidth, iHeight=defaultListHeight, sTip=""):
         if sLabel:
             self.addStaticText(sLabel)
             self.addBand()
@@ -283,7 +547,49 @@ class Dialog(wx.Dialog):
             listBox.SetSelection(max(0, min(iSelection, len(lNames) - 1)))
         if sLabel:
             listBox.SetName(stripMnemonic(sLabel))
+        # Control+J and F3 to search, Control+C and Alt+C to copy.
+        ListSearch.bind(listBox)
+        self.dTips[listBox] = sTip
         return self._remember(sName or stripMnemonic(sLabel), self._place(listBox, 1))
+
+    def addCheckListBox(self, sLabel="", lNames=None, lChecked=None, sName="",
+                        iWidth=defaultListWidth, iHeight=defaultListHeight, sTip=""):
+        """A list where several items can be chosen, each toggled with Space.
+
+        This is the accessible way to offer multiple selection. A plain list
+        box with extended selection reports its state poorly to a screen
+        reader, because there is nothing on an item that says whether it is
+        selected; a check box on each item says so directly.
+        """
+        if sLabel:
+            self.addStaticText(sLabel)
+            self.addBand()
+        checkList = wx.CheckListBox(self, choices=list(lNames or []), size=(iWidth, iHeight))
+        for iIndex in (lChecked or []):
+            if 0 <= iIndex < checkList.GetCount():
+                checkList.Check(iIndex, True)
+        if lNames:
+            checkList.SetSelection(0)
+        if sLabel:
+            checkList.SetName(stripMnemonic(sLabel))
+        ListSearch.bind(checkList)
+        self.dTips[checkList] = sTip
+        return self._remember(sName or stripMnemonic(sLabel), self._place(checkList, 1))
+
+    def addHistoryBox(self, sLabel="", lRecent=None, sValue="", sName="", sTip=""):
+        """A field that remembers what was typed before.
+
+        The same idea as the C# combo history box: the previous entries are
+        there to be arrowed through, and anything else can still be typed.
+        """
+        if sLabel:
+            self._place(wx.StaticText(self, label=sLabel))
+        comboBox = wx.ComboBox(
+            self, value=str(sValue), choices=list(lRecent or []), style=wx.CB_DROPDOWN)
+        if sLabel:
+            comboBox.SetName(stripMnemonic(sLabel))
+        self.dTips[comboBox] = sTip
+        return self._remember(sName or stripMnemonic(sLabel), self._place(comboBox, 1))
 
     def addChoice(self, sLabel="", lNames=None, iSelection=0, sName=""):
         if sLabel:
@@ -297,6 +603,24 @@ class Dialog(wx.Dialog):
 
     # --- Behaviour ------------------------------------------------------
 
+    def _bindHelpKey(self):
+        """Shift+F1 speaks the tip for whatever has focus.
+
+        A tip belongs where there is no room for it on screen, which for a
+        screen reader user is everywhere. Reaching it from any control rather
+        than only a text field means the habit is worth forming.
+        """
+        iTipId = wx.NewIdRef()
+
+        def onTip(event):
+            from . import say as sayModule
+
+            control = self.FindFocus()
+            sayModule.say(self.dTips.get(control) or "No tip for this control")
+
+        self.Bind(wx.EVT_MENU, onTip, id=iTipId)
+        return wx.AcceleratorEntry(wx.ACCEL_SHIFT, wx.WXK_F1, iTipId)
+
     def _bindSubmitKeys(self):
         """Control+Enter submits from anywhere in the dialog.
 
@@ -306,9 +630,10 @@ class Dialog(wx.Dialog):
         """
         iSubmitId = wx.NewIdRef()
         self.Bind(wx.EVT_MENU, lambda event: self._submit(), id=iSubmitId)
-        self.SetAcceleratorTable(
-            wx.AcceleratorTable([wx.AcceleratorEntry(wx.ACCEL_CTRL, wx.WXK_RETURN, iSubmitId)])
-        )
+        self.SetAcceleratorTable(wx.AcceleratorTable([
+            wx.AcceleratorEntry(wx.ACCEL_CTRL, wx.WXK_RETURN, iSubmitId),
+            self._bindHelpKey(),
+        ]))
 
     def _submit(self):
         self.collect()
@@ -334,7 +659,12 @@ class Dialog(wx.Dialog):
         """Copy every control's value into the results dictionary."""
         for sName, control in self.dControls.items():
             try:
-                if isinstance(control, wx.ListBox):
+                if isinstance(control, wx.CheckListBox):
+                    self.dResults[sName] = [
+                        control.GetString(i) for i in range(control.GetCount())
+                        if control.IsChecked(i)
+                    ]
+                elif isinstance(control, wx.ListBox):
                     self.dResults[sName] = control.GetStringSelection()
                 elif isinstance(control, wx.Choice):
                     self.dResults[sName] = control.GetStringSelection()
@@ -354,10 +684,13 @@ class Dialog(wx.Dialog):
         self.lSizers[0].Add(wx.Size(1, verticalDividerPad))
         self.SetSizerAndFit(self.lSizers[0])
         self.CenterOnScreen()
-        for control in self.dControls.values():
-            if isinstance(control, (wx.TextCtrl, wx.ListBox, wx.Choice)):
-                control.SetFocus()
-                break
+        if self.controlInitialFocus is not None:
+            self.controlInitialFocus.SetFocus()
+        else:
+            for control in self.dControls.values():
+                if isinstance(control, (wx.TextCtrl, wx.ListBox, wx.Choice)):
+                    control.SetFocus()
+                    break
         bNotified = beforeDialog()
         try:
             iResult = self.ShowModal()

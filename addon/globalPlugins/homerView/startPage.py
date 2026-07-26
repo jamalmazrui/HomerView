@@ -18,7 +18,7 @@ weights have been published, which is not the same thing as the service being
 open. None of them belong here under this rule.
 """
 
-startPageVersion = "5"
+startPageVersion = "6"
 
 startPageText = """<!doctype html>
 <html lang="en">
@@ -71,6 +71,7 @@ side effect.</li>
 <li>Alt+F8 reads the whole page. Control+F8 copies it.</li>
 <li>Control+F finds text or a regular expression. F3 repeats it.</li>
 <li>Alt+F10 lists every command in one alphabetical list.</li>
+<li>Control+F11 checks for a newer HomerView and installs it.</li>
 </ul>
 <h2>Commands anywhere</h2>
 <ul>

@@ -1,0 +1,153 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>HomerView User Guide</title>
+<style>body{font-family:Segoe UI,Arial,sans-serif;line-height:1.5;margin:0 auto;max-width:60em;padding:1em}pre{background:#f4f4f4;padding:1em;white-space:pre-wrap}code{background:#f4f4f4}</style>
+</head>
+<body>
+<main>
+<h1>HomerView</h1>
+<p>HomerView is an NVDA add-on that runs its own copy of Microsoft Edge and drives</p>
+<p>it through the Chrome DevTools Protocol. This guide describes every command.</p>
+<p>For a first ten minutes, read README.md instead.</p>
+<h1>How the commands are organised</h1>
+<p>Commands come in two kinds, and the difference explains why some keys work in</p>
+<p>one place and not another.</p>
+<p>Page commands exist only while you are reading a page HomerView opened, in</p>
+<p>browse mode. That is what lets them use single letters and short combinations</p>
+<p>without disturbing anything else on the computer. In an edit field, in the</p>
+<p>address bar, or in another program, they are simply not there.</p>
+<p>Commands that work anywhere carry the NVDA key, which NVDA takes before any</p>
+<p>program sees it. Those are for starting HomerView and for the few things worth</p>
+<p>doing from outside a page.</p>
+<p>No HomerView command takes a key NVDA uses by default, on either the desktop or</p>
+<p>the laptop layout. Every command appears in NVDA&#x27;s Input Gestures dialog under</p>
+<p>the HomerView category, where its key can be changed.</p>
+<h1>Commands that work anywhere</h1>
+<ul>
+<li>NVDA+Alt+H launches or reconnects the HomerView browser.</li>
+<li>NVDA+Alt+F10 lists every command, even before the browser is running.</li>
+<li>NVDA+Alt+U reports the web address, from the address bar or a form field as</li>
+</ul>
+<p>well as from the page.</p>
+<ul>
+<li>Control+O opens a document of almost any format.</li>
+<li>Control+F12 saves the page in one of seven formats.</li>
+<li>NVDA+Alt+W downloads files linked from the page.</li>
+<li>NVDA+Alt+X extracts the readable part of the page.</li>
+<li>NVDA+Alt+E summarises the structure of the page.</li>
+<li>NVDA+Alt+A tests the page for accessibility and finds how to report problems.</li>
+<li>NVDA+Alt+P copies the page text and opens Edge&#x27;s Copilot sidebar.</li>
+<li>NVDA+Alt+D closes a browser dialog that is blocking the window.</li>
+<li>Control+Enter submits the form you are filling in, from any field.</li>
+</ul>
+<h1>Getting around the page</h1>
+<ul>
+<li><strong>no key by default</strong> jump to Main Content: moves to the page&#x27;s main content landmark</li>
+<li><strong>Shift+J</strong> jump to Probable Main Content: finds it when the page declares none</li>
+<li><strong>Alt+Downarrow</strong> moves to the next sentence and reads it</li>
+<li><strong>Alt+Uparrow</strong> moves to the previous sentence and reads it</li>
+<li><strong>Control+Downarrow</strong> moves to the next paragraph and reads it</li>
+<li><strong>Control+Uparrow</strong> moves to the previous paragraph and reads it</li>
+<li><strong>Control+G</strong> moves to a percentage point through the page</li>
+<li><strong>Alt+G</strong> moves to the percentage point used last time</li>
+<li><strong>NVDA+F6</strong> lists the headings on the page, like the JAWS heading list</li>
+<li><strong>NVDA+Shift+F7</strong> lists the links on the page, like the JAWS link list</li>
+<li><strong>NVDA+F5</strong> lists the form fields on the page, like the JAWS form field list</li>
+<li><strong>NVDA+Alt+L</strong> lists any kind of element on the page, including kinds NVDA&#x27;s own Elements List does not offer</li>
+</ul>
+<h1>Finding things</h1>
+<ul>
+<li><strong>Control+F</strong> finds text or a regular expression in the page</li>
+<li><strong>Control+Shift+F3</strong> finds text or a regular expression backwards in the page</li>
+<li><strong>F3</strong> repeats the last find, forwards</li>
+<li><strong>Shift+F3</strong> repeats the last find, backwards</li>
+<li><strong>Alt+W</strong> finds the next occurrence of the word at the cursor</li>
+<li><strong>Alt+Shift+W</strong> finds the previous occurrence of the word at the cursor</li>
+</ul>
+<h1>Reading and copying</h1>
+<ul>
+<li><strong>Alt+F8</strong> reads the whole page without moving the cursor</li>
+<li><strong>Alt+R</strong> reads the rest of the page from the cursor, without moving it</li>
+<li><strong>Shift+Space</strong> says the selected text, and spells it when pressed twice</li>
+<li><strong>Shift+Backspace</strong> says the run of non-blank characters at the cursor, and spells it when pressed twice</li>
+<li><strong>Control+F8</strong> copies the whole page to the clipboard</li>
+<li><strong>Control+C</strong> copies the selection, or the current line when nothing is selected</li>
+<li><strong>Alt+C</strong> appends the selection, or the current line, to the clipboard</li>
+<li><strong>Control+Space</strong> selects the run of non-blank characters at the cursor</li>
+<li><strong>F8</strong> marks where a selection should begin, so Shift need not be held</li>
+<li><strong>Shift+F8</strong> selects from the marked start to the cursor</li>
+<li><strong>Alt+Shift+F8</strong> returns to the marked start of the selection</li>
+</ul>
+<h1>Asking about the page</h1>
+<ul>
+<li><strong>no key by default</strong> reports the web address of the current HomerView page. Pressing twice spells it, and pressing three times copies it to the clipboard</li>
+<li><strong>Alt+N</strong> says the name of the page, and spells it when pressed twice</li>
+<li><strong>Alt+M</strong> reports what the page says about itself: author, publisher, date, licence</li>
+<li><strong>Alt+Y</strong> says how many characters, words and lines the page or selection holds</li>
+<li><strong>Alt+Shift+Y</strong> says how many links, headings, landmarks, tables, frames and fields the page holds</li>
+<li><strong>Alt+Delete</strong> says the line, column and percentage position of the cursor</li>
+<li><strong>Alt+U</strong> says where the link at the cursor would go, and copies it when pressed twice</li>
+<li><strong>Alt+P</strong> copies every link address on the page to the clipboard</li>
+<li><strong>Y</strong> summarises the structure of this page</li>
+<li><strong>Alt+Semicolon</strong> says the time, and the date when pressed twice</li>
+</ul>
+<h1>The clipboard</h1>
+<ul>
+<li><strong>Alt+Apostrophe</strong> says the clipboard text, and spells it when pressed twice</li>
+<li><strong>Alt+Shift+Apostrophe</strong> clears the clipboard</li>
+<li><strong>Control+Apostrophe</strong> saves the clipboard to a text file, proposing a name</li>
+<li><strong>Control+Shift+Apostrophe</strong> appends the clipboard to a text file</li>
+</ul>
+<h1>Acting on the page</h1>
+<ul>
+<li><strong>Alt+V</strong> acts on the page by describing what you want, such as click sign in</li>
+<li><strong>Alt+K</strong> tests this page for accessibility, asking which engine to use</li>
+<li><strong>Alt+I</strong> tests the page with the IBM Equal Access engine, alongside axe-core</li>
+<li><strong>Control+O</strong> opens a document of any popular format, or a web address</li>
+</ul>
+<h1>Finding a command</h1>
+<ul>
+<li><strong>Alt+F10</strong> lists every HomerView command in one alphabetical list</li>
+<li><strong>Alt+Shift+H</strong> shows every HomerView command and its key as a document</li>
+<li><strong>F1</strong> shows the HomerView user guide</li>
+<li><strong>Alt+F1</strong> shows what HomerView is, and where it keeps its files</li>
+<li><strong>Shift+F1</strong> shows the history of changes to HomerView</li>
+</ul>
+<h1>Reading documents</h1>
+<p>Control+O opens a Word file, a spreadsheet, a slide deck, a PDF, rich text,</p>
+<p>OpenDocument, EPUB or Markdown. HomerView converts it to a web page in the</p>
+<p>temporary folder and opens that, so every command in this guide works on it.</p>
+<p>Four converters are used, whichever suits the format, and none is bundled:</p>
+<p>LibreOffice, which covers the most formats and needs no Microsoft Office;</p>
+<p>pandoc, for ebooks, Markdown and OpenDocument text; Calibre, for ebooks; and</p>
+<p>2htm, which drives Microsoft Office and is used only where it is alone in</p>
+<p>handling a format. If a format needs a converter you do not have, HomerView</p>
+<p>says which one to install.</p>
+<h1>Where HomerView puts things</h1>
+<ul>
+<li>Settings and recently typed values: HomerView.inix in your roaming</li>
+</ul>
+<p>application data folder.</p>
+<ul>
+<li>Generated pages and reports: a HomerView folder inside the temporary folder,</li>
+</ul>
+<p>which Windows clears on its own.</p>
+<ul>
+<li>Downloads and saved files: your downloads folder.</li>
+<li>The session log: HomerView.log in the installation folder.</li>
+<li>What you have opened: HomerView.db beside the log.</li>
+</ul>
+<h1>Why the browser is a separate copy</h1>
+<p>Since Chrome 136 and the matching Edge release, the remote debugging switches</p>
+<p>are ignored when the browser uses its default profile. A copy of Edge you</p>
+<p>started yourself therefore cannot be given a debugging connection, and HomerView</p>
+<p>cannot work in it. HomerView runs its own copy with its own profile instead.</p>
+<p>That profile is persistent and is yours. Sign it in once and your bookmarks,</p>
+<p>passwords, extensions and sessions are there every time, and downloads behind a</p>
+<p>login work. Set bAllowSignIn to True in edge.py, delete the profile folder, and</p>
+<p>launch again.</p>
+</main>
+</body>
+</html>

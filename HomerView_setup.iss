@@ -3,7 +3,7 @@
 ; Source root and installation destination: C:\HomerView
 
 #define AppName "HomerView"
-#define AppVersion "1.5.1"
+#define AppVersion "1.9.1"
 #define AppPublisher "Jamal Mazrui"
 ; A stable name on purpose. The version lives in the add-on's manifest, which is
 ; what NVDA reads, and in AppVersion above. Putting it in the file name as well
@@ -19,7 +19,17 @@ AppPublisher={#AppPublisher}
 AppPublisherURL=https://github.com/JamalMazrui/HomerView
 DefaultDirName={autopf}\HomerView
 DefaultGroupName={#AppName}
+; Prompts kept to the minimum, matching the pattern in the other Homer
+; installers. The directory page stays, because a user who installs to a
+; different drive should be able to say so. Everything else is suppressed:
+; there is no Start Menu folder to choose, no separate licence page, no
+; component or task selection, and no readme afterwards.
 DisableProgramGroupPage=yes
+DisableDirPage=no
+DisableReadyPage=yes
+DisableFinishedPage=no
+AllowNoIcons=yes
+UsePreviousAppDir=yes
 PrivilegesRequired=admin
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
@@ -30,7 +40,9 @@ OutputBaseFilename=HomerView_setup
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
-LicenseFile=C:\HomerView\installer\license.txt
+; The licence is summarised on the welcome page rather than given a page of its
+; own, which is one page fewer to pass through. The full text installs as
+; License.txt beside the program.
 VersionInfoVersion={#AppVersion}
 VersionInfoCompany={#AppPublisher}
 VersionInfoDescription=HomerView installer
@@ -44,8 +56,12 @@ SetupLogging=yes
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
-[Tasks]
-Name: "installaddon"; Description: "Open the HomerView add-on package in NVDA after installation"; GroupDescription: "NVDA integration:"; Flags: checkedonce
+[Messages]
+WelcomeLabel2=This will install [name/ver], an NVDA add-on that drives Microsoft Edge through the Chrome DevTools Protocol.%n%nHomerView is free software under the GNU General Public License version 2. The full text installs as License.txt.%n%nAfter installing, tick the box on the last page to add the add-on to NVDA.
+
+; No [Tasks] section. The one optional step, installing the add-on into NVDA,
+; is offered as a checkbox on the Finish page through [Run] below, which is one
+; fewer wizard page than a task would need.
 
 [Dirs]
 ; Grant the Users group modify rights on the installation folder so that the
@@ -71,8 +87,9 @@ Source: "C:\HomerView\pandoc.exe"; DestDir: "{app}"; Flags: ignoreversion skipif
 ; Build the add-on with buildAddon.cmd before compiling this installer.
 Source: "C:\HomerView\build\{#AddonFile}"; DestDir: "{app}\build"; Flags: ignoreversion
 Source: "C:\HomerView\addon\*"; DestDir: "{app}\addon"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "C:\HomerView\docs\*"; DestDir: "{app}\docs"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "C:\HomerView\installer\*"; DestDir: "{app}\installer"; Flags: ignoreversion
+; The development plan is kept for its historical value.
+Source: "C:\HomerView\docs\*"; DestDir: "{app}\docs"; Flags: ignoreversion recursesubdirs createallsubdirs skipifsourcedoesntexist
+Source: "C:\HomerView\installer\license.txt"; DestDir: "{app}"; DestName: "License.txt"; Flags: ignoreversion
 Source: "C:\HomerView\buildAddon.cmd"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\HomerView\buildAddon.ps1"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\HomerView\clean.cmd"; DestDir: "{app}"; Flags: ignoreversion
@@ -83,21 +100,31 @@ Source: "C:\HomerView\createHomerViewRepo.ps1"; DestDir: "{app}"; Flags: ignorev
 Source: "C:\HomerView\.gitignore"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "C:\HomerView\.gitattributes"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "C:\HomerView\HomerView_setup.iss"; DestDir: "{app}"; Flags: ignoreversion
+; Every document ships as Markdown and as a web page. The web page is what the
+; Alternate Menu and the start page open, in the HomerView window.
 Source: "C:\HomerView\README.md"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\HomerView\CHANGELOG.md"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\HomerView\README.htm"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\HomerView\HomerView.md"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\HomerView\HomerView.htm"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\HomerView\History.md"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\HomerView\History.htm"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\HomerView\Developer.md"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\HomerView\Developer.htm"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\HomerView\LICENSE.md"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\Install the HomerView NVDA add-on"; Filename: "{app}\build\{#AddonFile}"; WorkingDir: "{app}\build"; Comment: "Open the HomerView add-on package in NVDA"
-Name: "{group}\HomerView user guide"; Filename: "{app}\docs\HomerView_User_Guide.md"; WorkingDir: "{app}\docs"
-Name: "{group}\HomerView design notes"; Filename: "{app}\docs\HomerView_Design_Notes.md"; WorkingDir: "{app}\docs"
+Name: "{group}\HomerView quick start"; Filename: "{app}\README.htm"
+Name: "{group}\HomerView user guide"; Filename: "{app}\HomerView.htm"
+Name: "{group}\HomerView history of changes"; Filename: "{app}\History.htm"
+Name: "{group}\HomerView developer notes"; Filename: "{app}\Developer.htm"
 Name: "{group}\Uninstall HomerView"; Filename: "{uninstallexe}"
 
 [Run]
 ; shellexec is required: a .nvda-addon file is not executable, so Windows has to
 ; hand it to whatever is registered for that extension, which is NVDA. Without
 ; the flag Inno Setup would try to run it as a program and fail.
-Filename: "{app}\build\{#AddonFile}"; Description: "Open the HomerView NVDA add-on package in NVDA"; Flags: postinstall shellexec skipifsilent unchecked; Tasks: installaddon
+Filename: "{app}\build\{#AddonFile}"; Description: "Install the HomerView add-on in NVDA now"; Flags: postinstall shellexec skipifsilent
 
 [UninstallDelete]
 Type: files; Name: "{app}\HomerView.log"

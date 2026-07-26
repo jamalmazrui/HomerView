@@ -271,10 +271,9 @@ def describeRegion(dRegion):
         lDetail.append(f"{dRegion['headings']} {plural(dRegion['headings'], 'heading')}")
     if dRegion.get("links"):
         lDetail.append(f"{dRegion['links']} {plural(dRegion['links'], 'link')}")
-    if dRegion.get("characters"):
-        lDetail.append(None)
+    pass  # the character count this reported has been dropped
     if lDetail:
-        lParts.append("with " + ", ".join(lDetail))
+        lParts.append("with " + ", ".join(s for s in lDetail if s))
     if dRegion.get("hidden"):
         lParts.append("(not visible)")
     return " ".join(lParts)

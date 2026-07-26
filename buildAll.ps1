@@ -56,3 +56,50 @@ $sVersion = (Get-Item $pathInstaller).VersionInfo.FileVersion
 writeLog "Built HomerView_setup.exe, version $sVersion, $([math]::Round((Get-Item $pathInstaller).Length/1MB,1)) MB"
 writeLog "Ready for tagRelease."
 writeLog "buildAll finished"
+
+# --- Check the setup script before anyone compiles it -----------------------
+#
+# Inno Setup rejects a directive specified twice and fails on a missing source
+# file, both at compile time. Finding either here means the failure is reported
+# next to the change that caused it rather than minutes later in another program.
+
+writeLog "Checking HomerView_setup.iss"
+$pathSetup = Join-Path $pathRoot "HomerView_setup.iss"
+if (Test-Path $pathSetup) {
+    $lLines = Get-Content $pathSetup
+    $bInSetup = $false
+    $dSeen = @{}
+    $iProblems = 0
+    foreach ($sLine in $lLines) {
+        $sTrimmed = $sLine.Trim()
+        if ($sTrimmed -match '^\[(\w+)\]') {
+            $bInSetup = ($Matches[1] -eq "Setup")
+            continue
+        }
+        if (-not $bInSetup) { continue }
+        if ($sTrimmed.StartsWith(";") -or $sTrimmed.StartsWith("#") -or -not $sTrimmed.Contains("=")) { continue }
+        $sName = $sTrimmed.Split("=")[0].Trim()
+        if ($dSeen.ContainsKey($sName)) {
+            writeLog "ERROR: [Setup] directive $sName is specified more than once. Inno Setup will refuse to compile."
+            $iProblems += 1
+        }
+        $dSeen[$sName] = $true
+    }
+    foreach ($sLine in $lLines) {
+        if ($sLine -match 'Source:\s*"([^"]+)"' -and $sLine -notmatch 'skipifsourcedoesntexist') {
+            $sSource = $Matches[1]
+            if ($sSource -notmatch '\*') {
+                $sResolved = $sSource -replace '\{#AddonFile\}', 'HomerView.nvda-addon'
+                if (-not (Test-Path $sResolved)) {
+                    writeLog "ERROR: the setup script references $sResolved, which does not exist."
+                    $iProblems += 1
+                }
+            }
+        }
+    }
+    if ($iProblems -gt 0) {
+        writeLog "The setup script has $iProblems problem(s). Fix them before compiling."
+        exit 1
+    }
+    writeLog "The setup script checks out."
+}

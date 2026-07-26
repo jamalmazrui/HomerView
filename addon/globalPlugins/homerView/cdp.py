@@ -297,9 +297,26 @@ class CdpSession:
         return lDialogs
 
     def createTarget(self, sUrl):
+        """Open a report in a tab of its own, with no history behind it.
+
+        A new target starts with the given address as its only history entry,
+        so Alt+LeftArrow has nowhere to go and Control+F4 closes just that tab
+        and returns the reader to the page they came from. Navigating the
+        current tab instead would put the report into that page's history and
+        make closing it ambiguous.
+        """
         homerLog.info(f"CDP opening a new tab at {abbreviate(sUrl, 300)}")
-        dResult = self.call("Target.createTarget", {"url": sUrl})
-        return dResult.get("targetId", "")
+        dResult = self.call("Target.createTarget", {"url": sUrl, "newWindow": False})
+        sTargetId = dResult.get("targetId", "")
+        try:
+            dHistory = self.call(
+                "Page.getNavigationHistory", {}, self.attachToTarget(sTargetId))
+            homerLog.debug(
+                f"New tab history has {len(dHistory.get('entries') or [])} entry; "
+                "Control+F4 will close only this tab")
+        except Exception:
+            pass
+        return sTargetId
 
     def closeTarget(self, sTargetId):
         homerLog.info(f"CDP closing target {sTargetId}")

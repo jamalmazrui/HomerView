@@ -1,5 +1,39 @@
 ﻿# Changelog
 
+## 1.8.0
+
+- Made it a rule that no HomerView command may take a key NVDA uses by default on either the desktop or the laptop layout, and applied it. NVDA+A was the one breach: it is unassigned on the desktop layout but is Say All on the laptop layout, and a user of that layout was losing Say All inside HomerView pages. Reporting the page address is now Alt+A in a page and NVDA+Alt+U anywhere.
+- Added Alt+K, which asks which engine should test the page: Deque axe-core, IBM Equal Access, or both in turn. One key for one job leaves room for a third engine without another binding, and the choice is remembered.
+- Added sentence and paragraph movement on EdSharp's keys, which NVDA leaves unassigned in browse mode: Alt with the up and down arrows for sentences, Control with them for paragraphs. As with NVDA's own navigation, the cursor stays where it was when there is nothing to move to.
+- Added HomerView.inix in the roaming application data folder, holding preferences and the values last typed. A preference belongs with the user rather than the installation, so it survives reinstalling and needs no administrator rights. The inix format is used rather than JSON because someone may want to edit this by hand, and inix keeps their comments, blank lines and ordering when HomerView writes a value back.
+- The find pattern, the last script and the chosen accessibility engine now persist between sessions rather than only within one.
+- Renamed two commands whose purpose was unclear. Open Copilot is now Ask Copilot about this page, and its description says it copies the page text and opens the sidebar ready for Control+V. History is now Recently opened, and its description says it lists the pages and documents opened in HomerView so one can be found again.
+- Removed the Control+F10 binding. It was the original suggestion for opening a document and was superseded by Control+O, which is Edge's own key for the same job and a strict superset of what Edge does with it.
+
+## 1.7.0
+
+- Renamed the two navigation commands to reinforce the letter that runs them: Jump to Main Content on J, and Jump to Probable Main Content on Shift+J.
+- Launching now reopens the page the profile last had open, with its cookies and sessions, rather than the start page. The profile is persistent, so Edge has already recorded this in its own preferences; reading it there is better than keeping a second copy that could disagree with the browser. Set bReopenLastPage to False in edge.py for the start page every time.
+- The log now continues rather than restarting when a new session begins within an hour of the last entry. Restarting NVDA to install a build, or reconnecting to a browser left running, is a continuation of what the user was doing, and splitting the log there loses the context that makes the second half readable.
+- Results of several lines now appear in a message box rather than passing as speech: what a page holds, and how much text there is. Speech is gone the moment it is heard, while a box costs one key to dismiss and can be read again, and Control+C copies the whole of it including the title. A position is still spoken, because a box for three words would cost a keystroke and buy nothing.
+- Reduced the installer to the fewest prompts that still let a user choose where it goes, following the pattern of the other Homer installers. The licence is summarised on the welcome page instead of occupying one of its own, the ready page is gone, and the add-on install is a checkbox on the last page rather than a task with a page behind it.
+
+## What the user logs showed
+
+- The user is on NVDA's laptop keyboard layout, where NVDA+A is Say All. HomerView binds NVDA+A inside its pages, so on that layout Say All is shadowed there. This is worth knowing before wider release.
+- Control+F4 was pressed eight times to close report tabs, which is what prompted giving those tabs no history behind them in 1.6.0.
+- Every document conversion succeeded: docx, pdf and rtf all converted and opened, with 2htm found in the shared Homer folder as intended.
+
+## 1.6.0
+
+- Fixed the page explorer, which failed every time with a type error. An earlier edit that removed character counts had replaced a value with the literal None and left it in a list that was later joined into a sentence. Both keys reach one implementation now.
+- The Alternate Menu no longer lists the command that starts the browser. By the time the menu is open, it has already happened.
+- The menu remembers the last command chosen and returns to it when reopened, so working through several commands does not mean walking the list from the top each time.
+- A command with no key now shows only its name. Saying "none" told the reader nothing they could act on and sounded like something had gone wrong, which for a first-time user is worse than silence.
+- The Invoke Script dialog now has Test and Help beside OK and Cancel. Test reads each line the way the runner will and reports the verb, the target and the value it found, so a mistyped instruction is caught before it clicks anything. Help explains what can be written, with an example, and says plainly that this is HomerView's own matching rather than a language model and that nothing about the page leaves the computer.
+- A report opened in a new tab now has no history behind it, so Alt+LeftArrow has nowhere to go and Control+F4 closes that tab and returns the reader to the page they came from.
+- The start page now applies a strict test: the thing itself must be free and open source software, not merely a company that publishes some. DuckDuckGo's search service is proprietary even though its apps are open, so it has been dropped. GitHub, LinkedIn and Grok fail the same test and are not listed. Wikipedia, SearXNG, Ollama, Mozilla and the GNU Project are.
+
 ## 1.5.1
 
 - The add-on package now has a stable name, HomerView.nvda-addon, and the setup script references that. The version lives in the add-on's manifest, which is what NVDA reads, and in the installer's own AppVersion. Putting it in the file name as well meant two files had to be edited in step for every release, and forgetting either would break the compile for a reason unrelated to whatever had changed. A copy named for the version is written beside it, for release assets where the build number matters.

@@ -80,6 +80,11 @@ dHomerGestures = {
     "kb:control+c": "copyLineOrSelection",
     "kb:alt+c": "copyAppend",
     "kb:alt+m": "pageInformation",
+    "kb:alt+downarrow": "nextSentence",
+    "kb:alt+uparrow": "priorSentence",
+    "kb:control+downarrow": "nextParagraph",
+    "kb:control+uparrow": "priorParagraph",
+    "kb:alt+k": "runAccessibilityCheck",
     "kb:alt+v": "actOnPage",
     "kb:shift+j": "proxyMainContent",
     "kb:y": "explorePage",
@@ -147,6 +152,12 @@ def readableName(sName):
     meaningless, because camel case sorts by its capitals, and half the list
     read like source code.
     """
+    dSpecial = {
+        "moveToMainContent": "Jump to Main Content",
+        "proxyMainContent": "Jump to Probable Main Content",
+    }
+    if sName in dSpecial:
+        return dSpecial[sName]
     sSpaced = re.sub(r"(?<!^)(?=[A-Z])", " ", str(sName or ""))
     return sSpaced[:1].upper() + sSpaced[1:].lower() if sSpaced else ""
 
@@ -179,7 +190,7 @@ pageScopeName = "In a HomerView page"
 
 sMainContentAlternateGesture = "kb:NVDA+alt+j"
 sMainContentGesture = "kb:j"
-sPageAddressGesture = "kb:NVDA+a"
+sPageAddressGesture = "kb:alt+a"
 
 
 def resolveDocumentAddress(treeInterceptor):
@@ -403,7 +414,7 @@ class HomerViewBuffer:
 
     @script(
         # Translators: Input help mode message for the move to main content command.
-        description=_("Moves to the main content landmark of the current HomerView page"),
+        description=_("Jump to Main Content: moves to the page's main content landmark"),
         category="HomerView",
     )
     def script_moveToMainContent(self, gesture):
@@ -627,7 +638,7 @@ class HomerViewBuffer:
         self.runSafely("runIbmChecker", lambda: homerCommands.runIbmChecker())
 
     @script(
-        description=_("Moves to what looks like the main content when the page declares none"),
+        description=_("Jump to Probable Main Content: finds it when the page declares none"),
         category="HomerView",
     )
     def script_proxyMainContent(self, gesture):
@@ -636,6 +647,29 @@ class HomerViewBuffer:
     @script(description=_("Summarises the structure of this page"), category="HomerView")
     def script_explorePage(self, gesture):
         self.runSafely("explorePage", lambda: homerCommands.explorePageFromBuffer())
+
+    @script(description=_("Moves to the next sentence and reads it"), category="HomerView")
+    def script_nextSentence(self, gesture):
+        self.runSafely("nextSentence", lambda: homerCommands.moveBySentence(self, True))
+
+    @script(description=_("Moves to the previous sentence and reads it"), category="HomerView")
+    def script_priorSentence(self, gesture):
+        self.runSafely("priorSentence", lambda: homerCommands.moveBySentence(self, False))
+
+    @script(description=_("Moves to the next paragraph and reads it"), category="HomerView")
+    def script_nextParagraph(self, gesture):
+        self.runSafely("nextParagraph", lambda: homerCommands.moveByParagraph(self, True))
+
+    @script(description=_("Moves to the previous paragraph and reads it"), category="HomerView")
+    def script_priorParagraph(self, gesture):
+        self.runSafely("priorParagraph", lambda: homerCommands.moveByParagraph(self, False))
+
+    @script(
+        description=_("Tests this page for accessibility, asking which engine to use"),
+        category="HomerView",
+    )
+    def script_runAccessibilityCheck(self, gesture):
+        self.runSafely("runAccessibilityCheck", homerCommands.runAccessibilityCheck)
 
     @script(description=_("Finds text or a regular expression in the page"), category="HomerView")
     def script_findByPattern(self, gesture):
@@ -724,8 +758,13 @@ class HomerViewBuffer:
             self._homer("copyAppend", _("Append the selection, or the current line, to the clipboard")),
             self._homer("pageInformation", _("Report what the page says about itself")),
             self._homer("actOnPage", _("Act on the page by describing what you want")),
-            self._homer("proxyMainContent", _("Move to what looks like the main content")),
-            self._homer("explorePage", _("Summarise the structure of this page")),
+            self._homer("proxyMainContent", _("Jump to Probable Main Content, when the page declares none")),
+
+            self._homer("runAccessibilityCheck", _("Test this page for accessibility, choosing the engine")),
+            self._homer("nextSentence", _("Move to the next sentence and read it")),
+            self._homer("priorSentence", _("Move to the previous sentence and read it")),
+            self._homer("nextParagraph", _("Move to the next paragraph and read it")),
+            self._homer("priorParagraph", _("Move to the previous paragraph and read it")),
             self._homer("runIbmChecker", _("Test the page with the IBM Equal Access engine")),
             self._homer("findByPattern", _("Find text or a regular expression")),
             self._homer("findByPatternBackwards", _("Find backwards")),
@@ -768,8 +807,8 @@ class HomerViewBuffer:
                 _("Say the web address, spell it when pressed twice, copy it when pressed three times"),
                 lambda: reportPageAddress(self), pageScopeName),
             alternateMenu.CommandEntry(
-                _("Move to the main content"), "J",
-                _("Move to the main content landmark of the page"),
+                _("Jump to Main Content"), "J",
+                _("Jump to the page's main content landmark"),
                 lambda: moveToMainContent(self), pageScopeName),
         ]
         return [entry for entry in lEntries if entry]

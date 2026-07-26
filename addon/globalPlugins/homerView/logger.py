@@ -74,6 +74,29 @@ def readAddonVersion():
     return "unknown"
 
 
+bAppendWithinTheHour = True
+maximumAppendMinutes = 60
+
+
+def shouldAppend(pathLogFile):
+    """Continue the existing log when this looks like the same sitting.
+
+    Restarting NVDA to install a build, or reconnecting to a browser left
+    running, is a continuation of what the user was doing rather than a new
+    session. Splitting the log there loses the context that makes the second
+    half readable. An hour is a generous line between one sitting and the next.
+    """
+    import time as timeModule
+
+    if not bAppendWithinTheHour:
+        return False
+    try:
+        nAge = (timeModule.time() - pathLogFile.stat().st_mtime) / 60
+    except OSError:
+        return False
+    return nAge <= maximumAppendMinutes
+
+
 def startSession(sAddonVersion=""):
     """Open a fresh log for this session and write the header block."""
     global pathLogFile
@@ -83,20 +106,23 @@ def startSession(sAddonVersion=""):
     pathLogFile = pathFolder / logFileName
     sAddonVersion = sAddonVersion or readAddonVersion()
     pathPrevious = pathFolder / previousLogFileName
-    try:
-        if pathLogFile.exists():
-            if pathPrevious.exists():
-                pathPrevious.unlink()
-            pathLogFile.replace(pathPrevious)
-    except OSError:
-        pass
+    bContinuing = pathLogFile.exists() and shouldAppend(pathLogFile)
+    if not bContinuing:
+        try:
+            if pathLogFile.exists():
+                if pathPrevious.exists():
+                    pathPrevious.unlink()
+                pathLogFile.replace(pathPrevious)
+        except OSError:
+            pass
     for handlerExisting in list(homerLog.handlers):
         try:
             handlerExisting.close()
         except Exception:
             pass
         homerLog.removeHandler(handlerExisting)
-    handler = logging.FileHandler(pathLogFile, mode="w", encoding="utf-8")
+    handler = logging.FileHandler(
+        pathLogFile, mode="a" if bContinuing else "w", encoding="utf-8")
     handler.setFormatter(
         logging.Formatter(
             "%(asctime)s  %(levelname)-7s  %(threadName)-17s  %(message)s",
@@ -107,6 +133,11 @@ def startSession(sAddonVersion=""):
     homerLog.setLevel(logLevel)
     homerLog.propagate = False
     writeHeader(sAddonVersion)
+    if bContinuing:
+        homerLog.info(
+            "This log continues an earlier session in the same sitting rather than "
+            "replacing it, so the context above still applies."
+        )
     return pathLogFile
 
 

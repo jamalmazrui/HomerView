@@ -1,0 +1,64 @@
+﻿# buildAddon.ps1
+# Packages the addon folder into build\HomerView-<version>.nvda-addon.
+# All output is written to buildAddon.log as well as the console.
+
+$ErrorActionPreference = "Stop"
+
+$pathRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
+$pathAddon = Join-Path $pathRoot "addon"
+$pathBuild = Join-Path $pathRoot "build"
+$pathLog = Join-Path $pathRoot "buildAddon.log"
+
+function writeLog {
+    param([string] $sMessage)
+    $sStamped = "{0}  {1}" -f (Get-Date -Format "yyyy-MM-dd HH:mm:ss"), $sMessage
+    Write-Host $sStamped
+    Add-Content -Path $pathLog -Value $sStamped -Encoding UTF8
+}
+
+Set-Content -Path $pathLog -Value "" -Encoding UTF8
+writeLog "HomerView add-on build started"
+
+if (-not (Test-Path $pathAddon)) {
+    writeLog "ERROR: the addon folder was not found at $pathAddon"
+    exit 1
+}
+
+$pathManifest = Join-Path $pathAddon "manifest.ini"
+$sVersion = ""
+foreach ($sLine in Get-Content $pathManifest) {
+    if ($sLine -match '^\s*version\s*=\s*"([^"]+)"') {
+        $sVersion = $Matches[1]
+    }
+}
+if (-not $sVersion) {
+    writeLog "ERROR: no version was found in manifest.ini"
+    exit 1
+}
+writeLog "Version $sVersion"
+
+if (-not (Test-Path $pathBuild)) {
+    New-Item -ItemType Directory -Path $pathBuild | Out-Null
+    writeLog "Created $pathBuild"
+}
+
+$pathOutput = Join-Path $pathBuild "HomerView-$sVersion.nvda-addon"
+if (Test-Path $pathOutput) {
+    Remove-Item $pathOutput -Force
+    writeLog "Removed the previous $pathOutput"
+}
+
+foreach ($pathCache in (Get-ChildItem -Path $pathAddon -Recurse -Directory -Filter "__pycache__")) {
+    Remove-Item $pathCache.FullName -Recurse -Force
+    writeLog "Removed $($pathCache.FullName)"
+}
+
+foreach ($pathFile in (Get-ChildItem -Path $pathAddon -Recurse -File)) {
+    writeLog "Including $($pathFile.FullName.Substring($pathAddon.Length + 1))"
+}
+
+Compress-Archive -Path (Join-Path $pathAddon "*") -DestinationPath "$pathOutput.zip" -Force
+Move-Item "$pathOutput.zip" $pathOutput -Force
+writeLog "Wrote $pathOutput"
+
+writeLog "HomerView add-on build finished"

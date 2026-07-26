@@ -1,0 +1,37 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>HomerView</title>
+</head>
+<body>
+<h1>HomerView</h1>
+<p>HomerView launches a dedicated instance of Microsoft Edge with the Chrome DevTools Protocol enabled, then adds browse mode commands that work only in that instance.</p>
+<h2>Getting started</h2>
+<p>Press NVDA+Alt+H to launch or reconnect HomerView Edge. The window opens a small start page that lists the commands, so NVDA has something to announce immediately. The first launch creates a fresh browser profile under your local application data folder, seeded so that Edge does not sign itself in or open its sync consent dialog. A separate profile is now required for remote debugging and cannot be shared with your ordinary Edge profile.</p>
+<p>If Microsoft Edge ever opens a dialog that blocks the address bar, HomerView says so after launching, and NVDA+Alt+D closes it.</p>
+<p>To let the HomerView profile sign in and synchronise, so that bookmarks, passwords, and extensions arrive from a Microsoft account, set bAllowSignIn to True near the top of edge.py and delete the existing profile folder once.</p>
+<h2>Browse mode commands</h2>
+<ul>
+<li>NVDA+A reports the web address of the current page, without moving focus to the address bar. Pressing twice spells it, and three times copies it to the clipboard.</li>
+<li>J moves to the main content landmark of the page. NVDA+Alt+J does the same. When a page defines no main landmark, NVDA says "no main landmark" and the cursor does not move.</li>
+</ul>
+<h2>Other commands</h2>
+<ul>
+<li>NVDA+Alt+H launches or reconnects HomerView Edge.</li>
+<li>NVDA+Alt+A tests the page with axe-core, finds how to report the problems to the publisher, and opens a full report in a new tab. The files are saved as C:\HomerView\Report.html, Report.txt, and Axe.json.</li>
+<li>NVDA+Alt+E summarises the page structure, the visual aspects a reading order hides, and how best to move around it. This is HomerView's counterpart to the JAWS Page Explorer feature on Insert+Shift+E.</li>
+<li>NVDA+Alt+X extracts the readable part of the page and opens it as a plain document in a new tab.</li>
+<li>NVDA+Alt+W lists the file types linked from the page and downloads the ones you choose to your downloads folder.</li>
+<li>NVDA+Alt+D closes a Microsoft Edge dialog that is blocking the window.</li>
+<li>Report connection status has no assigned gesture.</li>
+<li>Open the HomerView log has no assigned gesture.</li>
+</ul>
+<p>Assign gestures to either in Input Gestures under the HomerView category if you want them.</p>
+<h2>Logging</h2>
+<p>HomerView writes a detailed log of each session to C:\HomerView\HomerView.log, starting from empty every time the add-on loads. The previous session is kept as HomerView.previous.log, so a crash that forces an NVDA restart does not destroy the log you need. If the installation folder cannot be written, the log falls back to your local application data folder and says so in its header.</p>
+<h2>Scope</h2>
+<p>The two browse mode commands exist only on documents belonging to the HomerView instance of Edge. Chrome, Firefox, ordinary Edge windows, and native applications are unchanged. J is chosen because NVDA leaves it unassigned, so no existing browse mode command is displaced.</p>
+<p>All HomerView commands appear in the Input Gestures dialog under the HomerView category and can be reassigned.</p>
+</body>
+</html>

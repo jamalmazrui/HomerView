@@ -1,0 +1,34 @@
+# HomerView
+#
+# Logs are written on every run and say nothing a reader of the repository
+# needs. They are also the one file most likely to carry a local path.
+*.log
+
+# Generated at run time, all of them rewritten on the next run.
+Axe.json
+Ace.json
+Report.html
+Report.txt
+Start.html
+MainContent.htm
+HomerView.db
+HomerView.jsonl
+
+# Python and build output.
+__pycache__/
+*.pyc
+*.pyo
+dist/
+
+# Executables ARE tracked, deliberately. A user who clones this repository
+# should be able to build the installer without hunting for pieces, and the
+# built add-on and installer are part of what a release is.
+!*.exe
+!build/*.nvda-addon
+
+# One exception, and it is a hard limit rather than a preference. GitHub
+# refuses any single file over 100 megabytes, and pandoc.exe is well past
+# that. Track it with Git LFS, or attach it to a release instead of
+# committing it, and keep a local copy beside this file so the installer can
+# pick it up. The installer skips it cleanly when it is absent.
+pandoc.exe

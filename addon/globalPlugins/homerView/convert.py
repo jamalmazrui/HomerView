@@ -29,7 +29,7 @@ import winreg
 from pathlib import Path
 
 from . import paths
-from .logger import abbreviate, homerLog, logSection
+from .logger import abbreviate, homerLog, logError, logSection
 
 conversionTimeoutSeconds = 300.0
 executableName = "2htm.exe"
@@ -59,11 +59,177 @@ dSaveFormats = {
     "htm": "Web page, keeping headings, lists and tables",
     "md": "Markdown, plain text with structure preserved as punctuation",
     "txt": "Plain text, no structure",
+    "dom.htm": "The markup after script has run, not what the server sent",
+    "pdf": "The page as it would print, fixed layout, one file",
+    "png": "Image of the whole page, as a sighted reader sees it",
+    "json": "The accessibility tree, with the reasons any node was ignored",
+    "docx": "A Word document, made from the page by pandoc",
 }
+
+
+# Which tool converts what, best first. Nothing is bundled: each is looked for,
+# and a format with no tool present says which one to install.
+#
+# 2htm comes last for everything it is not alone in handling, because it drives
+# Microsoft Office through COM and therefore needs Office installed and of the
+# same bitness. The others need nothing but themselves.
+dConverterChain = {
+    "doc": ["libreOffice", "2htm"],
+    "docx": ["libreOffice", "pandoc", "2htm"],
+    "epub": ["pandoc", "calibre"],
+    "md": ["pandoc", "2htm"],
+    "odp": ["libreOffice"],
+    "ods": ["libreOffice"],
+    "odt": ["libreOffice", "pandoc"],
+    "pdf": ["2htm", "libreOffice"],
+    "ppt": ["libreOffice", "2htm"],
+    "pptx": ["libreOffice", "2htm"],
+    "rtf": ["libreOffice", "pandoc", "2htm"],
+    "xls": ["libreOffice", "2htm"],
+    "xlsx": ["libreOffice", "2htm"],
+    "csv": ["libreOffice", "2htm"],
+}
+
+officeConfigurationKey = r"SOFTWARE\Microsoft\Office\ClickToRun\Configuration"
 
 
 class ConversionError(Exception):
     pass
+
+
+def hasOfficeCom():
+    """Say whether 2htm's conversions can work, and why not when they cannot.
+
+    2htm drives Microsoft Word, Excel and PowerPoint through COM, so it needs
+    Office installed. Reporting this before running it turns a silent failure
+    into a sentence the user can act on.
+    """
+    bWord = False
+    try:
+        with winreg.OpenKey(winreg.HKEY_CLASSES_ROOT, r"Word.Application\CurVer"):
+            bWord = True
+    except OSError:
+        bWord = False
+    sPlatform = ""
+    try:
+        with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, officeConfigurationKey) as key:
+            sPlatform = winreg.QueryValueEx(key, "Platform")[0]
+    except OSError:
+        sPlatform = ""
+    homerLog.info(f"Office COM: Word registered={bWord}, platform={sPlatform or 'unknown'}")
+    if not bWord:
+        return False, (
+            "This format is converted by 2htm, which works through Microsoft Office. "
+            "Office does not appear to be installed on this computer, so the conversion "
+            "cannot be done. Installing LibreOffice, which needs no Office and is free, "
+            "would let HomerView open this format instead."
+        )
+    if sPlatform and sPlatform.lower() != "x64":
+        return False, (
+            f"Microsoft Office is installed but reports itself as {sPlatform}, while 2htm "
+            "needs the 64 bit edition. A 64 bit Office, or LibreOffice, would let HomerView "
+            "open this format."
+        )
+    return True, ""
+
+
+def findLibreOffice():
+    """soffice.exe converts every office format and needs no Office installed."""
+    pathShared = paths.findSharedFile("soffice.exe")
+    if pathShared:
+        return pathShared
+    for sVariable in ("PROGRAMFILES", "PROGRAMFILES(X86)"):
+        sRoot = os.environ.get(sVariable, "")
+        if not sRoot:
+            continue
+        for sFolder in ("LibreOffice", "LibreOffice 26", "LibreOffice 25"):
+            pathCandidate = Path(sRoot) / sFolder / "program" / "soffice.exe"
+            try:
+                if pathCandidate.is_file():
+                    homerLog.info(f"LibreOffice found at {pathCandidate}")
+                    return pathCandidate
+            except OSError:
+                continue
+    homerLog.debug("LibreOffice was not found")
+    return None
+
+
+def findCalibre():
+    """ebook-convert.exe is calibre's converter, good for ebook formats."""
+    pathShared = paths.findSharedFile("ebook-convert.exe")
+    if pathShared:
+        return pathShared
+    for sVariable in ("PROGRAMFILES", "PROGRAMFILES(X86)"):
+        sRoot = os.environ.get(sVariable, "")
+        if sRoot:
+            pathCandidate = Path(sRoot) / "Calibre2" / "ebook-convert.exe"
+            try:
+                if pathCandidate.is_file():
+                    homerLog.info(f"Calibre found at {pathCandidate}")
+                    return pathCandidate
+            except OSError:
+                continue
+    for sFolder in os.environ.get("PATH", "").split(os.pathsep):
+        try:
+            pathCandidate = Path(sFolder) / "ebook-convert.exe"
+            if pathCandidate.is_file():
+                return pathCandidate
+        except OSError:
+            continue
+    homerLog.debug("Calibre was not found")
+    return None
+
+
+def runConverter(lArguments, pathTarget, sTool):
+    homerLog.info(f"Running {sTool}: {lArguments}")
+    try:
+        completed = subprocess.run(
+            lArguments, capture_output=True, text=True,
+            timeout=conversionTimeoutSeconds,
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+        )
+    except subprocess.TimeoutExpired:
+        raise ConversionError(f"{sTool} took too long and was stopped")
+    homerLog.info(f"{sTool} exit code {completed.returncode}")
+    if completed.stdout:
+        homerLog.debug(f"{sTool} said: {abbreviate(completed.stdout, 600)}")
+    if completed.stderr:
+        homerLog.warning(f"{sTool} reported: {abbreviate(completed.stderr, 600)}")
+    return pathTarget.is_file()
+
+
+def convertWithLibreOffice(pathSource, pathFolder):
+    pathExecutable = findLibreOffice()
+    if not pathExecutable:
+        return None
+    pathTarget = pathFolder / f"{pathSource.stem}.html"
+    lArguments = [
+        str(pathExecutable), "--headless", "--norestore", "--convert-to", "html",
+        "--outdir", str(pathFolder), str(pathSource),
+    ]
+    if runConverter(lArguments, pathTarget, "LibreOffice"):
+        # This project writes .htm rather than .html.
+        pathFinal = pathFolder / f"{pathSource.stem}.htm"
+        try:
+            if pathFinal.exists():
+                pathFinal.unlink()
+            pathTarget.rename(pathFinal)
+        except OSError:
+            pathFinal = pathTarget
+        homerLog.info(f"LibreOffice wrote {pathFinal}")
+        return pathFinal
+    return None
+
+
+def convertWithCalibre(pathSource, pathFolder):
+    pathExecutable = findCalibre()
+    if not pathExecutable:
+        return None
+    pathTarget = pathFolder / f"{pathSource.stem}.htmlz"
+    if runConverter([str(pathExecutable), str(pathSource), str(pathTarget)], pathTarget, "Calibre"):
+        homerLog.info(f"Calibre wrote {pathTarget}")
+        return pathTarget
+    return None
 
 
 def findExecutable():

@@ -3,9 +3,13 @@
 ; Source root and installation destination: C:\HomerView
 
 #define AppName "HomerView"
-#define AppVersion "1.0.5"
+#define AppVersion "1.5.1"
 #define AppPublisher "Jamal Mazrui"
-#define AddonFile "HomerView-1.0.5.nvda-addon"
+; A stable name on purpose. The version lives in the add-on's manifest, which is
+; what NVDA reads, and in AppVersion above. Putting it in the file name as well
+; meant this line had to be edited for every release, and forgetting would break
+; the compile for a reason unrelated to the change.
+#define AddonFile "HomerView.nvda-addon"
 
 [Setup]
 AppId={{E728BC1D-448B-4D56-A549-4C5603A3A9B5}
@@ -90,7 +94,10 @@ Name: "{group}\HomerView design notes"; Filename: "{app}\docs\HomerView_Design_N
 Name: "{group}\Uninstall HomerView"; Filename: "{uninstallexe}"
 
 [Run]
-Filename: "{app}\build\{#AddonFile}"; Description: "Open the HomerView NVDA add-on package"; Flags: postinstall shellexec skipifsilent; Tasks: installaddon
+; shellexec is required: a .nvda-addon file is not executable, so Windows has to
+; hand it to whatever is registered for that extension, which is NVDA. Without
+; the flag Inno Setup would try to run it as a program and fail.
+Filename: "{app}\build\{#AddonFile}"; Description: "Open the HomerView NVDA add-on package in NVDA"; Flags: postinstall shellexec skipifsilent unchecked; Tasks: installaddon
 
 [UninstallDelete]
 Type: files; Name: "{app}\HomerView.log"
@@ -100,7 +107,7 @@ Type: files; Name: "{app}\Axe.json"
 Type: files; Name: "{app}\Ace.json"
 Type: files; Name: "{app}\HomerView.db"
 Type: files; Name: "{app}\HomerView.jsonl"
-Type: files; Name: "{app}\Start.html"
+Type: files; Name: "{app}\Start.htm"
 Type: filesandordirs; Name: "{app}\build"
 Type: filesandordirs; Name: "{app}\dist"
 

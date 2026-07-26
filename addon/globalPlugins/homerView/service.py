@@ -25,6 +25,7 @@ from . import ace
 from . import act
 from . import axe
 from . import contacts
+from . import copilot
 from . import exportReport
 from . import formSubmit
 from . import convert
@@ -341,6 +342,22 @@ class HomerViewService:
     def runOpenDocumentCommand(self):
         """Shared by Control+O in a page and Control+F10 anywhere."""
         self.functionOpenDocument()
+
+    def makeScriptTask(self, sScript):
+        def task():
+            return act.runScript(self.cdpSession, sScript)
+        return task
+
+    def taskOpenCopilot(self):
+        """Put the page on the clipboard, raise the window, then send the key."""
+        dContext = copilot.prepareContext(self.cdpSession)
+        self.activateBrowser()
+        import time as timeModule
+
+        timeModule.sleep(copilot.settleSeconds)
+        dContext["sent"] = copilot.sendCopilotShortcut()
+        dContext["notes"] = copilot.describeReadiness(self.edgeManager)
+        return dContext
 
     def taskSurveyPage(self):
         return act.survey(self.cdpSession)

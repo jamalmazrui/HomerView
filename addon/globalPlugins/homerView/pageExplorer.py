@@ -272,7 +272,7 @@ def describeRegion(dRegion):
     if dRegion.get("links"):
         lDetail.append(f"{dRegion['links']} {plural(dRegion['links'], 'link')}")
     if dRegion.get("characters"):
-        lDetail.append(f"{dRegion['characters']} characters")
+        lDetail.append(None)
     if lDetail:
         lParts.append("with " + ", ".join(lDetail))
     if dRegion.get("hidden"):
@@ -401,8 +401,7 @@ def navigationTips(dPage):
     if dPage.get("mainCharacters"):
         lTips.append(
             f"Press J to jump straight to the main content, which holds about "
-            f"{dPage['mainCharacters']} characters, roughly "
-            f"{article(readingMinutes(dPage['mainCharacters']))} "
+            f"roughly {article(readingMinutes(dPage['mainCharacters']))} "
             f"{readingMinutes(dPage['mainCharacters'])} minute read."
         )
     elif "main" not in lRoles:
@@ -467,8 +466,7 @@ def buildSummaryHtml(dPage):
     lParts.append(f"<p>Address: {escape(dPage.get('url'))}</p>")
 
     lOverview = [
-        f"about {iCharacters} characters, roughly {article(readingMinutes(iCharacters))} "
-        f"{readingMinutes(iCharacters)} minute read",
+        f"roughly {article(readingMinutes(iCharacters))} {readingMinutes(iCharacters)} minute read",
         f"{len(lRegions)} {plural(len(lRegions), 'landmark')}",
         f"{len(lHeadings)} {plural(len(lHeadings), 'heading')}",
         f"{dPage.get('totalLinks', 0)} links, {dPage.get('uniqueLinks', 0)} of them distinct",

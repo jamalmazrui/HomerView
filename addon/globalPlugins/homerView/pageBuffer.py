@@ -42,6 +42,7 @@ from . import alternateMenu
 from . import clipboardTools
 from . import find
 from . import homerCommands
+from . import homerText
 from . import lbc as lbcModule
 from .history import history
 from .logger import abbreviate, homerLog, logError, logSection
@@ -568,10 +569,15 @@ class HomerViewBuffer:
         lbcModule.afterScript(self._goToPercentNow)
 
     def _goToPercentNow(self):
-        sValue = askForPercent(homerCommands.lastPercent(self))
-        if sValue is None:
+        tValue = askForPercent(homerCommands.lastPercent(self))
+        if tValue is None:
             return
-        homerCommands.goToPercent(self, sValue)
+        iNumber, bRelative = tValue
+        if bRelative:
+            iCurrent = homerText.caretPosition(self)[2]
+            iNumber = max(0, min(100, iCurrent + iNumber))
+            homerLog.info(f"Relative move from {iCurrent} percent to {iNumber} percent")
+        homerCommands.goToPercent(self, iNumber)
 
     @script(description=_("Moves to the percentage point used last time"), category="HomerView")
     def script_goToPercentAgain(self, gesture):
@@ -794,12 +800,32 @@ def askForPercent(iPrevious):
         gui.mainFrame.postPopup()
     if iResult != wx.ID_OK:
         return None
+    return parsePercent(sValue)
+
+
+def parsePercent(sValue):
+    """Read 40, 40%, +10 or -10 and say which kind it is.
+
+    A plain number means go to that point. A signed number means move that far
+    from where you are, which is what a reader wants far more often: knowing
+    you are two thirds through and wanting a little further is common, and
+    working out that this means 72 is not.
+
+    Returns a pair of the number and whether it is relative, or None.
+    """
+    sValue = str(sValue or "").strip().rstrip("%").strip()
+    if not sValue:
+        return None
+    bRelative = sValue[0] in "+-"
     try:
-        return max(0, min(100, int(sValue.strip())))
+        iNumber = int(sValue)
     except ValueError:
         # Translators: Reported when a percentage could not be understood.
-        ui.message(_("That is not a percentage"))
+        ui.message(_("Type a percentage such as 40, or a change such as plus 10"))
         return None
+    if bRelative:
+        return (max(-100, min(100, iNumber)), True)
+    return (max(0, min(100, iNumber)), False)
 
 
 def bindFallbackGestures(treeInterceptor):

@@ -83,7 +83,20 @@ htmlScript = "document.documentElement.outerHTML"
 
 def saveDocument(cdpSession, sSourcePath, sTargetPath, sFormat):
     """Write the focused page to disk in the chosen format."""
+    from . import capture
+    from pathlib import Path as PathClass
+
     logSection(f"Command: save as {sFormat}")
+    if sFormat in capture.dCaptures:
+        # The four the protocol produces are captured rather than derived.
+        pathTarget = capture.capture(cdpSession, sFormat, PathClass(sTargetPath))
+        return {
+            "characters": pathTarget.stat().st_size,
+            "format": sFormat,
+            "name": pathTarget.name,
+            "path": str(pathTarget),
+            "pageUrl": "",
+        }
     dTarget, sSessionId = cdpSession.findActivePageSession()
     sPageUrl = dTarget.get("url", "")
     homerLog.info(f"Saving {abbreviate(sPageUrl, 200)} as {sFormat} to {sTargetPath}")
@@ -96,6 +109,26 @@ def saveDocument(cdpSession, sSourcePath, sTargetPath, sFormat):
         sBody = cdpSession.evaluate(sSessionId, htmlScript, extractTimeoutSeconds) or ""
         if not sBody.lstrip().lower().startswith("<!doctype"):
             sBody = "<!doctype html>\n" + sBody
+
+    if sFormat == "docx":
+        # Word is produced by converting the page's markup, since nothing in a
+        # browser writes Word directly.
+        from . import convert as convertModule
+        from . import paths as pathsModule
+
+        pathHtml = pathsModule.getTempFolder() / "SaveAs.htm"
+        pathHtml.write_text(sBody, encoding="utf-8-sig", newline="\r\n")
+        pathPandoc = convertModule.findPandoc()
+        if not pathPandoc:
+            raise RuntimeError(
+                "Saving as a Word document needs pandoc, which was not found. "
+                "Install it from https://pandoc.org, or save as a web page instead."
+            )
+        convertModule.runConverter(
+            [str(pathPandoc), str(pathHtml), "-o", sTargetPath], Path(sTargetPath), "pandoc")
+        homerLog.info(f"Wrote {sTargetPath}")
+        return {"characters": len(sBody), "format": sFormat,
+                "name": Path(sTargetPath).name, "path": sTargetPath, "pageUrl": sPageUrl}
 
     pathTarget = Path(sTargetPath)
     # UTF-8 with a byte order mark and Windows line endings, matching every

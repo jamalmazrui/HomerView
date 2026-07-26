@@ -1,5 +1,52 @@
 ﻿# Changelog
 
+## 1.5.1
+
+- The add-on package now has a stable name, HomerView.nvda-addon, and the setup script references that. The version lives in the add-on's manifest, which is what NVDA reads, and in the installer's own AppVersion. Putting it in the file name as well meant two files had to be edited in step for every release, and forgetting either would break the compile for a reason unrelated to whatever had changed. A copy named for the version is written beside it, for release assets where the build number matters.
+- Checked the installer's add-on step and it was correct. The shellexec flag is what makes it work: a .nvda-addon file is not executable, so Windows hands it to whatever is registered for that extension, which is NVDA. Without the flag Inno Setup would try to run it as a program and fail. The description now says the package opens in NVDA rather than merely opening, and the step is unchecked by default so nothing is launched without the user asking.
+
+## 1.5.0
+
+- Added LibreOffice and Calibre as converters, found rather than bundled, alongside pandoc and 2htm. Each format now has an ordered chain of tools, best first, and a format with no tool present says which one to install.
+- LibreOffice handles the office formats and needs no Microsoft Office: docx, doc, xlsx, xls, pptx, ppt, rtf, csv and the OpenDocument set. Calibre handles ebooks. Pandoc handles epub, Markdown and OpenDocument text. 2htm now comes last for everything it is not alone in handling.
+- 2htm drives Microsoft Word, Excel and PowerPoint through COM, so it needs Office installed and of matching bitness. HomerView now checks the registry before running it and, when Office is absent or is not the 64 bit edition, says so in a message box and points at LibreOffice, which needs no Office and is free. That turns a silent failure into a sentence a reader can act on.
+- Added Word and Markdown to Save Page As. Markdown was already produced from the live document; Word is made by converting the page's markup with pandoc, since nothing in a browser writes Word directly.
+- On distributing a converter without its application: it is not practical for either candidate. LibreOffice's own documentation states that headless conversion requires the full installation, and calibre's converter needs calibre's runtime and libraries in the same way. Both are also larger than pandoc rather than smaller, at roughly seven hundred megabytes and five hundred megabytes against pandoc's two hundred and twenty. Finding what is installed remains the right approach, and is what HomerView now does for all four.
+
+## 1.4.0
+
+- Save Page As, on Control+F12, now offers four more formats, all produced by the protocol rather than derived from the text.
+- An image of the whole page, not merely the part scrolled into view. When a reader reports a problem and is asked what it looks like, this is the answer, and it can be attached to an email without describing anything.
+- The page as a PDF, laid out as it would print: one file, fixed layout, readable by anything, and accepted by systems that will not take a web page.
+- The accessibility tree as JSON, with every node's role and name and, for any node left out, the reasons why. Nothing else HomerView produces answers the question of why something visible on screen is absent from the reading order.
+- The markup after script has run, which is neither what the server sent nor what View Source shows.
+- The image and the PDF arrive as encoded text over the protocol and are decoded before writing, so a decoding failure is reported rather than left on disk as a broken file.
+- Files this project creates now use .htm rather than .html throughout, including the generated reports and the start page.
+
+## 1.3.0
+
+- Added NVDA+Alt+P, which copies the page text to the clipboard, brings the HomerView window to the front, and opens Copilot in the Microsoft Edge sidebar. The text is ready to paste with Control+V, so a question about a particular page needs one key rather than four steps.
+- The shortcut is sent through the Windows keyboard rather than the protocol. Control+Shift+Period is handled by the browser's own interface and not by the page, so a key dispatched into a page through the Input domain never reaches it. The window is raised first and given a moment to settle, because a keystroke sent into a window that is still arriving is simply lost, which looks exactly like the shortcut not working.
+- Added bCopilotSupport in edge.py, on by default, which leaves background networking enabled because the sidebar needs it. It is the only switch Copilot requires beyond an account. Everything that keeps the first launch quiet is unchanged: the sync dialog, the promotional screens and the automatic sign-in stay suppressed, so signing in remains something chosen rather than something done to the user.
+- The launch now records what these settings did, and warns plainly when Copilot support is on while sign-in is not allowed, which is the state in which Copilot opens and has no account.
+- On using the default profile, which is what makes an account and existing logins available without signing in again: it is not possible, and the reason is a hard limit rather than a preference. Since Chrome 136 and the matching Edge release, the remote debugging switches are ignored outright when the data directory is the browser's default one. HomerView launched against the default profile would have no protocol connection at all, and every command in it would stop working.
+- What the separate profile costs is exactly the thing being asked about: no sign-in, so Copilot has no account, sites ask you to log in, and a download behind a login wall fails. The answer is not to abandon the separate profile but to sign it in. It is a real profile that happens to live somewhere else, and once signed in it has an account, sessions, cookies, bookmarks and Copilot, while still permitting the debugging connection. Set bAllowSignIn to True in edge.py, delete the profile folder, launch, and sign in once.
+
+## 1.2.0
+
+- Alt+V is now Invoke Script: a multiline box where each line is one instruction, run in order. A single instruction is useful; a sequence is what makes a task repeatable. Sign in, accept the cookie notice, search for a term and open the first result is four instructions a reader would otherwise perform by hand every time.
+- The box remembers the last script, so a sequence can be corrected and run again rather than retyped. Blank lines are skipped and a line beginning with a hash is a comment, so a script can be annotated and kept.
+- A script stops at the first instruction that matches nothing, because carrying on after losing the thread would act on the wrong thing. The result opens as a page listing every instruction, what it acted on, and what happened.
+- A single instruction still offers a choice when several controls could match, because there is a reader waiting to answer. A script does not ask, since the point of a script is that it runs.
+- Added detection of a local model service on the loopback address, reported in the log. No model is required and none is used yet: this only records whether one is available.
+
+## 1.1.0
+
+- The Alternate Menu no longer lists the command that opened it.
+- The page explorer no longer reports character or word counts. A reading time is worth knowing; the number of characters is not something a reader can act on.
+- Go to Percent now accepts a change as well as a destination. Forty means go to that point, and the percent sign is optional. Plus ten or minus ten means move that far from where you are, which is the more common wish: knowing you are two thirds through and wanting a little further is ordinary, and working out that this means seventy two is not.
+- Confirmed the F8 family, all four bound as intended: F8 marks the start of a selection, Shift+F8 completes it, Alt+Shift+F8 returns to the start, Control+F8 copies the whole page, and Alt+F8 reads it.
+
 ## 1.0.5
 
 - Fixed the release failure. tagRelease reads the version from the built installer's version resource and looks for that installer in the repository root, but the setup script was writing it to a dist folder, where tagRelease was never going to look. The installer now lands in the root.

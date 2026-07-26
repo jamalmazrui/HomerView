@@ -15,6 +15,7 @@ from .homer.lbc import (  # noqa: F401
     dialogOpenFile,
     dialogSaveFile,
     dialogShow,
+    dialogText,
     getHostParent,
     readIniValue,
     writeIniValue,

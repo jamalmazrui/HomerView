@@ -8,6 +8,71 @@
 <body>
 <main>
 <h1>History of Changes</h1>
+<h2>1.24.0</h2>
+<ul>
+<li>Modifiers are now written in alphabetical order everywhere a person reads them: Alt, Control, NVDA, Shift, Windows. So Alt+NVDA+F10 rather than NVDA+Alt+F10, and Alt+Control+Accent rather than Control+Alt+Accent.</li>
+<li>The order is arbitrary and that is the point. Any fixed order would do; what matters is that the same combination always reads the same way, so two lists of keys can be compared without normalising them first, and a reader hears Alt+Control+Shift in that order every time rather than in whatever order the author happened to type it.</li>
+<li>Key names now follow Freedom Scientific&#x27;s, as JAWS writes them, even though these keys are bound in NVDA. A blind Windows user has read JAWS key names for thirty years, and DownArrow, Accent and SemiColon are what they expect to hear. So the grave accent key is Accent rather than Grave, the semicolon is SemiColon, and ScrollLock, NumPadDelete and the arrow keys are each one word.</li>
+<li>This governs only what a person reads. NVDA&#x27;s gesture identifiers are unchanged, because those are what the binding needs.</li>
+<li>Added a section to the developer notes setting out both conventions and listing every key whose Freedom Scientific name differs from NVDA&#x27;s, so anyone reading one and writing the other has the translation to hand.</li>
+</ul>
+<h2>1.23.1</h2>
+<ul>
+<li>Control+Shift+F4 now keeps only the tab being read, which is what the command says it does. The previous release also kept the oldest tab, on the reasoning that it was a safer margin; it was not worth it, because one surviving tab is all the browser needs to stay running, and a command that quietly leaves an extra window behind is worse than one that does what it says. Full function is preserved either way and NVDA+Alt+H is never needed again.</li>
+<li>The one case still guarded is no tab reporting itself as current, which can happen for a moment after a page loads. The oldest is kept then, since closing everything on a guess would end the session.</li>
+<li>Shift+F4 now speaks the tab titles rather than showing them in a box. The question it answers is only what is open, and the reader is in the middle of something and wants to stay there. F4 is the command for when they want to act on the answer.</li>
+<li>Control+F4 is left to Microsoft Edge, which closes the current tab with it, and the gap in the family is now marked as deliberate so that nobody later fills it.</li>
+<li>Corrected one place in the user guide that still named Alt+F10 for the Alternate Menu, which has been NVDA+Alt+F10 alone since 1.14.0. The announcement and the quick start were already right.</li>
+</ul>
+<h2>1.23.0</h2>
+<ul>
+<li>Added the Homer window list on F4. It offers every HomerView tab by name and switches to the one you choose. A reader who has run a report, extracted an article and opened a document has four tabs and no easy way to say which is which: Control+Tab cycles blind, and the browser&#x27;s own tab list is a strip of buttons rather than a list.</li>
+<li>Shift+F4 says the names without opening anything, for when the question is only which tabs are there.</li>
+<li>Control+Shift+F4 closes the tabs you are done with. It keeps two whatever happens: the one being read, which is what the command promises, and the oldest, which is the tab the browser started with. The browser exits when its last tab closes, and with it go the debugging connection and every HomerView command, so a convenience that can turn the program off is not one.</li>
+<li>When no tab reports itself as current, which can happen just after a page loads, the oldest is kept instead. Closing everything on a guess would be the worst outcome available.</li>
+<li>Only HomerView&#x27;s own tabs are listed, and developer tools windows are left out.</li>
+<li>On taking F4: Microsoft Edge uses it to select the address bar, and Control+L and Alt+D both do the same thing. This takes the least used of three ways to do one thing, and nothing is lost.</li>
+</ul>
+<h2>1.22.0</h2>
+<ul>
+<li>Each lookup now presents an Lbc dialog with a field for each thing it needs, built from what the lookup declares rather than from one box the user has to pack several values into. The exchange rate asks for the currency to convert from, the currency to convert to, and an amount. The postal code asks for the code and the country. The weather asks for the place, how many days ahead, and which temperature scale.</li>
+<li>Squeezing two values into one box saved a line of code and cost the user a guess about the separator every time they used it.</li>
+<li>Fields that have usual values offer them on F4: currency codes, country codes, how many results, how many days. Every field remembers what was last typed in it.</li>
+<li>Results come back as sections rather than as a flat list, so a page can carry real structure. A blank line between results becomes a separate item, which is what lets a reader move through them one at a time rather than through one long run of text.</li>
+<li>Where the answer goes is decided by whether a message box can still be read at a glance. A definition or an exchange rate fits one, and Control+C copies the whole of it. Anything longer opens as a page in the browser, which has headings to move by, can be searched with Control+F, and can be saved.</li>
+</ul>
+<h2>1.21.1</h2>
+<ul>
+<li>Added three lookups drawn from the biblio program, all of which need no key and none of which had been included.</li>
+<li>Wikidata answers with structured facts where Wikipedia answers with prose, so a date of birth or a founding year comes back as a value rather than as a sentence to be read through. It is the same project and just as free.</li>
+<li>Google Books is offered alongside Open Library because the two disagree usefully. Open Library is stronger on older and library-held books; Google Books is stronger on recent and self-published ones. A reader looking for a particular title is better served by being able to ask both.</li>
+<li>DuckDuckGo&#x27;s Instant Answer service gives a short factual answer to a question. It needs no key, and its answers are largely drawn from Wikipedia. One caveat worth stating: DuckDuckGo&#x27;s search service is proprietary, which is why it is not listed on the HomerView start page. Calling a free service is a different question from recommending a company, but anyone who would rather not call them at all can remove the entry from webUtilities.py.</li>
+<li>Fourteen lookups are now offered.</li>
+</ul>
+<h2>1.21.0</h2>
+<ul>
+<li>Added Look Something Up, on Alt+Q in a page and NVDA+Alt+Q anywhere, and in the HomerView menu. Eleven lookups: define a word, find related words, search Wikipedia, find a place, get a weather forecast, find books, check an exchange rate, list recent earthquakes, find recent research papers, ask whether a page is in the Internet Archive, and look up a postal code.</li>
+<li>Every one uses a service that needs no key, no account and no payment.</li>
+<li>On the uploaded WebClient scripts, which date from about 2009: most of what they called is gone. Outside.in, NextStop, TweetMeme, LetsBeTrends, the free WhitePages and ZoomInfo tiers, BigHugeLabs and the old Google AJAX endpoints have all closed or now want a key. That is not decay so much as a change of business model. In 2009 a public API was how a company got attention; by about 2015 it was how a company got paid, and the free tier became a key, then a quota, then a credit card. ProgrammableWeb, which catalogued that world, shut down in 2022 after seventeen years.</li>
+<li>What survives without a key follows a clear pattern, and it is worth naming: it is funded by somebody who is not selling the data. Governments, universities, libraries, museums and volunteer projects. Wikipedia, OpenStreetMap, Open Library, the European Central Bank, the United States Geological Survey, arXiv, the Internet Archive. That is also, as it happens, the data most worth having.</li>
+<li>Requests identify this program by name and pause a second between calls to the same host. Nominatim&#x27;s usage policy asks for both by name; the others would ask if they said. The pause is not politeness for its own sake. These are shared services with no revenue from us, and a program that hammers one is why the next one asks for a key.</li>
+<li>A short answer appears in a message box, which Control+C copies whole. A long one opens as a page, which can be searched and saved.</li>
+</ul>
+<h2>1.20.0</h2>
+<ul>
+<li>Compared what JAWS reaches with its quick navigation keys against what NVDA reaches with its browse mode keys, and patched the two genuine gaps.</li>
+<li>Most of the apparent differences are naming rather than absence. The divider JAWS moves to with Z is what NVDA calls a separator, and S already goes there. The JAWS edit box is NVDA&#x27;s edit field on E; the JAWS form control is NVDA&#x27;s form field on F. NVDA also reaches several things JAWS does not, including landmarks, links as a class, block quotes, annotations and spelling errors.</li>
+<li>The first real gap was the main content region, which JAWS reaches with Q and NVDA cannot reach directly at all. HomerView had already filled it with J, and with Shift+J for a page that never said where its main content is.</li>
+<li>The second was moving by the kind of element you are on, which JAWS does with S for the same kind and D for a different kind. Neither has an NVDA equivalent, and neither needs you to know what kind of thing you are on first, which is what makes them useful on a page whose shape you do not yet know. Both are now in HomerView.</li>
+<li>They are on Z, which is the last letter NVDA leaves unassigned: Z and Shift+Z for the next and previous element of the same kind, Alt+Z and Alt+Shift+Z for a different kind. One key family rather than two, since S and D are both spoken for in NVDA.</li>
+<li>The quick start and the announcement now name the address command, both main content commands, and the two new movements.</li>
+</ul>
+<h2>1.19.0</h2>
+<ul>
+<li>The page summary now describes only what is visible. Regions and headings that are in the markup but not on screen are no longer collected, and the note about text carrying aria-hidden is gone.</li>
+<li>The reasoning is worth recording, because the previous behaviour was defended as a feature. Web page frameworks routinely keep markup in the document that they are not currently showing: a menu nobody has opened, a panel behind a tab, a template waiting to be filled. None of that is suspicious, none of it is a fault, and listing it buries the regions a reader will actually meet under regions nobody will. This is the same judgment Deque&#x27;s axe makes, which reports a violation only against an element a person could reach.</li>
+<li>What remains in that section is what is genuinely visible and genuinely absent from the reading order: a consent banner covering the page, a bar pinned to the window, an open dialog, media set to play by itself, live regions that may announce on their own.</li>
+</ul>
 <h2>1.18.2</h2>
 <ul>
 <li>The quick start now opens with what you need before it tells you what to press: a link to download NVDA, which is free, and the fact that Microsoft Edge comes with every modern version of Windows and is therefore already on the computer. Someone deciding whether to try this should not have to work out what it will cost them in downloads.</li>

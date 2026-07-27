@@ -22,17 +22,30 @@ Where a JAWS command has an obvious place here and the key is free in NVDA, that
 key is used. Where it is not free, the command still exists on a key that costs
 nothing.
 
+    Alt+A               say the web address without moving the cursor; twice
+                        spells it, three times copies it
+    J                   jump to the main content, where JAWS uses Q
+    Shift+J             find the main content when the page never said where
+                        it is, and say that it was a guess
+    Z, Shift+Z          next and previous element of the same kind as this one,
+                        as S and Shift+S do in JAWS
+    Alt+Z, Alt+Shift+Z  next and previous element of a different kind, as D and
+                        Shift+D do in JAWS
     NVDA+F5             list the form fields, as Insert+F5 does
     NVDA+F6             list the headings, as Insert+F6 does
     NVDA+Shift+F7       list the links; Insert+F7 belongs to NVDA's own
                         Elements List, so the links moved one key over
     Alt+Delete          say how far through the page you are
-    Alt+A               say the web address; twice spells it, three times
-                        copies it
     Control+F           find, without needing a screen reader modifier, which
                         is the JAWS judgment and the right one
     Control+F3          find by regular expression; F3 repeats either kind
     Y                   summarise the page, in the spirit of Page Explorer
+
+One thing JAWS reaches that NVDA does not need patching for: the divider you
+move to with Z in JAWS is what NVDA calls a separator, and S already goes there.
+The same is true of a few others under different names. What genuinely had no
+NVDA equivalent was moving by the kind of element you are on, and the main
+content region, and both are in the list above.
 
 Two things JAWS does that HomerView does differently, and deliberately.
 
@@ -92,7 +105,7 @@ and tells you which to install if none is.
 
 # Quick start
 
-Install the add-on, restart NVDA, and press **NVDA+Alt+H**.
+Install the add-on, restart NVDA, and press **Alt+NVDA+H**.
 
 A browser window opens on the HomerView start page, which lists the commands and
 gives you somewhere to begin. From there:
@@ -106,12 +119,12 @@ gives you somewhere to begin. From there:
 4. Press **Y** for a summary of how the page is built, including things that are
    on screen but leave no trace in the reading order, such as a cookie banner or
    a bar pinned to the top of the window.
-5. Press **NVDA+Alt+F10** for a list of every command, in one alphabetical list,
+5. Press **Alt+NVDA+F10** for a list of every command, in one alphabetical list,
    with its key beside it. Press Enter to run whatever you choose. This works
    everywhere, including before HomerView Edge is running, and it can start it
    for you.
 
-If you remember only one command, make it NVDA+Alt+F10. Everything else can be
+If you remember only one command, make it Alt+NVDA+F10. Everything else can be
 found from there, including how to start HomerView in the first place.
 
 # Opening a document
@@ -127,7 +140,7 @@ is present. LibreOffice covers the most formats and needs no Microsoft Office.
 
 # Five commands worth learning early
 
-- **Scroll Lock** starts reading continuously, and stops it. One key for both.
+- **ScrollLock** starts reading continuously, and stops it. One key for both.
 - **Alt+F8** reads the whole page without moving the cursor. **Control+F8**
   copies it.
 - **Control+F** finds text, not case sensitive. **Control+F3** finds a regular
@@ -137,17 +150,20 @@ is present. LibreOffice covers the most formats and needs no Microsoft Office.
 - **Control+S** saves the page as a single file archive the way Edge does, or as a
   web page, Markdown, plain text, a Word document, a PDF, an image, or the
   accessibility tree.
-- **NVDA+Alt+W** lists the kinds of file linked from the page and downloads the
+- **Alt+NVDA+W** lists the kinds of file linked from the page and downloads the
   ones you choose.
+- **Alt+Q** looks something up: a definition, the weather, a place, books,
+  research papers, an exchange rate. All of it uses free services that need no
+  account.
 
 # When something does not work
 
 Commands only work in windows HomerView itself opened. An Edge window that was
 already running has no debugging connection and cannot be given one, which is a
-limitation of the browser rather than of HomerView. Press NVDA+Alt+H and use the
+limitation of the browser rather than of HomerView. Press Alt+NVDA+H and use the
 window it opens.
 
-If a command does nothing, open the Alternate Menu with **Alt+F10** and run it
+If a command does nothing, open the Alternate Menu with **Alt+NVDA+F10** and run it
 from there. If it fails, it now says what failed and that the log has the
 detail.
 

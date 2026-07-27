@@ -68,17 +68,17 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
     def _publishCommands(self):
         """Make the global commands visible in the Alternate Menu."""
         for sName, sGesture, sDescription, sScript in (
-            (_("Launch HomerView Edge"), "NVDA+Alt+H",
+            (_("Launch HomerView Edge"), "Alt+NVDA+H",
              _("Launch or reconnect the HomerView instance of Microsoft Edge"), "launchHomerView"),
-            (_("Accessibility report"), "NVDA+Alt+A",
+            (_("Accessibility report"), "Alt+NVDA+A",
              _("Test the page and find how to report the problems to the publisher"), "accessibilityReport"),
             (_("Page explorer"), "Y, or NVDA+Alt+E",
              _("Summarise the page structure and its visual aspects"), "explorePage"),
-            (_("Extract main content"), "NVDA+Alt+X",
+            (_("Extract main content"), "Alt+NVDA+X",
              _("Open the readable part of the page as a plain document"), "extractMainContent"),
-            (_("Download files"), "NVDA+Alt+W",
+            (_("Download files"), "Alt+NVDA+W",
              _("List the file types linked from the page and download the ones you choose"), "downloadFiles"),
-            (_("Dismiss browser dialog"), "NVDA+Alt+D",
+            (_("Dismiss browser dialog"), "Alt+NVDA+D",
              _("Close a Microsoft Edge dialog that is blocking the window"), "dismissDialog"),
             (_("Connection status"), "",
              _("Report whether HomerView is connected to Microsoft Edge"), "reportConnection"),
@@ -93,14 +93,14 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             (_("Recently opened"), "",
              _("List the pages and documents opened in HomerView, so you can find one again"),
              "recentPages"),
-            (_("Alternate menu"), "NVDA+Alt+F10",
+            (_("Alternate menu"), "Alt+NVDA+F10",
              _("List every HomerView command in one alphabetical list"), "alternateMenu"),
             (_("Report the page address"), "Alt+A, or NVDA+Alt+U",
              _("Report the web address of the HomerView page, from anywhere in the window"),
              "reportAddressAnywhere"),
             (_("Submit the form"), "Control+Enter",
              _("Submit the form you are filling in, from any field"), "submitForm"),
-            (_("Ask Copilot about this page"), "NVDA+Alt+P",
+            (_("Ask Copilot about this page"), "Alt+NVDA+P",
              _("Copy the page text and open Edge's Copilot sidebar, ready to paste and ask"),
              "openCopilot"),
             (_("Quick start"), "",
@@ -113,6 +113,9 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
              _("Open the HomerView developer notes in the HomerView window"), "openDeveloperNotes"),
             (_("Elevate version"), "Control+F11, or NVDA+Alt+F11",
              _("Check for a newer HomerView and install it"), "elevateVersion"),
+            (_("Look something up"), "Alt+Q, or NVDA+Alt+Q",
+             _("Define a word, check the weather, find books, and more, with no account needed"),
+             "webUtilities"),
             (_("Self test"), "",
              _("Check that all three ways of reaching the browser are working"), "selfTest"),
         ):
@@ -170,6 +173,9 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
                 # Translators: An item in the HomerView menu.
                 (_("&All commands..."), _("List every HomerView command"),
                  lambda event: self.script_alternateMenu(None)),
+                # Translators: An item in the HomerView menu.
+                (_("&Look something up..."), _("Define a word, check the weather, find books"),
+                 lambda event: self.script_webUtilities(None)),
                 # Translators: An item in the HomerView menu.
                 (_("&Quick start"), _("Open the HomerView quick start"),
                  lambda event: documents.openDocument("readMe")),
@@ -607,7 +613,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         homerLog.info("Command: open another format")
         if not service.isConnected():
             # Translators: Reported when HomerView has no connection.
-            ui.message(_("Press NVDA+Alt+H first to start HomerView Edge"))
+            ui.message(_("Press Alt+NVDA+H first to start HomerView Edge"))
             return
         def onPath(sPath):
             if not sPath:
@@ -752,7 +758,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         homerLog.info("Command: report the page address, from anywhere")
         if not service.isConnected():
             # Translators: Reported when HomerView has no connection.
-            ui.message(_("Press NVDA+Alt+H first to start HomerView Edge"))
+            ui.message(_("Press Alt+NVDA+H first to start HomerView Edge"))
             return
         service.submit(
             "activePageUrl",
@@ -784,7 +790,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         homerLog.info("Command: open Copilot")
         if not service.isConnected():
             # Translators: Reported when HomerView has no connection.
-            ui.message(_("Press NVDA+Alt+H first to start HomerView Edge"))
+            ui.message(_("Press Alt+NVDA+H first to start HomerView Edge"))
             return
         # Translators: Reported while Copilot is opened.
         ui.message(_("Opening Copilot"))
@@ -845,6 +851,15 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         homerCommandsModule.elevateVersion()
 
     @script(
+        # Translators: Input help mode message for the web utilities command.
+        description=_("Looks something up using free web services that need no account"),
+        category="HomerView",
+        gesture="kb:NVDA+alt+q",
+    )
+    def script_webUtilities(self, gesture):
+        homerCommandsModule.webUtilities()
+
+    @script(
         # Translators: Input help mode message for the self test command.
         description=_("Check that all three ways of reaching the browser are working"),
         category="HomerView",
@@ -860,7 +875,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         }
         if not service.isConnected():
             self._dSelfTest[_("The page through the DevTools Protocol")] = (
-                [("Result", "HomerView is not connected. Press NVDA+Alt+H first.")], False
+                [("Result", "HomerView is not connected. Press Alt+NVDA+H first.")], False
             )
             self._showSelfTest(None)
             return
@@ -1082,7 +1097,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
                 # Translators: Reported when the window is open but unusable.
                 ui.message(_(
                     "HomerView window opened, but its connection is gone, so commands will "
-                    "not work. Close it and press NVDA+Alt+H again."))
+                    "not work. Close it and press Alt+NVDA+H again."))
             else:
                 # Translators: Reported when an existing window was brought forward.
                 ui.message(_("HomerView"))
@@ -1101,7 +1116,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             ui.message(
                 _(
                     "HomerView Edge is ready, but Microsoft Edge is showing a dialog that may "
-                    "block the address bar. Press NVDA+Alt+D to close it."
+                    "block the address bar. Press Alt+NVDA+D to close it."
                 )
             )
             return

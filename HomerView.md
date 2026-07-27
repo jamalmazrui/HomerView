@@ -29,18 +29,18 @@ the HomerView category, where its key can be changed.
 
 # Commands that work anywhere
 
-- NVDA+Alt+H launches or reconnects the HomerView browser.
-- NVDA+Alt+F10 lists every command, even before the browser is running.
-- NVDA+Alt+U reports the web address, from the address bar or a form field as
+- Alt+NVDA+H launches or reconnects the HomerView browser.
+- Alt+NVDA+F10 lists every command, even before the browser is running.
+- Alt+NVDA+U reports the web address, from the address bar or a form field as
   well as from the page.
 - Control+O opens a document of almost any format.
 - Control+F12 saves the page in one of seven formats.
-- NVDA+Alt+W downloads files linked from the page.
-- NVDA+Alt+X extracts the readable part of the page.
-- NVDA+Alt+E summarises the structure of the page.
-- NVDA+Alt+A tests the page for accessibility and finds how to report problems.
-- NVDA+Alt+P copies the page text and opens Edge's Copilot sidebar.
-- NVDA+Alt+D closes a browser dialog that is blocking the window.
+- Alt+NVDA+W downloads files linked from the page.
+- Alt+NVDA+X extracts the readable part of the page.
+- Alt+NVDA+E summarises the structure of the page.
+- Alt+NVDA+A tests the page for accessibility and finds how to report problems.
+- Alt+NVDA+P copies the page text and opens Edge's Copilot sidebar.
+- Alt+NVDA+D closes a browser dialog that is blocking the window.
 - Control+Enter submits the form you are filling in, from any field.
 
 # Getting around the page
@@ -56,7 +56,7 @@ the HomerView category, where its key can be changed.
 - **NVDA+F6** lists the headings on the page, like the JAWS heading list
 - **NVDA+Shift+F7** lists the links on the page, like the JAWS link list
 - **NVDA+F5** lists the form fields on the page, like the JAWS form field list
-- **NVDA+Alt+L** lists any kind of element on the page, including kinds NVDA's own Elements List does not offer
+- **Alt+NVDA+L** lists any kind of element on the page, including kinds NVDA's own Elements List does not offer
 
 # Finding things
 
@@ -92,7 +92,7 @@ the HomerView category, where its key can be changed.
 - **Alt+U** says where the link at the cursor would go, and copies it when pressed twice
 - **Alt+P** copies every link address on the page to the clipboard
 - **Y** summarises the structure of this page
-- **Alt+Semicolon** says the time, and the date when pressed twice
+- **Alt+SemiColon** says the time, and the date when pressed twice
 
 # The clipboard
 
@@ -110,7 +110,7 @@ the HomerView category, where its key can be changed.
 
 # Finding a command
 
-- **Alt+F10** lists every HomerView command in one alphabetical list
+- **Alt+NVDA+F10** lists every HomerView command in one alphabetical list
 - **Alt+Shift+H** shows every HomerView command and its key as a document
 - **F1** shows the HomerView user guide
 - **Alt+F1** shows what HomerView is, and where it keeps its files

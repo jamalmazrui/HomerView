@@ -95,6 +95,18 @@ dHomerGestures = {
     "kb:control+c": "copyLineOrSelection",
     "kb:alt+c": "copyAppend",
     "kb:alt+m": "pageInformation",
+    # Q for query. NVDA uses plain Q for block quotes, and Alt+Q is free in
+    # Edge, in NVDA and in Windows.
+    "kb:alt+q": "webUtilities",
+    # Homer puts a window list on F4. Microsoft Edge uses F4 to select the
+    # address bar, but Control+L and Alt+D both do that too, so this takes the
+    # least used of three ways to do one thing and loses nothing.
+    "kb:f4": "chooseTab",
+    "kb:shift+f4": "sayTabs",
+    # Control+F4 is deliberately absent. Microsoft Edge already closes the
+    # current tab with it, which is exactly what it should do, so the family
+    # has a gap on purpose rather than by oversight.
+    "kb:control+shift+f4": "closeOtherTabs",
     "kb:alt+downarrow": "nextSentence",
     "kb:alt+uparrow": "priorSentence",
     "kb:control+downarrow": "nextParagraph",
@@ -103,6 +115,13 @@ dHomerGestures = {
     "kb:alt+v": "actOnPage",
     "kb:shift+j": "proxyMainContent",
     "kb:y": "explorePage",
+    # The two things JAWS reaches and NVDA does not. Z is the last letter NVDA
+    # leaves unassigned, and both commands belong to one key family so there is
+    # one thing to remember rather than two.
+    "kb:z": "nextSameType",
+    "kb:shift+z": "priorSameType",
+    "kb:alt+z": "nextDifferentType",
+    "kb:alt+shift+z": "priorDifferentType",
     "kb:alt+i": "runIbmChecker",
     "kb:control+f": "findText",
     "kb:control+shift+f": "findTextBackwards",
@@ -154,48 +173,64 @@ dHomerGestures = {
     "kb:alt+shift+h": "hotkeySummary",
 }
 
-# Command name to the key shown in the menu and the summary. Modifiers are
-# written in alphabetical order and the final letter is upper case regardless of
-# Shift, which is the notation used throughout this project.
-dKeyNames = {
-    "'": "Apostrophe", ";": "Semicolon", "delete": "Delete", "backspace": "Backspace",
-    "space": "Space", "f8": "F8", "f10": "F10", "scrolllock": "Scroll Lock",
-    "`": "Grave",
-    "numpaddelete": "Numpad Delete", "numpadDelete": "Numpad Delete", "downarrow": "DownArrow", "uparrow": "UpArrow",
-    "leftarrow": "LeftArrow", "rightarrow": "RightArrow",
+# How a key is written when a person is going to read it.
+#
+# Two conventions, both deliberate.
+#
+# Modifiers are listed alphabetically: Alt, Control, NVDA, Shift, Windows. That
+# is arbitrary in itself, and that is the point. Any fixed order would do; what
+# matters is that the same combination always reads the same way, so two lists
+# of keys can be compared without normalising them first, and a reader hears
+# Alt+Control+Shift in that order every time rather than in whatever order the
+# author happened to type.
+#
+# Key names follow Freedom Scientific's, as JAWS writes them, even though these
+# keys are being bound in NVDA. A blind Windows user has read JAWS key names for
+# thirty years, and DownArrow, Accent and SemiColon are what they expect to
+# hear. NVDA's own gesture identifiers stay as NVDA writes them, because those
+# are what the binding needs; only what is shown to a person changes.
+#
+# Developer.md carries the full translation between the two.
+dModifierNames = {
+    "alt": "Alt", "control": "Control", "nvda": "NVDA", "shift": "Shift",
+    "windows": "Windows",
 }
-dModifierNames = {"alt": "Alt", "control": "Control", "shift": "Shift", "nvda": "NVDA"}
 
-
-def readableName(sName):
-    """Turn a script name into something worth reading in a list.
-
-    The menu was listing page commands under their internal names, so
-    listFormFields sat beside Extract main content. Alphabetical order became
-    meaningless, because camel case sorts by its capitals, and half the list
-    read like source code.
-    """
-    dSpecial = {
-        "moveToMainContent": "Jump to Main Content",
-        "proxyMainContent": "Jump to Probable Main Content",
-    }
-    if sName in dSpecial:
-        return dSpecial[sName]
-    sSpaced = re.sub(r"(?<!^)(?=[A-Z])", " ", str(sName or ""))
-    return sSpaced[:1].upper() + sSpaced[1:].lower() if sSpaced else ""
+dKeyNames = {
+    "`": "Accent", "'": "Apostrophe", "\\": "BackSlash", ",": "Comma",
+    "-": "Dash", "=": "Equals", "[": "LeftBracket", ".": "Period",
+    "]": "RightBracket", "/": "Slash", ";": "SemiColon",
+    "backspace": "Backspace", "capslock": "CapsLock", "delete": "Delete",
+    "downarrow": "DownArrow", "end": "End", "enter": "Enter",
+    "escape": "Escape", "home": "Home", "insert": "Insert",
+    "leftarrow": "LeftArrow", "numlock": "NumLock",
+    "numpaddelete": "NumPadDelete", "numpadenter": "NumPadEnter",
+    "pagedown": "PageDown", "pageup": "PageUp", "printscreen": "PrintScreen",
+    "rightarrow": "RightArrow", "scrolllock": "ScrollLock", "space": "Space",
+    "tab": "Tab", "uparrow": "UpArrow",
+}
 
 
 def describeGesture(sGesture):
+    """Write a gesture the way a JAWS user reads keys.
+
+    Modifiers alphabetically, then the key, with Freedom Scientific's spelling.
+    """
     lParts = sGesture[3:].split("+")
-    # NVDA leads, then the rest alphabetically, which is how this project
-    # writes keys everywhere else.
-    lPlain = [dModifierNames[s.lower()] for s in lParts[:-1] if s.lower() in dModifierNames]
-    lModifiers = (["NVDA"] if "NVDA" in lPlain else []) + sorted(
-        s for s in lPlain if s != "NVDA"
-    )
+    lModifiers = sorted(
+        dModifierNames[s.lower()] for s in lParts[:-1] if s.lower() in dModifierNames)
     sKey = lParts[-1]
-    sKey = dKeyNames.get(sKey, dKeyNames.get(sKey.lower(),
-                         sKey.upper() if len(sKey) == 1 else sKey.capitalize()))
+    sKey = dKeyNames.get(sKey, dKeyNames.get(sKey.lower()))
+    if sKey is None:
+        sKey = lParts[-1]
+        if len(sKey) == 1:
+            sKey = sKey.upper()
+        elif sKey.lower().startswith("f") and sKey[1:].isdigit():
+            sKey = "F" + sKey[1:]
+        elif sKey.lower().startswith("numpad"):
+            sKey = "NumPad" + sKey[6:].capitalize()
+        else:
+            sKey = sKey.capitalize()
     return "+".join(lModifiers + [sKey])
 
 
@@ -705,6 +740,67 @@ class HomerViewBuffer:
     )
     def script_proxyMainContent(self, gesture):
         self.runSafely("proxyMainContent", lambda: homerCommands.moveToProxyMainContent(self, gesture))
+
+    @script(
+        description=_("Moves to the next element of the same kind as this one"),
+        category="HomerView",
+    )
+    def script_nextSameType(self, gesture):
+        self.runSafely("nextSameType",
+                       lambda: homerCommands.moveByTypeRelation(self, True, True))
+
+    @script(
+        description=_("Moves to the previous element of the same kind as this one"),
+        category="HomerView",
+    )
+    def script_priorSameType(self, gesture):
+        self.runSafely("priorSameType",
+                       lambda: homerCommands.moveByTypeRelation(self, True, False))
+
+    @script(
+        description=_("Moves to the next element of a different kind"),
+        category="HomerView",
+    )
+    def script_nextDifferentType(self, gesture):
+        self.runSafely("nextDifferentType",
+                       lambda: homerCommands.moveByTypeRelation(self, False, True))
+
+    @script(
+        description=_("Moves to the previous element of a different kind"),
+        category="HomerView",
+    )
+    def script_priorDifferentType(self, gesture):
+        self.runSafely("priorDifferentType",
+                       lambda: homerCommands.moveByTypeRelation(self, False, False))
+
+    @script(
+        description=_("Looks something up using free web services that need no account"),
+        category="HomerView",
+    )
+    def script_webUtilities(self, gesture):
+        self.runSafely("webUtilities", homerCommands.webUtilities)
+
+    @script(
+        description=_("Lists the HomerView tabs and switches to the one you choose"),
+        category="HomerView",
+    )
+    def script_chooseTab(self, gesture):
+        self.runSafely("chooseTab", homerCommands.chooseTab)
+
+    @script(
+        description=_("Says the names of the open HomerView tabs"),
+        category="HomerView",
+        speakOnDemand=True,
+    )
+    def script_sayTabs(self, gesture):
+        self.runSafely("sayTabs", homerCommands.sayTabs)
+
+    @script(
+        description=_("Closes every HomerView tab but this one and the first"),
+        category="HomerView",
+    )
+    def script_closeOtherTabs(self, gesture):
+        self.runSafely("closeOtherTabs", homerCommands.closeOtherTabs)
 
     @script(description=_("Summarises the structure of this page"), category="HomerView")
     def script_explorePage(self, gesture):

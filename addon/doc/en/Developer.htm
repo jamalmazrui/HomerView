@@ -144,6 +144,54 @@ tagRelease       tags the version and publishes the release
 <p>defensible, but only for settings genuinely shared. A setting that belongs to</p>
 <p>one program should stay with that program, so that removing it removes its</p>
 <p>settings too.</p>
+<h1>How keys are written</h1>
+<p>Two conventions govern every key name a person reads, in the documentation, in</p>
+<p>the Alternate Menu, and in anything HomerView speaks.</p>
+<h2>Modifiers are listed alphabetically</h2>
+<p>Alt, then Control, then NVDA, then Shift, then Windows. So Alt+NVDA+F10, not</p>
+<p>NVDA+Alt+F10; Alt+Control+Accent, not Control+Alt+Accent.</p>
+<p>The order is arbitrary, and that is the point. Any fixed order would do. What</p>
+<p>matters is that the same combination always reads the same way, so two lists of</p>
+<p>keys can be compared without normalising them first, and a reader hears</p>
+<p>Alt+Control+Shift in that order every time rather than in whatever order the</p>
+<p>author happened to type it.</p>
+<h2>Key names follow Freedom Scientific</h2>
+<p>JAWS key names are used even though these keys are bound in NVDA. A blind</p>
+<p>Windows user has been reading JAWS key names for thirty years, and DownArrow,</p>
+<p>Accent and SemiColon are what they expect to hear.</p>
+<p>This applies only to what a person reads. NVDA&#x27;s gesture identifiers are</p>
+<p>unchanged, because those are what the binding needs. <code>describeGesture</code> in</p>
+<p>pageBuffer.py is where one becomes the other.</p>
+<h2>Where the two disagree</h2>
+<p>Freedom Scientific name first, then what NVDA calls the same key.</p>
+<ul>
+<li>Accent, for the grave accent key. NVDA identifies it by the character itself.</li>
+<li>Apostrophe. NVDA identifies it by the character itself.</li>
+<li>BackSlash, Slash, Dash, Equals, Comma, Period, LeftBracket, RightBracket.</li>
+</ul>
+<p>NVDA identifies all of these by the character itself.</p>
+<ul>
+<li>SemiColon, one word with a capital C. NVDA identifies it by the character.</li>
+<li>DownArrow, UpArrow, LeftArrow, RightArrow, each one word. NVDA writes</li>
+</ul>
+<p>downArrow, upArrow, leftArrow, rightArrow in lower camel case.</p>
+<ul>
+<li>PageUp, PageDown, each one word. NVDA writes pageUp and pageDown.</li>
+<li>ScrollLock, CapsLock, NumLock, each one word. NVDA writes scrollLock,</li>
+</ul>
+<p>capsLock and numLock.</p>
+<ul>
+<li>PrintScreen, one word. NVDA writes printScreen.</li>
+<li>NumPadDelete, NumPadEnter, NumPad5. NVDA writes numpadDelete, numpadEnter and</li>
+</ul>
+<p>numpad5, with a lower case p.</p>
+<ul>
+<li>Insert. JAWS calls this key JAWSKey when it is the screen reader modifier;</li>
+</ul>
+<p>NVDA calls the same role NVDA, which is why NVDA appears in these names</p>
+<p>rather than Insert.</p>
+<p>Everything else is spelled the same in both: the letters, the digits, the</p>
+<p>function keys, Enter, Escape, Tab, Space, Backspace, Delete, Home and End.</p>
 </main>
 </body>
 </html>

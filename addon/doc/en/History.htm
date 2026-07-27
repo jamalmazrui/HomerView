@@ -8,6 +8,43 @@
 <body>
 <main>
 <h1>History of Changes</h1>
+<h2>1.18.2</h2>
+<ul>
+<li>The quick start now opens with what you need before it tells you what to press: a link to download NVDA, which is free, and the fact that Microsoft Edge comes with every modern version of Windows and is therefore already on the computer. Someone deciding whether to try this should not have to work out what it will cost them in downloads.</li>
+<li>It also says plainly that HomerView starts its own copy of Edge with its own settings and leaves the usual browser alone, which is the first worry anyone has on reading that an add-on starts a browser.</li>
+<li>The converters are listed as optional, needed only for opening Word, Excel, PowerPoint, PDF and ebook files, so nobody thinks four programs must be installed before anything works.</li>
+</ul>
+<h2>1.18.1</h2>
+<ul>
+<li>Added two introductions to the quick start, one for each kind of reader arriving at it.</li>
+<li>The introduction for JAWS users lists the JAWS commands that are here on the keys JAWS uses, says where a key had to move and why, and names the two places HomerView deliberately differs: the page summary reads the page itself rather than asking a language model, and reported values are spoken without a label because that is NVDA&#x27;s habit, with the JAWS habit available as a setting.</li>
+<li>The introduction for NVDA users says where to find HomerView in the places an NVDA user looks: the Tools menu, the Settings dialog, and one category in Input Gestures with a description on every command. It also says plainly that browse mode is untouched, because that is the first thing an experienced user will want to know.</li>
+</ul>
+<h2>1.18.0</h2>
+<ul>
+<li>Dropped the F12 and Control+F12 alternatives for saving and opening. Control+O and Control+S now do everything the native commands did and more, so the function keys were buying nothing and F12 belongs to Microsoft Edge&#x27;s developer tools. Control+Alt+S still saves, for anyone who learned it.</li>
+<li>Added the Homer grave accent family, taken from edsharp.jkm and kept in the same shape because it is easy to remember and easy to reach. Control+Grave speaks faster, Control+Shift+Grave slower, Alt+Grave louder, Alt+Shift+Grave softer. Punctuation switches between all and none on Control+Alt+Grave, which differs from EdSharp only because HomerView does not use NVDA&#x27;s modifier for page commands. Shift+Grave reports all three settings.</li>
+<li>Punctuation toggles between the two ends rather than cycling four levels, which is what EdSharp does and for the reason a reader would give: the choice that matters is between reading prose and reading a web address, where every character counts.</li>
+<li>All of it goes through NVDA&#x27;s own speech configuration rather than any synthesiser, so a change made here is the change the user would have made in NVDA&#x27;s settings, is saved with their profile, and survives a restart. A command that adjusted something NVDA did not know about would disagree with the settings dialog the moment it was opened.</li>
+<li>None of the six keys is used by Microsoft Edge, by NVDA or by Windows.</li>
+</ul>
+<h2>1.17.0</h2>
+<ul>
+<li>Scroll Lock now starts continuous reading, and stops it. One key for both, which is the friendlier form of what NVDA does with NVDA+DownArrow to begin and Control to stop: two keys and a modifier for what is really one idea.</li>
+<li>Scroll Lock is chosen because nothing else wants it. Windows gave it a meaning in 1981 and almost nothing has honoured it since; Microsoft Edge does not use it, NVDA does not bind it, and no browse mode command touches it. It is also large, isolated and unlikely to be pressed by accident, which is what a start and stop key should be.</li>
+<li>This does not replace Read All on Alt+F8, and the two are not the same thing. Read All says the whole page as one utterance and leaves the cursor alone, which is Homer&#x27;s meaning. Continuous reading moves the cursor as it goes, so a reader who stops is where they stopped.</li>
+<li>Confirmed the Homer help trio, which was already in place: F1 opens the user guide, Alt+F1 the About box, and Shift+F1 the history of changes.</li>
+<li>The command list now writes Scroll Lock, the arrow keys and Numpad Delete as people write them rather than as the gesture spells them.</li>
+</ul>
+<h2>1.16.0</h2>
+<ul>
+<li>Control+O and Control+S now belong to HomerView, and both were earned rather than taken. The test set for this was the right one: a native command may only be replaced if nothing that worked before stops working.</li>
+<li>Opening now passes to the browser any file it has no converter for, which is exactly what the native command did with it. Images, audio, video, JSON, source files and everything else Edge renders open as they always did, and what Edge cannot render it still offers to download. Word, Excel, PowerPoint, PDF, rich text, OpenDocument, EPUB and Markdown are converted first and read as web pages, which the native command could not do at all.</li>
+<li>Saving now offers a single file archive, which is what Edge&#x27;s own Save Page As produces by default, so the format a user already relied on is still there. It is produced through the protocol rather than by driving the menu. Alongside it sit the eight HomerView adds: a web page, Markdown, plain text, a Word document, a PDF, an image of the whole page, the markup after script has run, and the accessibility tree.</li>
+<li>Both keys exist only while Microsoft Edge has focus, so Open and Save are untouched in every other program.</li>
+<li>The function key alternatives follow Microsoft Office rather than being chosen freely, because a user who knows one convention should not have to learn a second. In Office, Control+F12 opens and F12 saves as. Control+F12 therefore opens, which is a change from its previous meaning. F12 itself is Microsoft Edge&#x27;s developer tools and is left alone, so saving takes Shift+F12, which is Office&#x27;s own Save and is unassigned in Edge.</li>
+<li>Control+Alt+S still saves, for anyone who learned it.</li>
+</ul>
 <h2>1.15.0</h2>
 <ul>
 <li>Added HomerView to the NVDA menu, under Tools, with items for launching the browser, listing every command, opening the quick start, the user guide and the history of changes, checking for a newer version, and About. This is one of the two places an experienced user looks before touching the keyboard, and it matters more here than for most add-ons: someone who has not yet learned a single key can start the browser and open the guide from a menu they already know how to reach.</li>

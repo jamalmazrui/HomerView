@@ -16,6 +16,8 @@ HomerView.jsonl
 
 # Private correspondence. Drafts live outside the repository.
 Letter_to_*.md
+Announcing_*.md
+Announcing_*.htm
 Letter_to_*.htm
 
 # Python and build output.

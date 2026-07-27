@@ -18,7 +18,7 @@ weights have been published, which is not the same thing as the service being
 open. None of them belong here under this rule.
 """
 
-startPageVersion = "8"
+startPageVersion = "11"
 
 startPageText = """<!doctype html>
 <html lang="en">
@@ -67,7 +67,10 @@ side effect.</li>
 <li><strong>Shift+J</strong> finds the main content when the page declares none.</li>
 <li><strong>Y</strong> summarises the structure of the page.</li>
 <li><strong>Alt+A</strong> reports the web address. Twice spells it, three times copies it.</li>
-<li><strong>Alt+F8</strong> reads the whole page. <strong>Control+F8</strong> copies it.</li>
+<li><strong>Scroll Lock</strong> starts reading continuously, and stops it. One key for
+both.</li>
+<li><strong>Alt+F8</strong> reads the whole page without moving the cursor.
+<strong>Control+F8</strong> copies it.</li>
 <li><strong>Control+F</strong> finds text, not case sensitive. <strong>Control+F3</strong> finds a
 regular expression. <strong>F3</strong> repeats either.</li>
 <li><strong>Alt+W</strong> finds the next place the word at the cursor appears.</li>
@@ -75,6 +78,13 @@ regular expression. <strong>F3</strong> repeats either.</li>
 <li><strong>Control</strong> and <strong>Alt</strong> with the up and down arrows move by
 paragraph and by sentence.</li>
 <li><strong>Control+F11</strong> checks for a newer HomerView and installs it.</li>
+<li><strong>F1</strong> opens the user guide, <strong>Alt+F1</strong> the About box, and
+<strong>Shift+F1</strong> the history of changes.</li>
+<li>The <strong>grave accent</strong> key adjusts speech.
+<strong>Control+Alt+Grave</strong> switches punctuation between all and none.
+<strong>Control+Grave</strong> and <strong>Control+Shift+Grave</strong> change the rate.
+<strong>Alt+Grave</strong> and <strong>Alt+Shift+Grave</strong> change the volume.
+<strong>Shift+Grave</strong> reports all three.</li>
 </ul>
 <h2>Commands anywhere</h2>
 <ul>
@@ -84,9 +94,12 @@ everywhere, including before HomerView Edge is running, and it can start it for 
 
 <li><strong>NVDA+Alt+X</strong> extracts the readable part of the page.</li>
 <li><strong>NVDA+Alt+W</strong> downloads files linked from the page.</li>
-<li><strong>Control+O</strong> opens a document of almost any format.</li>
-<li><strong>Control+F12</strong> saves the page as a web page, Markdown, text, Word, PDF or
-an image.</li>
+<li><strong>Control+O</strong> opens a document of almost any format. Word, Excel,
+PowerPoint, PDF, rich text, OpenDocument, EPUB and Markdown are converted and read as
+web pages; everything the browser already opened, it still opens.</li>
+<li><strong>Control+S</strong> saves the page as a single file archive the way Edge does,
+or as a web page, Markdown, plain text, a Word document, a PDF, an image, or the
+accessibility tree.</li>
 </ul>
 <h2>Documentation</h2>
 <p>These open in this window, where every HomerView command works on them. They

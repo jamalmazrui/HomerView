@@ -1156,5 +1156,50 @@ def _elevateVersionNow():
               "{path}").format(path=dResult.get("path", "")))
 
 
+def toggleSayAll(treeInterceptor):
+    """Start reading continuously, or stop if it is already reading.
+
+    Scroll Lock is chosen because it is a key nobody is using. Windows gave it
+    a meaning in 1981 and almost nothing has honoured it since; Microsoft Edge
+    does not use it, NVDA does not bind it, and no browse mode command touches
+    it. It is also large, isolated, and unlikely to be pressed by accident,
+    which is what a start and stop key should be.
+
+    One key doing both is the point. NVDA's own arrangement is NVDA+DownArrow
+    to begin and Control to stop, which is two keys and a modifier for what is
+    really one idea: read, and stop reading. This is the friendlier form.
+
+    This does not replace Read All on Alt+F8. That says the whole page as one
+    utterance and leaves the cursor alone, which is Homer's meaning. Say All
+    moves the cursor as it goes, so a reader can stop and be where they
+    stopped. Both are worth having and they are not the same thing.
+    """
+    from speech import sayAll as sayAllModule
+
+    bReading = False
+    try:
+        bReading = bool(sayAllModule.SayAllHandler.isRunning())
+    except Exception:
+        # Older builds do not offer the query. Cancelling when nothing is
+        # reading is harmless, so the uncertain case is treated as reading.
+        bReading = bool(speech.getState().speechMode) if hasattr(speech, "getState") else False
+
+    if bReading:
+        homerLog.info("Say all: stopping")
+        try:
+            sayAllModule.SayAllHandler.stop()
+        except Exception:
+            speech.cancelSpeech()
+        return
+
+    homerLog.info("Say all: starting from the cursor")
+    try:
+        sayAllModule.SayAllHandler.readText(sayAllModule.CURSOR.CARET)
+    except Exception:
+        logError("Say all could not be started")
+        # Translators: Reported when continuous reading could not start.
+        ui.message(_("Continuous reading is not available here"))
+
+
 def lastPercent(treeInterceptor):
     return dLastPercent.get(id(treeInterceptor))

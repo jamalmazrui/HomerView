@@ -175,7 +175,6 @@ analysisScript = r"""(() => {
                 });
             }
         }
-        }
     }
     for (const elDialog of Array.from(document.querySelectorAll("[role=dialog],[role=alertdialog],dialog"))) {
         if (visible(elDialog)) {

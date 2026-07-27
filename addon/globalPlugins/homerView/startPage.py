@@ -18,7 +18,7 @@ weights have been published, which is not the same thing as the service being
 open. None of them belong here under this rule.
 """
 
-startPageVersion = "13"
+startPageVersion = "14"
 
 startPageText = """<!doctype html>
 <html lang="en">
@@ -95,7 +95,10 @@ the ones you are done with.</li>
 <li><strong>Alt+NVDA+F10</strong> lists every command in one alphabetical list. It works
 everywhere, including before HomerView Edge is running, and it can start it for you.</li>
 
-<li><strong>Alt+NVDA+X</strong> extracts the readable part of the page.</li>
+<li><strong>Alt+NVDA+X</strong> extracts the readable part of the page and opens it as a
+page of its own, which you can search, save or send. Microsoft Edge has its own reading
+mode on <strong>F9</strong>, which HomerView leaves alone; it offers fewer pages but adds
+Edge's own reading tools, so the two are worth having together.</li>
 <li><strong>Alt+NVDA+W</strong> downloads files linked from the page.</li>
 <li><strong>Control+O</strong> opens a document of almost any format. Word, Excel,
 PowerPoint, PDF, rich text, OpenDocument, EPUB and Markdown are converted and read as

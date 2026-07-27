@@ -145,6 +145,10 @@ is present. LibreOffice covers the most formats and needs no Microsoft Office.
   copies it.
 - **Control+F** finds text, not case sensitive. **Control+F3** finds a regular
   expression. **F3** repeats whichever was last used.
+- **Alt+NVDA+X** extracts the readable part of a page and opens it as a page of
+  its own, which you can search, save or send. Edge's own reading mode is on
+  **F9**, which HomerView leaves alone. It works on fewer pages but adds Edge's
+  reading tools, so the two are worth having together.
 - **Alt+K** tests the page for accessibility problems and offers to help you
   report them to whoever publishes the site.
 - **Control+S** saves the page as a single file archive the way Edge does, or as a

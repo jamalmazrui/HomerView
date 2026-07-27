@@ -35,10 +35,45 @@ maximumLinks = 2000
 reDisposition = re.compile(r"filename\*?=(?:UTF-8'')?\"?([^\";]+)\"?", re.IGNORECASE)
 reUnsafe = re.compile(r'[\\/*?:"<>|]')
 
-# Extensions that are almost always page navigation rather than a file the user
-# means to keep. Offering them would bury the ones that matter.
+# Extensions that are a way of reaching another page rather than a file, and
+# that carry no file of their own. A page addressed as .php is the site's own
+# navigation, and offering hundreds of them would bury the files that matter.
+#
+# Web pages are NOT in this set. A reader may well want the page itself, and
+# htm and html are offered like anything else; they are simply left out of the
+# line that is filled in for you, so they are one keystroke away rather than
+# in the way.
 setSkippedExtensions = {
-    "asp", "aspx", "cfm", "htm", "html", "jsp", "php", "shtml", "xhtml",
+    "asp", "aspx", "cfm", "cgi", "do", "jsp", "php", "pl", "py",
+}
+
+# Not offered by default, though still listed and still available by typing
+# them in. Page addresses and script assets are numerous and rarely wanted.
+setNotByDefault = {
+    "css", "htm", "html", "js", "json", "shtml", "xhtml", "xml",
+}
+
+# What a file of each kind is, so the chooser can say so rather than showing a
+# bare list of extensions. Everything named in this project's documentation is
+# here, and the list is the answer to "what can this command actually fetch".
+dExtensionNames = {
+    "7z": "7-Zip archive", "aac": "AAC audio", "avi": "AVI video",
+    "bmp": "Bitmap image", "csv": "Comma separated values",
+    "doc": "Word document", "docx": "Word document", "epub": "EPUB ebook",
+    "exe": "Windows program", "flac": "FLAC audio", "gif": "GIF image",
+    "gz": "Gzip archive", "htm": "Web page", "html": "Web page",
+    "jpeg": "JPEG image", "jpg": "JPEG image", "json": "JSON data",
+    "m4a": "M4A audio", "m4b": "M4B audiobook", "md": "Markdown",
+    "mobi": "Mobipocket ebook", "mp3": "MP3 audio", "mp4": "MP4 video",
+    "msi": "Windows installer", "odp": "OpenDocument presentation",
+    "ods": "OpenDocument spreadsheet", "odt": "OpenDocument text",
+    "ogg": "Ogg audio", "pdf": "PDF document", "png": "PNG image",
+    "ppt": "PowerPoint presentation", "pptx": "PowerPoint presentation",
+    "rar": "RAR archive", "rtf": "Rich text", "svg": "SVG image",
+    "tar": "Tar archive", "txt": "Plain text", "wav": "WAV audio",
+    "webp": "WebP image", "wma": "WMA audio", "xls": "Excel workbook",
+    "xlsx": "Excel workbook", "xml": "XML data", "zip": "Zip archive",
+    "unknown": "named by the server",
 }
 
 # Extensions for which a web page IS the expected answer.
@@ -62,8 +97,36 @@ def resolveDownloadUrl(sUrl):
     return sUrl
 
 linkScript = r"""(() => {
+    // Where a download can hide, beyond an anchor with a file name in its
+    // address. All three of these are ordinary on real pages and all three
+    // were being missed.
+    const dMimeExtensions = {
+        "application/pdf": "pdf", "application/zip": "zip",
+        "application/epub+zip": "epub", "application/rtf": "rtf",
+        "application/msword": "doc", "application/vnd.ms-excel": "xls",
+        "application/vnd.ms-powerpoint": "ppt", "application/json": "json",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "docx",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": "xlsx",
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation": "pptx",
+        "text/csv": "csv", "text/plain": "txt", "text/html": "html",
+        "image/jpeg": "jpg", "image/png": "png", "image/gif": "gif",
+        "image/svg+xml": "svg", "audio/mpeg": "mp3", "video/mp4": "mp4"
+    };
+
+    const extensionOf = (sName) => {
+        if (!sName) return "";
+        const sClean = sName.split("?")[0].split("#")[0];
+        const iDot = sClean.lastIndexOf(".");
+        const iSlash = sClean.lastIndexOf("/");
+        if (iDot <= iSlash + 1) return "";
+        const sExtension = sClean.slice(iDot + 1).toLowerCase();
+        return /^[a-z0-9]{1,8}$/.test(sExtension) ? sExtension : "";
+    };
+
     const lLinks = [];
-    for (const elAnchor of Array.from(document.querySelectorAll("a[href]"))) {
+    const setSeen = new Set();
+    for (const elAnchor of Array.from(
+            document.querySelectorAll("a[href], area[href], link[href][download]"))) {
         let sAbsolute = "";
         try {
             sAbsolute = new URL(elAnchor.getAttribute("href"), window.location.href).href;
@@ -71,20 +134,56 @@ linkScript = r"""(() => {
             continue;
         }
         if (!sAbsolute.startsWith("http")) continue;
-        let sPath = "";
-        try {
-            sPath = new URL(sAbsolute).pathname;
-        } catch (error) {
-            continue;
+        if (setSeen.has(sAbsolute)) continue;
+
+        let sExtension = "";
+        let sSource = "";
+
+        // The download attribute carries the name the file will be saved as,
+        // which is the most reliable answer there is and is often the only one
+        // when the address itself has no file name in it.
+        const sDownload = elAnchor.getAttribute("download");
+        if (sDownload) {
+            sExtension = extensionOf(sDownload);
+            if (sExtension) sSource = "download attribute";
         }
-        const iDot = sPath.lastIndexOf(".");
-        const iSlash = sPath.lastIndexOf("/");
-        if (iDot <= iSlash + 1) continue;
-        const sExtension = sPath.slice(iDot + 1).toLowerCase();
-        if (!/^[a-z0-9]{1,8}$/.test(sExtension)) continue;
+
+        // The address, which is the usual case.
+        if (!sExtension) {
+            try {
+                sExtension = extensionOf(new URL(sAbsolute).pathname);
+                if (sExtension) sSource = "address";
+            } catch (error) {
+                sExtension = "";
+            }
+        }
+
+        // A declared type, for an address that names no file at all. A link to
+        // /download/12345 with type application/pdf is a PDF, and skipping it
+        // for want of a dot in the address loses exactly the files a reader
+        // most often wants.
+        if (!sExtension) {
+            const sType = (elAnchor.getAttribute("type") || "").toLowerCase().split(";")[0].trim();
+            if (dMimeExtensions[sType]) {
+                sExtension = dMimeExtensions[sType];
+                sSource = "declared type";
+            }
+        }
+
+        // Nothing said what it is, but the link says it is a download. Marked
+        // as unknown so it can be offered, since the server will name it in
+        // its response and HomerView reads that name.
+        if (!sExtension && elAnchor.hasAttribute("download")) {
+            sExtension = "unknown";
+            sSource = "download attribute without a name";
+        }
+
+        if (!sExtension) continue;
+        setSeen.add(sAbsolute);
         lLinks.push({
             extension: sExtension,
-            text: (elAnchor.textContent || "").trim().slice(0, 200),
+            source: sSource,
+            text: (elAnchor.textContent || elAnchor.getAttribute("aria-label") || "").trim().slice(0, 200),
             url: sAbsolute
         });
     }
@@ -115,15 +214,38 @@ def analyseLinks(cdpSession):
     dCounts = {}
     for dLink in lUnique:
         dCounts[dLink["extension"]] = dCounts.get(dLink["extension"], 0) + 1
+    # Everything found is offered; what is filled in for you is the subset
+    # worth having by default. A reader who wants the web pages types html.
+    lDefault = [s for s in lExtensions if s not in setNotByDefault]
+    dSources = {}
+    for dLink in lUnique:
+        sSource = dLink.get("source", "address")
+        dSources[sSource] = dSources.get(sSource, 0) + 1
     homerLog.info(f"Extensions offered: {lExtensions}")
+    homerLog.info(f"Filled in by default: {lDefault}")
     homerLog.info(f"Links by extension: {dCounts}")
+    homerLog.info(f"How each link was identified: {dSources}")
     return {
         "counts": dCounts,
+        "default": lDefault,
         "extensions": lExtensions,
         "links": lUnique,
         "pageUrl": sPageUrl,
         "sessionId": sSessionId,
     }
+
+
+def describeExtensions(lExtensions, dCounts):
+    """Say what each kind is, so the chooser is readable rather than cryptic."""
+    lLines = []
+    for sExtension in lExtensions:
+        sWhat = dExtensionNames.get(sExtension, "")
+        iCount = dCounts.get(sExtension, 0)
+        if sWhat:
+            lLines.append(f"{sExtension}: {sWhat}, {iCount}")
+        else:
+            lLines.append(f"{sExtension}: {iCount}")
+    return lLines
 
 
 def parseExtensions(sText):

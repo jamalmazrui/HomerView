@@ -56,6 +56,7 @@ lConvertibleExtensions = [
 lNativeExtensions = ["htm", "html", "mhtml", "svg", "txt", "xhtml", "xml"]
 
 dSaveFormats = {
+    "mhtml": "The page and everything it uses, in one file, as Edge saves it",
     "htm": "Web page, keeping headings, lists and tables",
     "md": "Markdown, plain text with structure preserved as punctuation",
     "txt": "Plain text, no structure",
@@ -391,10 +392,17 @@ def convertToHtml(sSourcePath, bPlainText=False):
         return convertWithPandoc(pathSource, paths.getTempFolder()), True
 
     if not isConvertible(pathSource):
-        raise ConversionError(
-            f"{pathSource.suffix or 'This file'} is not a format 2htm converts. "
-            f"It handles {', '.join(lConvertibleExtensions)}."
+        # Everything else goes straight to the browser, which is what the
+        # native Control+O does with it. Images, audio, video, JSON, source
+        # files and anything Edge renders open exactly as they would have;
+        # anything it cannot render, it offers to download, also as before.
+        # This is what makes taking Control+O honest: nothing that worked
+        # before stops working.
+        homerLog.info(
+            f"{pathSource.suffix or 'This file'} has no converter, so it is opened "
+            "in the browser as the native command would"
         )
+        return pathSource, False
 
     pathExecutable = findExecutable()
     if not pathExecutable:

@@ -15,6 +15,64 @@
 <p>three, and most of what HomerView does comes from having them together.</p>
 <p>It is also a document reader. A Word file, a spreadsheet, a slide deck, a PDF or</p>
 <p>an ebook can be opened and read with the same commands as a web page.</p>
+<h1>Introduction for JAWS users</h1>
+<p>If you have used JAWS, a good deal of HomerView will already be in your fingers.</p>
+<p>Where a JAWS command has an obvious place here and the key is free in NVDA, that</p>
+<p>key is used. Where it is not free, the command still exists on a key that costs</p>
+<p>nothing.</p>
+<pre><code>
+NVDA+F5             list the form fields, as Insert+F5 does
+NVDA+F6             list the headings, as Insert+F6 does
+NVDA+Shift+F7       list the links; Insert+F7 belongs to NVDA&#x27;s own
+                    Elements List, so the links moved one key over
+Alt+Delete          say how far through the page you are
+Alt+A               say the web address; twice spells it, three times
+                    copies it
+Control+F           find, without needing a screen reader modifier, which
+                    is the JAWS judgment and the right one
+Control+F3          find by regular expression; F3 repeats either kind
+Y                   summarise the page, in the spirit of Page Explorer
+</code></pre>
+<p>Two things JAWS does that HomerView does differently, and deliberately.</p>
+<p>Page Explorer asks a language model. HomerView reads the page itself, so it</p>
+<p>never invents a region that is not there, and it can report what a model would</p>
+<p>not be told: a bar pinned over the content, an open dialog, text that is on</p>
+<p>screen but hidden from screen readers.</p>
+<p>JAWS labels what it reports, saying &quot;Address&quot; before the address. NVDA speaks</p>
+<p>the value alone, and HomerView follows NVDA. If you would rather have the</p>
+<p>labels, turn them on in NVDA&#x27;s Settings, under HomerView.</p>
+<p>The Homer editor commands are here too, if you have used EdSharp or FileDir.</p>
+<p>Alt+F8 reads the page, Control+F8 copies it, F8 and Shift+F8 select without</p>
+<p>holding Shift, the apostrophe key carries the clipboard commands, and the grave</p>
+<p>accent key adjusts punctuation, rate and volume.</p>
+<h1>Introduction for NVDA users</h1>
+<p>HomerView is where you would expect it to be.</p>
+<p>It appears in the NVDA menu, under Tools, with items for starting the browser,</p>
+<p>listing every command, and opening this guide. Nothing has to be memorised</p>
+<p>before you can find it.</p>
+<p>It has a page in NVDA&#x27;s Settings, under HomerView, holding the few settings</p>
+<p>worth changing and a list of every folder it writes to.</p>
+<p>Every command appears in Input Gestures under one HomerView category, so you can</p>
+<p>see the whole set together and change any key you dislike. Every command has a</p>
+<p>description, so pressing NVDA+1 for input help and then the key tells you what</p>
+<p>it does.</p>
+<p>Commands that work anywhere carry the NVDA key, so they never shadow anything in</p>
+<p>another program. Commands that work only in a page use shorter keys, which they</p>
+<p>can afford because they exist nowhere else.</p>
+<p>No HomerView command takes a key NVDA uses by default, on either the desktop or</p>
+<p>the laptop layout. Where a browser key is taken, such as Control+F, Control+O or</p>
+<p>Control+S, HomerView does everything the browser did with it and more.</p>
+<p>Browse mode still works as you know it. Quick navigation, the Elements List,</p>
+<p>say all, the review cursor and everything else are untouched. HomerView adds to</p>
+<p>them rather than replacing them.</p>
+<h1>What you need</h1>
+<p>NVDA, which is free: <a href="https://www.nvaccess.org/download">https://www.nvaccess.org/download</a></p>
+<p>Microsoft Edge, which is already on your computer. It comes with every modern</p>
+<p>version of Windows, so there is nothing to install for it. HomerView starts its</p>
+<p>own copy with its own settings, and leaves your usual browser alone.</p>
+<p>A converter, only if you want to open Word, Excel, PowerPoint, PDF or ebook</p>
+<p>files. HomerView finds LibreOffice, pandoc, 2htm or Calibre if any is installed,</p>
+<p>and tells you which to install if none is.</p>
 <h1>Quick start</h1>
 <p>Install the add-on, restart NVDA, and press <strong>NVDA+Alt+H</strong>.</p>
 <p>A browser window opens on the HomerView start page, which lists the commands and</p>
@@ -44,6 +102,7 @@
 <p>is present. LibreOffice covers the most formats and needs no Microsoft Office.</p>
 <h1>Five commands worth learning early</h1>
 <ul>
+<li><strong>Scroll Lock</strong> starts reading continuously, and stops it. One key for both.</li>
 <li><strong>Alt+F8</strong> reads the whole page without moving the cursor. <strong>Control+F8</strong></li>
 </ul>
 <p>copies it.</p>
@@ -56,9 +115,10 @@
 </ul>
 <p>report them to whoever publishes the site.</p>
 <ul>
-<li><strong>Control+F12</strong> saves the page as a web page, Markdown, plain text, a Word</li>
+<li><strong>Control+S</strong> saves the page as a single file archive the way Edge does, or as a</li>
 </ul>
-<p>document, a PDF, or an image of the whole page.</p>
+<p>web page, Markdown, plain text, a Word document, a PDF, an image, or the</p>
+<p>accessibility tree.</p>
 <ul>
 <li><strong>NVDA+Alt+W</strong> lists the kinds of file linked from the page and downloads the</li>
 </ul>

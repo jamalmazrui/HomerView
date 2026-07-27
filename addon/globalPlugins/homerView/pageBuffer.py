@@ -43,6 +43,7 @@ from . import clipboardTools
 from . import find
 from . import homerCommands
 from . import homerText
+from . import speechControl
 from . import lbc as lbcModule
 from .history import history
 from .logger import abbreviate, homerLog, logError, logSection
@@ -76,6 +77,20 @@ maximumLoggedLandmarks = 40
 # and cannot shadow anything in Edge, in other browsers, or in Windows.
 dHomerGestures = {
     "kb:alt+f8": "readAll",
+    # Scroll Lock, because nothing else wants it: not Edge, not NVDA, not
+    # Windows since about 1981. One large isolated key that both starts and
+    # stops continuous reading.
+    "kb:scrolllock": "toggleSayAll",
+    # The Homer grave accent family, as EdSharp arranges it. Punctuation moves
+    # to Control+Alt+Grave because HomerView does not use NVDA's modifier for
+    # page commands; the other four are unchanged. None of the five is used by
+    # Edge, by NVDA, or by Windows.
+    "kb:control+alt+`": "togglePunctuation",
+    "kb:control+`": "speakFaster",
+    "kb:control+shift+`": "speakSlower",
+    "kb:alt+`": "speakLouder",
+    "kb:alt+shift+`": "speakSofter",
+    "kb:shift+`": "reportSpeechSettings",
     "kb:control+f8": "copyAll",
     "kb:control+c": "copyLineOrSelection",
     "kb:alt+c": "copyAppend",
@@ -144,7 +159,10 @@ dHomerGestures = {
 # Shift, which is the notation used throughout this project.
 dKeyNames = {
     "'": "Apostrophe", ";": "Semicolon", "delete": "Delete", "backspace": "Backspace",
-    "space": "Space", "f8": "F8", "f10": "F10",
+    "space": "Space", "f8": "F8", "f10": "F10", "scrolllock": "Scroll Lock",
+    "`": "Grave",
+    "numpaddelete": "Numpad Delete", "numpadDelete": "Numpad Delete", "downarrow": "DownArrow", "uparrow": "UpArrow",
+    "leftarrow": "LeftArrow", "rightarrow": "RightArrow",
 }
 dModifierNames = {"alt": "Alt", "control": "Control", "shift": "Shift", "nvda": "NVDA"}
 
@@ -176,7 +194,8 @@ def describeGesture(sGesture):
         s for s in lPlain if s != "NVDA"
     )
     sKey = lParts[-1]
-    sKey = dKeyNames.get(sKey, sKey.upper() if len(sKey) == 1 else sKey.capitalize())
+    sKey = dKeyNames.get(sKey, dKeyNames.get(sKey.lower(),
+                         sKey.upper() if len(sKey) == 1 else sKey.capitalize()))
     return "+".join(lModifiers + [sKey])
 
 
@@ -499,6 +518,48 @@ class HomerViewBuffer:
             lambda f=functionScript: f(None), pageScopeName,
         )
 
+    @script(
+        description=_("Starts reading continuously, or stops if it is already reading"),
+        category="HomerView",
+    )
+    def script_toggleSayAll(self, gesture):
+        self.runSafely("toggleSayAll", lambda: homerCommands.toggleSayAll(self))
+
+    @script(
+        description=_("Switches punctuation between all and none"),
+        category="HomerView",
+    )
+    def script_togglePunctuation(self, gesture):
+        self.runSafely("togglePunctuation", speechControl.togglePunctuation)
+
+    @script(description=_("Speaks faster"), category="HomerView")
+    def script_speakFaster(self, gesture):
+        self.runSafely("speakFaster", lambda: speechControl.adjustRate(True))
+
+    @script(description=_("Speaks slower"), category="HomerView")
+    def script_speakSlower(self, gesture):
+        self.runSafely("speakSlower", lambda: speechControl.adjustRate(False))
+
+    @script(description=_("Speaks louder"), category="HomerView")
+    def script_speakLouder(self, gesture):
+        self.runSafely("speakLouder", lambda: speechControl.adjustVolume(True))
+
+    @script(description=_("Speaks more softly"), category="HomerView")
+    def script_speakSofter(self, gesture):
+        self.runSafely("speakSofter", lambda: speechControl.adjustVolume(False))
+
+    @script(
+        description=_("Reports the punctuation level, the rate and the volume"),
+        category="HomerView",
+        speakOnDemand=True,
+    )
+    def script_reportSpeechSettings(self, gesture):
+        from . import output
+
+        self.runSafely(
+            "reportSpeechSettings",
+            lambda: output.lines(_("Speech settings"), speechControl.reportSpeechSettings()))
+
     @script(description=_("Reads the whole page without moving the cursor"), category="HomerView")
     def script_readAll(self, gesture):
         self.runSafely("readAll", lambda: homerCommands.readAll(self))
@@ -780,6 +841,13 @@ class HomerViewBuffer:
 
     def _buildPageEntries(self):
         lEntries = [
+            self._homer("toggleSayAll", _("Start reading continuously, or stop reading")),
+            self._homer("togglePunctuation", _("Switch punctuation between all and none")),
+            self._homer("speakFaster", _("Speak faster")),
+            self._homer("speakSlower", _("Speak slower")),
+            self._homer("speakLouder", _("Speak louder")),
+            self._homer("speakSofter", _("Speak more softly")),
+            self._homer("reportSpeechSettings", _("Report the punctuation level, rate and volume")),
             self._homer("readAll", _("Read the whole page without moving the cursor")),
             self._homer("copyAll", _("Copy the whole page to the clipboard")),
             self._homer("copyLineOrSelection", _("Copy the selection, or the current line when nothing is selected")),

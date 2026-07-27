@@ -110,7 +110,26 @@ def saveMarkup(cdpSession, sSessionId, pathTarget):
     return pathTarget
 
 
+def saveArchive(cdpSession, sSessionId, pathTarget):
+    """Save the page and everything it uses as one file.
+
+    This is what Microsoft Edge's own Save Page As produces by default, and
+    having it is what makes taking Control+S honest: the format a user already
+    relied on is still there, alongside the six HomerView adds.
+    """
+    logSection("Capture: page archive")
+    dResult = cdpSession.call(
+        "Page.captureSnapshot", {"format": "mhtml"}, sSessionId, captureTimeoutSeconds)
+    sData = dResult.get("data", "")
+    if not sData:
+        raise CaptureError("The browser returned no archive")
+    pathTarget.write_text(sData, encoding="utf-8", newline="")
+    homerLog.info(f"Wrote {pathTarget}, {pathTarget.stat().st_size} bytes")
+    return pathTarget
+
+
 dCaptures = {
+    "mhtml": (saveArchive, "The page and everything it uses, in one file, as Edge saves it"),
     "png": (saveImage, "Image of the whole page, as a sighted reader sees it"),
     "pdf": (savePdf, "The page as it would print, fixed layout, one file"),
     "json": (saveAccessibilityTree, "The accessibility tree, with the reasons any node was ignored"),

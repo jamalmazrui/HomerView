@@ -86,9 +86,9 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
              _("Test the page with axe-core and report the counts"), "runAxe"),
             (_("Open the session log"), "",
              _("Open the HomerView log file for this session"), "openLog"),
-            (_("Open another format"), "Control+F10",
+            (_("Open a document"), "Control+O",
              _("Open a Word, Excel, PowerPoint, PDF or Markdown document as a web page"), "openOtherFormat"),
-            (_("Save the page as"), "Control+F12",
+            (_("Save the page as"), "Control+S",
              _("Save the current page as a web page, Markdown, or plain text"), "saveAs"),
             (_("Recently opened"), "",
              _("List the pages and documents opened in HomerView, so you can find one again"),
@@ -250,7 +250,12 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         if (
             functionScript is not None
             and getattr(functionScript, "__name__", "")
-            in ("script_submitForm", "script_reportAddressAnywhere")
+            in (
+                "script_submitForm",
+                "script_reportAddressAnywhere",
+                "script_openOtherFormat",
+                "script_saveAs",
+            )
             and self._focusAppName() != "msedge"
         ):
             # Outside the browser this key belongs to whatever has focus.
@@ -627,7 +632,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         # Translators: Input help mode message for the save as command.
         description=_("Saves the current HomerView page as a web page, Markdown, or plain text"),
         category="HomerView",
-        gestures=["kb:control+f12", "kb:control+alt+s"],
+        gestures=["kb:control+s", "kb:control+alt+s"],
     )
     def script_saveAs(self, gesture):
         homerLog.info("Command: save as")

@@ -21,7 +21,15 @@ The visual section is the unusual part and the reason the command earns its
 place. A screen reader flattens a page into a reading order, which hides things
 a sighted reader gets for free: that a banner is pinned over the content, that a
 dialog is open on top of everything, that a region is present in the markup but
-invisible, that something visible has been hidden from assistive technology.
+invisible.
+
+Only what is visible is described. A page framework routinely keeps markup in
+the document that it is not currently showing: a menu that has not been opened,
+a panel behind a tab, a template waiting to be filled. None of that is
+suspicious and none of it is a fault, and listing it would bury the regions a
+reader will actually meet under regions nobody will. This is the same judgment
+Deque's axe makes, which reports a violation only against an element a person
+could reach.
 Only notable findings appear; a page with none of them says so.
 """
 
@@ -78,10 +86,10 @@ analysisScript = r"""(() => {
         }
         if (!lLandmarkRoles.includes(sRole)) continue;
         const sText = text(elNode);
+        if (!visible(elNode)) continue;
         lRegions.push({
             characters: sText.length,
             headings: elNode.querySelectorAll("h1,h2,h3,h4,h5,h6,[role=heading]").length,
-            hidden: !visible(elNode),
             label: label(elNode),
             links: elNode.querySelectorAll("a[href]").length,
             role: sRole
@@ -91,9 +99,10 @@ analysisScript = r"""(() => {
     // Headings
     const lHeadings = [];
     for (const elNode of Array.from(document.querySelectorAll("h1,h2,h3,h4,h5,h6,[role=heading]"))) {
+        if (!visible(elNode)) continue;
         let iLevel = parseInt(elNode.tagName.slice(1), 10);
         if (isNaN(iLevel)) iLevel = parseInt(elNode.getAttribute("aria-level") || "2", 10);
-        lHeadings.push({level: iLevel, text: text(elNode).slice(0, 100), hidden: !visible(elNode)});
+        lHeadings.push({level: iLevel, text: text(elNode).slice(0, 100)});
     }
 
     // Links
@@ -166,10 +175,6 @@ analysisScript = r"""(() => {
                 });
             }
         }
-        if (elNode.getAttribute("aria-hidden") === "true" && visible(elNode) &&
-            text(elNode).length > 40) {
-            lHiddenFromAt.push({characters: text(elNode).length,
-                text: text(elNode).slice(0, 80)});
         }
     }
     for (const elDialog of Array.from(document.querySelectorAll("[role=dialog],[role=alertdialog],dialog"))) {
@@ -213,7 +218,6 @@ analysisScript = r"""(() => {
         forms: document.querySelectorAll("form").length,
         frames: lFrames.slice(0, 10),
         headings: lHeadings.slice(0, 200),
-        hiddenFromAt: lHiddenFromAt.slice(0, 5),
         images: lImages.length,
         importantLinks: lImportant.slice(0, 40),
         lang: document.documentElement.getAttribute("lang") || "",
@@ -274,8 +278,6 @@ def describeRegion(dRegion):
     pass  # the character count this reported has been dropped
     if lDetail:
         lParts.append("with " + ", ".join(s for s in lDetail if s))
-    if dRegion.get("hidden"):
-        lParts.append("(not visible)")
     return " ".join(lParts)
 
 
@@ -315,12 +317,6 @@ def headingProblems(lHeadings):
         lNotes.append(
             f"The outline skips a level {times(iSkips)}, so some headings sit deeper than they look."
         )
-    iHidden = sum(1 for d in lHeadings if d.get("hidden"))
-    if iHidden:
-        lNotes.append(
-            f"{iHidden} {plural(iHidden, 'heading')} {verb(iHidden, 'is', 'are')} in the markup "
-            "but not visible on screen."
-        )
     return lNotes
 
 
@@ -345,11 +341,6 @@ def visualNotes(dPage):
             f"A {dPinned.get('role')} is pinned {sWhere} using {dPinned.get('position')} positioning, "
             f"{dPinned.get('height')} pixels tall. It stays put as the page scrolls, so it can cover "
             "content you have just moved to."
-        )
-    for dHidden in asList(dPage.get("hiddenFromAt")):
-        lNotes.append(
-            f'{dHidden.get("characters", 0)} characters are visible on screen but hidden from '
-            f'screen readers with aria-hidden, beginning "{dHidden.get("text", "")}".'
         )
     if dPage.get("unnamedImages"):
         iCount = dPage["unnamedImages"]

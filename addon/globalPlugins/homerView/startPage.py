@@ -18,7 +18,7 @@ weights have been published, which is not the same thing as the service being
 open. None of them belong here under this rule.
 """
 
-startPageVersion = "11"
+startPageVersion = "13"
 
 startPageText = """<!doctype html>
 <html lang="en">
@@ -67,7 +67,7 @@ side effect.</li>
 <li><strong>Shift+J</strong> finds the main content when the page declares none.</li>
 <li><strong>Y</strong> summarises the structure of the page.</li>
 <li><strong>Alt+A</strong> reports the web address. Twice spells it, three times copies it.</li>
-<li><strong>Scroll Lock</strong> starts reading continuously, and stops it. One key for
+<li><strong>ScrollLock</strong> starts reading continuously, and stops it. One key for
 both.</li>
 <li><strong>Alt+F8</strong> reads the whole page without moving the cursor.
 <strong>Control+F8</strong> copies it.</li>
@@ -77,23 +77,26 @@ regular expression. <strong>F3</strong> repeats either.</li>
 <li><strong>Alt+K</strong> tests the page for accessibility.</li>
 <li><strong>Control</strong> and <strong>Alt</strong> with the up and down arrows move by
 paragraph and by sentence.</li>
+<li><strong>F4</strong> lists the HomerView tabs and switches to the one you choose.
+<strong>Shift+F4</strong> just says their names. <strong>Control+Shift+F4</strong> closes
+the ones you are done with.</li>
 <li><strong>Control+F11</strong> checks for a newer HomerView and installs it.</li>
 <li><strong>F1</strong> opens the user guide, <strong>Alt+F1</strong> the About box, and
 <strong>Shift+F1</strong> the history of changes.</li>
 <li>The <strong>grave accent</strong> key adjusts speech.
-<strong>Control+Alt+Grave</strong> switches punctuation between all and none.
-<strong>Control+Grave</strong> and <strong>Control+Shift+Grave</strong> change the rate.
-<strong>Alt+Grave</strong> and <strong>Alt+Shift+Grave</strong> change the volume.
-<strong>Shift+Grave</strong> reports all three.</li>
+<strong>Alt+Control+Accent</strong> switches punctuation between all and none.
+<strong>Control+Accent</strong> and <strong>Control+Shift+Accent</strong> change the rate.
+<strong>Alt+Accent</strong> and <strong>Alt+Shift+Accent</strong> change the volume.
+<strong>Shift+Accent</strong> reports all three.</li>
 </ul>
 <h2>Commands anywhere</h2>
 <ul>
-<li><strong>NVDA+Alt+H</strong> launches HomerView Edge, or brings its window forward.</li>
-<li><strong>NVDA+Alt+F10</strong> lists every command in one alphabetical list. It works
+<li><strong>Alt+NVDA+H</strong> launches HomerView Edge, or brings its window forward.</li>
+<li><strong>Alt+NVDA+F10</strong> lists every command in one alphabetical list. It works
 everywhere, including before HomerView Edge is running, and it can start it for you.</li>
 
-<li><strong>NVDA+Alt+X</strong> extracts the readable part of the page.</li>
-<li><strong>NVDA+Alt+W</strong> downloads files linked from the page.</li>
+<li><strong>Alt+NVDA+X</strong> extracts the readable part of the page.</li>
+<li><strong>Alt+NVDA+W</strong> downloads files linked from the page.</li>
 <li><strong>Control+O</strong> opens a document of almost any format. Word, Excel,
 PowerPoint, PDF, rich text, OpenDocument, EPUB and Markdown are converted and read as
 web pages; everything the browser already opened, it still opens.</li>
@@ -103,7 +106,7 @@ accessibility tree.</li>
 </ul>
 <h2>Documentation</h2>
 <p>These open in this window, where every HomerView command works on them. They
-are also in the Alternate Menu, on NVDA+Alt+F10.</p>
+are also in the Alternate Menu, on Alt+NVDA+F10.</p>
 <ul>
 <li><a href="README.htm">Quick start</a> &mdash; the first ten minutes.</li>
 <li><a href="HomerView.htm">User guide</a> &mdash; every command and what it does.</li>
@@ -114,7 +117,7 @@ are also in the Alternate Menu, on NVDA+Alt+F10.</p>
 <p>Every HomerView command appears in the NVDA Input Gestures dialog under the
 HomerView category, where it can be reassigned.</p>
 <p>Commands only work in windows HomerView itself opened. An Edge window that was
-already running when you pressed NVDA+Alt+H has no debugging connection and
+already running when you pressed Alt+NVDA+H has no debugging connection and
 cannot be given one, so HomerView opens its own window and carries your current
 address across.</p>
 </main>

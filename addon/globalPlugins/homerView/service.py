@@ -28,6 +28,7 @@ from . import contacts
 from . import copilot
 from . import exportReport
 from . import formSubmit
+from . import tabs
 from . import convert
 from . import download
 from . import logger
@@ -405,6 +406,19 @@ class HomerViewService:
         dContext["sent"] = copilot.sendCopilotShortcut()
         dContext["notes"] = copilot.describeReadiness(self.edgeManager)
         return dContext
+
+    def taskGatherTabs(self):
+        return tabs.gatherTabs(self.cdpSession)
+
+    def makeActivateTabTask(self, sTargetId):
+        def task():
+            tabs.activateTab(self.cdpSession, sTargetId)
+            self.activateBrowser()
+            return True
+        return task
+
+    def taskCloseOtherTabs(self):
+        return tabs.closeOtherTabs(self.cdpSession)
 
     def taskSurveyPage(self):
         return act.survey(self.cdpSession)

@@ -1201,5 +1201,303 @@ def toggleSayAll(treeInterceptor):
         ui.message(_("Continuous reading is not available here"))
 
 
+# NVDA can move to every kind of thing JAWS can, with two exceptions. JAWS has
+# S for the next element of the same kind as the one you are on, and D for the
+# next element of a different kind. Neither depends on knowing what kind you are
+# on, which is what makes them useful: on a page of unfamiliar shape they let a
+# reader move by structure without first working out what the structure is.
+#
+# Everything else JAWS reaches, NVDA reaches, sometimes under another name. Its
+# divider is NVDA's separator on S; its edit box is NVDA's edit field on E; its
+# main region has no NVDA key, which is why HomerView added J and Shift+J.
+lNodeTypes = [
+    "heading", "link", "landmark", "table", "list", "listItem", "graphic",
+    "button", "formField", "edit", "checkBox", "radioButton", "comboBox",
+    "blockQuote", "separator", "frame", "embeddedObject",
+]
+
+
+def typeAtCursor(treeInterceptor):
+    """Say which kind of thing the cursor is on, if any.
+
+    Asked by looking for the nearest preceding node of each kind and taking
+    whichever starts latest, because NVDA offers no direct answer and this is
+    the reading that matches what a user would call "the thing I am on".
+    """
+    try:
+        infoCaret = treeInterceptor.makeTextInfo(textInfos.POSITION_CARET)
+    except Exception:
+        return ""
+    sBest, iBest = "", -1
+    for sType in lNodeTypes:
+        try:
+            for item in treeInterceptor._iterNodesByType(sType, "previous", infoCaret):
+                iStart = getattr(getattr(item, "textInfo", None), "_startOffset", None)
+                if iStart is None:
+                    sBest = sBest or sType
+                else:
+                    if iStart > iBest:
+                        iBest, sBest = iStart, sType
+                break
+        except Exception:
+            continue
+    return sBest
+
+
+def moveByTypeRelation(treeInterceptor, bSame, bForward):
+    """Move to the next thing of the same kind as this one, or a different kind.
+
+    With nothing identifiable at the cursor, the same-kind command has no
+    question to answer and says so rather than guessing.
+    """
+    sCurrent = typeAtCursor(treeInterceptor)
+    homerLog.info(f"Type at the cursor: {sCurrent or 'nothing identifiable'}")
+    if bSame and not sCurrent:
+        # Translators: Reported when the cursor is not on a recognisable element.
+        ui.message(_("Not on anything to match"))
+        return
+    sDirection = "next" if bForward else "previous"
+    try:
+        infoCaret = treeInterceptor.makeTextInfo(textInfos.POSITION_CARET)
+    except Exception:
+        return
+    lCandidates = []
+    for sType in lNodeTypes:
+        if bSame and sType != sCurrent:
+            continue
+        if not bSame and sType == sCurrent:
+            continue
+        try:
+            for item in treeInterceptor._iterNodesByType(sType, sDirection, infoCaret):
+                lCandidates.append((item, sType))
+                break
+        except Exception:
+            continue
+    if not lCandidates:
+        # Translators: Reported when no matching element was found.
+        ui.message(_("No more of the same kind") if bSame else _("No other kind of element"))
+        return
+    # The nearest one in the direction of travel, which is what "next" means.
+    def sortKey(tCandidate):
+        iOffset = getattr(getattr(tCandidate[0], "textInfo", None), "_startOffset", 0) or 0
+        return iOffset if bForward else -iOffset
+    lCandidates.sort(key=sortKey)
+    item, sType = lCandidates[0]
+    homerLog.info(f"Moving to the {sDirection} {sType}")
+    from . import pageBuffer
+
+    pageBuffer.reportQuickNavItem(item, None)
+
+
+def webUtilities():
+    """Offer the web lookups, ask for what the chosen one needs, and run it."""
+    from . import lbc
+
+    lbc.afterScript(_webUtilitiesNow)
+
+
+def _webUtilitiesNow():
+    from . import lbc
+    from . import settings
+    from . import webUtilities
+    from .service import service
+    import wx
+
+    lLabels = [sName for sName, _lFields, _f in webUtilities.lUtilities]
+    sPrevious = settings.getRecent("webUtility", "")
+    iStart = lLabels.index(sPrevious) if sPrevious in lLabels else 0
+    sChoice = lbc.dialogChoose(
+        # Translators: Title of the web utilities dialog.
+        _("Look something up"),
+        # Translators: Prompt above the list of web lookups.
+        _("These use free services that need no account. Control+J searches this list."),
+        lLabels, iStart)
+    if not sChoice:
+        homerLog.info("Web utility cancelled")
+        return
+    settings.setRecent("webUtility", sChoice)
+    iIndex = lLabels.index(sChoice)
+    sName, lFields, _functionLookup = webUtilities.lUtilities[iIndex]
+
+    # A dialog built from what the lookup actually asks for, one field each,
+    # rather than one box the user has to pack several values into.
+    dialog = lbc.Dialog(sTitle=sName)
+    for sField, sLabel, sDefault, lLookup in lFields:
+        sRemembered = settings.getRecent(f"web.{iIndex}.{sField}", sDefault)
+        dialog.addInputBox(
+            sLabel, sRemembered, sName=sField,
+            sTip=_("F4 offers the usual values") if lLookup else "",
+            lLookup=lLookup)
+        dialog.addBand()
+    dResults = dialog.complete(["OK", "Cancel"], 0)
+    if dResults.get("result") != wx.ID_OK:
+        homerLog.info("Web utility cancelled at the fields")
+        return
+
+    dValues = {}
+    for sField, _sLabel, _sDefault, _lLookup in lFields:
+        sValue = str(dResults.get(sField, "")).strip()
+        dValues[sField] = sValue
+        settings.setRecent(f"web.{iIndex}.{sField}", sValue)
+    if lFields and not dValues.get(lFields[0][0]):
+        # Translators: Reported when the first field of a lookup was left empty.
+        ui.message(_("Nothing was entered to look up"))
+        return
+
+    # Translators: Reported while a web lookup runs.
+    ui.message(_("Looking that up"))
+    service.submit(
+        "webUtility",
+        lambda: webUtilities.runUtility(iIndex, dValues),
+        showWebUtilityResult,
+        lambda exception: ui.message(str(exception)))
+
+
+def showWebUtilityResult(dResult):
+    """Short answers to a box, longer ones to a page with real structure."""
+    from . import output
+
+    lSections = dResult.get("sections") or []
+    iLines = sum(len(lLines) for _sHeading, lLines in lSections)
+    sName = dResult.get("name", "")
+
+    # A message box can be read at a glance and copied whole with Control+C,
+    # which suits a definition or an exchange rate. Beyond about a screenful it
+    # stops being readable that way, and a page is better: it has headings to
+    # move by, it can be searched with Control+F, and it can be saved.
+    if iLines <= 14 and len(lSections) <= 1:
+        output.lines(sName, lSections[0][1] if lSections else [])
+        return
+
+    import html as htmlModule
+
+    lParts = [f"<h1>{htmlModule.escape(sName)}</h1>"]
+    dValues = dResult.get("values") or {}
+    if dValues:
+        lParts.append("<p>" + htmlModule.escape(
+            ", ".join(f"{k}: {v}" for k, v in dValues.items() if v)) + "</p>")
+    for sHeading, lLines in lSections:
+        if sHeading:
+            lParts.append(f"<h2>{htmlModule.escape(sHeading)}</h2>")
+        # Blank lines separate one result from the next, so each becomes an
+        # item rather than the whole thing becoming one long list.
+        lItem = []
+        lParts.append("<ul>")
+        for sLine in lLines:
+            if str(sLine).strip():
+                lItem.append(htmlModule.escape(str(sLine)))
+            elif lItem:
+                lParts.append("<li>" + "<br>".join(lItem) + "</li>")
+                lItem = []
+        if lItem:
+            lParts.append("<li>" + "<br>".join(lItem) + "</li>")
+        lParts.append("</ul>")
+    output.show("\n".join(lParts), sName, sName)
+
+
+def chooseTab():
+    """Offer the HomerView tabs and switch to whichever is chosen."""
+    from .service import service
+
+    if not service.isConnected():
+        # Translators: Reported when HomerView has no connection.
+        ui.message(_("HomerView is not connected"))
+        return
+    service.submit("gatherTabs", service.taskGatherTabs, _offerTabs,
+                   lambda exception: ui.message(str(exception)))
+
+
+def _offerTabs(dGathered):
+    from . import lbc
+
+    lTabs = dGathered.get("tabs") or []
+    if not lTabs:
+        # Translators: Reported when no HomerView tabs were found.
+        ui.message(_("No HomerView tabs are open"))
+        return
+    if len(lTabs) == 1:
+        # Translators: Reported when only one tab is open. The placeholder is
+        # the name of that tab.
+        ui.message(_("Only one tab: {name}").format(name=lTabs[0]["title"] or lTabs[0]["url"]))
+        return
+    lbc.afterScript(_pickTab, lTabs)
+
+
+def _pickTab(lTabs):
+    from . import lbc
+    from .service import service
+
+    iStart = next((i for i, d in enumerate(lTabs) if d["current"]), 0)
+    sChoice = lbc.dialogChoose(
+        # Translators: Title of the dialog listing HomerView tabs.
+        _("HomerView tabs"),
+        # Translators: Prompt above the list of tabs. The placeholder is a count.
+        _("{count} tabs. Choose one to switch to it.").format(count=len(lTabs)),
+        [d["label"] for d in lTabs], iStart)
+    if not sChoice:
+        homerLog.info("Tab list cancelled")
+        return
+    for dTab in lTabs:
+        if dTab["label"] == sChoice:
+            service.submit(
+                "activateTab", service.makeActivateTabTask(dTab["targetId"]),
+                lambda vResult: None, lambda exception: ui.message(str(exception)))
+            return
+
+
+def sayTabs():
+    """Say the names of the open tabs, without opening anything."""
+    from .service import service
+
+    if not service.isConnected():
+        # Translators: Reported when HomerView has no connection.
+        ui.message(_("HomerView is not connected"))
+        return
+    service.submit("gatherTabs", service.taskGatherTabs, _speakTabs,
+                   lambda exception: ui.message(str(exception)))
+
+
+def _speakTabs(dGathered):
+    """Say the titles, leaving the keyboard where it is.
+
+    Deliberately spoken rather than shown in a box. A box would take focus and
+    need dismissing, and the question this answers is only what is open; the
+    reader is in the middle of something and wants to stay there. F4 is the
+    command for when they want to act on the answer.
+    """
+    lTabs = dGathered.get("tabs") or []
+    if not lTabs:
+        # Translators: Reported when no HomerView tabs are open.
+        ui.message(_("No HomerView tabs are open"))
+        return
+    homerLog.info(f"Saying {len(lTabs)} tab titles")
+    # Translators: Spoken before the list of tab titles. The placeholder is a count.
+    ui.message(_("{count} tabs").format(count=len(lTabs)))
+    for dTab in lTabs:
+        speech.speakText(dTab["label"])
+
+
+def closeOtherTabs():
+    """Close every tab but the current one and the one the browser opened with."""
+    from .service import service
+
+    if not service.isConnected():
+        # Translators: Reported when HomerView has no connection.
+        ui.message(_("HomerView is not connected"))
+        return
+    service.submit("closeOtherTabs", service.taskCloseOtherTabs, _reportClosed,
+                   lambda exception: ui.message(str(exception)))
+
+
+def _reportClosed(dResult):
+    iClosed = dResult.get("closed", 0)
+    if not iClosed:
+        # Translators: Reported when there was nothing to close.
+        ui.message(_("Nothing to close"))
+        return
+    # Translators: Reported after closing tabs. The placeholder is a count.
+    ui.message(_("Closed {count} tabs").format(count=iClosed))
+
+
 def lastPercent(treeInterceptor):
     return dLastPercent.get(id(treeInterceptor))

@@ -354,10 +354,31 @@ class HomerViewService:
     def buildGlobalCommandEntries(self):
         from . import alternateMenu
 
-        return [
-            alternateMenu.CommandEntry(sName, sGesture, sDescription, functionAction, "Anywhere")
-            for sName, sGesture, sDescription, functionAction in self.lGlobalCommands
-        ]
+        # A menu that lists what cannot be done is worse than a shorter one.
+        # Before the browser is running, most of these have nothing to act on,
+        # and offering them means a reader chooses a command and is told it
+        # does not apply, which is a wasted choice and a small insult.
+        #
+        # A command is listed when it can do something now. Launching always
+        # applies. So do the documents, the version check and the web lookups,
+        # none of which need a page. Everything else needs a connection.
+        bConnected = self.isConnected()
+        # These do something whether or not a browser is running: they open a
+        # document, read a file, ask the web, or start the browser itself.
+        setAlways = {
+            "Developer notes", "Elevate version", "History of changes",
+            "Launch HomerView Edge", "Look something up", "Open a document",
+            "Open the session log", "Quick start", "Self test", "User guide",
+        }
+        lEntries = []
+        for sName, sGesture, sDescription, functionAction in self.lGlobalCommands:
+            if bConnected or sName in setAlways:
+                lEntries.append(alternateMenu.CommandEntry(
+                    sName, sGesture, sDescription, functionAction, "Anywhere"))
+        homerLog.info(
+            f"Menu: {len(lEntries)} of {len(self.lGlobalCommands)} commands apply "
+            f"({'connected' if bConnected else 'not connected'})")
+        return lEntries
 
     def taskSelfTest(self):
         from . import selfTest

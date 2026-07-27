@@ -3,7 +3,7 @@
 ; Source root and installation destination: C:\HomerView
 
 #define AppName "HomerView"
-#define AppVersion "1.26.1"
+#define AppVersion "1.26.4"
 #define AppPublisher "Jamal Mazrui"
 ; A stable name on purpose. The version lives in the add-on's manifest, which is
 ; what NVDA reads, and in AppVersion above. Putting it in the file name as well
@@ -115,29 +115,37 @@ Name: "{group}\HomerView quick start"; Filename: "{app}\README.htm"
 Name: "{group}\HomerView user guide"; Filename: "{app}\HomerView.htm"
 Name: "{group}\HomerView history of changes"; Filename: "{app}\History.htm"
 Name: "{group}\HomerView developer notes"; Filename: "{app}\Developer.htm"
+; A shortcut runs as whoever double-clicks it, so this one can point at the
+; add-on file directly and let the file association do its work.
 Name: "{group}\Install the HomerView add-on in NVDA"; Filename: "{app}\build\{#AddonFile}"; WorkingDir: "{app}\build"
 Name: "{group}\Uninstall HomerView"; Filename: "{uninstallexe}"
 
 [Run]
-; Two ways to hand the add-on to NVDA, and the order matters.
+; Back to the shell, which is what worked, plus the one flag that was missing.
 ;
-; The first calls nvda.exe directly with the add-on as its argument, which is
-; exactly what NVDA's own file association does. It is used whenever NVDA can
-; be found, which is almost always.
+; The history is worth recording, because the second change here was a mistake
+; and the first was incomplete.
 ;
-; The second is the shell, and it is only the fallback. Asking the shell to
-; open a .nvda-addon file relies on the file association being present and
-; healthy, and a user reported ShellExecuteEx failing with code 3221225477,
-; which is 0xC0000005, an access violation: the registered handler crashed
-; rather than declined. That happens with a portable copy of NVDA, which
-; registers no association, and with an association left behind by an
-; uninstalled or damaged one. Calling the program directly avoids the question.
+; Originally this used shellexec on the add-on file, which asks Windows to open
+; it with whatever is registered for the type. NVDA registers itself, so NVDA
+; received it. That worked.
 ;
-; This is the step that matters, and it is checked by default on purpose. The
-; program files alone do nothing: HomerView is an NVDA add-on, and until this
-; runs, NVDA has not been given it.
-Filename: "{code:GetNvdaPath}"; Parameters: """{app}\build\{#AddonFile}"""; Description: "Install the HomerView add-on in NVDA (recommended)"; Flags: postinstall skipifsilent; Check: HaveNvda
-Filename: "{app}\build\{#AddonFile}"; Description: "Install the HomerView add-on in NVDA (recommended)"; Flags: postinstall shellexec skipifsilent; Check: not HaveNvda
+; A user then reported ShellExecuteEx failing with an access violation, and it
+; was replaced with a direct call to nvda.exe. That was a speculative fix for a
+; fault that could not be reproduced, and it broke the path that worked: an
+; installer running as administrator starts a child process as administrator,
+; and an elevated NVDA cannot join the ordinary one already running.
+;
+; The likely explanation of both reports is the same missing flag. Opening a
+; file through the shell often reaches the running program in the user's own
+; context, which is why it worked here, but it is not guaranteed to, which
+; would explain a failure elsewhere. runasoriginaluser makes it certain by
+; running as the account that started Setup rather than the elevated one.
+;
+; So this is the original mechanism with the flag it always needed. If it fails
+; again, the answer is not another mechanism: it is installing from the file,
+; which the finish page now explains in every case.
+Filename: "{app}\build\{#AddonFile}"; Description: "Install the HomerView add-on in NVDA (recommended)"; Flags: postinstall shellexec skipifsilent runasoriginaluser nowait
 
 [UninstallDelete]
 Type: files; Name: "{app}\HomerView.log"
@@ -156,11 +164,10 @@ Type: filesandordirs; Name: "{app}\dist"
 { ---------------------------------------------------------------------------
   Finding NVDA.
 
-  Handing a .nvda-addon file to the shell depends on a file association that
-  may be missing or broken, and when the registered handler crashes the
-  installer can only report ShellExecuteEx failing with an access violation,
-  which tells the user nothing they can act on. Calling nvda.exe directly with
-  the add-on as its argument does the same job without the association.
+  This no longer launches anything. It answers one question: is NVDA installed
+  on this machine at all. When it is not, the add-on cannot be handed to it by
+  any means, and the finish page says so and gives the manual route rather than
+  letting the attempt fail with a number.
 
   Four places are looked at, in the order most likely to be right.
   --------------------------------------------------------------------------- }
@@ -212,6 +219,7 @@ begin
     Result := sPath;
 end;
 
+{ Kept as the cache for HaveNvda below, which is now its only caller. }
 function GetNvdaPath(Param: String): String;
 begin
   if not gbNvdaChecked then
@@ -248,8 +256,8 @@ begin
     sMessage := 'NVDA was not found on this computer.' + sBreak +
       'The HomerView files are installed, but the add-on still has to be given ' +
       'to NVDA before any of its commands will work.' + sBreak +
-      'If NVDA is installed as a portable copy, open NVDA, then choose Tools, ' +
-      'Add-on store, and Install from external source, and pick this file:' +
+      'Install it from the file instead: open NVDA, choose Tools, then ' +
+      'Add-on Store, then Install from external source, and pick this file:' +
       sBreak + ExpandConstant('{app}\build\{#AddonFile}') + sBreak +
       'If NVDA is not installed at all, it is free from www.nvaccess.org.';
     MsgBox(sMessage, mbInformation, MB_OK);

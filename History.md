@@ -1,5 +1,20 @@
 ﻿# History of Changes
 
+## 1.26.1
+
+- On binding the main content command to F9: F9 is the convention, and Microsoft Edge already uses it. It toggles Immersive Reader, which is Edge's own reading mode, and Microsoft documents it as the keyboard shortcut for both entering and leaving. So the first half of the question is answered and the second half rules the key out: taking it would remove a working feature to put a similar one in its place, which is exactly what the standard for taking a key was written to prevent.
+- The two are also worth having together rather than one replacing the other. Immersive Reader only offers itself on pages Edge judges to be articles, and a reader has no way to know which those are, since the sign of it is an icon in the address bar. It reloads the page into a view of its own and adds Edge's reading tools. HomerView's extraction works on any page, keeps the original where it was, and writes a page that can be searched, saved and sent.
+- The quick start and the start page now name both, so a reader meets F9 where the question arises rather than discovering it by accident.
+
+## 1.26.0
+
+- The download command now finds every kind of file a page can offer, and two whole classes of link it had been missing.
+- Web pages were excluded outright. They are not any more: htm and html are offered like anything else, and are simply left out of the line filled in for you, so they are one keystroke away rather than in the way. What is still excluded is the handful of addresses that are a way of reaching a page rather than a file, such as php and aspx, which carry no file of their own and would bury everything else.
+- A link whose address names no file was skipped entirely, which lost exactly the files a reader most often wants: a link to slash download slash 12345 is a real file, and there are a great many of them. Three further ways of identifying one are now used. The download attribute carries the name the file will be saved as, which is the most reliable answer there is. A declared type says what the file is when the address does not. And a link marked as a download with nothing else to go on is offered as unknown, because the server names the file in its response and HomerView already reads that name.
+- Area elements inside image maps are scanned as well as anchors.
+- The chooser now says what each kind of file is rather than showing a bare list of extensions: pdf as PDF document, xlsx as Excel workbook, epub as EPUB ebook. Forty-three kinds are named, covering documents, spreadsheets, presentations, ebooks, images, audio, video, archives and programs.
+- The log records how each link was identified, so a page where nothing is found can be told apart from a page where the links were found and rejected.
+
 ## 1.25.0
 
 - Fixed Elevate Version reporting a newer release and then failing with a 404. It was asking for a release asset named exactly HomerView.nvda-addon, which only works if the release has a file with that name attached. A release that attached the versioned name instead, or attached no files at all, answers that address with an error page. It now asks the release what it actually carries and takes whichever file ends in .nvda-addon, whatever it is called.

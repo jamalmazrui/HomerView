@@ -1,5 +1,26 @@
 ﻿# History of Changes
 
+## 1.24.3
+
+- Restored the Files, Icons and Run sections of the setup script, which had been deleted. Versions 1.24.1 and 1.24.2 would have compiled into an installer that installed nothing at all: no add-on, no documentation, no source, no shortcuts. Anyone who built and ran either of those would have got an empty program folder.
+- The cause was an automated edit that searched for the text of the Run section header and matched the first occurrence, which was the same word inside a comment several lines earlier. Everything between that comment and the next real section was replaced, taking two whole sections with it.
+- The immediate compile error, an invalid section tag, was a separate fault in the same area: a comment line inside the Pascal section began with an opening bracket, and Inno Setup reads any line whose first non-blank character is a bracket as a section header, whatever comment it sits inside. Finding that is what led to the missing sections being noticed.
+- buildAll.cmd now checks that the setup script still has its Setup, Files, Icons, Run and Code sections and still lists a plausible number of files to install, as well as checking for lines that begin with a bracket or a hash. A setup script that has lost a section compiles perfectly well and produces an installer that does nothing, which is exactly the kind of fault a build check exists to catch.
+
+## 1.24.2
+
+- Fixed the setup script failing to compile with "unknown preprocessor directive". A line inside the Pascal section began with the character pair for a line break, written as a hash followed by a number, which is ordinary Pascal and reads naturally there. Inno Setup's preprocessor runs over the whole file before Pascal ever sees it, and it reads any line whose first non-blank character is a hash as a directive of its own. It found one it did not know and stopped.
+- The message is now built in a variable using Chr(13) and Chr(10), so no line begins with a hash. That is the fix; the alternative of shuffling the concatenation until the hash falls mid-line would work and would break again the next time someone reformatted it.
+- buildAll.cmd now checks for the same fault before anyone opens Inno Setup, and names the line and the reason. The compiler reports a line number and four words, which is enough to find the line and not enough to explain it.
+
+## 1.24.1
+
+- Fixed the installer failing with ShellExecuteEx code 3221225477, which is 0xC0000005, an access violation. The installer was asking the shell to open the add-on file, which relies on the file association for .nvda-addon being present and healthy. That code means the registered handler crashed rather than declined, which happens with a portable copy of NVDA, since it registers no association, and with an association left behind by an uninstalled or damaged one.
+- The installer now calls nvda.exe directly with the add-on as its argument, which is exactly what NVDA's own file association does, so the association is no longer involved. NVDA is looked for in its uninstall entry, its App Paths entry, and the usual program folders, in that order.
+- The shell remains as a fallback for the rare case where NVDA cannot be found at all.
+- When NVDA is not found, the last page now says so and gives the steps to install the add-on by hand, through NVDA's Tools menu, Add-on store, Install from external source. An access violation tells a user nothing they can act on; a sentence does.
+- The quick start now carries the same instructions, for anyone who meets this after the fact.
+
 ## 1.24.0
 
 - Modifiers are now written in alphabetical order everywhere a person reads them: Alt, Control, NVDA, Shift, Windows. So Alt+NVDA+F10 rather than NVDA+Alt+F10, and Alt+Control+Accent rather than Control+Alt+Accent.

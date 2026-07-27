@@ -156,6 +156,17 @@ is present. LibreOffice covers the most formats and needs no Microsoft Office.
   research papers, an exchange rate. All of it uses free services that need no
   account.
 
+# If the installer cannot hand the add-on to NVDA
+
+The last page of the installer offers to give the add-on to NVDA. If that fails,
+or if NVDA was not found, install it by hand: open NVDA, choose Tools, then
+Add-on store, then Install from external source, and pick
+
+    HomerView.nvda-addon
+
+from the build folder inside wherever HomerView was installed, which is usually
+C:\Program Files\HomerView.
+
 # When something does not work
 
 Commands only work in windows HomerView itself opened. An Edge window that was

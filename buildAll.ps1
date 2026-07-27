@@ -97,6 +97,67 @@ if (Test-Path $pathSetup) {
             }
         }
     }
+    # A setup script that has lost a section still compiles, and produces an
+    # installer that installs nothing. That happened once, from an edit that
+    # matched the word Run inside a comment instead of the section header, and
+    # it was found by a user rather than by the build.
+    foreach ($sSection in @("[Setup]", "[Files]", "[Icons]", "[Run]", "[Code]")) {
+        if (-not ($lLines | Where-Object { $_.Trim() -eq $sSection })) {
+            writeLog "ERROR: the setup script has no $sSection section."
+            $iProblems += 1
+        }
+    }
+    $iSources = ($lLines | Where-Object { $_.TrimStart().StartsWith("Source:") }).Count
+    if ($iSources -lt 5) {
+        writeLog "ERROR: the setup script lists only $iSources files to install, which is too"
+        writeLog "       few to be right. A section has probably been lost."
+        $iProblems += 1
+    }
+
+    # A line beginning with an opening bracket is read as a section header, and
+    # a line beginning with a hash as a preprocessor directive, in both cases
+    # before Pascal is compiled and regardless of any comment it sits inside.
+    $lValidSections = @("[setup]","[types]","[components]","[tasks]","[dirs]","[files]",
+        "[icons]","[ini]","[installdelete]","[languages]","[messages]","[custommessages]",
+        "[langoptions]","[registry]","[run]","[uninstalldelete]","[uninstallrun]","[code]")
+    $iLine = 0
+    foreach ($sLine in $lLines) {
+        $iLine += 1
+        $sTrimmed = $sLine.Trim()
+        if ($sTrimmed.StartsWith("[") -and (-not ($lValidSections -contains $sTrimmed.ToLower()))) {
+            writeLog "ERROR: line $iLine begins with an opening bracket but is not a section"
+            writeLog "       header, so Inno Setup will reject it: $sTrimmed"
+            writeLog "       Start the line with a word instead, even inside a comment."
+            $iProblems += 1
+        }
+    }
+
+    # Inno Setup's preprocessor runs over the whole file before Pascal sees it,
+    # and reads any line whose first non-blank character is a hash as a
+    # directive. So #13#10 at the start of a line inside [Code] fails to
+    # compile with nothing but a line number to go on. Catching it here says
+    # what is wrong.
+    $lDirectives = @("#define","#include","#if","#ifdef","#ifndef","#else",
+        "#elif","#endif","#emit","#expr","#error","#pragma","#sub","#endsub",
+        "#for","#dim","#undef","#file","#insert","#append")
+    $iLine = 0
+    foreach ($sLine in $lLines) {
+        $iLine += 1
+        $sTrimmed = $sLine.Trim()
+        if (-not $sTrimmed.StartsWith("#")) { continue }
+        $bKnown = $false
+        foreach ($sDirective in $lDirectives) {
+            if ($sTrimmed.ToLower().StartsWith($sDirective)) { $bKnown = $true; break }
+        }
+        if (-not $bKnown) {
+            writeLog "ERROR: line $iLine begins with a leading hash that is not a preprocessor"
+            writeLog "       directive: $sTrimmed"
+            writeLog "       Inside [Code], put the value in a variable or start the line with"
+            writeLog "       something else. Chr(13) + Chr(10) avoids the problem entirely."
+            $iProblems += 1
+        }
+    }
+
     if ($iProblems -gt 0) {
         writeLog "The setup script has $iProblems problem(s). Fix them before compiling."
         exit 1

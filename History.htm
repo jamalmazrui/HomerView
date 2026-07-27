@@ -8,6 +8,28 @@
 <body>
 <main>
 <h1>History of Changes</h1>
+<h2>1.26.4</h2>
+<ul>
+<li>Simplified the instructions for installing the add-on by hand. They give the steps and nothing more: the NVDA menu, Tools, Add-on Store, Install from external source, and the file to choose. Explaining what the Add-on Store is, or what it is not, was words an NVDA user does not need.</li>
+<li>The alternative of pressing Enter on the file in File Explorer is still mentioned, because it is genuinely shorter for anyone already in the folder.</li>
+</ul>
+<h2>1.26.3</h2>
+<ul>
+<li>Reverted the installer to opening the add-on file through the shell, which is what it did originally and what worked, keeping only the flag that was missing.</li>
+<li>The change in 1.24.1 was a mistake. A user reported ShellExecuteEx failing with an access violation, and the shell was replaced with a direct call to nvda.exe. That was a speculative fix for a fault that could not be reproduced, and it broke the path that worked for everyone else: an installer running as administrator starts a child process as administrator, and an elevated NVDA cannot join the ordinary one already running.</li>
+<li>The likely explanation of both reports is the same missing flag rather than two different faults. Opening a file through the shell often reaches the running program in the user&#x27;s own context, which is why it worked; but it is not guaranteed to, which would explain a failure on another machine. runasoriginaluser makes it certain, by running as the account that started Setup rather than the elevated one.</li>
+<li>So the mechanism is the original one with the flag it always needed, and nothing else changed. The NVDA lookup is kept, but only to answer whether NVDA is installed at all, so the finish page can give the manual route rather than letting the attempt fail with a number.</li>
+<li>The lesson is recorded here rather than only in a commit: a change made to fix a fault that cannot be reproduced should be the smallest one that could explain it, and replacing a working mechanism is not that.</li>
+</ul>
+<h2>1.26.2</h2>
+<ul>
+<li>Fixed the installer failing to hand the add-on to NVDA, with a complaint about elevation even though NVDA was already running.</li>
+<li>The cause is structural rather than accidental. This installer requires administrator rights, because it writes to Program Files, and anything an elevated installer launches inherits that elevation. NVDA is running as the ordinary user, and a second copy started as administrator cannot join it: Windows treats the two as different sessions, so the add-on never reaches the NVDA the user is actually using.</li>
+<li>Both entries now carry Inno Setup&#x27;s runasoriginaluser flag, which runs the program as the account that started Setup rather than as the elevated one. That is the flag written for exactly this case.</li>
+<li>On the recommended way generally: NV Access provides no command line switch for installing an add-on, and no supported way for an outside installer to do it. The two supported routes are NVDA&#x27;s own Add-on Store and opening a .nvda-addon file, which NVDA registers itself to handle. Opening the file runs nvda.exe with the file as its argument, so calling nvda.exe that way is the same mechanism reached directly rather than through the file association, which is why it survives a missing or damaged association.</li>
+<li>The finish page now always gives the manual route through the Add-on store, not only when NVDA cannot be found. The automatic step can fail for reasons an installer cannot foresee, and this is the third such reason found in three releases.</li>
+<li>Both entries also no longer wait for NVDA to exit before Setup finishes, which it never should have done.</li>
+</ul>
 <h2>1.26.1</h2>
 <ul>
 <li>On binding the main content command to F9: F9 is the convention, and Microsoft Edge already uses it. It toggles Immersive Reader, which is Edge&#x27;s own reading mode, and Microsoft documents it as the keyboard shortcut for both entering and leaving. So the first half of the question is answered and the second half rules the key out: taking it would remove a working feature to put a similar one in its place, which is exactly what the standard for taking a key was written to prevent.</li>

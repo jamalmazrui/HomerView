@@ -162,14 +162,21 @@ is present. LibreOffice covers the most formats and needs no Microsoft Office.
 
 # If the installer cannot hand the add-on to NVDA
 
-The last page of the installer offers to give the add-on to NVDA. If that fails,
-or if NVDA was not found, install it by hand: open NVDA, choose Tools, then
-Add-on store, then Install from external source, and pick
+Install it from the file, which is already on your computer.
 
-    HomerView.nvda-addon
+1. Press NVDA+N for the NVDA menu.
+2. Choose Tools, then Add-on Store, then Install from external source.
+3. Pick this file:
 
-from the build folder inside wherever HomerView was installed, which is usually
-C:\Program Files\HomerView.
+        HomerView.nvda-addon
+
+   It is in the build folder inside wherever HomerView was installed, usually
+   C:\Program Files\HomerView\build.
+
+4. Confirm when NVDA asks, and let it restart.
+
+Pressing Enter on that same file in File Explorer does the same thing, if that
+is easier.
 
 # When something does not work
 

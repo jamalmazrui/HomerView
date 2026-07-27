@@ -1,5 +1,52 @@
 ﻿# History of Changes
 
+## 1.31.1
+
+- The installer no longer copies five files that belong to the development directory: clean.cmd, createHomerViewRepo.cmd and its PowerShell counterpart, .gitignore and .gitattributes. Nobody installs HomerView in order to create its GitHub repository, and a .gitignore sitting beside the program is at best confusing.
+- The repository script and the clean script are also no longer pushed to GitHub. The repository script exists to create the repository, so a clone has no use for it, and the clean script is a local convenience. The two Git configuration files stay in the repository, because they describe it and belong in it, but they are not installed.
+- The directory page now remembers where HomerView was last installed and offers that, rather than proposing the default again. Someone reinstalling presses Enter and it goes back where it was; someone who wants it elsewhere can still say so, because the page is shown either way.
+- This restores the setting the other Homer installers use. It had been turned off to force upgrades off the old C drive HomerView path that early versions installed to. That path is behind us.
+
+## 1.31.0
+
+- Added Yield with Pattern on Control+Shift+Y, following EdSharp, and named for the word Pattern that Control+F3 already uses so the two read as a family.
+- Plain Yield on Alt+Y answers how much text there is. This answers how much of a particular thing there is, which is the question a reader actually has when deciding whether a page is worth their time: how many times is this name mentioned, how many dollar amounts are there, how many dates.
+- Counting is not searching, and the distinction is why this deserves a key of its own. Control+F3 moves to the next match one at a time, which answers where it is. This answers how many, and on a long page those are different questions.
+- The result gives the count, how many separate lines the matches fall on, and the first few matches themselves. The line count is there because ten matches spread through a page and ten crowded into one paragraph mean different things.
+- It counts within the selection when there is one, and the whole page otherwise, as the other Yield commands do.
+- The pattern is shared with the search commands, so one just used to search can be counted without retyping it, and the other way round.
+
+## 1.30.0
+
+- Control+F now opens NVDA's own find dialog rather than one of HomerView's, and Control+Shift+F runs the same search backwards.
+- Delegating rather than reimplementing is the point. NVDA's find is what a reader of any other page already knows: the same dialog, the same remembered term, the same case-sensitivity choice, the same wrapping and the same announcements. A second dialog that looked similar and behaved slightly differently would have been worse than no addition at all.
+- NVDA's dialog always searches forward, so Control+Shift+F takes the term the same way and runs the search backwards through NVDA's own finder, which means the match and what is spoken are still NVDA's.
+- What HomerView adds is the regular expression search, which NVDA has no equivalent for: Control+F3 forwards and Control+Shift+F3 backwards.
+- F3 and Shift+F3 now repeat whichever kind of search was used last, plain or regular expression, in that direction or the opposite. A reader who has just searched should not have to remember which sort of search it was in order to repeat it, and F3 meaning one thing after Control+F and another after Control+F3 would have been exactly that.
+- Which kind was last used is remembered outside the page buffer, because the buffer is replaced whenever a page reloads and a reader does not expect a reload to forget what they were looking for.
+
+## 1.29.0
+
+- The download dialog is now built with Lbc and has two fields rather than one prompt. A read-only box lists what the page offers, one kind of file a line with its count and what it is; below it, a single line field holds the extensions to fetch.
+- What was found runs to a dozen lines or more, and belongs in a box a reader can move through by line. Squeezed into a prompt above a text box, as it was, it became one long sentence that had to be heard in a single breath.
+- The editable field holds the extensions alone, alphabetically and without counts, because it is a list to be edited rather than a report to be read. Counts in a field the user types into would only have to be deleted before the field was usable.
+- The result is now one box for every outcome, showing where the files went, naming each one that arrived, and grouping the reasons any did not. A count spoken and gone is no use when eleven files were attempted and one arrived: the reader wants to know which, and why the others failed, and to be able to read it twice. Control+C copies the whole of it.
+
+## 1.28.0
+
+- Downloads now retry once on an error that is likely to pass, and say in ordinary words why a file did not arrive.
+- The reason for the change is in the log of a session where one file saved and ten failed. Every one of the ten failed with the same error, name resolution, and nine of them failed in the same second, immediately after a single host had held the batch for fifty two seconds. Ten addresses that genuinely do not exist would each have failed at their own pace. What happened instead was the name resolver giving up after the stall, and everything queued behind it failing instantly.
+- The wait for one file is now twenty five seconds rather than two minutes, so a slow host costs a few seconds instead of a minute and leaves the network stack less to recover from.
+- A failure that is likely to be temporary, such as a name that will not resolve or a connection that was reset, is tried once more after a short pause. A failure that means what it says, such as a file that is no longer there or a server that refused, is not retried, because trying a 404 again is only slower.
+- The result now names the reasons rather than counting failures. Ten files failed tells a reader nothing they can act on; ten addresses could not be found tells them the page is old and the files have moved, which is a different problem from a server refusing them.
+
+## 1.27.0
+
+- Fixed the Alternate Menu failing to open. The log shows the key arriving and the command starting every time, then an AttributeError on a value that was None: the method that builds the page's entries had been left with no return statement at all, so it handed back nothing and the next line failed. That was my own edit in 1.25.0, which renamed the list the method returns and did not put the return back.
+- The menu therefore worked only when no HomerView page had focus, which is the opposite of what anyone would expect and explains why it seemed intermittent rather than broken.
+- Added a check for methods whose names promise a value and never return one. This is the fourth fault of this shape in recent releases, all of them from automated edits of mine that removed something still in use.
+- Opening the session log now opens a copy rather than the file itself. HomerView holds the log open for writing for as long as NVDA is running, and an editor that asks Windows for exclusive read cannot open it while that handle exists; EdSharp is one such editor and fails with a stack trace saying the file is in use, which is true and unhelpful. The copy is flushed first so it is complete, named for the moment it was taken so two can sit side by side, and written to the temporary folder that Windows clears on its own.
+
 ## 1.26.4
 
 - Simplified the instructions for installing the add-on by hand. They give the steps and nothing more: the NVDA menu, Tools, Add-on Store, Install from external source, and the file to choose. Explaining what the Add-on Store is, or what it is not, was words an NVDA user does not need.

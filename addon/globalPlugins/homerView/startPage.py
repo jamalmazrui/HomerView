@@ -18,7 +18,7 @@ weights have been published, which is not the same thing as the service being
 open. None of them belong here under this rule.
 """
 
-startPageVersion = "14"
+startPageVersion = "15"
 
 startPageText = """<!doctype html>
 <html lang="en">
@@ -66,6 +66,9 @@ side effect.</li>
 <li><strong>J</strong> jumps to the main content.</li>
 <li><strong>Shift+J</strong> finds the main content when the page declares none.</li>
 <li><strong>Y</strong> summarises the structure of the page.</li>
+<li><strong>Alt+Y</strong> says how much text there is, and
+<strong>Control+Shift+Y</strong> counts how often a regular expression matches, which
+answers how many rather than where.</li>
 <li><strong>Alt+A</strong> reports the web address. Twice spells it, three times copies it.</li>
 <li><strong>ScrollLock</strong> starts reading continuously, and stops it. One key for
 both.</li>

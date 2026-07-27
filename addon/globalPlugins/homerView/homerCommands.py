@@ -158,6 +158,107 @@ def sayYield(treeInterceptor):
     )
 
 
+def sayYieldPattern(treeInterceptor):
+    """Count how often a regular expression matches, as EdSharp's Yield does.
+
+    Plain Yield answers how much text there is. This answers how much of a
+    particular thing there is, which is the question a reader actually has when
+    they want to know whether a page is worth reading: how many times is this
+    name mentioned, how many dollar amounts are there, how many dates.
+
+    Counting is not searching. Control+F3 moves to the next match one at a
+    time, which answers "where is it"; this answers "how many", and on a long
+    page those are different questions with different keys.
+
+    The pattern is shared with the search commands, so a pattern just used to
+    search can be counted without retyping it, and the other way round.
+    """
+    lbc.afterScript(_sayYieldPatternNow, treeInterceptor)
+
+
+def _sayYieldPatternNow(treeInterceptor):
+    import re as reModule
+
+    from . import output
+    from . import settings
+
+    sText, bSelected = homerText.textOrAll(treeInterceptor)
+    if not sText:
+        # Translators: Reported when there is no text to count in.
+        ui.message(_("There is no text here"))
+        return
+
+    sPrevious = find.restorePattern()
+    sPattern = lbc.dialogInput(
+        # Translators: Title of the dialog counting pattern matches.
+        _("Yield with pattern"),
+        # Translators: Label of the field for a regular expression to count.
+        _("&Regular expression to count:"),
+        sPrevious,
+    )
+    if sPattern is None or not sPattern.strip():
+        homerLog.info("Yield with pattern cancelled")
+        return
+
+    try:
+        expression = reModule.compile(sPattern, reModule.IGNORECASE | reModule.MULTILINE)
+    except reModule.error as exception:
+        homerLog.warning(f"The pattern would not compile: {exception}")
+        lbc.dialogInfo(
+            # Translators: Title of the message about a bad pattern.
+            _("Yield with pattern"),
+            # Translators: Shown when a regular expression is not valid.
+            _("That is not a valid regular expression.\n\n{reason}").format(reason=exception))
+        return
+
+    find.dLastFind["pattern"] = sPattern
+    find.rememberPattern()
+    settings.setRecent("findPattern", sPattern)
+
+    lMatches = list(expression.finditer(sText))
+    # The lines a match falls on, so a reader learns whether ten matches are
+    # spread through the page or crowded into one paragraph.
+    setLines = set()
+    for match in lMatches:
+        setLines.add(sText.count("\n", 0, match.start()) + 1)
+    lSamples = []
+    for match in lMatches[:5]:
+        sSample = " ".join((match.group(0) or "").split())
+        if sSample:
+            lSamples.append(sSample[:80])
+
+    homerLog.info(
+        f"Yield with pattern {abbreviate(sPattern, 80)}: {len(lMatches)} matches "
+        f"on {len(setLines)} lines, selected={bSelected}")
+
+    lLines = [
+        # Translators: First line of the pattern yield. The placeholder is the
+        # expression that was counted.
+        _("Pattern: {pattern}").format(pattern=sPattern),
+        _("In the selection") if bSelected else _("In the whole page"),
+        "",
+    ]
+    if not lMatches:
+        # Translators: Shown when a pattern matched nothing.
+        lLines.append(_("No matches."))
+    else:
+        # Translators: How many times a pattern matched.
+        lLines.append(_("{count} matches").format(count=len(lMatches)))
+        # Translators: How many lines the matches fall on.
+        lLines.append(_("on {count} lines").format(count=len(setLines)))
+        if lSamples:
+            lLines.append("")
+            # Translators: Heading above example matches.
+            lLines.append(_("First matches:"))
+            for sSample in lSamples:
+                lLines.append("  " + sSample)
+            if len(lMatches) > len(lSamples):
+                # Translators: Shown when more matched than are listed.
+                lLines.append(_("  and {count} more").format(
+                    count=len(lMatches) - len(lSamples)))
+    output.lines(_("Yield with pattern"), lLines)
+
+
 def countNodes(treeInterceptor, sType):
     try:
         infoStart = treeInterceptor.makeTextInfo(textInfos.POSITION_FIRST)
@@ -414,6 +515,32 @@ def showPageInformation(dSummary):
     homerLog.info(f"Page information ready: {len(lFields)} fields")
     sTitle = _("Page information")
     output.show(dSummary.get("html", ""), sTitle)
+
+
+# Which kind of search was used last, and which way it ran. Held here rather
+# than on the buffer, because the buffer is replaced whenever a page reloads
+# and a reader does not expect a reload to forget what they were looking for.
+dLastFind = {"backwards": False, "kind": ""}
+
+
+def rememberFindKind(sKind, bBackwards):
+    dLastFind["backwards"] = bool(bBackwards)
+    dLastFind["kind"] = sKind
+    homerLog.debug(f"Last search: {sKind}, {'backwards' if bBackwards else 'forwards'}")
+
+
+def lastFindKind():
+    """Return the kind of the last search and its direction.
+
+    Defaults to NVDA's, because that is the one a reader reaches for first and
+    the one F3 should repeat if somehow neither has run.
+    """
+    return dLastFind.get("kind") or "nvda", bool(dLastFind.get("backwards"))
+
+
+def repeatFind(treeInterceptor, bBackwards):
+    """Repeat the last regular expression search."""
+    find.repeatFind(treeInterceptor, bBackwards)
 
 
 def askAndFind(treeInterceptor, bBackwards, bRegex=True):

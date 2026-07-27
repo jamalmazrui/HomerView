@@ -910,7 +910,32 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             return
         ui.message(str(logger.pathLogFile))
         try:
-            os.startfile(str(logger.pathLogFile))
+            # A copy, not the file itself. HomerView holds the log open for
+            # writing for as long as NVDA is running, and an editor that asks
+            # Windows for exclusive read cannot open it while that handle
+            # exists. EdSharp is one such editor, and it fails with a stack
+            # trace that says the file is in use by another process, which is
+            # true and unhelpful.
+            #
+            # Copying costs a few milliseconds and removes the question. The
+            # copy is named for the moment it was taken, so two of them can sit
+            # side by side, and it goes in the temporary folder that Windows
+            # clears on its own.
+            import shutil
+            import time as timeModule
+
+            from . import paths as pathsModule
+
+            logger.flushLog()
+            pathCopy = (pathsModule.getTempFolder()
+                        / f"HomerView-{timeModule.strftime('%Y%m%d-%H%M%S')}.log")
+            try:
+                shutil.copyfile(str(logger.pathLogFile), str(pathCopy))
+                homerLog.info(f"Opening a copy of the log at {pathCopy}")
+                os.startfile(str(pathCopy))
+            except OSError:
+                logError("The log could not be copied, so the original is being opened")
+                os.startfile(str(logger.pathLogFile))
         except Exception:
             logError("Opening the log file raised")
 
@@ -1003,25 +1028,57 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         )
 
     def _askWhichExtensions(self, dAnalysis):
-        """Offer the extensions found, let the user edit the list, then download."""
+        """Show what was found, then let the user say which types to fetch.
+
+        Two fields rather than one prompt. What was found runs to a dozen lines
+        or more and belongs in a box a reader can move through by line;
+        squeezed into a prompt above a text box it becomes one long sentence
+        that has to be heard in a single breath.
+
+        The editable field holds the extensions alone, alphabetically and
+        without counts, because it is a list to be edited rather than a report
+        to be read. Counts in a field the user types into would only have to be
+        deleted before the field was usable.
+        """
+        import wx
+
+        from .homer import lbc as lbcModule
+
         lExtensions = dAnalysis.get("extensions") or []
         if not lExtensions:
             # Translators: Reported when a page links to no downloadable files.
             ui.message(_("No downloadable files are linked from this page"))
             return
         dCounts = dAnalysis.get("counts") or {}
-        sSummary = ", ".join(f"{s} {dCounts.get(s, 0)}" for s in lExtensions)
-        # Translators: Prompt in the download dialog. The placeholders are the
-        # number of files found and a list of extensions with their counts.
-        sPrompt = _(
-            "{count} files are linked from this page. By type: {summary}. "
-            "Edit the list below to choose which to download, then press OK."
-        ).format(count=len(dAnalysis.get("links") or []), summary=sSummary)
-        sChosen = dialogs.askForExtensions(sPrompt, " ".join(lExtensions))
-        if sChosen is None:
+        lDefault = dAnalysis.get("default") or lExtensions
+
+        lFound = [
+            # Translators: First line of the box listing what was found. The
+            # placeholder is how many files were found.
+            _("{count} files are linked from this page.").format(
+                count=len(dAnalysis.get("links") or [])),
+            "",
+        ]
+        lFound.extend(download.describeExtensions(sorted(lExtensions), dCounts))
+
+        dialog = lbcModule.Dialog(sTitle=_("Download linked files"))
+        dialog.addMemo(
+            # Translators: Label of the read-only list of what was found.
+            _("&What this page offers:"),
+            "\n".join(lFound), bReadOnly=True, sName="found")
+        dialog.addBand()
+        dialog.addInputBox(
+            # Translators: Label of the editable list of extensions.
+            _("&Types to download, separated by spaces:"),
+            " ".join(sorted(lDefault)), sName="types",
+            sTip=_("Every type found is listed above. Add or remove any of them here."))
+        dialog.addBand()
+        dResults = dialog.complete(["OK", "Cancel"], 0)
+        if dResults.get("result") != wx.ID_OK:
             homerLog.info("Download cancelled")
             return
-        lChosen = download.parseExtensions(sChosen)
+
+        lChosen = download.parseExtensions(dResults.get("types", ""))
         if not lChosen:
             # Translators: Reported when the user cleared the extension list.
             ui.message(_("No file types were chosen"))
@@ -1038,27 +1095,51 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         )
 
     def _reportDownloads(self, dSummary):
+        """Say what arrived and what did not, in one box that can be copied.
+
+        One shape for every outcome. A count spoken and gone is no use when
+        eleven files were attempted and one arrived: the reader wants to know
+        which, and why the others did not, and to be able to read it twice.
+        """
+        from . import output
+
         homerLog.info(f"Downloads finished: {dSummary}")
-        if not dSummary.get("saved") and not dSummary.get("failed"):
+        iSaved = dSummary.get("saved", 0)
+        iFailed = dSummary.get("failed", 0)
+        if not iSaved and not iFailed:
             # Translators: Reported when nothing matched the chosen types.
             ui.message(_("No files matched the types you chose"))
             return
-        if dSummary.get("failed"):
-            # Translators: Reported after downloading, when some files failed.
-            ui.message(
-                _("{saved} files saved to {folder}. {failed} failed. See the log.").format(
-                    failed=dSummary["failed"],
-                    folder=dSummary.get("folder", ""),
-                    saved=dSummary.get("saved", 0),
-                )
-            )
-            return
-        # Translators: Reported after downloading finishes.
-        ui.message(
-            _("{saved} files saved to {folder}").format(
-                folder=dSummary.get("folder", ""), saved=dSummary.get("saved", 0)
-            )
-        )
+
+        lLines = []
+        if iSaved:
+            # Translators: Line in the download results. The placeholders are
+            # how many files arrived and the folder holding them.
+            lLines.append(_("{count} saved to {folder}").format(
+                count=iSaved, folder=dSummary.get("folder", "")))
+            lNames = [d.get("name", "") for d in (dSummary.get("files") or []) if d.get("name")]
+            for sName in lNames[:20]:
+                lLines.append("  " + sName)
+            if len(lNames) > 20:
+                # Translators: Shown when more files arrived than are listed.
+                lLines.append(_("  and {count} more").format(count=len(lNames) - 20))
+        else:
+            # Translators: Line in the download results when nothing arrived.
+            lLines.append(_("Nothing was saved."))
+
+        if iFailed:
+            lLines.append("")
+            # Translators: Line in the download results. The placeholder is how
+            # many files did not arrive.
+            lLines.append(_("{count} did not arrive:").format(count=iFailed))
+            dReasons = dSummary.get("reasons") or {}
+            for sReason, iCount in sorted(dReasons.items(), key=lambda tPair: -tPair[1]):
+                lLines.append(f"  {iCount}, {sReason}")
+            if not dReasons:
+                # Translators: Shown when the reasons could not be grouped.
+                lLines.append(_("  the log has the detail"))
+
+        output.lines(_("Download results"), lLines)
 
     def _reportOpened(self, dSummary):
         homerLog.info(f"Opened: {dSummary}")

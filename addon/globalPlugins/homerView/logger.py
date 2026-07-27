@@ -109,6 +109,19 @@ def shouldAppend(pathLogFile):
     return nAge <= maximumAppendMinutes
 
 
+def flushLog():
+    """Push everything buffered to disk, so a copy of the log is complete.
+
+    Without this, the last few lines are still in the handler's buffer and the
+    copy someone opens is missing exactly the lines they wanted to read.
+    """
+    for handler in list(homerLog.handlers):
+        try:
+            handler.flush()
+        except Exception:
+            pass
+
+
 def startSession(sAddonVersion=""):
     """Open a fresh log for this session and write the header block."""
     global pathLogFile

@@ -143,8 +143,10 @@ is present. LibreOffice covers the most formats and needs no Microsoft Office.
 - **ScrollLock** starts reading continuously, and stops it. One key for both.
 - **Alt+F8** reads the whole page without moving the cursor. **Control+F8**
   copies it.
-- **Control+F** finds text, not case sensitive. **Control+F3** finds a regular
-  expression. **F3** repeats whichever was last used.
+- **Control+F** opens NVDA's own find, and **Control+Shift+F** the same search
+  backwards. **Control+F3** finds a regular expression, and **Control+Shift+F3**
+  the same backwards. **F3** and **Shift+F3** repeat whichever kind was used
+  last.
 - **Alt+NVDA+X** extracts the readable part of a page and opens it as a page of
   its own, which you can search, save or send. Edge's own reading mode is on
   **F9**, which HomerView leaves alone. It works on fewer pages but adds Edge's

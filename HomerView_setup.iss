@@ -3,7 +3,7 @@
 ; Source root and installation destination: C:\HomerView
 
 #define AppName "HomerView"
-#define AppVersion "1.26.4"
+#define AppVersion "1.31.1"
 #define AppPublisher "Jamal Mazrui"
 ; A stable name on purpose. The version lives in the add-on's manifest, which is
 ; what NVDA reads, and in AppVersion above. Putting it in the file name as well
@@ -25,16 +25,24 @@ DefaultGroupName={#AppName}
 ; there is no Start Menu folder to choose, no separate licence page, no
 ; component or task selection, and no readme afterwards.
 DisableProgramGroupPage=yes
+; Shown every time, even on a reinstall. Left to itself this defaults to auto,
+; which hides the page when a previous install of the same AppId is found. The
+; page is worth seeing: it says where the program is going, and it is obviously
+; editable. UsePreviousAppDir above means a reinstall only needs Enter.
 DisableDirPage=no
 DisableReadyPage=yes
 DisableFinishedPage=no
 AllowNoIcons=yes
-; Deliberately no. Earlier versions installed to C:\HomerView, and with
-; UsePreviousAppDir set to yes the installer keeps proposing that recorded path
-; instead of the default below, so an upgrade never moves to Program Files. The
-; directory page is still shown, so anyone who chose a different drive can
-; choose it again; they just have to say so once more.
-UsePreviousAppDir=no
+; Remember where it went last time, and pre-fill the directory page with that
+; rather than proposing the default again. Someone reinstalling presses Enter
+; and it goes back where it was; someone who wants it elsewhere can still say
+; so, because the page is shown either way.
+;
+; This was briefly set to no, to force upgrades off the old C:\HomerView path
+; that early versions used. That path is behind us and the setting is back to
+; matching the other Homer installers.
+UsePreviousAppDir=yes
+UsePreviousGroup=yes
 PrivilegesRequired=admin
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
@@ -89,16 +97,14 @@ Source: "C:\HomerView\LICENSE.md"; DestDir: "{app}"; DestName: "License.txt"; Fl
 Source: "C:\HomerView\addon\*"; DestDir: "{app}\addon"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "C:\HomerView\HomerView_setup.iss"; DestDir: "{app}"; Flags: ignoreversion
 
-; Build and repository scripts.
+; Build scripts only. The repository scripts, the clean script and the two Git
+; configuration files belong to the development directory and have no meaning
+; in an installation: nobody installs HomerView in order to create its GitHub
+; repository, and a .gitignore beside the program is at best confusing.
 Source: "C:\HomerView\buildAddon.cmd"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\HomerView\buildAddon.ps1"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\HomerView\buildAll.cmd"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "C:\HomerView\buildAll.ps1"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
-Source: "C:\HomerView\clean.cmd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\HomerView\createHomerViewRepo.cmd"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
-Source: "C:\HomerView\createHomerViewRepo.ps1"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
-Source: "C:\HomerView\.gitignore"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
-Source: "C:\HomerView\.gitattributes"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 
 ; The development plan, kept for its historical value.
 Source: "C:\HomerView\docs\*"; DestDir: "{app}\docs"; Flags: ignoreversion recursesubdirs createallsubdirs skipifsourcedoesntexist

@@ -13,6 +13,7 @@ address, and the Sec-Fetch set that a navigation from a link would produce.
 """
 
 import re
+import time
 import urllib.request
 from pathlib import Path
 from urllib.parse import unquote, urlparse
@@ -28,7 +29,27 @@ addonHandler.initTranslation()
 addonHandler.initTranslation()
 
 downloadChunkBytes = 65536
-downloadTimeoutSeconds = 120.0
+# Two minutes was too long. One slow host held the whole batch for fifty two
+# seconds, and every download after it failed instantly on name resolution:
+# nine in the same second. Ten dead hosts would each have failed at their own
+# pace, so what happened was the resolver giving up after the stall rather than
+# ten addresses that do not exist. A shorter wait means one bad host costs a
+# few seconds instead of a minute, and gives the stack less to recover from.
+downloadTimeoutSeconds = 25.0
+
+# A name that will not resolve is often a name that will not resolve just now.
+# One retry after a pause costs little and recovers the common case, which is a
+# resolver that has been briefly overwhelmed.
+retryPauseSeconds = 2.0
+retryAttempts = 2
+
+# Errors worth trying again, and errors that mean what they say. There is no
+# point retrying a 404.
+setTransientErrors = {
+    "getaddrinfo failed", "temporary failure in name resolution",
+    "timed out", "connection reset", "connection aborted",
+    "no route to host", "network is unreachable",
+}
 maximumFileNameLength = 120
 maximumLinks = 2000
 
@@ -344,12 +365,58 @@ def nameFromResponse(response, sFileUrl, sExtension):
     return cleanFileName(Path(unquote(sPath)).name, sExtension)
 
 
+def isTransient(exception):
+    """Say whether an error is worth trying again."""
+    sText = str(exception).lower()
+    return any(s in sText for s in setTransientErrors)
+
+
+def describeFailure(exception):
+    """Say in ordinary words why a file did not arrive.
+
+    A reader who is told ten files failed learns nothing they can act on. Told
+    that ten addresses could not be found, they know the page is old and the
+    files have moved, which is a different problem from a server refusing them.
+    """
+    sText = str(exception).lower()
+    if "getaddrinfo" in sText or "name resolution" in sText:
+        return _("the address could not be found")
+    if "timed out" in sText or "timeout" in sText:
+        return _("the server did not answer in time")
+    if "404" in sText:
+        return _("the file is no longer there")
+    if "403" in sText:
+        return _("the server refused it")
+    if "401" in sText:
+        return _("it needs a sign in")
+    if "certificate" in sText or "ssl" in sText:
+        return _("the secure connection failed")
+    if "connection" in sText:
+        return _("the connection failed")
+    return str(exception)
+
+
 def downloadOne(dLink, sPageUrl, sUserAgent, sCookies, pathFolder):
     sFileUrl = resolveDownloadUrl(dLink["url"])
     sExtension = dLink.get("extension", "")
     request = urllib.request.Request(
         sFileUrl, headers=buildHeaders(sFileUrl, sPageUrl, sUserAgent, sCookies)
     )
+    # Try again once on an error that is likely to pass.
+    for iAttempt in range(1, retryAttempts + 1):
+        try:
+            return fetchOne(request, dLink, pathFolder)
+        except Exception as exception:
+            if iAttempt >= retryAttempts or not isTransient(exception):
+                raise
+            homerLog.info(
+                f"Attempt {iAttempt} failed on {abbreviate(dLink.get('url', ''), 120)}: "
+                f"{exception}. Waiting {retryPauseSeconds} seconds and trying once more."
+            )
+            time.sleep(retryPauseSeconds)
+
+
+def fetchOne(request, dLink, pathFolder):
     with urllib.request.urlopen(request, timeout=downloadTimeoutSeconds) as response:
         # A web page returned where a document was asked for means the address
         # was a page about the file rather than the file. Saving it would put
@@ -390,6 +457,7 @@ def downloadLinks(cdpSession, dAnalysis, lExtensions, functionAnnounce=None):
 
     dCookieCache = {}
     lFiles = []
+    dReasons = {}
     iFailed = 0
     for iIndex, dLink in enumerate(lChosen, 1):
         sOrigin = ""
@@ -410,13 +478,19 @@ def downloadLinks(cdpSession, dAnalysis, lExtensions, functionAnnounce=None):
             lFiles.append({"bytes": iBytes, "name": pathTarget.name})
         except Exception as exception:
             iFailed += 1
-            homerLog.warning(f"Failed: {abbreviate(dLink['url'], 200)} because {exception}")
+            sReason = describeFailure(exception)
+            dReasons[sReason] = dReasons.get(sReason, 0) + 1
+            homerLog.warning(
+                f"Failed: {abbreviate(dLink['url'], 200)} because {sReason} ({exception})")
             if functionAnnounce:
                 # Translators: Spoken when one file in a download fails.
                 functionAnnounce(_("Error"))
     homerLog.info(f"Downloaded {len(lFiles)} files, {iFailed} failed")
+    if dReasons:
+        homerLog.info(f"Why they failed: {dReasons}")
     return {
         "failed": iFailed,
+        "reasons": dReasons,
         "files": lFiles,
         "folder": str(pathFolder),
         "saved": len(lFiles),

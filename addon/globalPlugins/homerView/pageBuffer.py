@@ -142,6 +142,9 @@ dHomerGestures = {
     "kb:NVDA+alt+l": "listAnyElements",
     "kb:alt+y": "sayYield",
     "kb:alt+shift+y": "sayYieldStructure",
+    # EdSharp counts pattern matches on Control+Shift+Y, and the word Pattern
+    # is used here as it is for Control+F3, so the two read as a family.
+    "kb:control+shift+y": "sayYieldPattern",
     # JAWS reports progress through a page on Alt+Delete. NVDA's own equivalent
     # is NVDA+Delete, which reports the position of the review cursor including
     # the percentage through the document. Both spellings of Delete are bound,
@@ -640,9 +643,16 @@ class HomerViewBuffer:
     def script_sayYield(self, gesture):
         self.runSafely("sayYield", lambda: homerCommands.sayYield(self))
 
-    @script(description=_("Says how many links, headings, landmarks, tables, frames and fields the page holds"), category="HomerView", speakOnDemand=True)
+    @script(description=_("Says how the page is built"), category="HomerView")
     def script_sayYieldStructure(self, gesture):
         self.runSafely("sayYieldStructure", lambda: homerCommands.sayYieldStructure(self))
+
+    @script(
+        description=_("Counts how often a regular expression matches this page"),
+        category="HomerView",
+    )
+    def script_sayYieldPattern(self, gesture):
+        self.runSafely("sayYieldPattern", lambda: homerCommands.sayYieldPattern(self))
 
     @script(description=_("Says the line, column and percentage position of the cursor"), category="HomerView", speakOnDemand=True)
     def script_sayPosition(self, gesture):
@@ -847,24 +857,84 @@ class HomerViewBuffer:
         self.runSafely("runAccessibilityCheck", homerCommands.runAccessibilityCheck)
 
     @script(
-        description=_("Finds text in the page, not case sensitive"),
+        description=_("Finds text in the page, using NVDA's own find"),
         category="HomerView",
     )
     def script_findText(self, gesture):
-        self.runSafely("findText", lambda: homerCommands.askAndFind(self, False, False))
+        """NVDA's own find, forward.
+
+        Delegated rather than reimplemented. NVDA's find is what a user of any
+        other page already knows: the same dialog, the same remembered term,
+        the same case-sensitivity choice, the same wrapping and the same
+        announcements. A second dialog that looked similar and behaved slightly
+        differently would be worse than no addition at all.
+
+        What HomerView adds is the regular expression search on Control+F3,
+        which NVDA has no equivalent for, and making F3 repeat whichever of the
+        two was used last.
+        """
+        homerCommands.rememberFindKind("nvda", False)
+        self.runSafely("findText", lambda: self._nvdaFind(False))
 
     @script(
-        description=_("Finds text backwards in the page, not case sensitive"),
+        description=_("Finds text backwards in the page, using NVDA's own find"),
         category="HomerView",
     )
     def script_findTextBackwards(self, gesture):
-        self.runSafely("findTextBackwards", lambda: homerCommands.askAndFind(self, True, False))
+        """NVDA's own find, searching backwards.
+
+        NVDA's find dialog always searches forward, so the direction is applied
+        to the search rather than asked for in the dialog: the term is taken
+        the same way, and the search that follows runs backwards through NVDA's
+        own finder, so the match and the announcement are still NVDA's.
+        """
+        homerCommands.rememberFindKind("nvda", True)
+        self.runSafely("findTextBackwards", lambda: self._nvdaFind(True))
+
+    def _nvdaFind(self, bBackwards):
+        import gui as guiModule
+
+        sPrevious = getattr(self, "_lastFindText", "") or ""
+        bCase = bool(getattr(self, "_lastCaseSensitivity", False))
+        if not bBackwards:
+            try:
+                from browseMode import FindDialog
+            except ImportError:
+                FindDialog = None
+            if FindDialog is not None:
+                # Forward is exactly what NVDA's dialog does, so hand it over
+                # whole and inherit every detail of its behaviour.
+                homerLog.info("Using NVDA's own find dialog")
+                guiModule.mainFrame.prePopup()
+                try:
+                    FindDialog(guiModule.mainFrame, self, sPrevious, bCase).ShowModal()
+                finally:
+                    guiModule.mainFrame.postPopup()
+                return
+
+        from . import lbc
+
+        sText = lbc.dialogInput(
+            # Translators: Title of the find dialog.
+            _("Find backwards") if bBackwards else _("Find"),
+            # Translators: Label of the find field.
+            _("&Find what:"),
+            sPrevious,
+        )
+        if sText is None or not sText.strip():
+            homerLog.info("Find cancelled")
+            return
+        homerLog.info(
+            f"NVDA find {'backwards' if bBackwards else 'forwards'} for "
+            f"{abbreviate(sText, 80)}")
+        self.doFindText(sText, reverse=bBackwards, caseSensitive=bCase)
 
     @script(
         description=_("Finds a regular expression in the page"),
         category="HomerView",
     )
     def script_findByPattern(self, gesture):
+        homerCommands.rememberFindKind("pattern", False)
         self.runSafely("findByPattern", lambda: homerCommands.askAndFind(self, False, True))
 
     @script(
@@ -872,7 +942,9 @@ class HomerViewBuffer:
         category="HomerView",
     )
     def script_findByPatternBackwards(self, gesture):
-        self.runSafely("findByPatternBackwards", lambda: homerCommands.askAndFind(self, True, True))
+        homerCommands.rememberFindKind("pattern", True)
+        self.runSafely("findByPatternBackwards",
+                       lambda: homerCommands.askAndFind(self, True, True))
 
     @script(description=_("Finds the next occurrence of the word at the cursor"), category="HomerView")
     def script_findWordAtCursor(self, gesture):
@@ -908,13 +980,43 @@ class HomerViewBuffer:
     def script_showHistory(self, gesture):
         self.runSafely("showHistory", lambda: homerCommands.showDocument("history"))
 
-    @script(description=_("Repeats the last find, forwards"), category="HomerView")
+    @script(
+        description=_("Repeats the last search, whichever kind it was"),
+        category="HomerView",
+    )
     def script_findAgain(self, gesture):
-        self.runSafely("findAgain", lambda: find.repeatFind(self, False))
+        self.runSafely("findAgain", lambda: self._repeatFind(False))
 
-    @script(description=_("Repeats the last find, backwards"), category="HomerView")
+    @script(
+        description=_("Repeats the last search in the opposite direction"),
+        category="HomerView",
+    )
     def script_findAgainBackwards(self, gesture):
-        self.runSafely("findAgainBackwards", lambda: find.repeatFind(self, True))
+        self.runSafely("findAgainBackwards", lambda: self._repeatFind(True))
+
+    def _repeatFind(self, bReverse):
+        """Repeat whichever search was used last, plain or regular expression.
+
+        One pair of keys for both kinds. A reader who has just searched should
+        not have to remember which sort of search it was in order to repeat it,
+        and F3 meaning one thing after Control+F and another after Control+F3
+        would be exactly that.
+        """
+        sKind, bBackwards = homerCommands.lastFindKind()
+        bDirection = (not bBackwards) if bReverse else bBackwards
+        homerLog.info(
+            f"Repeating the last {sKind} search, "
+            f"{'backwards' if bDirection else 'forwards'}")
+        if sKind == "pattern":
+            homerCommands.repeatFind(self, bDirection)
+            return
+        sText = getattr(self, "_lastFindText", "") or ""
+        if not sText:
+            # Translators: Reported when there is no earlier search to repeat.
+            ui.message(_("Press Control+F to search first"))
+            return
+        self.doFindText(sText, reverse=bDirection,
+                        caseSensitive=bool(getattr(self, "_lastCaseSensitivity", False)))
 
     @script(
         description=_(
@@ -1042,7 +1144,15 @@ class HomerViewBuffer:
         if not bSelecting:
             lSkip.append("completeSelection")
         setSkip = {readableName(s) for s in lSkip}
-        lAll = [entry for entry in lEntries if entry]
+        lKept = [
+            entry for entry in lEntries
+            if entry is not None and entry.sName not in setSkip
+        ]
+        homerLog.info(
+            f"Menu: {len(lKept)} of {len(lEntries)} page commands apply "
+            f"(selection: {bSelection}, selecting: {bSelecting})"
+        )
+        return lKept
 
 
 

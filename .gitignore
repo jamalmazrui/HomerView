@@ -16,10 +16,21 @@ HomerView.jsonl
 
 # Private correspondence. Drafts live outside the repository.
 Letter_to_*.md
+Transition_*.md
 Reply_to_*.md
 Announcing_*.md
 Announcing_*.htm
 Letter_to_*.htm
+
+# Scripts that belong to this machine rather than to the project. The
+# repository script exists to create the repository, so a clone has no use for
+# it; the clean script is a local convenience. Both stay here and are not
+# pushed. The two Git configuration files above are the exception: they
+# describe the repository and belong in it.
+clean.cmd
+createHomerViewRepo.cmd
+createHomerViewRepo.ps1
+createHomerViewRepo.log
 
 # Python and build output.
 __pycache__/

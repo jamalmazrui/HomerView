@@ -211,6 +211,23 @@ dKeyNames = {
 }
 
 
+def readableName(sName):
+    """Turn a script name into words a person would read in a menu.
+
+    The menu shows commands, not identifiers, so listFormFields has to become
+    List form fields before anyone sees it. Two names are spelled out rather
+    than derived, because splitting them on capitals gives the wrong words.
+    """
+    dSpecial = {
+        "moveToMainContent": "Jump to Main Content",
+        "proxyMainContent": "Jump to Probable Main Content",
+    }
+    if sName in dSpecial:
+        return dSpecial[sName]
+    sSpaced = re.sub(r"(?<!^)(?=[A-Z])", " ", str(sName or ""))
+    return sSpaced[:1].upper() + sSpaced[1:].lower() if sSpaced else ""
+
+
 def describeGesture(sGesture):
     """Write a gesture the way a JAWS user reads keys.
 
@@ -921,6 +938,13 @@ class HomerViewBuffer:
     def script_listFormFields(self, gesture):
         self.runSafely("listFormFields", lambda: homerCommands.listElements(self, "formField", _("Form fields")))
 
+    def _hasSelection(self):
+        try:
+            info = self.makeTextInfo(textInfos.POSITION_SELECTION)
+            return bool((info.text or "").strip())
+        except Exception:
+            return False
+
     def buildCommandEntries(self):
         """Every command available right now, page commands and global ones."""
         lEntries = self._buildPageEntries()
@@ -1005,7 +1029,20 @@ class HomerViewBuffer:
                 _("Jump to the page's main content landmark"),
                 lambda: moveToMainContent(self), pageScopeName),
         ]
-        return [entry for entry in lEntries if entry]
+        # Commands that need something this page does not have are left out.
+        # Copying the selection when there is none, or completing a selection
+        # that was never started, are choices a reader should not be offered.
+        bSelection = self._hasSelection()
+        bSelecting = bool(homerCommands.dSelectionStart.get(id(self)))
+        # A menu entry carries its readable name, not its script name, so the
+        # comparison has to be made in the same language.
+        lSkip = []
+        if not bSelection:
+            lSkip.extend(["saySelected", "goToSelectionStart"])
+        if not bSelecting:
+            lSkip.append("completeSelection")
+        setSkip = {readableName(s) for s in lSkip}
+        lAll = [entry for entry in lEntries if entry]
 
 
 

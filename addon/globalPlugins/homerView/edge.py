@@ -28,7 +28,7 @@ from pathlib import Path
 
 from . import logger
 from . import startPage
-from .logger import homerLog, logError, logSection
+from .logger import abbreviate, homerLog, logError, logSection
 
 appPathsKey = r"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\msedge.exe"
 launchTimeoutSeconds = 25.0

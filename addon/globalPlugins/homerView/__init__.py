@@ -72,7 +72,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
              _("Launch or reconnect the HomerView instance of Microsoft Edge"), "launchHomerView"),
             (_("Accessibility report"), "Alt+NVDA+A",
              _("Test the page and find how to report the problems to the publisher"), "accessibilityReport"),
-            (_("Page explorer"), "Y, or NVDA+Alt+E",
+            (_("Page explorer"), "Y, or Alt+NVDA+E",
              _("Summarise the page structure and its visual aspects"), "explorePage"),
             (_("Extract main content"), "Alt+NVDA+X",
              _("Open the readable part of the page as a plain document"), "extractMainContent"),
@@ -95,7 +95,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
              "recentPages"),
             (_("Alternate menu"), "Alt+NVDA+F10",
              _("List every HomerView command in one alphabetical list"), "alternateMenu"),
-            (_("Report the page address"), "Alt+A, or NVDA+Alt+U",
+            (_("Report the page address"), "Alt+A, or Alt+NVDA+U",
              _("Report the web address of the HomerView page, from anywhere in the window"),
              "reportAddressAnywhere"),
             (_("Submit the form"), "Control+Enter",
@@ -111,9 +111,9 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
              _("Open the HomerView history of changes in the HomerView window"), "openHistory"),
             (_("Developer notes"), "",
              _("Open the HomerView developer notes in the HomerView window"), "openDeveloperNotes"),
-            (_("Elevate version"), "Control+F11, or NVDA+Alt+F11",
+            (_("Elevate version"), "Control+F11, or Alt+NVDA+F11",
              _("Check for a newer HomerView and install it"), "elevateVersion"),
-            (_("Look something up"), "Alt+Q, or NVDA+Alt+Q",
+            (_("Look something up"), "Alt+Q, or Alt+NVDA+Q",
              _("Define a word, check the weather, find books, and more, with no account needed"),
              "webUtilities"),
             (_("Self test"), "",
@@ -583,9 +583,10 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
                     # Translators: Shown in the menu when no HomerView page has focus.
                     _("Page commands are not listed"), "",
                     _(
-                        "The reading, selection and clipboard commands exist only inside a "
-                        "HomerView page. Choose Launch HomerView Edge above, then open this "
-                        "menu again from the page."
+                        "The reading, selection, search and clipboard commands exist only "
+                        "inside a HomerView page, and the commands that act on a page are "
+                        "left out until there is one. Choose Launch HomerView Edge above, "
+                        "then open this menu again from the page that opens."
                     ),
                     lambda: None, "Anywhere",
                 )

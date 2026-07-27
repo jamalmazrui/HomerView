@@ -8,6 +8,15 @@
 <body>
 <main>
 <h1>History of Changes</h1>
+<h2>1.25.0</h2>
+<ul>
+<li>Fixed Elevate Version reporting a newer release and then failing with a 404. It was asking for a release asset named exactly HomerView.nvda-addon, which only works if the release has a file with that name attached. A release that attached the versioned name instead, or attached no files at all, answers that address with an error page. It now asks the release what it actually carries and takes whichever file ends in .nvda-addon, whatever it is called.</li>
+<li>If the release has no add-on attached, it says so and points at the releases page, rather than downloading an error page and handing that to NVDA. A downloaded file that does not begin with the two bytes every zip archive starts with is also refused now, for the same reason.</li>
+<li>The Alternate Menu now lists only commands that can do something. Before the browser is running, the commands that act on a page are left out, and what remains is launching it, the documents, the version check, the web lookups, opening a document, the log and the self test. Offering a command that cannot run means a reader chooses it and is told it does not apply, which is a wasted choice.</li>
+<li>In a page, the menu leaves out commands that need something this page does not have: saying or returning to a selection when there is none, and completing a selection that was never started.</li>
+<li>Found and fixed two functions that were being called but no longer existed, both lost in earlier edits of mine. The menu&#x27;s readable names had been removed when the key naming was rewritten, which would have failed every time the menu opened; and edge.py used the log abbreviator without importing it, which would have failed when reopening the page the browser last had open. A check for names used but never defined now covers every module.</li>
+<li>Corrected four command keys still written in the old modifier order.</li>
+</ul>
 <h2>1.24.3</h2>
 <ul>
 <li>Restored the Files, Icons and Run sections of the setup script, which had been deleted. Versions 1.24.1 and 1.24.2 would have compiled into an installer that installed nothing at all: no add-on, no documentation, no source, no shortcuts. Anyone who built and ran either of those would have got an empty program folder.</li>

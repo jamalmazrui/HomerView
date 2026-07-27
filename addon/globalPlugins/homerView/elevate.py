@@ -61,6 +61,40 @@ class ElevateError(Exception):
     pass
 
 
+def fetchLatestRelease():
+    """Return the latest release as the API describes it, or an empty dict."""
+    try:
+        request = urllib.request.Request(
+            apiUrl, headers={"Accept": "application/vnd.github+json", "User-Agent": userAgent})
+        with urllib.request.urlopen(request, timeout=fetchTimeoutSeconds) as response:
+            dRelease = json.loads(response.read().decode("utf-8"))
+        lNames = [str(d.get("name", "")) for d in (dRelease.get("assets") or [])]
+        homerLog.info(
+            f"The latest release is {dRelease.get('tag_name', '')} with "
+            f"{len(lNames)} assets: {lNames}")
+        return dRelease
+    except Exception as exception:
+        homerLog.warning(f"The release could not be read from the API: {exception}")
+        return {}
+
+
+def findAddonAsset(dRelease):
+    """Find the add-on file among a release's assets, whatever it is named.
+
+    The fixed address, releases/latest/download/HomerView.nvda-addon, only
+    works if the release has an asset with exactly that name. A release that
+    attached the versioned name instead, or attached no files at all, answers
+    that address with a 404, which is what a user reported. Asking the release
+    what it actually carries removes the assumption.
+    """
+    for dAsset in (dRelease.get("assets") or []):
+        if str(dAsset.get("name", "")).lower().endswith(".nvda-addon"):
+            homerLog.info(f"Add-on asset: {dAsset.get('name')} at {dAsset.get('browser_download_url')}")
+            return str(dAsset.get("browser_download_url", "")), str(dAsset.get("name", ""))
+    homerLog.warning("The latest release has no file ending in .nvda-addon")
+    return "", ""
+
+
 def fetchLatestTag():
     """Return the latest release tag, by the API or by the redirect."""
     try:
@@ -118,6 +152,14 @@ def downloadAsset(sUrl, sName):
             f"The download was only {len(bBody)} bytes, which is too small to be the "
             "add-on. The release may not have that file attached."
         )
+    # An add-on package is a zip archive, so it starts with PK. Anything else
+    # is a web page, usually an error page, and handing that to NVDA would
+    # produce a confusing failure rather than a clear one.
+    if not bBody.startswith(b"PK"):
+        raise ElevateError(
+            "What came back was not an add-on package. The release may have moved or "
+            f"the file may have been renamed. Visit {latestPageUrl} to download it by hand."
+        )
     pathTarget.write_bytes(bBody)
     homerLog.info(f"Wrote {pathTarget}, {pathTarget.stat().st_size} bytes")
     return pathTarget
@@ -138,7 +180,16 @@ def checkForUpdate():
 
 def installAddon():
     """Download the add-on and hand it to NVDA, which does the rest."""
-    pathAddon = downloadAsset(addonDownloadUrl, addonAssetName)
+    dRelease = fetchLatestRelease()
+    sUrl, sName = findAddonAsset(dRelease)
+    if not sUrl:
+        # Better to say the release has nothing to install than to download a
+        # page of error markup and hand that to NVDA.
+        raise ElevateError(
+            "The latest release does not have an add-on file attached to it, so there "
+            f"is nothing to download. Visit {latestPageUrl} to see what it does have."
+        )
+    pathAddon = downloadAsset(sUrl, sName or addonAssetName)
     # Handing the file to the shell is what reaches NVDA, because NVDA
     # registers itself for this extension. NVDA then shows its own
     # confirmation and restarts itself, which is the right flow for something

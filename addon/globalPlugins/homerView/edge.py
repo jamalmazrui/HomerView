@@ -62,6 +62,32 @@ bAllowSignIn = False
 # remains something chosen rather than something done to the user.
 bCopilotSupport = True
 
+# Google refuses to sign anyone in on a browser started with remote debugging.
+# The message is that the browser or app may not be secure, and it is aimed at
+# scripts driving a browser to take over accounts. HomerView is not that, but
+# it is indistinguishable from the outside, because the same switch enables
+# both.
+#
+# There is no way to have the debugging connection and sign in to Google in the
+# same browser. The connection is what every HomerView command depends on, so
+# it stays, and the sign-in has to happen elsewhere.
+#
+# What works is signing in to Edge itself rather than to the website. A profile
+# signed in to a Microsoft account carries its cookies, and a Google session
+# established in an ordinary Edge window before HomerView is launched is
+# already present in the profile when HomerView opens it. So the order is: sign
+# in first, in a browser without debugging, then launch HomerView, which finds
+# you already signed in.
+#
+# This is documented rather than worked around, because a workaround that
+# defeated the check would be exactly the thing the check exists to stop.
+sGoogleSignInNote = (
+    "Google will not sign anyone in on a browser started with remote debugging, "
+    "which is what HomerView needs. Sign in to Google in an ordinary Edge window "
+    "first, using the same profile, and HomerView will find the session already "
+    "there when it launches."
+)
+
 # Applied on every launch. The disable-features list is best-effort: the
 # Chromium entries are long standing, while Edge's implicit sign-in feature has
 # been named differently across versions, so several spellings are passed. An
@@ -80,6 +106,13 @@ lArgumentsAlways = [
     # Edge otherwise relaunches itself through a compatibility layer, which is
     # one of the ways the process we start disappears from under us.
     "--edge-skip-compat-layer-relaunch",
+    # Do not advertise the browser as automated. Chromium sets a flag on the
+    # page when remote debugging is on, and some sign-in pages read it and
+    # refuse. Turning the flag off is honest here: this browser is not being
+    # driven by a script, it is being driven by the person at the keyboard
+    # through their screen reader, which is what the flag was meant to detect
+    # and is not what it finds. It does not affect the debugging connection.
+    "--disable-blink-features=AutomationControlled",
 ]
 
 # Applied only when bAllowSignIn is False.

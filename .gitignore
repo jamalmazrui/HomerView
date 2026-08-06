@@ -17,6 +17,7 @@ HomerView.jsonl
 # Private correspondence. Drafts live outside the repository.
 Letter_to_*.md
 Transition_*.md
+Edge_Hotkeys.md
 Reply_to_*.md
 Announcing_*.md
 Announcing_*.htm
@@ -31,6 +32,7 @@ clean.cmd
 createHomerViewRepo.cmd
 createHomerViewRepo.ps1
 createHomerViewRepo.log
+cleanDir.log
 
 # Python and build output.
 __pycache__/
@@ -38,15 +40,21 @@ __pycache__/
 *.pyo
 dist/
 
-# Executables ARE tracked, deliberately. A user who clones this repository
-# should be able to build the installer without hunting for pieces, and the
-# built add-on and installer are part of what a release is.
-!*.exe
-!build/*.nvda-addon
-
-# One exception, and it is a hard limit rather than a preference. GitHub
-# refuses any single file over 100 megabytes, and pandoc.exe is well past
-# that. Track it with Git LFS, or attach it to a release instead of
-# committing it, and keep a local copy beside this file so the installer can
-# pick it up. The installer skips it cleanly when it is absent.
+# Executables are tracked deliberately, so someone who clones this can build
+# the installer without hunting for pieces. There is nothing to write here for
+# that: they are tracked because nothing excludes them. The two lines that used
+# to sit here re-including them did nothing at all, because an exclamation mark
+# only re-includes what an earlier pattern excluded.
+#
+# Two exceptions.
+#
+# pandoc.exe is about 220 megabytes and GitHub refuses any single file over a
+# hundred. Track it with Git LFS or attach it to a release, and keep a local
+# copy here so the installer picks it up; it is skipped cleanly when absent.
 pandoc.exe
+
+# The built installer, which is a release asset rather than source. It is
+# rebuilt from the setup script by anyone who needs it, and committing a
+# hundred megabyte binary on every release would make the repository
+# unpleasant to clone.
+HomerView_setup.exe

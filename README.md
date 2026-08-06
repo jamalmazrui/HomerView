@@ -180,6 +180,29 @@ Install it from the file, which is already on your computer.
 Pressing Enter on that same file in File Explorer does the same thing, if that
 is easier.
 
+# Signing in to Google
+
+Google will not sign anyone in on a browser started with remote debugging, and
+remote debugging is what HomerView needs to work at all. The message says the
+browser or app may not be secure. It is aimed at scripts driving a browser to
+take over accounts, which HomerView is not, but from Google's side the two look
+the same, because the same switch enables both.
+
+There is no setting that avoids this. What works is signing in before HomerView
+starts.
+
+1. Set bAllowSignIn to True in edge.py, if you have not already, and delete the
+   folder HomerView keeps its browser profile in, which is HomerView inside
+   your local application data folder. This lets the profile hold a sign in.
+2. Launch HomerView once so the profile is rebuilt, then close it.
+3. Open that same profile in an ordinary Edge window, without HomerView, and
+   sign in to Google there.
+4. Launch HomerView again. The session is already in the profile, so you are
+   signed in.
+
+The session lasts as long as it would in any browser. Sites other than Google
+are unaffected, and most sign in normally inside HomerView.
+
 # When something does not work
 
 Commands only work in windows HomerView itself opened. An Edge window that was

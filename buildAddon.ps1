@@ -1,14 +1,15 @@
 ﻿# buildAddon.ps1
-# Packages the addon folder into build\HomerView.nvda-addon, and a copy named
-# for the version beside it.
+# Packages the addon folder into build\HomerView.nvda-addon.
 #
 # The stable name is what the installer references, so HomerView_setup.iss never
 # has to be edited when the version changes. Coupling the two meant every bump
 # needed two edits, and forgetting one would break the installer at compile time
 # for a reason that had nothing to do with what had changed.
 #
-# The versioned copy is for release assets, where a name that says which build
-# it is matters.
+# One file, not two. A versioned copy was written here as well, for release
+# assets, and it was a mistake: two identical files with different names in one
+# folder invites the wrong one being picked up, and the version is already in
+# the manifest, which is what NVDA reads.
 # All output is written to buildAddon.log as well as the console.
 
 $ErrorActionPreference = "Stop"
@@ -52,12 +53,14 @@ if (-not (Test-Path $pathBuild)) {
 }
 
 $pathOutput = Join-Path $pathBuild "HomerView.nvda-addon"
-$pathVersioned = Join-Path $pathBuild "HomerView-$sVersion.nvda-addon"
-foreach ($pathOld in @($pathOutput, $pathVersioned)) {
-    if (Test-Path $pathOld) {
-        Remove-Item $pathOld -Force
-        writeLog "Removed the previous $pathOld"
-    }
+if (Test-Path $pathOutput) {
+    Remove-Item $pathOutput -Force
+    writeLog "Removed the previous $pathOutput"
+}
+# Any versioned copy an earlier build left behind, so the folder holds one file.
+foreach ($pathOld in (Get-ChildItem $pathBuild -Filter "HomerView-*.nvda-addon" -ErrorAction SilentlyContinue)) {
+    Remove-Item $pathOld.FullName -Force
+    writeLog "Removed the leftover $($pathOld.Name)"
 }
 
 foreach ($pathCache in (Get-ChildItem -Path $pathAddon -Recurse -Directory -Filter "__pycache__")) {
@@ -72,7 +75,6 @@ foreach ($pathFile in (Get-ChildItem -Path $pathAddon -Recurse -File)) {
 Compress-Archive -Path (Join-Path $pathAddon "*") -DestinationPath "$pathOutput.zip" -Force
 Move-Item "$pathOutput.zip" $pathOutput -Force
 writeLog "Wrote $pathOutput"
-Copy-Item $pathOutput $pathVersioned -Force
-writeLog "Wrote $pathVersioned for release assets"
+
 
 writeLog "HomerView add-on build finished"

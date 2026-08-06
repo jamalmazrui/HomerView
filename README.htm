@@ -161,6 +161,24 @@ Y                   summarise the page, in the spirit of Page Explorer
 <p>4. Confirm when NVDA asks, and let it restart.</p>
 <p>Pressing Enter on that same file in File Explorer does the same thing, if that</p>
 <p>is easier.</p>
+<h1>Signing in to Google</h1>
+<p>Google will not sign anyone in on a browser started with remote debugging, and</p>
+<p>remote debugging is what HomerView needs to work at all. The message says the</p>
+<p>browser or app may not be secure. It is aimed at scripts driving a browser to</p>
+<p>take over accounts, which HomerView is not, but from Google&#x27;s side the two look</p>
+<p>the same, because the same switch enables both.</p>
+<p>There is no setting that avoids this. What works is signing in before HomerView</p>
+<p>starts.</p>
+<p>1. Set bAllowSignIn to True in edge.py, if you have not already, and delete the</p>
+<p>folder HomerView keeps its browser profile in, which is HomerView inside</p>
+<p>your local application data folder. This lets the profile hold a sign in.</p>
+<p>2. Launch HomerView once so the profile is rebuilt, then close it.</p>
+<p>3. Open that same profile in an ordinary Edge window, without HomerView, and</p>
+<p>sign in to Google there.</p>
+<p>4. Launch HomerView again. The session is already in the profile, so you are</p>
+<p>signed in.</p>
+<p>The session lasts as long as it would in any browser. Sites other than Google</p>
+<p>are unaffected, and most sign in normally inside HomerView.</p>
 <h1>When something does not work</h1>
 <p>Commands only work in windows HomerView itself opened. An Edge window that was</p>
 <p>already running has no debugging connection and cannot be given one, which is a</p>

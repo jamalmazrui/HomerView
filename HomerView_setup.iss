@@ -3,7 +3,7 @@
 ; Source root and installation destination: C:\HomerView
 
 #define AppName "HomerView"
-#define AppVersion "1.31.1"
+#define AppVersion "1.33.0"
 #define AppPublisher "Jamal Mazrui"
 ; A stable name on purpose. The version lives in the add-on's manifest, which is
 ; what NVDA reads, and in AppVersion above. Putting it in the file name as well
@@ -103,8 +103,10 @@ Source: "C:\HomerView\HomerView_setup.iss"; DestDir: "{app}"; Flags: ignoreversi
 ; repository, and a .gitignore beside the program is at best confusing.
 Source: "C:\HomerView\buildAddon.cmd"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\HomerView\buildAddon.ps1"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\HomerView\buildAll.cmd"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
-Source: "C:\HomerView\buildAll.ps1"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "C:\HomerView\buildAll.cmd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\HomerView\buildAll.ps1"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\HomerView\cleanDir.cmd"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "C:\HomerView\cleanDir.ps1"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 
 ; The development plan, kept for its historical value.
 Source: "C:\HomerView\docs\*"; DestDir: "{app}\docs"; Flags: ignoreversion recursesubdirs createallsubdirs skipifsourcedoesntexist

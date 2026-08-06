@@ -8,6 +8,31 @@
 <body>
 <main>
 <h1>History of Changes</h1>
+<h2>1.33.0</h2>
+<ul>
+<li>Added cleanDir.cmd, which moves everything the project does not need out of the development directory and into C drive temp HomerView_misc. It moves rather than deletes, because a tidying script that deletes is one nobody runs twice, and the point is that it can be run without thinking. Anything taken by mistake sits in one folder waiting to be moved back. Pass minus bWhatIf to see what would move without moving it.</li>
+<li>What it keeps is decided by what the setup script installs, what the build needs and what the repository tracks, rather than by a list that would drift from all three. If a file is already in the destination from a previous run, the newcomer gets the date on its name rather than overwriting something that may not have been looked at yet.</li>
+<li>The build now writes one add-on file rather than two. A copy named for the version was written beside HomerView.nvda-addon for release assets, and it was a mistake: two identical files with different names in one folder invites the wrong one being picked up, and the version is already in the manifest, which is what NVDA reads. cleanDir moves any left behind by an earlier build.</li>
+<li>Corrected two lines in .gitignore that did nothing. They used an exclamation mark to re-include executables and the built add-on, but an exclamation mark only re-includes what an earlier pattern excluded, and nothing excluded them. They were tracked because nothing stopped them, not because those lines said so. The comment now explains that, and HomerView_setup.exe is excluded, being a release asset rather than source and a large binary to commit on every release.</li>
+<li>Reviewed the setup script in full: every required source exists, the five files removed in 1.31.1 have not crept back, no directive is specified twice, no line begins with a bracket or a hash outside its proper place, and the licence the welcome page promises is the one installed. buildAll is now a required file rather than an optional one, since it carries the checks that run before Inno Setup.</li>
+</ul>
+<h2>1.32.1</h2>
+<ul>
+<li>The user guide claimed that Jump to Main Content and Report Page Address had no key, when they are on J and Alt+A. The guide is generated from the code, and the generator read only the main gesture table; those two commands, and the address command&#x27;s global key, are bound separately in the same file. It now reads every place a key is bound, and lists all of a command&#x27;s keys shortest first, so the everyday key leads and the longer one follows.</li>
+<li>A guide that says a command is unassigned when it is on the letter J is worse than no guide, so buildAll.cmd now refuses to build if the guide contains that phrase.</li>
+<li>Added a section on the Invoke Script command, which had no documentation at all. It names the Stagehand idea it follows, lists every verb and its synonyms, explains how a target is named and how a value is given, gives a worked example, and says what Test, Help and OK each do. It also says plainly that the matching is HomerView&#x27;s own, by role and accessible name, with nothing sent anywhere.</li>
+<li>Rewrote the guide around what a reader is trying to do rather than which file a command lives in: starting and finding things, getting around a page, finding text, reading and copying, asking about a page, acting on a page, and speech.</li>
+<li>On the Alternate Menu not opening: the log shows Alt+NVDA+F10 arriving and resolving correctly every time, then failing on a value that was nothing. That is the fault fixed in 1.27.0, and the log is from 1.26.4.</li>
+</ul>
+<h2>1.32.0</h2>
+<ul>
+<li>A user reported that Google will not let him sign in to Gmail inside HomerView, saying the browser may not be secure. The report is accurate and the cause is structural.</li>
+<li>Google refuses to sign anyone in on a browser started with remote debugging. That switch is the whole basis of HomerView, since the connection is how it asks the browser what is on the page and tells it what to do, so it cannot be given up. The check is aimed at scripts driving a browser to take over accounts, which is a real problem and a fair thing to guard against; HomerView is not that, but the same switch enables both, so from Google&#x27;s side the two are indistinguishable.</li>
+<li>One flag has been turned off: Chromium otherwise sets a marker on every page saying the browser is automated, and some sign-in pages read it and refuse. Turning that off is honest here, because this browser is driven by the person at the keyboard through their screen reader rather than by a script, which is what the marker was meant to detect and is not what it finds. It may help with other sites; it will not satisfy Google.</li>
+<li>Nothing further will be attempted. Defeating the check properly would mean making HomerView look like something it partly is, and the check exists for a good reason.</li>
+<li>What works is signing in before HomerView starts. A Google session established in an ordinary Edge window using the same profile is already there when HomerView opens it. The quick start now gives the steps, including allowing the profile to sign in at all, which it does not by default.</li>
+<li>Sites other than Google are mostly unaffected, and Microsoft accounts are not affected at all, which is why signing the profile in to a Microsoft account has always worked.</li>
+</ul>
 <h2>1.31.1</h2>
 <ul>
 <li>The installer no longer copies five files that belong to the development directory: clean.cmd, createHomerViewRepo.cmd and its PowerShell counterpart, .gitignore and .gitattributes. Nobody installs HomerView in order to create its GitHub repository, and a .gitignore sitting beside the program is at best confusing.</li>

@@ -200,8 +200,11 @@ disagree is one nobody notices until a user reports the wrong number.
 And every Python file on disk must be inside the built add-on, because a
 module left out builds cleanly and fails on the user’s machine at the
 moment they press the key.</p>
-<p>A log is written beside the script. Upload it if anything looks
-wrong.</p>
+<p>One log is written, beside the script, and it covers the whole build.
+There used to be two, because packaging the add-on was a separate
+program, and the reason for a failure could be in whichever of them
+nobody had been asked for. Nothing about zipping a folder needed its own
+script.</p>
 <h1 id="publishing-a-release">Publishing a release</h1>
 <pre><code>buildHomerView.cmd
 git add -A

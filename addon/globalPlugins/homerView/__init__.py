@@ -21,6 +21,7 @@ from .logger import abbreviate, homerLog, logError, logSection, logThreadContext
 import addonHandler
 
 from . import output
+from . import pathClipboard
 import api
 import globalPluginHandler
 import gui
@@ -917,6 +918,33 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
     )
     def script_openAnnouncement(self, gesture):
         documents.openDocument("announce")
+
+    @script(
+        # Translators: Input help mode message for Log to Clipboard.
+        description=_("Copy the HomerView log to the clipboard as a file, so Control+V "
+                      "attaches it to an email rather than typing its name into one. "
+                      "L for Log."),
+        category="HomerView",
+        gesture="kb:control+shift+l",
+    )
+    def script_logToClipboard(self, gesture):
+        """Put the log on the clipboard as a file rather than as its name."""
+        from . import logger
+        from . import pathClipboard
+
+        if not logger.pathLogFile or not logger.pathLogFile.exists():
+            # Translators: Reported when there is no log to copy.
+            ui.message(_("There is no log for this session yet"))
+            return
+        # Flushed first, so what gets attached includes whatever happened up to
+        # the moment of asking, which is usually the part that matters.
+        logger.flushLog()
+        if pathClipboard.copyPaths([logger.pathLogFile]):
+            # Translators: Reported after the log is put on the clipboard.
+            ui.message(_("Log copied. Press Control+V to attach it."))
+        else:
+            # Translators: Reported when the clipboard would not take the file.
+            ui.message(_("The log could not be put on the clipboard"))
 
     @script(
         # Translators: Input help mode message for Session Log.

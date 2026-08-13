@@ -35,7 +35,7 @@ lDocuments = [
     ("guide", "HomerView.htm", "HomerView.md", "User guide"),
     ("history", "History.htm", "History.md", "History of changes"),
     ("developer", "Developer.htm", "Developer.md", "Developer notes"),
-    ("hotkeys", "hotkeys.htm", "hotkeys.md", "Hotkeys"),
+    ("hotkeys", "Hotkeys.htm", "Hotkeys.md", "Hotkeys"),
     ("announce", "Announce.htm", "Announce.md", "About the project"),
 ]
 

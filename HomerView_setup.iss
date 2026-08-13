@@ -3,7 +3,7 @@
 ; Source root and installation destination: C:\HomerView
 
 #define AppName "HomerView"
-#define AppVersion "1.43.1"
+#define AppVersion "1.46.1"
 #define AppPublisher "Jamal Mazrui"
 ; A stable name on purpose. The version lives in the add-on's manifest, which is
 ; what NVDA reads, and in AppVersion above. Putting it in the file name as well
@@ -91,8 +91,8 @@ Source: "C:\HomerView\History.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\HomerView\History.htm"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\HomerView\Announce.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\HomerView\Announce.htm"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\HomerView\hotkeys.md"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\HomerView\hotkeys.htm"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\HomerView\Hotkeys.md"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\HomerView\Hotkeys.htm"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\HomerView\Developer.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\HomerView\Developer.htm"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\HomerView\Hotkeys.inix"; DestDir: "{app}"; Flags: ignoreversion
@@ -106,8 +106,6 @@ Source: "C:\HomerView\HomerView_setup.iss"; DestDir: "{app}"; Flags: ignoreversi
 ; configuration files belong to the development directory and have no meaning
 ; in an installation: nobody installs HomerView in order to create its GitHub
 ; repository, and a .gitignore beside the program is at best confusing.
-Source: "C:\HomerView\buildAddon.cmd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\HomerView\buildAddon.ps1"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\HomerView\buildHomerView.cmd"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\HomerView\buildHomerView.ps1"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\HomerView\cleanDir.cmd"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
@@ -183,7 +181,6 @@ Filename: "{cmd}"; \
 [UninstallDelete]
 Type: files; Name: "{app}\HomerView.log"
 Type: files; Name: "{app}\HomerView.previous.log"
-Type: files; Name: "{app}\buildAddon.log"
 Type: files; Name: "{app}\Axe.json"
 Type: files; Name: "{app}\Ace.json"
 Type: files; Name: "{app}\HomerView.db"

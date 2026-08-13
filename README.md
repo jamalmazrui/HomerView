@@ -87,6 +87,13 @@ which HomerView itself can open.
 Press **Alt+Control+F1** to open this session's log. It records what HomerView
 did and what went wrong, and it is the fastest way to an answer.
 
+Press **Control+Shift+L** to put that log on the clipboard as a file. Pressing
+Control+V in an email message then attaches it, rather than typing its name
+into the message. That is how to send a full report of what happened.
+
+HomerView never sends the log anywhere by itself, and your user name is taken
+out of it as it is written. HomerView.md says exactly what it contains.
+
 If a command does nothing, open the Alternate Menu with **Alt+NVDA+F10** and
 run it from there. The menu only lists commands that apply right now, so a
 command missing from it is a command that cannot run yet.

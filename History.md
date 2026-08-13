@@ -9,6 +9,50 @@ What changed, newest first. Written the way you would tell somebody, not as a
 list of commit messages. The reasoning behind each change is in the code, where
 it belongs. This is the short version.
 
+# Version 1.46.1
+
+- Log to Clipboard moves to Control+Shift+L. Alt+Control with a letter, and Alt+Control+Shift with a letter, belong to Windows desktop and start menu shortcuts, which a user may have set for themselves; a program that overrides one is taking something that was not its to take. That convention is now written down with the other rules about choosing keys, so it will not be broken again by accident.
+- Your user name and computer name are now taken out of the log as it is written. Every path reads %USERPROFILE% or %LOCALAPPDATA% rather than naming you, so the log still says where a file was without saying whose machine it was on.
+- That happens at the last moment before a line is written, rather than at each of the several hundred places that log a path, because one of those places would be forgotten.
+- The log now opens by saying what it holds and who sees it: that HomerView never sends it anywhere, that your name has been taken out, and that it does record the addresses of pages you opened and text you searched for, since most faults cannot be explained without them. Read it before sending if that matters for what you were doing.
+- The guide has a section on the same, because a user deciding whether to share a log should not have to take anybody's word for what is in it.
+
+# Version 1.46.0
+
+- Each session now writes its own log, named for when it started, in a logs folder inside HomerView's own. A problem reported an hour later still has the log from when it happened, and the log being read is never the log being written to. The thirty most recent are kept.
+- The log is written with a byte order mark and Windows line breaks, so it opens correctly in Notepad and EdSharp, and each line is flushed as it is written. A buffered log loses its last few lines exactly when something has gone wrong, which is when those lines are the ones worth having.
+- Added Log to Clipboard on Alt+Control+L. It puts the log on the clipboard as a file rather than as its name, so pressing Control+V in an email message attaches it instead of typing the path into the message.
+- That is a different clipboard format from ordinary copying: the one Windows Explorer uses when you copy a file. Anything that accepts a dropped file accepts it, so File Explorer will copy the log into a folder the same way. The path also goes on as plain text, so a field that wants letters still gets them, and neither program has to know what the other wanted.
+- The code that does it takes any list of paths rather than only the log, because the next thing worth attaching will not be a log.
+
+# Version 1.45.0
+
+- The guide now contains everything a user needs, and does not send them to another file for any of it. What HomerView is for, what you need, how to install it, a first half hour that goes well beyond the quick start, every command, and the licence. Nothing from the developer notes or the history is in it, because it is a guide for people using HomerView rather than building it.
+- Added that first half hour: opening a page and exploring it, reading it, finding in it, asking what is behind a link before following it, extracting and saving, opening a document as though it were a page, testing for accessibility and reporting what you find, and asking HomerView to look something up.
+- The whole command list is now in the guide as well as in Hotkeys.md, because a guide that leaves out the keys is not a full guide for somebody reading by ear. The standalone file uses one heading level higher, since it is a document rather than a section.
+- Both are generated from one grouping in the code, so the list in the guide, the file beside it, and what Alt+Shift+H builds inside HomerView cannot disagree.
+- Commands are grouped by what you are trying to do and sorted by name inside each group, so a half-remembered name can be found without reading the group twice.
+- Renamed hotkeys.md to Hotkeys.md, to match the other documents.
+- Checked the reading level of every document, which had not been done for all of them. All six are at or below ninth grade: the guide and the read me are near fifth, the hotkey list is below fifth, and the history and announcement, the two with the most unavoidable jargon, are in the eights.
+
+# Version 1.44.1
+
+- The build log named every file it packaged, one line each. That was harmless when packaging had a log of its own that nobody read, and became sixty-six lines of successful file names in the one log a person now uploads, pushing everything worth reading to the bottom. It is a summary now: how many modules, how many documents, and the manifest.
+- The names are still gathered, and they are printed when the count check fails, which names the module that was left out. That is the only time they tell anybody anything.
+
+# Version 1.44.0
+
+- One build script now, and one log. Packaging the add-on used to be a separate program that buildHomerView called, which meant two logs for one build, and the reason for a failure could be in whichever of them nobody had been asked for. Nothing about zipping a folder needed its own script.
+- The previous release added machinery to fold the second log into the first when the add-on build failed. That was solving the wrong problem: the packaging step has never been where anything went wrong. Merging the two removes the problem instead of managing it.
+- Removed buildAddon.cmd and buildAddon.ps1, and the lines in the installer and the clean script that tidied away a log which is no longer written.
+- The .cmd that calls the .ps1 stays, because that is how a PowerShell script is run from a command prompt and not a second program in any real sense.
+
+# Version 1.43.2
+
+- buildHomerView.log is now enough on its own. When the add-on build fails, the reason used to be in buildAddon.log and this log said only that something had failed, so reading it meant asking for a second file. The last lines of the other log are now folded in, with the exit code.
+- On success it records how large the add-on is, so the ordinary questions can be answered from one log.
+- If the add-on build fails before it writes anything at all, that is now said in as many words, rather than leaving a reader to wonder whether the log is missing or was never written.
+
 # Version 1.43.1
 
 - The full guide is HomerView.md and HomerView.htm again. It was briefly called App.md, from a misreading: the Homer Tools convention names that file after the app, and App was the placeholder rather than the name.

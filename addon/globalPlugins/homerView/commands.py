@@ -20,6 +20,11 @@ export, which is a convention older than any of this.
 Beyond that, in order:
 
   - A key NVDA uses on either the desktop or the laptop layout is never taken.
+  - Alt+Control with a letter, and Alt+Control+Shift with a letter, are never
+    taken either. Those belong to Windows desktop and start menu shortcuts,
+    which a user may have set for themselves, and a program that overrides one
+    is taking something that was not its to take. Alt+Control with a function
+    key is not in that convention and is used.
   - A JAWS default is used where it is free, because a blind Windows user has
     had those in their fingers for years. The element lists are here for that
     reason: NVDA+F5, NVDA+F6 and NVDA+Shift+F7 are where JAWS puts them.
@@ -92,6 +97,10 @@ lCommands = [
     ("openAnnouncement", "Project Announcement", [],
      "Open the short description of HomerView, for passing on to somebody who has "
      "not met it."),
+    ("logToClipboard", "Log to Clipboard", ["kb:control+shift+l"],
+     "Copy the HomerView log to the clipboard as a file, so Control+V attaches it "
+     "to an email rather than typing its name into one. L for Log, beside the "
+     "other Control+Shift keys that put something somewhere."),
     ("openLog", "Session Log", ["kb:alt+control+f1"],
      "Open a copy of this session's log, for working out what went wrong."),
 
@@ -314,6 +323,75 @@ lFolded = [
 ]
 
 
+# How the commands are grouped for a reader, by what somebody is trying to do
+# rather than by where the code keeps them. The order is the order a person
+# meets them: starting, then reading, then acting, then the occasional.
+#
+# Both the Hotkey Summary command and the published list use this, so the two
+# cannot disagree about what belongs where.
+lGroups = [
+    ("Starting HomerView", [
+        "launchHomerView", "alternateMenu", "hotkeySummary"]),
+    ("Reading the documentation", [
+        "showHelp", "openQuickStart", "showHistory", "showAbout",
+        "openDeveloperNotes", "openHotkeyDocument", "openAnnouncement", "openLog",
+        "logToClipboard"]),
+    ("Moving through a page", [
+        "moveToMainContent", "proxyMainContent", "nextSentence", "priorSentence",
+        "nextParagraph", "priorParagraph", "nextSameType", "priorSameType",
+        "nextDifferentType", "priorDifferentType", "goToPercent", "goToPercentAgain"]),
+    ("Finding text", [
+        "findText", "findTextBackwards", "findByPattern", "findByPatternBackwards",
+        "findAgain", "findAgainBackwards", "findWordAtCursor",
+        "findWordAtCursorBackwards"]),
+    ("Listing what is on the page", [
+        "listHeadings", "listFormFields", "listLinks", "listAnyElements",
+        "explorePage"]),
+    ("Asking about the page", [
+        "reportPageAddress", "reportAddressAnywhere", "pageInformation",
+        "sayPosition", "sayYield", "sayYieldStructure", "sayYieldPattern",
+        "urlReference", "describeLinkTarget", "pageUrls", "sayTime"]),
+    ("Reading aloud", [
+        "readAll", "toggleSayAll", "saySelected", "sayChunk"]),
+    ("Selecting and the clipboard", [
+        "startSelection", "completeSelection", "goToSelectionStart", "selectChunk",
+        "copyAll", "copyLineOrSelection", "copyAppend", "quoteClipboard",
+        "saveClipboard", "appendClipboard", "clearClipboard"]),
+    ("Acting on the page", [
+        "openOtherFormat", "saveAs", "extractMainContent", "downloadFiles",
+        "submitForm", "actOnPage", "runAccessibilityCheck", "openCopilot",
+        "webUtilities", "dismissDialog", "runAxe", "runIbmChecker",
+        "accessibilityReport"]),
+    ("The window and its tabs", [
+        "chooseTab", "sayTabs", "closeOtherTabs"]),
+    ("Adjusting the voice", [
+        "speakFaster", "speakSlower", "speakLouder", "speakSofter",
+        "togglePunctuation", "reportSpeechSettings"]),
+    ("Now and then", [
+        "elevateVersion", "recentPages", "reportConnection", "selfTest"]),
+]
+
+
+def grouped():
+    """Every command in reading order, grouped, with nothing left out.
+
+    Anything the grouping forgot lands in a final group rather than vanishing,
+    because a command missing from the list a reader is given is worse than a
+    command in a slightly odd place.
+    """
+    dByScript = byScript()
+    setPlaced = {s for _sTitle, lNames in lGroups for s in lNames}
+    lResult = []
+    for sTitle, lNames in lGroups:
+        lEntries = [(s, dByScript[s]) for s in lNames if s in dByScript]
+        if lEntries:
+            lResult.append((sTitle, lEntries))
+    lLeft = [(s, dByScript[s]) for s in sorted(dByScript) if s not in setPlaced]
+    if lLeft:
+        lResult.append(("Everything else", lLeft))
+    return lResult
+
+
 def byScript():
     """The table keyed by script name, which is how the code reaches it."""
     dByScript = {}
@@ -346,7 +424,8 @@ setAnywhereScripts = {
 }
 
 setGlobalScripts = {
-    "downloadFiles", "extractMainContent", "openDeveloperNotes", "openLog",
+    "downloadFiles", "extractMainContent", "logToClipboard", "openDeveloperNotes",
+    "openLog",
     "openQuickStart", "saveAs", "submitForm",
 }
 

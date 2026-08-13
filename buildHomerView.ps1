@@ -122,6 +122,88 @@ function checkSetupScript {
     }
 }
 
+function buildAddon {
+    # Packaging the add-on, folded in from what used to be a second script.
+    #
+    # One script, one log. The split meant two logs for one build, and the
+    # reason for a failure could be in whichever of them the reader had not
+    # been asked for. Nothing about packaging a zip needed its own program.
+    #
+    # The add-on always has the same name, HomerView.nvda-addon, so the setup
+    # script never has to be edited when the version changes. One file, not
+    # two: a copy named for the version was written here as well, and two
+    # identical files with different names in one folder invites the wrong one
+    # being picked up. The version is in the manifest, which is what NVDA reads.
+    $pathAddon = Join-Path $pathRoot "addon"
+    $pathBuild = Join-Path $pathRoot "build"
+    # What went in, gathered rather than announced line by line.
+    $script:lIncluded = New-Object System.Collections.ArrayList
+
+    $pathManifest = Join-Path $pathAddon "manifest.ini"
+    $sVersion = ""
+    foreach ($sLine in Get-Content $pathManifest) {
+        if ($sLine -match '^\s*version\s*=\s*"([^"]+)"') {
+            $sVersion = $Matches[1]
+        }
+    }
+    if (-not $sVersion) {
+        writeLog "ERROR: no version was found in manifest.ini"
+        exit 1
+    }
+    writeLog "Version $sVersion"
+
+    if (-not (Test-Path $pathBuild)) {
+        New-Item -ItemType Directory -Path $pathBuild | Out-Null
+        writeLog "Created $pathBuild"
+    }
+
+    $pathOutput = Join-Path $pathBuild "HomerView.nvda-addon"
+    if (Test-Path $pathOutput) {
+        Remove-Item $pathOutput -Force
+        writeLog "Removed the previous $pathOutput"
+
+        # Stale documents. Unzipping a new version over an old folder adds and
+        # replaces but never removes, so a document that has been renamed leaves
+        # its old name behind and that old name is then packaged. HomerView.htm
+        # survived the rename to HomerView.htm exactly this way.
+        $pathDocs = Join-Path $pathAddon "doc\en"
+        if (Test-Path $pathDocs) {
+            $lExpected = @("Announce.htm", "HomerView.htm", "Developer.htm", "History.htm",
+                "ReadMe.htm", "Hotkeys.htm", "readme.html")
+            foreach ($fileDoc in (Get-ChildItem -Path $pathDocs -File)) {
+                if ($lExpected -notcontains $fileDoc.Name) {
+                    Remove-Item $fileDoc.FullName -Force
+                    writeLog "Removed the stale document $($fileDoc.Name), which the project no longer generates"
+                }
+            }
+        }
+    }
+    # Any versioned copy an earlier build left behind, so the folder holds one file.
+    foreach ($pathOld in (Get-ChildItem $pathBuild -Filter "HomerView-*.nvda-addon" -ErrorAction SilentlyContinue)) {
+        Remove-Item $pathOld.FullName -Force
+        writeLog "Removed the leftover $($pathOld.Name)"
+    }
+
+    foreach ($pathCache in (Get-ChildItem -Path $pathAddon -Recurse -Directory -Filter "__pycache__")) {
+        Remove-Item $pathCache.FullName -Recurse -Force
+        writeLog "Removed $($pathCache.FullName)"
+    }
+
+    foreach ($pathFile in (Get-ChildItem -Path $pathAddon -Recurse -File)) {
+        $null = $lIncluded.Add($pathFile.FullName.Substring($pathAddon.Length + 1))
+    }
+
+    Compress-Archive -Path (Join-Path $pathAddon "*") -DestinationPath "$pathOutput.zip" -Force
+    Move-Item "$pathOutput.zip" $pathOutput -Force
+    $iModules = @($lIncluded | Where-Object { $_ -like "*.py" }).Count
+    $iDocuments = @($lIncluded | Where-Object { $_ -like "doc\*" }).Count
+    writeLog "Included $($lIncluded.Count) files: $iModules Python modules, $iDocuments documents, and the manifest."
+    writeLog "Wrote $pathOutput"
+
+
+
+}
+
 writeLog "buildHomerView starting"
 
 # The environment, recorded before anything can fail. A log that says only what
@@ -149,8 +231,15 @@ checkSetupScript
 writeLog ""
 
 writeLog "Step 2 of 3: building the add-on"
-& powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $pathRoot "buildAddon.ps1")
-if ($LASTEXITCODE -ne 0) { writeLog "ERROR: the add-on build failed"; exit 1 }
+buildAddon
+
+# Even on success, record what the add-on build produced, so this log alone
+# answers the ordinary questions: how many files, and how big.
+$pathBuilt = Join-Path $pathRoot "build\HomerView.nvda-addon"
+if (Test-Path $pathBuilt) {
+    $nAddonSize = [math]::Round((Get-Item $pathBuilt).Length / 1KB)
+    writeLog "The add-on is $nAddonSize KB."
+}
 
 # Inno Setup's compiler is not on the path by default, so look where its own
 # installer puts it rather than asking the user to add it.
@@ -225,6 +314,16 @@ try {
     if ($iPacked -ne $iOnDisk) {
         writeLog "ERROR: $iOnDisk Python files are on disk but $iPacked are in the add-on."
         writeLog "       A module left out builds cleanly and fails on the user's machine."
+        # Now the names matter, which is why they were kept rather than only
+        # counted. Listing them every time buried everything else in the log.
+        $lPackedNames = @($lInside | Where-Object { $_ -like "*.py" } |
+            ForEach-Object { Split-Path $_ -Leaf })
+        foreach ($fileOnDisk in (Get-ChildItem -Path (Join-Path $pathRoot "addon") -Filter "*.py" -Recurse |
+                Where-Object { $_.FullName -notlike "*__pycache__*" })) {
+            if ($lPackedNames -notcontains $fileOnDisk.Name) {
+                writeLog "       missing from the add-on: $($fileOnDisk.Name)"
+            }
+        }
         exit 1
     }
     writeLog "All $iPacked Python modules are in the add-on."

@@ -18,7 +18,7 @@ weights have been published, which is not the same thing as the service being
 open. None of them belong here under this rule.
 """
 
-startPageVersion = "15"
+startPageVersion = "17"
 
 startPageText = """<!doctype html>
 <html lang="en">
@@ -64,11 +64,16 @@ side effect.</li>
 <h2>Commands in a web page</h2>
 <ul>
 <li><strong>J</strong> jumps to the main content.</li>
-<li><strong>Shift+J</strong> finds the main content when the page declares none.</li>
+<li><strong>Shift+J</strong> finds the main content when the page declares none, by
+weighing every part of the page: the most text with the fewest links is what an article
+looks like. It always says that it inferred the answer rather than being told it.</li>
 <li><strong>Y</strong> summarises the structure of the page.</li>
 <li><strong>Alt+Y</strong> says how much text there is, and
 <strong>Control+Shift+Y</strong> counts how often a regular expression matches, which
 answers how many rather than where.</li>
+<li><strong>Alt+Shift+U</strong> asks what is at the link under the cursor without going
+there: whether it is a page or a file, how big, whether it still exists, and where it
+actually ends up.</li>
 <li><strong>Alt+A</strong> reports the web address. Twice spells it, three times copies it.</li>
 <li><strong>ScrollLock</strong> starts reading continuously, and stops it. One key for
 both.</li>

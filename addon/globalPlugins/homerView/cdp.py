@@ -22,6 +22,15 @@ from .logger import abbreviate, homerLog, logError
 from .webSocket import WebSocketClient
 
 defaultCallTimeoutSeconds = 8.0
+
+# Asking one tab whether it has focus is a trivial call. Giving it the full
+# call timeout meant one wedged tab cost the whole budget, and several tabs
+# multiplied it.
+activeProbeSeconds = 2.0
+
+# The search as a whole has its own budget too, so the cost does not grow with
+# the number of tabs open.
+activeSearchSeconds = 6.0
 discoveryTimeoutSeconds = 4.0
 maximumLoggedExpressionCharacters = 2000
 
@@ -45,6 +54,7 @@ class CdpSession:
         self.dEventHandlers = {}
         self.dPageSessions = {}
         self.dPending = {}
+        self.sLastActiveTargetId = ""
         self.iNextId = 0
         self.iPort = 0
         self.lockState = threading.Lock()
@@ -93,6 +103,7 @@ class CdpSession:
         with self.lockState:
             lPending = list(self.dPending.values())
             self.dPending = {}
+        self.sLastActiveTargetId = ""
         for pending in lPending:
             homerLog.warning(f"CDP close: abandoning pending {pending.sMethod}")
             pending.dError = {"message": "The DevTools connection was closed"}
@@ -333,15 +344,35 @@ class CdpSession:
         if not lTargets:
             raise CdpError("HomerView Edge has no open page")
         dFallback = None
+        # The tab that answered last time is asked first. A reader stays on one
+        # page for a while, so the previous answer is usually still right, and
+        # asking it first turns the common case into a single probe.
+        sRemembered = self.sLastActiveTargetId
+        if sRemembered:
+            lTargets = ([d for d in lTargets if d.get("targetId") == sRemembered]
+                        + [d for d in lTargets if d.get("targetId") != sRemembered])
+
+        nDeadline = time.monotonic() + activeSearchSeconds
         for dTarget in lTargets:
             sUrl = dTarget.get("url", "")
             if sUrl and sUrl != "about:blank" and not dFallback:
                 dFallback = dTarget
+            if time.monotonic() > nDeadline:
+                # A whole search has a budget, not each probe. Without this,
+                # five unresponsive tabs cost five timeouts one after another.
+                homerLog.warning(
+                    f"The search for the active page ran past {activeSearchSeconds} seconds; "
+                    "using the first usable tab instead"
+                )
+                break
             try:
                 sSessionId = self.attachToTarget(dTarget["targetId"])
-                bFocused = self.evaluate(sSessionId, "document.hasFocus()")
+                # A short timeout of its own. A tab that cannot answer whether
+                # it has focus within a moment is not the tab being read.
+                bFocused = self.evaluate(sSessionId, "document.hasFocus()", activeProbeSeconds)
                 homerLog.debug(f"CDP focus test for {dTarget.get('targetId')}: {bFocused}")
                 if bFocused:
+                    self.sLastActiveTargetId = dTarget.get("targetId", "")
                     homerLog.info(f"CDP active page: {abbreviate(dTarget.get('url', ''), 300)}")
                     return dTarget, sSessionId
             except CdpError as exception:

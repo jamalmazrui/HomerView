@@ -16,7 +16,11 @@ So a page is the default. The browseable window remains for the case where
 there is no browser to put a page in, which is mainly before HomerView Edge has
 been launched, and for anyone who prefers it.
 
-Set bPreferTemporaryPage to False to use the browseable window throughout.
+This is a setting, not a constant. It is read from HomerView.inix on every
+call, so changing it in NVDA's settings, or by editing the file, takes effect
+at once. An earlier version had it as a module constant and a settings panel
+that wrote a value nothing read, which is worse than having no setting: the
+user is told their choice was saved and nothing changes.
 """
 
 import re
@@ -29,7 +33,15 @@ from .logger import homerLog, logError
 
 addonHandler.initTranslation()
 
+# The default. The value actually used comes from preferTemporaryPage in the
+# settings file, with this as the fallback.
 bPreferTemporaryPage = True
+
+
+def preferTemporaryPage():
+    from . import settings
+
+    return settings.getFlag("preferTemporaryPage", bPreferTemporaryPage)
 
 pageStyle = """
 body { font-family: Segoe UI, Arial, sans-serif; line-height: 1.5; margin: 0 auto;
@@ -104,7 +116,7 @@ def show(sHtml, sTitle, sFileName=""):
     """
     from .service import service
 
-    if not bPreferTemporaryPage:
+    if not preferTemporaryPage():
         homerLog.info(f"Report {sTitle}: browseable window, by preference")
         return showBrowseable(sHtml, sTitle)
     if not service.isConnected():

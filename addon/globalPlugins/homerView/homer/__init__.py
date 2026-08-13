@@ -34,11 +34,27 @@ this file as-is."
 Because no module imports NVDA, the same folder also works in a standalone
 program, which is what makes it worth publishing on its own.
 
+# The Python side of the Homer shared classes
+
+The C# originals live in a namespace, reached as `using Homer;` and then
+`Lbc.addListBox` or `Util.formatBytes`. Python needs no namespace keyword: a
+package already is one. So `namespace Homer` becomes this package, each class
+becomes a module, and `Util.formatBytes` becomes `homer.util.formatBytes`.
+
+One level of nesting disappears where a C# class is purely static, because a
+module is already the container that class was providing. Where a class carries
+state it stays a class: `LbcDialog` is `homer.lbc.Dialog`, built and used the
+same way.
+
+Names are otherwise unchanged, so a Homer program can be read in either
+language without translating as you go.
+
 Modules:
 
     inix    Order preserving ini and inix configuration files.
     lbc     Layout by Code: accessible dialogs built in code.
     say     One way to announce text, whatever is listening.
+    util    Strings, sizes, plurals and line operations.
     version Comparing and checking versions against a GitHub release.
     web     Dependency free HTTP with browser-like behaviour.
 
@@ -50,6 +66,14 @@ to be told things a sighted user can simply look at.
                      multi-line field or a list, which swallow plain Enter
     Shift+F1         speak the tip for the control that has focus
     Control+A        select all, and say so
+    Control+X        cut the selection, or the whole line if there is none
+    Alt+X            cut, appending to what is already on the clipboard
+    Control+D        delete the line, without touching the clipboard
+    F8, Shift+F8     start and complete a selection without holding Shift
+    Control+F8       copy the whole field
+    Alt+F8           read the whole field
+    Alt+Y            say how much is in the field
+    Alt+Apostrophe   say what is on the clipboard
     Control+Shift+A  clear the selection, and say so
     Control+C        copy the current line, or the current list item
     Alt+C            append the same to the clipboard
@@ -58,6 +82,16 @@ to be told things a sighted user can simply look at.
     F3, Shift+F3     repeat that search without being asked again
     F4               open a pick list, where the field was given one
 
+**Multi-line fields also answer the line operations**, which is where the C#
+LbcTextBox earns its keep: a list of anything can be tidied where it sits
+rather than in another program.
+
+    Alt+Shift+O      sort the lines
+    Alt+Shift+Z      reverse them
+    Alt+Shift+K      remove repeats, keeping the first of each
+    Alt+Shift+N      number them
+    Control+Shift+Enter   remove the blank ones
+
 OK and Cancel never carry a mnemonic, because Windows already gives Cancel to
 Escape and OK to Enter, and spending two accelerators on them takes letters a
 field could use.
@@ -65,7 +99,7 @@ field could use.
 
 toolkitVersion = "1.0.0"
 
-__all__ = ["inix", "lbc", "say", "version", "web"]
+__all__ = ["inix", "lbc", "say", "util", "version", "web"]
 
 # --- A shared Homer folder, when one exists -------------------------------
 #

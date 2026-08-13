@@ -221,26 +221,40 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         """Mark HomerView Edge documents so they gain the HomerView browse mode.
 
         This runs for every object NVDA creates, so it must stay free of input
-        and output. The role test comes first and is cheap, which also keeps the
-        logging below to a handful of entries per page rather than thousands.
+        and output. The role test comes first and is cheap, which keeps what
+        follows to a handful of calls per page rather than thousands.
+
+        The rest was not free, and that was a real cost rather than a
+        theoretical one. Every document object wrote two log lines, each of
+        which is a synchronous file write, on the thread NVDA uses to build the
+        page. A page with many frames produced dozens of them before the reader
+        heard anything.
+
+        Now a document that is not HomerView's is dismissed in silence, since
+        there is nothing to say about the ordinary case and it is the common
+        one. Only the documents that matter are described, and the running
+        totals are still there for anyone reading the log afterwards.
         """
         try:
             if obj.role != Role.DOCUMENT:
                 return
             self.iDocumentsSeen += 1
-            sAppName = (getattr(getattr(obj, "appModule", None), "appName", "") or "").lower()
-            iProcessId = getattr(obj, "processID", 0)
-            sName = abbreviate(getattr(obj, "name", "") or "", 120)
-            homerLog.info(
-                f"Document {self.iDocumentsSeen}: appName={sAppName} processId={iProcessId} "
-                f"name={sName} baseClasses={[cls.__name__ for cls in clsList]}"
-            )
-            if not service.isHomerViewObject(obj):
-                homerLog.info("Document is not a HomerView page, so no commands are added")
+            bMine = service.isHomerViewObject(obj)
+            if not bMine:
+                # Nothing written. This is the common case and it is not
+                # interesting, and writing about it costs the reader time on
+                # the thread that is building their page.
                 return
             clsList.insert(0, HomerViewDocument)
             self.iDocumentsMatched += 1
-            homerLog.info("Document is a HomerView page; HomerViewDocument overlay inserted")
+            # Only now, when there is something worth recording.
+            sAppName = (getattr(getattr(obj, "appModule", None), "appName", "") or "").lower()
+            sName = abbreviate(getattr(obj, "name", "") or "", 120)
+            homerLog.info(
+                f"Document {self.iDocumentsSeen} is a HomerView page, and the "
+                f"{self.iDocumentsMatched} to be: appName={sAppName} "
+                f"processId={getattr(obj, 'processID', 0)} name={sName}"
+            )
         except Exception:
             logError("Classifying an object raised")
 
@@ -262,9 +276,14 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
                 "script_openOtherFormat",
                 "script_saveAs",
             )
-            and self._focusAppName() != "msedge"
+            and not self._focusIsHomerViewEdge()
         ):
-            # Outside the browser this key belongs to whatever has focus.
+            # Outside HomerView's own browser this key belongs to whatever has
+            # focus. Testing for Edge by name was not enough: an ordinary Edge
+            # window is also called msedge, so Control+S in a browser HomerView
+            # did not open would have saved HomerView's page, and Control+Enter
+            # would have submitted a form on a page the user was not looking
+            # at. The process test is the one that means what it says.
             return None
         try:
             bMine = functionScript is not None
@@ -280,6 +299,33 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         except Exception:
             pass
         return functionScript
+
+    def _focusIsHomerViewEdge(self):
+        """Say whether the focused window belongs to HomerView's own browser.
+
+        The process identifiers are what distinguish HomerView's Edge from any
+        other. They are already tracked, because every object NVDA creates is
+        tested against them, so this costs an integer set lookup.
+
+        Before the browser has been launched there are no identifiers to
+        compare, and the name test is the best available answer; it is used
+        only then, and only to decide whether a key is HomerView's, never to
+        decide what to act on.
+        """
+        try:
+            focus = api.getFocusObject()
+            iProcessId = getattr(focus, "processID", 0)
+            if service.setProcessIds:
+                bMine = iProcessId in service.setProcessIds
+                if not bMine:
+                    homerLog.debug(
+                        f"Focus is process {iProcessId}, not one of HomerView's "
+                        f"{sorted(service.setProcessIds)}"
+                    )
+                return bMine
+        except Exception:
+            logError("The focused process could not be identified")
+        return self._focusAppName() == "msedge"
 
     def _focusAppName(self):
         try:

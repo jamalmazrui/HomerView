@@ -28,6 +28,7 @@ from . import contacts
 from . import copilot
 from . import exportReport
 from . import formSubmit
+from . import mainContentFinder
 from . import tabs
 from . import convert
 from . import download
@@ -47,6 +48,10 @@ bOpenReportTab = True
 
 shutdownTaskName = "shutdown"
 
+# How long to wait for a task that is already running. Long enough for an
+# ordinary protocol call to finish, short enough not to hold NVDA's shutdown.
+stopWaitSeconds = 3.0
+
 
 class Task:
     def __init__(self, sName, functionTask, functionSuccess, functionError):
@@ -62,6 +67,7 @@ class HomerViewService:
         self.cdpSession = CdpSession()
         self.edgeManager = EdgeManager()
         self.iPort = 0
+        self.bStopping = False
         self.lGlobalCommands = []
         self.functionOpenDocument = lambda: None
         self.sCarriedUrl = ""
@@ -85,14 +91,61 @@ class HomerViewService:
         homerLog.info("Worker thread started")
 
     def stop(self):
+        """Stop now, rather than after everything already queued has finished.
+
+        The sentinel alone was not enough. It went to the back of the queue, so
+        a shutdown behind a page scan and three downloads waited for all of
+        them, and NVDA was closing while they ran. Anything they spoke or
+        showed arrived after the add-on had been told to go away.
+
+        Three things are needed and the sentinel is only one. A flag the worker
+        checks between tasks, so it stops at the next boundary rather than at
+        the end. Emptying the queue, so what is waiting is abandoned rather
+        than run. And refusing new work, so nothing is added during the wind
+        down.
+        """
         homerLog.info("Worker thread stop requested")
+        self.bStopping = True
+
+        # Abandon what is waiting. Each task is accounted for, so a queue that
+        # emptied is distinguishable from one that never had anything in it.
+        iAbandoned = 0
+        while True:
+            try:
+                self.queueTasks.get_nowait()
+                iAbandoned += 1
+            except Exception:
+                break
+        if iAbandoned:
+            homerLog.info(f"Abandoned {iAbandoned} queued tasks")
+
         self.queueTasks.put(Task(shutdownTaskName, None, None, None))
+
+        # Wait, but not for ever. A task already running cannot be interrupted,
+        # and holding NVDA's shutdown open indefinitely for one is worse than
+        # letting the thread end with the process.
+        thread = self.threadWorker
+        if thread and thread.is_alive():
+            thread.join(timeout=stopWaitSeconds)
+            if thread.is_alive():
+                homerLog.warning(
+                    f"The worker was still busy after {stopWaitSeconds} seconds, so it is "
+                    "left to end with the process"
+                )
+            else:
+                homerLog.info("Worker thread stopped")
+
         try:
             self.cdpSession.close()
         except Exception:
             logError("Closing the DevTools session raised")
 
     def submit(self, sName, functionTask, functionSuccess=None, functionError=None):
+        if self.bStopping:
+            # Refused rather than queued. Work accepted during a shutdown would
+            # either never run or run while NVDA was closing.
+            homerLog.info(f"Task refused during shutdown: {sName}")
+            return
         self.start()
         homerLog.debug(f"Task queued: {sName}, depth now {self.queueTasks.qsize() + 1}")
         self.queueTasks.put(Task(sName, functionTask, functionSuccess, functionError))
@@ -100,6 +153,11 @@ class HomerViewService:
     def _workLoop(self):
         while True:
             task = self.queueTasks.get()
+            if self.bStopping and task.sName != shutdownTaskName:
+                # Stopping began while this was waiting its turn.
+                homerLog.info(f"Skipping {task.sName}: the worker is stopping")
+                self.queueTasks.task_done()
+                continue
             if task.sName == shutdownTaskName:
                 homerLog.info("Worker thread exiting")
                 return
@@ -440,6 +498,9 @@ class HomerViewService:
 
     def taskCloseOtherTabs(self):
         return tabs.closeOtherTabs(self.cdpSession)
+
+    def taskFindMainContent(self):
+        return mainContentFinder.findMainContentOpening(self.cdpSession)
 
     def taskSurveyPage(self):
         return act.survey(self.cdpSession)

@@ -3,7 +3,7 @@
 ; Source root and installation destination: C:\HomerView
 
 #define AppName "HomerView"
-#define AppVersion "1.33.0"
+#define AppVersion "1.39.1"
 #define AppPublisher "Jamal Mazrui"
 ; A stable name on purpose. The version lives in the add-on's manifest, which is
 ; what NVDA reads, and in AppVersion above. Putting it in the file name as well
@@ -114,7 +114,11 @@ Source: "C:\HomerView\docs\*"; DestDir: "{app}\docs"; Flags: ignoreversion recur
 ; The converters, if they are sitting beside this script when it is compiled.
 ; The installation folder is the first place HomerView looks for either.
 Source: "C:\HomerView\2htm.exe"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
-Source: "C:\HomerView\pandoc.exe"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
+; pandoc is NOT packaged. It is about 220 megabytes, which GitHub refuses and
+; which is a long download to impose on someone who may already have it or may
+; never open an ebook. The Run section below offers to fetch it instead.
+Source: "C:\HomerView\installPandoc.cmd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\HomerView\installPandoc.ps1"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 ; A Start Menu group is created only if the user asks for one, since
@@ -154,6 +158,22 @@ Name: "{group}\Uninstall HomerView"; Filename: "{uninstallexe}"
 ; again, the answer is not another mechanism: it is installing from the file,
 ; which the finish page now explains in every case.
 Filename: "{app}\build\{#AddonFile}"; Description: "Install the HomerView add-on in NVDA (recommended)"; Flags: postinstall shellexec skipifsilent runasoriginaluser nowait
+
+; Pandoc, fetched rather than packaged, for the same reason HomerScribe fetches
+; Ollama: it is far too large to ship and not everybody needs it.
+;
+; Checked by default because the reader who needs it is the reader who cannot
+; tell in advance that they do: they find out when an ebook will not open. The
+; script notices a copy already on the machine and copies that instead of
+; downloading, so ticking it when pandoc is present costs a second.
+;
+; runascurrentuser matters. winget installs per user, into the profile of
+; whoever is signed in, and this installer is running elevated.
+Filename: "{cmd}"; \
+  Parameters: "/c """"{app}\installPandoc.cmd"""""; \
+  WorkingDir: "{app}"; \
+  Description: "Install pandoc, for reading ebooks, Markdown and OpenDocument text (about 220 MB)"; \
+  Flags: postinstall skipifsilent runascurrentuser
 
 [UninstallDelete]
 Type: files; Name: "{app}\HomerView.log"

@@ -157,6 +157,23 @@ def buildDocument(dArticle, sPageUrl):
     )
 
 
+def injectReadability(cdpSession, sSessionId):
+    """Put Readability into the page, and say whether it arrived.
+
+    Shared by the extract command and by whatever else needs to ask where the
+    article is, so the two cannot disagree about it. The source is fetched once
+    per session and cached, so a second caller costs only the injection.
+    """
+    sSource = getReadabilityScript()
+    if not sSource:
+        return False
+    cdpSession.evaluate(sSessionId, sSource, extractTimeoutSeconds)
+    bLoaded = bool(cdpSession.evaluate(sSessionId, 'typeof Readability !== "undefined"'))
+    if not bLoaded:
+        homerLog.warning("Readability did not load into the page")
+    return bLoaded
+
+
 def extractMainContent(cdpSession):
     """Extract the readable part of the focused page and save it."""
     logSection("Command: extract the main content")
@@ -166,17 +183,12 @@ def extractMainContent(cdpSession):
     homerLog.info(f"Extracting from {abbreviate(sPageTitle, 120)} at {abbreviate(sPageUrl, 300)}")
 
     dArticle = None
-    sSource = getReadabilityScript()
-    if sSource:
-        cdpSession.evaluate(sSessionId, sSource, extractTimeoutSeconds)
-        if cdpSession.evaluate(sSessionId, 'typeof Readability !== "undefined"'):
-            dArticle = cdpSession.evaluate(sSessionId, readabilityScript, extractTimeoutSeconds)
-            if dArticle:
-                homerLog.info("Readability extracted the article")
-            else:
-                homerLog.info("Readability found no article; falling back to the built-in method")
+    if injectReadability(cdpSession, sSessionId):
+        dArticle = cdpSession.evaluate(sSessionId, readabilityScript, extractTimeoutSeconds)
+        if dArticle:
+            homerLog.info("Readability extracted the article")
         else:
-            homerLog.warning("Readability did not load into the page")
+            homerLog.info("Readability found no article; falling back to the built-in method")
     if not dArticle:
         dArticle = cdpSession.evaluate(sSessionId, fallbackScript, extractTimeoutSeconds)
         if dArticle:

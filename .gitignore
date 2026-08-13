@@ -49,9 +49,11 @@ dist/
 # Two exceptions.
 #
 # pandoc.exe is about 220 megabytes and GitHub refuses any single file over a
-# hundred. Track it with Git LFS or attach it to a release, and keep a local
-# copy here so the installer picks it up; it is skipped cleanly when absent.
+# hundred. It is no longer packaged at all: the installer offers to fetch it
+# on the last page, the way HomerScribe fetches Ollama. A local copy here is
+# ignored rather than committed.
 pandoc.exe
+installPandoc.log
 
 # The built installer, which is a release asset rather than source. It is
 # rebuilt from the setup script by anyone who needs it, and committing a

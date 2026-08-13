@@ -54,6 +54,7 @@ $lKeepFiles = @(
     "createHomerViewRepo.cmd", "createHomerViewRepo.ps1",
     "clean.cmd",
     "2htm.exe", "pandoc.exe",
+    "installPandoc.cmd", "installPandoc.ps1", "tidyRepo.py",
     "HomerView_setup.exe"
 )
 $lKeepFolders = @("addon", "build", "docs", "installer", ".git")

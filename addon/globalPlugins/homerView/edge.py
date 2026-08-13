@@ -43,7 +43,14 @@ portProbeTimeoutSeconds = 0.4
 # "about:blank" for the older behaviour.
 # Reopen the page the profile last had open, rather than the start page. The
 # profile is persistent, so its cookies and sessions come back with it.
+# The default. The value used comes from reopenLastPage in the settings file.
 bReopenLastPage = True
+
+
+def reopenLastPage():
+    from . import settings
+
+    return settings.getFlag("reopenLastPage", bReopenLastPage)
 
 startPageFileName = "Start.htm"
 startPageUrl = ""
@@ -342,7 +349,7 @@ class EdgeManager:
         if startPageUrl:
             homerLog.info(f"Start page overridden: {startPageUrl}")
             return startPageUrl
-        if bReopenLastPage:
+        if reopenLastPage():
             sLast = self.readLastSession()
             if sLast:
                 homerLog.info(f"Reopening the page this profile last had open: {abbreviate(sLast, 200)}")

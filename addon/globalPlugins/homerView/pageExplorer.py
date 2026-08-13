@@ -248,7 +248,17 @@ def escape(vValue):
 
 
 def plural(iCount, sSingular, sPlural=None):
-    return sSingular if iCount == 1 else (sPlural or sSingular + "s")
+    """Agree the noun with the number.
+
+    Not replaced by the shared one, because this takes an irregular plural and
+    callers here pass them. The shared version handles the regular case, which
+    is what this falls back to.
+    """
+    from .homer import util
+
+    if sPlural and iCount != 1:
+        return sPlural
+    return util.stringPlural(sSingular, iCount)
 
 
 def verb(iCount, sSingular, sPlural):

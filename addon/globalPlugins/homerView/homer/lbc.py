@@ -352,6 +352,9 @@ class Dialog(wx.Dialog):
         iStyle = wx.DEFAULT_DIALOG_STYLE | (wx.RESIZE_BORDER if bResizable else 0)
         super().__init__(parent=parent or getHostParent(), title=sTitle, style=iStyle)
         self.controlInitialFocus = None
+        # Where F8 started a selection, per control, so several fields can each
+        # have one waiting.
+        self.dSelectionStart = {}
         self.dControls = OrderedDict()
         self.dLookups = {}
         self.dResults = {}
@@ -385,6 +388,36 @@ class Dialog(wx.Dialog):
 
     # --- Control conveniences -------------------------------------------
 
+    def _lineAt(self, textCtrl):
+        """The line the caret is on, without its break."""
+        sText = textCtrl.GetValue()
+        if not textCtrl.IsMultiLine():
+            return sText, 0, len(sText)
+        iPosition = textCtrl.GetInsertionPoint()
+        iStart = sText.rfind("\n", 0, iPosition) + 1
+        iEnd = sText.find("\n", iPosition)
+        if iEnd < 0:
+            iEnd = len(sText)
+        return sText[iStart:iEnd].rstrip("\r"), iStart, iEnd
+
+    def _applyLineOperation(self, textCtrl, functionOperation, sName):
+        """Run one of the line operations over the whole control.
+
+        Multi-line only, as in the C# original: sorting a single line is not a
+        thing anyone wants, and offering it would take the key from something
+        that is.
+        """
+        from . import say as sayModule
+        from . import util
+
+        if not textCtrl.IsMultiLine():
+            sayModule.say("Not a multi-line field")
+            return
+        lLines = textCtrl.GetValue().replace("\r\n", "\n").split("\n")
+        lResult = functionOperation(lLines)
+        textCtrl.SetValue("\r\n".join(lResult))
+        sayModule.say(f"{sName}, {len(lResult)} {util.stringPlural('line', len(lResult))}")
+
     def bindTextChords(self, textCtrl, sTip="", lLookup=None):
         """Give a text control the chords every Lbc control answers.
 
@@ -411,9 +444,98 @@ class Dialog(wx.Dialog):
 
         def onKey(event):
             from . import say as sayModule
+            from . import util
 
             iKey = event.GetKeyCode()
             bControl, bShift, bAlt = event.ControlDown(), event.ShiftDown(), event.AltDown()
+
+            # The line operations, multi-line only, as in the C# original.
+            if bAlt and bShift and textCtrl.IsMultiLine() and iKey in (
+                    ord("O"), ord("Z"), ord("K"), ord("N")):
+                dOperations = {
+                    ord("O"): (util.sortLines, "Sorted"),
+                    ord("Z"): (util.reverseLines, "Reversed"),
+                    ord("K"): (util.uniqueLines, "Unique"),
+                    ord("N"): (util.numberLines, "Numbered"),
+                }
+                self._applyLineOperation(textCtrl, *dOperations[iKey])
+                return
+            if bControl and bShift and iKey == wx.WXK_RETURN and textCtrl.IsMultiLine():
+                self._applyLineOperation(textCtrl, util.trimBlankLines, "Blank lines removed")
+                return
+
+            # Cut and delete, which the Python port did not have. Cut takes the
+            # line WITH its break, so the row goes rather than being emptied,
+            # and then says the line the caret lands on, which is what tells a
+            # reader where they now are.
+            if bControl and iKey == ord("X") and not textCtrl.IsReadOnly():
+                sSelection = textCtrl.GetStringSelection()
+                if sSelection:
+                    setClipboard(sSelection)
+                    textCtrl.Cut()
+                    sayModule.say("Cut selection")
+                else:
+                    sLine, iStart, iEnd = self._lineAt(textCtrl)
+                    setClipboard(sLine)
+                    textCtrl.Remove(iStart, min(iEnd + 1, textCtrl.GetLastPosition()))
+                    textCtrl.SetInsertionPoint(iStart)
+                    sNow, _iS, _iE = self._lineAt(textCtrl)
+                    sayModule.say(sNow or "Blank line")
+                return
+            if bAlt and iKey == ord("X") and not textCtrl.IsReadOnly():
+                sSelection = textCtrl.GetStringSelection()
+                if sSelection:
+                    setClipboard(clipboardJoin(sSelection))
+                    textCtrl.Cut()
+                else:
+                    sLine, iStart, iEnd = self._lineAt(textCtrl)
+                    setClipboard(clipboardJoin(sLine))
+                    textCtrl.Remove(iStart, min(iEnd + 1, textCtrl.GetLastPosition()))
+                    textCtrl.SetInsertionPoint(iStart)
+                sayModule.say("Cut and appended to clipboard")
+                return
+            if bControl and iKey == ord("D") and not textCtrl.IsReadOnly():
+                sLine, iStart, iEnd = self._lineAt(textCtrl)
+                textCtrl.Remove(iStart, min(iEnd + 1, textCtrl.GetLastPosition()))
+                textCtrl.SetInsertionPoint(iStart)
+                sNow, _iS, _iE = self._lineAt(textCtrl)
+                sayModule.say(sNow or "Blank line")
+                return
+
+            # Selection by marker, so a reader need not hold Shift while moving.
+            if iKey == wx.WXK_F8 and not bControl and not bAlt:
+                if bShift:
+                    iStart = self.dSelectionStart.get(id(textCtrl))
+                    if iStart is None:
+                        sayModule.say("Press F8 first to start the selection")
+                        return
+                    iEnd = textCtrl.GetInsertionPoint()
+                    textCtrl.SetSelection(min(iStart, iEnd), max(iStart, iEnd))
+                    sayModule.say(f"Selected {abs(iEnd - iStart)} characters")
+                else:
+                    self.dSelectionStart[id(textCtrl)] = textCtrl.GetInsertionPoint()
+                    sayModule.say("Selection started")
+                return
+            if bControl and iKey == wx.WXK_F8:
+                setClipboard(textCtrl.GetValue())
+                sayModule.say("Copied all")
+                return
+            if bAlt and iKey == wx.WXK_F8:
+                sayModule.say(textCtrl.GetValue() or "Empty")
+                return
+
+            # Say yield: how much is here, which is the Homer question.
+            if bAlt and iKey == ord("Y"):
+                sText = textCtrl.GetValue()
+                iLines = len(sText.replace("\r\n", "\n").split("\n")) if sText else 0
+                sayModule.say(
+                    f"{len(sText)} {util.stringPlural('character', len(sText))}, "
+                    f"{iLines} {util.stringPlural('line', iLines)}")
+                return
+            if bAlt and iKey == ord("'"):
+                sayModule.say(getClipboard() or "The clipboard is empty")
+                return
+
             if bControl and bShift and iKey == ord("A"):
                 textCtrl.SetSelection(textCtrl.GetInsertionPoint(), textCtrl.GetInsertionPoint())
                 sayModule.say("Selection cleared")
@@ -591,6 +713,120 @@ class Dialog(wx.Dialog):
         self.dTips[comboBox] = sTip
         return self._remember(sName or stripMnemonic(sLabel), self._place(comboBox, 1))
 
+    # --- The rest of the C# adders ---------------------------------------
+    #
+    # Several of these are one line over another. That is not redundancy: the
+    # C# original offers both because a form reads differently depending on
+    # which, and a caller should say which they mean rather than passing a flag.
+    # The names are kept so that a Homer program can be read in either language.
+
+    def addLabel(self, sText):
+        """Text on its own, for a note rather than a field's name."""
+        return self._place(wx.StaticText(self, label=str(sText or "")))
+
+    def addSeparator(self):
+        """A rule between groups, which a screen reader announces as one."""
+        return self._place(wx.StaticLine(self), 0, wx.GROW)
+
+    def addTextBox(self, sValue="", sTip="", sName="", iWidth=defaultInputWidth):
+        """A text field with no label of its own, for a band of several."""
+        textCtrl = wx.TextCtrl(self, value=str(sValue or ""), size=(iWidth, -1))
+        self.bindTextChords(textCtrl, sTip)
+        return self._remember(sName, self._place(textCtrl, 1))
+
+    def addInlineInputBox(self, sLabel="", sValue="", sTip="", sName="",
+                          iWidth=defaultInputWidth, lLookup=None):
+        """Label and field on one line, for a short value.
+
+        Inline reads faster when the value is a word or a number. A label above
+        reads better when the value is long enough that the reader will be
+        moving around inside it.
+        """
+        self._place(wx.StaticText(self, label=str(sLabel or "")))
+        textCtrl = wx.TextCtrl(self, value=str(sValue or ""), size=(iWidth, -1))
+        if sLabel:
+            textCtrl.SetName(stripMnemonic(sLabel))
+        self.bindTextChords(textCtrl, sTip, lLookup)
+        return self._remember(sName or stripMnemonic(sLabel), self._place(textCtrl, 1))
+
+    def addTextLine(self, sLabel="", sValue="", sName=""):
+        """A labelled single line. The plain case, and the commonest."""
+        return self.addInputBox(sLabel, sValue, sName=sName)
+
+    def addMemoBox(self, sLabel="", sValue="", sTip="", sName="",
+                   iWidth=defaultEditWidth, iHeight=defaultEditHeight):
+        """A labelled multi-line field."""
+        return self.addMemo(sLabel, sValue, sName=sName, iWidth=iWidth,
+                            iHeight=iHeight, sTip=sTip)
+
+    def addTextMemo(self, sLabel="", sValue="", sName=""):
+        return self.addMemo(sLabel, sValue, sName=sName)
+
+    def addPickBox(self, sLabel="", lNames=None, sSelected="", sName="",
+                   iWidth=defaultListWidth, iHeight=defaultListHeight, sTip=""):
+        """A labelled list to choose one from."""
+        listBox = self.addListBox(sLabel, lNames, 0, sName, iWidth, iHeight, sTip)
+        if sSelected:
+            try:
+                listBox.SetStringSelection(str(sSelected))
+            except Exception:
+                pass
+        return listBox
+
+    def addComboBox(self, sLabel="", lNames=None, sSelected="", sName="", sTip=""):
+        """A field that offers values and accepts anything else typed."""
+        if sLabel:
+            self._place(wx.StaticText(self, label=str(sLabel or "")))
+        comboBox = wx.ComboBox(self, value=str(sSelected or ""),
+                               choices=[str(s) for s in (lNames or [])],
+                               style=wx.CB_DROPDOWN)
+        if sLabel:
+            comboBox.SetName(stripMnemonic(sLabel))
+        self.dTips[comboBox] = sTip
+        return self._remember(sName or stripMnemonic(sLabel), self._place(comboBox, 1))
+
+    def addComboPickBox(self, sLabel="", lNames=None, sSelected="", sName="", sTip=""):
+        """A field that offers values and accepts only those.
+
+        Read only rather than a list box when the choices are many: a reader
+        can type the first letters instead of walking to the item.
+        """
+        if sLabel:
+            self._place(wx.StaticText(self, label=str(sLabel or "")))
+        comboBox = wx.ComboBox(self, value=str(sSelected or ""),
+                               choices=[str(s) for s in (lNames or [])],
+                               style=wx.CB_READONLY)
+        if sLabel:
+            comboBox.SetName(stripMnemonic(sLabel))
+        self.dTips[comboBox] = sTip
+        return self._remember(sName or stripMnemonic(sLabel), self._place(comboBox, 1))
+
+    def addComboHistoryBox(self, sLabel="", lRecent=None, sValue="", sName="", sTip=""):
+        """A field that remembers what was typed before. The C# name."""
+        return self.addHistoryBox(sLabel, lRecent, sValue, sName, sTip)
+
+    def addRadioButton(self, sLabel="", bChecked=False, sName="", sTip="", bGroup=False):
+        """One choice among several, as a radio button.
+
+        The first of a group must say so, because Windows uses that to decide
+        which buttons the arrow keys move between.
+        """
+        radioButton = wx.RadioButton(
+            self, label=str(sLabel or ""), style=wx.RB_GROUP if bGroup else 0)
+        radioButton.SetValue(bool(bChecked))
+        self.dTips[radioButton] = sTip
+        return self._remember(sName or stripMnemonic(sLabel), self._place(radioButton))
+
+    def addNumericUpDown(self, sLabel="", iValue=0, iLow=0, iHigh=100, sName="", sTip=""):
+        """A number with a range, which the control enforces rather than the caller."""
+        if sLabel:
+            self._place(wx.StaticText(self, label=str(sLabel or "")))
+        spinCtrl = wx.SpinCtrl(self, min=int(iLow), max=int(iHigh), initial=int(iValue))
+        if sLabel:
+            spinCtrl.SetName(stripMnemonic(sLabel))
+        self.dTips[spinCtrl] = sTip
+        return self._remember(sName or stripMnemonic(sLabel), self._place(spinCtrl))
+
     def addChoice(self, sLabel="", lNames=None, iSelection=0, sName=""):
         if sLabel:
             self._place(wx.StaticText(self, label=sLabel))
@@ -622,6 +858,23 @@ class Dialog(wx.Dialog):
         return wx.AcceleratorEntry(wx.ACCEL_SHIFT, wx.WXK_F1, iTipId)
 
     def _bindSubmitKeys(self):
+        """Control+Enter accepts the dialog, whatever has focus.
+
+        The Homer convention, and the reason for it is the same in both
+        languages: plain Enter is swallowed by controls that handle it
+        themselves. A multi-line field takes it as a newline, a list takes it
+        as activation, and a reader who has finished filling in a form should
+        not have to find a button.
+
+        The C# original binds this on the form rather than through
+        AcceptButton, because some Lbc dialogs point AcceptButton elsewhere.
+        The accelerator table here does the same job for the same reason.
+
+        Scoped to the dialog and only the dialog. HomerView binds Control+Enter
+        inside a web page as well, where it submits the form being filled in,
+        and the two must not meet: an accelerator lives with the window that
+        owns it, so a dialog's Control+Enter ends when the dialog does.
+        """
         """Control+Enter submits from anywhere in the dialog.
 
         Plain Enter is consumed by controls that handle it themselves, so a

@@ -160,6 +160,9 @@ dHomerGestures = {
     "kb:shift+f8": "completeSelection",
     "kb:alt+shift+f8": "goToSelectionStart",
     "kb:alt+u": "urlReference",
+    # Alt+U says the address; Alt+Shift+U asks what is at it. The pair reads as
+    # the two halves of one question.
+    "kb:alt+shift+u": "describeLinkTarget",
     "kb:alt+p": "pageUrls",
     "kb:alt+n": "pageName",
     "kb:alt+;": "sayTime",
@@ -686,9 +689,21 @@ class HomerViewBuffer:
     def script_goToSelectionStart(self, gesture):
         self.runSafely("goToSelectionStart", lambda: homerCommands.goToSelectionStart(self))
 
-    @script(description=_("Says where the link at the cursor would go, and copies it when pressed twice"), category="HomerView", speakOnDemand=True)
+    @script(
+        description=_("Says where the link at the cursor would go"),
+        category="HomerView",
+        speakOnDemand=True,
+    )
     def script_urlReference(self, gesture):
         self.runSafely("urlReference", lambda: homerCommands.urlReference(self))
+
+    @script(
+        description=_("Asks what is at the link under the cursor, without going there"),
+        category="HomerView",
+    )
+    def script_describeLinkTarget(self, gesture):
+        self.runSafely("describeLinkTarget",
+                       lambda: homerCommands.describeLinkTarget(self))
 
     @script(description=_("Copies every link address on the page to the clipboard"), category="HomerView")
     def script_pageUrls(self, gesture):
@@ -1112,6 +1127,8 @@ class HomerViewBuffer:
             self._homer("completeSelection", _("Select from the marked start to the cursor")),
             self._homer("goToSelectionStart", _("Return to the marked start of the selection")),
             self._homer("urlReference", _("Say where the link at the cursor would go")),
+            self._homer("describeLinkTarget",
+                        _("Ask what is at the link under the cursor, without going there")),
             self._homer("pageUrls", _("Copy every link address on the page to the clipboard")),
             self._homer("pageName", _("Say the name of the page")),
             self._homer("sayTime", _("Say the time, and the date when pressed twice")),

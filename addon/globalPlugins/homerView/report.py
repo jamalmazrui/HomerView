@@ -39,6 +39,7 @@ from urllib.parse import quote
 
 from . import wcag
 from .contacts import isExcludedHost
+from .homer import util
 from .logger import homerLog
 
 dImpactOrder = {"critical": 0, "serious": 1, "moderate": 2, "minor": 3}
@@ -175,7 +176,7 @@ def describeCheckData(dCheck):
 
 
 def snippet(sHtml):
-    sHtml = " ".join(str(sHtml or "").split())
+    sHtml = util.stringTrimWhiteSpace(sHtml)
     if len(sHtml) > maximumSnippetCharacters:
         return sHtml[:maximumSnippetCharacters] + " ..."
     return sHtml

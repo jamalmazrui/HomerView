@@ -28,6 +28,7 @@ import re
 
 import addonHandler
 
+from .homer import util
 from .logger import abbreviate, homerLog, logSection
 
 addonHandler.initTranslation()
@@ -145,7 +146,7 @@ surveyScript = r"""(() => {
 
 def parsePhrase(sPhrase):
     """Split a phrase into a verb, a target, and a value where there is one."""
-    sPhrase = " ".join(str(sPhrase or "").split())
+    sPhrase = util.stringTrimWhiteSpace(sPhrase)
     sVerb = "click"
     lWords = sPhrase.split()
     if lWords and lWords[0].lower() in dVerbs:

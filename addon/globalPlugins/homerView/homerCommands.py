@@ -33,12 +33,14 @@ import addonHandler
 from . import output
 import api
 import speech
+import controlTypes
 import textInfos
 import ui
 from scriptHandler import getLastScriptRepeatCount
 
 from . import clipboardTools
 from . import homerText
+from . import linkTarget
 from .logger import abbreviate, homerLog, logError, logSection
 
 addonHandler.initTranslation()
@@ -55,7 +57,10 @@ def withLabel(sLabel, sText):
     """Prefix a label when the user has asked for one."""
     from . import pageBuffer
 
-    if getattr(pageBuffer, "bSpeakCommandLabels", False) and sLabel:
+    from . import settings
+
+    if settings.getFlag("speakCommandLabels",
+                        getattr(pageBuffer, "bSpeakCommandLabels", False)) and sLabel:
         return f"{sLabel}, {sText}"
     return sText
 
@@ -416,6 +421,50 @@ def linkAtCursor(treeInterceptor):
             return obj
         obj = getattr(obj, "parent", None)
     return None
+
+
+def describeLinkTarget(treeInterceptor):
+    """Ask where the link at the cursor goes, and what is there.
+
+    Alt+U gives the address, which is what a sighted reader sees on hover. This
+    is what they work out from it: whether it is a page or a file, how big,
+    whether it still exists, whether it ends up somewhere other than it claims,
+    and for a page, what it is about and how long.
+    """
+    from .service import service
+
+    obj = linkAtCursor(treeInterceptor)
+    sUrl = (getattr(obj, "value", "") or "") if obj else ""
+    if not sUrl:
+        # Translators: Reported when the cursor is not on a link.
+        ui.message(_("No link here"))
+        return
+    if not sUrl.lower().startswith("http"):
+        # Translators: Reported for a link that does not go to a web address.
+        ui.message(_("That link does not go to a web address"))
+        return
+    sText = ""
+    try:
+        sText = (getattr(obj, "name", "") or "").strip()
+    except Exception:
+        sText = ""
+    homerLog.info(f"Describing the target of {abbreviate(sUrl, 200)}")
+    # Translators: Reported while a link target is asked about.
+    ui.message(_("Asking where that goes"))
+    # On the worker, because this is a network request and NVDA speaks from the
+    # main thread.
+    service.submit(
+        "describeLinkTarget",
+        lambda: {"lines": linkTarget.describeLink(sUrl, sText), "url": sUrl},
+        _showLinkTarget,
+        lambda exception: ui.message(str(exception)))
+
+
+def _showLinkTarget(dResult):
+    from . import output
+
+    # Translators: Title of the box describing where a link goes.
+    output.lines(_("Where that link goes"), dResult.get("lines") or [])
 
 
 def urlReference(treeInterceptor):
@@ -1046,8 +1095,85 @@ def moveToProxyMainContent(treeInterceptor, gesture=None):
 
     About half the web defines no main landmark, and J correctly refuses to
     guess. This is the deliberate guess, on its own key, so the two are never
-    confused: the first heading inside an article, then the first heading after
-    the banner and navigation, then the first heading at all.
+    confused.
+
+    Two ways of guessing, in order. The browser is asked first, because it can
+    weigh every part of the page against every other: the element with the most
+    text and the fewest links is what an article looks like and what navigation
+    does not. If that answers, its opening words are found in NVDA's own buffer
+    and the cursor goes there.
+
+    The old rule follows when it does not: the first heading past the banner
+    and navigation, then the first heading at all. That was right often enough
+    to be useful and wrong in the two places it mattered most, on a page whose
+    article opens with a paragraph rather than a heading, and on a page whose
+    navigation has headings of its own.
+
+    Whichever answers, the reader is told which, so being taken somewhere
+    inferred is never mistaken for being taken somewhere declared.
+    """
+    from .service import service
+
+    if service.isConnected():
+        # Translators: Reported while the main content is looked for.
+        ui.message(_("Looking for the main content"))
+        service.submit(
+            "findMainContent", service.taskFindMainContent,
+            lambda dFound: _proxyByScoring(treeInterceptor, dFound, gesture),
+            lambda exception: _proxyByHeading(treeInterceptor, gesture))
+        return
+    _proxyByHeading(treeInterceptor, gesture)
+
+
+def _proxyByScoring(treeInterceptor, dFound, gesture=None):
+    """Move to the opening words the browser reported, using NVDA's own search.
+
+    Text is the bridge. Chromium can name the DOM node holding the main
+    content, and NVDA's buffer has no notion of a DOM node, so mapping one to
+    the other would mean maintaining a correspondence that breaks whenever the
+    page changes. The opening words exist on both sides already.
+    """
+    sOpening = (dFound or {}).get("opening", "")
+    if not sOpening:
+        homerLog.info("The browser found nothing to score, so the heading rule runs")
+        _proxyByHeading(treeInterceptor, gesture)
+        return
+    homerLog.info(f"Looking in the buffer for {abbreviate(sOpening, 120)}")
+    try:
+        infoStart = treeInterceptor.makeTextInfo(textInfos.POSITION_FIRST)
+        # Progressively shorter, because the buffer's punctuation and the
+        # page's need not agree and the first few words are enough to be
+        # unique on almost any page.
+        lWords = sOpening.split()
+        for iCount in (len(lWords), 8, 5, 3):
+            if iCount > len(lWords):
+                continue
+            sNeedle = " ".join(lWords[:iCount])
+            info = infoStart.copy()
+            if info.find(sNeedle, caseSensitive=False):
+                info.updateCaret()
+                info.collapse()
+                info.expand(textInfos.UNIT_LINE)
+                homerLog.info(
+                    f"Moved to the main content, matched on {iCount} words "
+                    f"({dFound.get('how')}, {dFound.get('tag', '')})")
+                # Translators: Reported when the main content was inferred by
+                # weighing the page rather than declared by it.
+                ui.message(_("Main content, by weighing the page"))
+                speech.speakTextInfo(info, reason=controlTypes.OutputReason.CARET)
+                return
+    except Exception:
+        logError("The opening words could not be found in the buffer")
+    homerLog.info("The opening words were not in the buffer, so the heading rule runs")
+    _proxyByHeading(treeInterceptor, gesture)
+
+
+def _proxyByHeading(treeInterceptor, gesture=None):
+    """The older rule, kept as the fallback.
+
+    The first heading inside an article, then the first heading after the
+    banner and navigation, then the first heading at all. Used when the browser
+    cannot be asked, or when what it reported could not be found in the buffer.
 
     Each attempt says which rule found the destination, so the reader knows
     they were taken somewhere inferred rather than somewhere declared.
@@ -1222,13 +1348,23 @@ def _elevateVersionNow():
     from . import output
     from .service import service
 
+    from .service import service
+
     # Translators: Reported while the version check runs.
     ui.message(_("Checking for a newer version"))
-    try:
-        dCheck = elevate.checkForUpdate()
-    except Exception as exception:
-        lbc.dialogInfo(_("Elevate version"), str(exception))
-        return
+    # On the worker, not here. wx.CallAfter defers the call, but it defers it
+    # onto the main thread, which is the one NVDA speaks from; a slow or
+    # unreachable server would hold speech for as long as the request took.
+    # The dialogs that follow are put back on the main thread, which is where
+    # they belong.
+    service.submit(
+        "checkForUpdate", elevate.checkForUpdate, _elevateChecked,
+        lambda exception: lbc.dialogInfo(_("Elevate version"), str(exception)))
+
+
+def _elevateChecked(dCheck):
+    from . import elevate
+    from . import lbc
 
     sInstalled, sLatest = dCheck["installed"], dCheck["latest"]
     iComparison = dCheck["comparison"]
@@ -1258,16 +1394,23 @@ def _elevateVersionNow():
         homerLog.info("Elevate version declined")
         return
 
+    from .service import service
+
     # Translators: Reported while the add-on downloads.
     ui.message(_("Downloading"))
-    try:
-        dResult = elevate.installAddon()
-    except Exception as exception:
-        lbc.dialogInfo(
+    # Also on the worker. This one matters more: it is a file of some size over
+    # a connection that may be slow.
+    service.submit(
+        "installAddon", elevate.installAddon, _elevateInstalled,
+        lambda exception: lbc.dialogInfo(
             _("Elevate version"),
             _("The download failed.\n\n{reason}\n\nYou can download it directly from "
-              "{url}").format(reason=exception, url=elevate.latestPageUrl))
-        return
+              "{url}").format(reason=exception, url=elevate.latestPageUrl)))
+
+
+def _elevateInstalled(dResult):
+    from . import elevate
+    from . import lbc
 
     if dResult.get("opened"):
         lbc.dialogInfo(

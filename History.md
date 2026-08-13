@@ -1,5 +1,84 @@
 ﻿# History of Changes
 
+## 1.39.1
+
+- tidyRepo.py now commits outstanding work rather than refusing to run. The log of the first attempt showed it stopping on twenty two uncommitted changes and telling the user to commit them by hand, which was half right: the tree must be clean before a history rewrite, because rewriting under a dirty one loses work. But sending someone away to do that themselves is another round, and avoiding rounds is the entire reason this is one script. Committing preserves the work just as well.
+- The commit message names the version, read from the manifest, because a repository's log should say what each commit was.
+- Use minus minus stash instead to set the changes aside rather than commit them, and minus minus message to give the commit a message of your own.
+- Testing that change found a fault in it: committing with add minus A swept in the script's own log, which is written continuously, so it was committed and dirty again in the same breath and the check afterwards rightly refused to go on. Only tracked changes are committed now; untracked files are what the survey reports on and are not this step's business.
+- That check earning its keep is the point of having it. It cost one test rather than one round with the user, which is the difference the whole design is aiming at.
+
+## 1.39.0
+
+- pandoc is no longer packaged with HomerView. It is about 220 megabytes, which is over GitHub's hundred megabyte limit for a single file and is why pushing produced warnings. The last page of the installer now offers to fetch it, checked by default, the way HomerScribe offers Ollama and Whisper.
+- The fetcher tries three things in the order most likely to work: a copy already on the machine, which it copies rather than downloading; winget, which ships with Windows 10 and 11; and the release on GitHub, unpacked in place. It is checked by default because the reader who needs pandoc is the one who cannot tell in advance that they do, and finds out when an ebook will not open. Ticking it when pandoc is already present costs a second, since the first thing it does is look.
+- Added tidyRepo.py, which takes pandoc out of the repository's history, untracks development files that arrived through git add minus A, and pushes.
+- On why that is one script rather than four: the HomerScribe clean-up took four and several rounds, and the cause was not the fixes but that nothing looked at everything before acting. Each script fixed what it was asked about, pushed, and only then discovered the next problem. This surveys completely first, prints the whole plan, and acts in one pass with nothing left to discover.
+- It describes rather than acts unless given minus minus do it, refuses to run with uncommitted changes to tracked files, copies the folder before rewriting anything, never deletes that copy, and checks afterwards that the oversized objects have actually gone rather than assuming they have.
+- Testing it against a repository built to have the same faults found a real one of its own: untracking stages changes, and filter-branch refuses to run with anything staged, so the first version quietly rewrote nothing while reporting that it had. The untracking is now committed before the rewrite begins, and the rewrite's exit code is checked.
+
+## 1.39.0
+
+- Pandoc is no longer packaged. It is about 220 megabytes, which is over what GitHub accepts and which caused a warning on every push. The installer now offers to fetch it, on a checkbox ticked by default at the end, in the same way HomerScribe offers Ollama and Whisper.
+- It is ticked by default because the reader who needs pandoc is the reader who cannot tell in advance that they do: they find out when an ebook will not open. The script looks for a copy already on the machine first and copies that rather than downloading, so ticking it when pandoc is present costs a second. Failing that it uses winget, and failing that the GitHub release.
+- Added tidyRepo.py, which tidies the folder and the repository in one run. Run it with no arguments to see what it would do and with minus minus do minus it to do it.
+- It surveys everything before acting, and that is the whole design. The same clean-up on another project took four scripts and four rounds because each one fixed what was visible and finished, and then the next thing became visible. This prints the whole picture first, acts once, and says at the end whether anything is left rather than leaving it to be discovered.
+- Four faults were found by rehearsing it against a repository built to look like this one, each of which would have cost a round. Moving the stray files out before untracking them made git see deletions rather than files it had stopped tracking. The untracking left the index dirty, and filter-branch refuses to run on a dirty tree. filter-branch keeps the old history under refs/original, and while those references exist the old objects stay reachable, so gc frees nothing and the repository does not shrink, which is exactly what needed a fourth script last time. And two runs in the same second collided over the backup folder name.
+- Nothing is deleted. Files leave the repository but stay on disk, strays go to a folder rather than the bin, and the whole folder is copied before any history is rewritten.
+
+## 1.38.0
+
+- Ported the Homer shared classes from C# to Python, so the same conveniences are available in both languages and a program can be read in either without translating as you go.
+- On the structure: the C# original is a namespace reached with using Homer, and Python needs no namespace keyword because a package already is one. So namespace Homer became the homer package, each class became a module, and Util.formatBytes became homer.util.formatBytes. One level of nesting disappears where a C# class is purely static, since a module is already the container that class was providing. Where a class carries state it stays a class, so LbcDialog is homer.lbc.Dialog.
+- Added homer.util, which had no Python equivalent at all: sizes as a person would say them, singular and plural agreement, quoting, comparison that ignores case and accents, line ending conversion, typographic quotes turned plain, and the line operations.
+- Completed the Lbc text control key family, which the Python side had only part of. Control+X cuts the selection or the whole line, Alt+X cuts and appends, Control+D deletes the line, F8 and Shift+F8 select without holding Shift, Control+F8 copies the field, Alt+F8 reads it, Alt+Y says how much is in it, and Alt+Apostrophe says the clipboard. Cut and delete take the line with its break so the row goes rather than being emptied, then say the line the caret lands on, which is what tells a reader where they now are.
+- Added the line operations to multi-line fields, which is where the C# LbcTextBox earns its keep: Alt+Shift+O sorts, Alt+Shift+Z reverses, Alt+Shift+K removes repeats, Alt+Shift+N numbers, and Control+Shift+Enter removes blank lines. A list of anything can be tidied where it sits rather than in another program.
+- Added the thirteen remaining control adders, so all twenty from the C# original are present: labels, separators, inline input boxes, pick boxes, three kinds of combo box, radio buttons and a numeric field with a range.
+- On Control+Enter: it accepts the dialog whatever has focus, which is the Homer convention and exists because plain Enter is swallowed by controls that handle it themselves. It is bound as an accelerator on the dialog, so it lives and dies with that dialog and cannot meet the Control+Enter HomerView binds inside a web page for submitting a form.
+- Routed four places in HomerView that had their own byte formatting and whitespace collapsing through the shared module instead.
+
+## 1.37.0
+
+- Three more faults from the independent review, all confirmed against the code and all about behaviour under load rather than features.
+- Stopping now stops. The shutdown request was put at the back of the worker's queue, so a shutdown behind a page scan and three downloads waited for all of them while NVDA was closing, and anything they spoke arrived after the add-on had been told to go away. There is now a flag the worker checks between tasks, the queue is emptied rather than run, new work is refused during the wind down, and the wait for a task already running is bounded at three seconds, because holding NVDA's shutdown open indefinitely for one task is worse than letting the thread end with the process.
+- Finding the page being read no longer costs the full timeout for every unresponsive tab. Each tab was asked whether it had focus with the ordinary call timeout, so one wedged tab cost the whole budget and several multiplied it. The question is trivial and now has two seconds of its own, the search as a whole has six, and the tab that answered last time is asked first, which turns the common case into a single question since a reader stays on one page for a while.
+- The test that runs for every object NVDA creates is silent for the common case. It wrote two log lines per document, each a synchronous file write, on the thread building the page; a page with many frames produced dozens before the reader heard anything. A document that is not HomerView's is now dismissed without writing anything, because that case is not interesting and is the frequent one. The documents that matter are still described, with the running totals.
+
+## 1.36.1
+
+- Shift+J now asks Readability where the article begins, rather than the scoring written for it yesterday.
+- That scoring was a mistake, and the question that found it was a good one: how does the extract command decide where the main content is? It asks Mozilla's Readability, which HomerView already fetches, caches and injects. Readability has been developed since 2010, ships in Firefox's reading mode, and has absorbed fifteen years of corrections against pages that broke it. It weighs paragraphs by their comma count, passes a share of each paragraph's score up to its parent and grandparent, penalises the usual class and identifier names, and cleans the result afterwards.
+- Writing a simplified copy of that, in the same page where the real one was already loaded, was worse in two ways. It was a less careful algorithm, and it would have drifted: two commands claiming to find the main content would eventually have disagreed about where it was.
+- Readability returns the article as markup rather than as a position, so its opening text is what is taken, and those words are found in NVDA's buffer as before. The bridge is unchanged and remains the good part.
+- Added one shared function that injects Readability, used by both commands, so neither can load it differently from the other. When Readability cannot be fetched, both now fall back to the same simple rule rather than to two different ones.
+- The lesson is the general one: before writing an algorithm, look for it already running in the same process.
+
+## 1.36.0
+
+- Shift+J now asks the browser where the main content is, rather than guessing from headings alone.
+- The old rule was the first heading past the banner and the navigation. It was right often enough to be useful and wrong in the two places that matter most: a page whose article opens with a paragraph rather than a heading, and a page whose navigation carries headings of its own. Both are ordinary.
+- The browser can weigh every part of the page against every other, which no rule about headings can. Each candidate is scored the way Readability scores, and for the same reason: an article is a lot of text with few links, and navigation is a little text that is almost all links. A class or identifier naming an article counts for it, one naming a menu or a footer counts against, and a deeper element is preferred so the answer is the article rather than the page around it.
+- The bridge between the browser and NVDA is text, and that is deliberate. Chromium can name the node holding the main content, and NVDA's browse buffer has no notion of a node, so mapping one to the other would mean maintaining a correspondence that breaks whenever the page changes. Instead the browser is asked for the opening words, and those words are found in the buffer with NVDA's own search. Text is the one representation both sides already share, and it is enormously more robust than node identity.
+- The match is tried on progressively fewer words, because the buffer's punctuation and the page's need not agree, and the first few words are enough to be unique on almost any page.
+- The heading rule remains as the fallback, used when the browser cannot be asked or when what it reported is not in the buffer. Whichever answers, the reader is told which, so being taken somewhere inferred is never mistaken for being taken somewhere declared.
+
+## 1.35.0
+
+- Added Alt+Shift+U, which asks what is at the link under the cursor without going there.
+- A sighted reader hovers a link and the address appears in the corner, and often that is enough: they can tell the article from the advertisement, and they can tell that "click here" goes somewhere unrelated to what it says. A blind reader has had the address on Alt+U, but an address is not an answer. This is the part a sighted reader works out from it.
+- It reports what kind of thing is there and how big, whether it still exists, and where the link actually ends up, which is often not where it points. A shortener, a tracker and a sign-in wall all look the same from the page. When the final host differs from the one the link named, it says so.
+- For a page it gives the title, the site, the author, when it was published, the description, roughly how many words and how long that is to read, and whether reading it appears to need a subscription or an account. It reads the same five metadata conventions the page information command does, preferring Open Graph where a page fills that in and nothing else.
+- It also compares the link's own words with the page's title, and says when they have nothing in common. That is the mismatch a sighted reader catches by hovering and a blind reader has had no way to catch at all.
+- Nothing is downloaded and nothing is opened. Only the first part of a page is read, because metadata is in the head and the reader is waiting; a file is never fetched at all, since knowing that something is a three hundred megabyte archive is exactly the reason not to fetch it.
+- The request runs on the worker rather than on NVDA's main thread, so a slow or unreachable server does not hold speech.
+
+## 1.34.0
+
+- An independent review of the source found three real faults, all confirmed against the code and all fixed here.
+- The settings panel wrote values that nothing read. Whether to speak a label before a reported value, whether to reopen the page the browser last had, and whether to show reports as a page were each a module constant, while the panel wrote to the settings file and the file was never consulted. That is worse than having no setting at all: the user is told their choice was saved and nothing changes. Each constant is now the default for a lookup, so the panel and a hand edit of the file both take effect at once.
+- Commands scoped to the browser tested the application name rather than the process. An ordinary Edge window is also called msedge, so Control+S pressed in a browser HomerView did not open would have saved HomerView's page, and Control+Enter would have submitted a form on a page the user was not looking at. They now test the process identifiers HomerView already tracks, which is an integer set lookup and means what it says. The name test survives only for the moment before the browser has been launched, when there are no identifiers to compare, and only to decide whether a key is HomerView's rather than what to act on.
+- The version check and the add-on download ran on NVDA's main thread. Deferring with wx.CallAfter defers the call onto the main thread, which is the one NVDA speaks from, so a slow or unreachable server would have held speech for as long as the request took. Both now run on the worker, with the dialogs that follow put back on the main thread where they belong.
+
 ## 1.33.0
 
 - Added cleanDir.cmd, which moves everything the project does not need out of the development directory and into C drive temp HomerView_misc. It moves rather than deletes, because a tidying script that deletes is one nobody runs twice, and the point is that it can be run without thinking. Anything taken by mistake sits in one folder waiting to be moved back. Pass minus bWhatIf to see what would move without moving it.

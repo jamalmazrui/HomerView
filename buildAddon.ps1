@@ -56,6 +56,22 @@ $pathOutput = Join-Path $pathBuild "HomerView.nvda-addon"
 if (Test-Path $pathOutput) {
     Remove-Item $pathOutput -Force
     writeLog "Removed the previous $pathOutput"
+
+    # Stale documents. Unzipping a new version over an old folder adds and
+    # replaces but never removes, so a document that has been renamed leaves
+    # its old name behind and that old name is then packaged. HomerView.htm
+    # survived the rename to HomerView.htm exactly this way.
+    $pathDocs = Join-Path $pathAddon "doc\en"
+    if (Test-Path $pathDocs) {
+        $lExpected = @("Announce.htm", "HomerView.htm", "Developer.htm", "History.htm",
+            "ReadMe.htm", "hotkeys.htm", "readme.html")
+        foreach ($fileDoc in (Get-ChildItem -Path $pathDocs -File)) {
+            if ($lExpected -notcontains $fileDoc.Name) {
+                Remove-Item $fileDoc.FullName -Force
+                writeLog "Removed the stale document $($fileDoc.Name), which the project no longer generates"
+            }
+        }
+    }
 }
 # Any versioned copy an earlier build left behind, so the folder holds one file.
 foreach ($pathOld in (Get-ChildItem $pathBuild -Filter "HomerView-*.nvda-addon" -ErrorAction SilentlyContinue)) {

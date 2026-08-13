@@ -1,197 +1,283 @@
-﻿<!doctype html>
-<html lang="en">
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
 <head>
-<meta charset="utf-8">
-<title>HomerView for Developers</title>
-<style>body{font-family:Segoe UI,Arial,sans-serif;line-height:1.5;margin:0 auto;max-width:60em;padding:1em}pre{background:#f4f4f4;padding:1em;white-space:pre-wrap}code{background:#f4f4f4}</style>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="author" content="Jamal Mazrui" />
+  <title>HomerView</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
 </head>
 <body>
-<main>
-<h1>What this is</h1>
-<p>HomerView is an NVDA global plugin that launches its own copy of Microsoft Edge</p>
-<p>with the Chrome DevTools Protocol enabled, and then uses three separate views of</p>
-<p>the same page. Most of what it does that is hard to do elsewhere comes from</p>
-<p>having all three at once.</p>
-<p>The browser&#x27;s own window, reached through NVDA&#x27;s object model and the Windows</p>
-<p>API. That is where the address bar, the tab strip and the toolbars live, none of</p>
-<p>which exist in the page.</p>
-<p>The page as NVDA built it, through the browse mode tree interceptor. That is the</p>
-<p>reading order the user navigates, with its landmarks, headings and text ranges.</p>
-<p>The page as the browser sees it, through the protocol, in both directions:</p>
-<p>queries that ask, and commands that act. The self test exercises all three and</p>
-<p>reports each separately, because a protocol connection can answer every query</p>
-<p>while having lost the ability to act.</p>
-<h1>The rules the code follows</h1>
-<p>No network call runs on NVDA&#x27;s main thread. Everything that touches the browser</p>
-<p>is queued to a single worker, and results return through wx.CallAfter. A vague</p>
-<p>report of sluggishness becomes a specific line, because every task records the</p>
-<p>thread it ran on and warns if it is the wrong one.</p>
-<p>The test for &quot;is this object inside HomerView&#x27;s browser&quot; performs no input or</p>
-<p>output, because it runs for every object NVDA creates. It is an integer set</p>
-<p>membership check against the browser&#x27;s process identifiers.</p>
-<p>A dialog opened from inside a script waits for the script to return first.</p>
-<p>Otherwise NVDA has not processed the focus change, announces nothing, and keeps</p>
-<p>sending arrow keys to the page underneath.</p>
-<p>No command takes a key NVDA uses by default, on either the desktop or the</p>
-<p>laptop layout.</p>
-<h1>Where the code lives</h1>
-<pre><code>
-addon/globalPlugins/homerView/
-    __init__.py       the global plugin: commands that work anywhere
-    pageBuffer.py     the browse mode class and every page command
-    service.py        the worker thread, connection state, process identity
-    cdp.py            the protocol session, reader thread, event dispatch
-    webSocket.py      a loopback-only RFC 6455 client, standard library only
-    edge.py           finding and launching the browser
-    homer/            the shared toolkit: inix, lbc, say, web
-</code></pre>
-<p>The rest are one file per capability: axe, ace, act, capture, contacts,</p>
-<p>convert, copilot, documents, download, exportReport, find, history, mainContent,</p>
-<p>metadata, output, pageExplorer, report, saveAs, selfTest, settings, wcag.</p>
-<h1>The shared Homer toolkit</h1>
-<p>The homer package holds what is not about HomerView: order-preserving inix</p>
-<p>files, Layout by Code dialogs, a single way to announce text, and dependency</p>
-<p>free HTTP that behaves like a browser. Three rules make it shareable.</p>
-<p>No module imports NVDA at the top level, so every one is importable and testable</p>
-<p>in a plain interpreter and the same code serves a program that is not an add-on.</p>
-<p>Nothing depends on anything beyond the standard library except wx, which NVDA is</p>
-<p>built on. No module knows about HomerView.</p>
-<p>To reuse it, copy the folder into your add-on and import relatively. NVDA has no</p>
-<p>dependency manager for add-ons: a library add-on on sys.path works until load</p>
-<p>order changes or somebody removes it, and the add-on store cannot declare or</p>
-<p>protect that dependency. Copying costs a re-copy when a fix lands; sharing costs</p>
-<p>silent breakage in someone else&#x27;s add-on.</p>
-<h1>Building and releasing</h1>
-<pre><code>
-buildAll.cmd     builds the add-on, then compiles the installer
-tagRelease       tags the version and publishes the release
-</code></pre>
-<p>buildAll must run first. tagRelease reads the version from the built installer&#x27;s</p>
-<p>version resource and expects to find HomerView_setup.exe in the repository root.</p>
-<p>The add-on package has a stable name, HomerView.nvda-addon, so the setup script</p>
-<p>never needs editing for a version. A copy named for the version is written</p>
-<p>beside it for release assets. The version itself lives in the add-on&#x27;s</p>
-<p>manifest.ini, which is what NVDA reads, and in AppVersion in the setup script.</p>
-<p>Every build script writes a log beside itself.</p>
-<h1>Conventions</h1>
-<p>Camel Type: lowerCamelCase for names, Hungarian prefixes on typed variables,</p>
-<p>functions rather than subprocedures, constants named like variables.</p>
-<p>Files a Windows program reads are UTF-8 with a byte order mark and Windows line</p>
-<p>endings. Generated web pages use the .htm extension.</p>
-<p>Keys are written in the order Alt, Control, Shift, with the letter last and</p>
-<p>upper case regardless of Shift.</p>
-<h1>What is deliberately not here</h1>
-<p>No language model. The page explorer is rule-based, the act command matches</p>
-<p>rather than infers, and no page content leaves the machine. A local model</p>
-<p>service is detected and logged if one is running, and nothing uses it.</p>
-<p>No bundled converters. LibreOffice, pandoc, Calibre and 2htm are found rather</p>
-<p>than shipped, because an add-on folder is replaced wholesale on every update and</p>
-<p>sits in a roaming profile that some managed environments will not execute from.</p>
-<h1>Where files belong on Windows</h1>
-<p>This is settled here once, because four programs in this family face the same</p>
-<p>question and answering it differently in each would be a nuisance to everyone.</p>
-<p>Windows offers five places, and the choice follows from what a file is rather</p>
-<p>than from what is convenient.</p>
-<p><strong>The program folder</strong>, <code>C:\Program Files\&lt;Product&gt;</code>, reached in an installer</p>
-<p>script as <code>{autopf}</code>. Written once by the installer, which has administrator</p>
-<p>rights, and read for ever after. Nothing a program writes at run time belongs</p>
-<p>here. Windows once quietly redirected such writes to a per-user store, which</p>
-<p>hid them from the user and from the program&#x27;s own uninstaller, and that</p>
-<p>redirection has been discouraged for years. Granting the Users group write</p>
-<p>access to escape the problem trades a real security boundary for a convenience,</p>
-<p>and it also means two people sharing a computer share one file.</p>
-<p><strong>Local application data</strong>, <code>%LOCALAPPDATA%</code>, which is</p>
-<p><code>C:\Users\&lt;name&gt;\AppData\Local\&lt;Product&gt;</code>. Per user and per machine, and not</p>
-<p>copied anywhere. This is where a log, a database, a cache, a downloaded tool or</p>
-<p>a browser profile belongs. Anything that grows, anything specific to this</p>
-<p>computer, anything that would be meaningless on another one.</p>
-<p><strong>Roaming application data</strong>, <code>%APPDATA%</code>, which is</p>
-<p><code>C:\Users\&lt;name&gt;\AppData\Roaming\&lt;Product&gt;</code>. Per user, and in a domain it</p>
-<p>follows the person to whatever computer they sign in to. This is for</p>
-<p>preferences, and only for preferences. The whole folder is copied at sign in</p>
-<p>and sign out, so a log or a database placed here makes every sign in slower for</p>
-<p>no benefit to anyone.</p>
-<p><strong>Machine-wide data</strong>, <code>C:\ProgramData\&lt;Product&gt;</code>. Shared by every user of the</p>
-<p>computer. Worth using only when data genuinely is shared, and it needs thought</p>
-<p>about permissions, because a folder every user can write is a folder any user</p>
-<p>can tamper with.</p>
-<p><strong>The user&#x27;s own folders</strong>, Documents and Downloads. Only for files the user</p>
-<p>asked for and will manage themselves. A saved report or a downloaded file, yes.</p>
-<p>A log, never: the user did not ask for it and should not have to tidy it.</p>
-<p><strong>The temporary folder</strong>, <code>%TEMP%</code>. Generated working files that Windows may</p>
-<p>clear whenever it likes. Reports and converted documents live here, because</p>
-<p>they are a way of reading something rather than a document in their own right.</p>
-<h2>Where HomerView puts each thing</h2>
+<header id="title-block-header">
+<h1 class="title">HomerView</h1>
+<p class="subtitle">How to build it, and how it is put together</p>
+<p class="author">Jamal Mazrui</p>
+</header>
+<h1 id="what-you-need">What you need</h1>
 <ul>
-<li>Program files, documentation and the converters: the installation folder.</li>
-<li>The session log and the history database: local application data.</li>
-<li>Preferences and recently typed values: roaming application data.</li>
-<li>The browser profile: local application data, because it is large and</li>
+<li><strong>Python 3</strong>, to run the build scripts.</li>
+<li><strong>Inno Setup 6</strong>, to compile the installer, from <a
+href="https://jrsoftware.org/isdl.php">jrsoftware.org</a>.</li>
+<li><strong>Git</strong>, if you plan to publish.</li>
+<li><strong>NVDA 2025.1 or newer</strong>, to test what you build.</li>
 </ul>
-<p>machine-specific.</p>
+<p>The source lives in C:. Nothing else has to be installed; the
+converters HomerView uses at run time are found rather than bundled.</p>
+<h1 id="building-it">Building it</h1>
+<pre><code>buildHomerView.cmd</code></pre>
+<p>That is the whole of it. Three steps run in order:</p>
+<ol type="1">
+<li><strong>The setup script is checked</strong>, before anything is
+compiled. Inno Setup reports a line number and four words when it
+rejects a script, which is enough to find the line and not enough to
+explain it. These checks catch the common faults and say what is
+wrong.</li>
+<li><strong>The add-on is packaged</strong> into build.nvda-addon.</li>
+<li><strong>The installer is compiled</strong> into
+HomerView_setup.exe.</li>
+</ol>
+<p>Two things are verified afterwards. The version in addon.ini must
+match the one in HomerView_setup.iss, because a release where those
+disagree is one nobody notices until a user reports the wrong number.
+And every Python file on disk must be inside the built add-on, because a
+module left out builds cleanly and fails on the user’s machine at the
+moment they press the key.</p>
+<p>A log is written beside the script. Upload it if anything looks
+wrong.</p>
+<h1 id="publishing-a-release">Publishing a release</h1>
+<pre><code>buildHomerView.cmd
+git add -A
+git commit -m &quot;HomerView 1.2.3&quot;
+git push
+tagRelease</code></pre>
+<p>tagRelease reads the version from HomerView_setup.exe and expects
+that file in the project root, which is where the setup script puts
+it.</p>
+<p>The add-on always has the same name, HomerView.nvda-addon, so the
+setup script never needs editing when the version changes. Only two
+files carry the version: addon.ini and HomerView_setup.iss.</p>
+<h1 id="tidying-up">Tidying up</h1>
+<pre><code>cleanDir.cmd</code></pre>
+<p>Moves everything the project does not need out of the folder and into
+C:_misc. It moves rather than deletes, so anything taken by mistake can
+be moved back. Pass -bWhatIf to see what would move first.</p>
+<pre><code>python tidyRepo.py</code></pre>
+<p>Surveys the repository: files tracked that should not be, large files
+anywhere in the history, and source files missing from it. It prints the
+whole plan and changes nothing unless you add –do-it.</p>
+<h1 id="how-the-code-is-arranged">How the code is arranged</h1>
+<p>The add-on is a global plugin in addon. About forty modules, each
+with one job.</p>
+<p>The ones worth knowing first:</p>
 <ul>
-<li>Generated reports and converted documents: the temporary folder.</li>
-<li>Downloads and files saved on request: the user&#x27;s downloads folder.</li>
+<li><strong>commands.py</strong> is the table of every command: its
+name, its key and what it does. The gesture bindings, the Alternate
+Menu, the hotkey summary and the documentation all read from it, so none
+of them can drift from the others.</li>
+<li><strong>cdp.py</strong> speaks to the browser over the Chrome
+DevTools Protocol.</li>
+<li><strong>edge.py</strong> launches and finds the browser.</li>
+<li><strong>service.py</strong> is the worker thread. Everything that
+touches the browser is queued to it, and results come back to NVDA’s
+main thread.</li>
+<li><strong>pageBuffer.py</strong> is the browse mode buffer that
+carries the page commands.</li>
+<li><strong>homer/</strong> is the shared toolkit, ported from the C#
+version used by the other Homer Tools.</li>
 </ul>
-<h2>The same rule applied to the other tools</h2>
-<p>2htm converts a document and writes the result where the user asked. It needs no</p>
-<p>per-user folder at all beyond a log, which belongs in local application data.</p>
-<p>DbDo and urlFido keep settings, which belong in roaming application data as</p>
-<p><code>%APPDATA%\&lt;Product&gt;\&lt;Product&gt;.inix</code>, and write logs and any cached data to</p>
-<p>local application data. Neither should write to its own installation folder,</p>
-<p>and neither installer should loosen permissions on it.</p>
-<p>A shared <code>%APPDATA%\Homer</code> folder for settings common to the family would be</p>
-<p>defensible, but only for settings genuinely shared. A setting that belongs to</p>
-<p>one program should stay with that program, so that removing it removes its</p>
-<p>settings too.</p>
-<h1>How keys are written</h1>
-<p>Two conventions govern every key name a person reads, in the documentation, in</p>
-<p>the Alternate Menu, and in anything HomerView speaks.</p>
-<h2>Modifiers are listed alphabetically</h2>
-<p>Alt, then Control, then NVDA, then Shift, then Windows. So Alt+NVDA+F10, not</p>
-<p>NVDA+Alt+F10; Alt+Control+Accent, not Control+Alt+Accent.</p>
-<p>The order is arbitrary, and that is the point. Any fixed order would do. What</p>
-<p>matters is that the same combination always reads the same way, so two lists of</p>
-<p>keys can be compared without normalising them first, and a reader hears</p>
-<p>Alt+Control+Shift in that order every time rather than in whatever order the</p>
-<p>author happened to type it.</p>
-<h2>Key names follow Freedom Scientific</h2>
-<p>JAWS key names are used even though these keys are bound in NVDA. A blind</p>
-<p>Windows user has been reading JAWS key names for thirty years, and DownArrow,</p>
-<p>Accent and SemiColon are what they expect to hear.</p>
-<p>This applies only to what a person reads. NVDA&#x27;s gesture identifiers are</p>
-<p>unchanged, because those are what the binding needs. <code>describeGesture</code> in</p>
-<p>pageBuffer.py is where one becomes the other.</p>
-<h2>Where the two disagree</h2>
-<p>Freedom Scientific name first, then what NVDA calls the same key.</p>
-<ul>
-<li>Accent, for the grave accent key. NVDA identifies it by the character itself.</li>
-<li>Apostrophe. NVDA identifies it by the character itself.</li>
-<li>BackSlash, Slash, Dash, Equals, Comma, Period, LeftBracket, RightBracket.</li>
-</ul>
-<p>NVDA identifies all of these by the character itself.</p>
-<ul>
-<li>SemiColon, one word with a capital C. NVDA identifies it by the character.</li>
-<li>DownArrow, UpArrow, LeftArrow, RightArrow, each one word. NVDA writes</li>
-</ul>
-<p>downArrow, upArrow, leftArrow, rightArrow in lower camel case.</p>
-<ul>
-<li>PageUp, PageDown, each one word. NVDA writes pageUp and pageDown.</li>
-<li>ScrollLock, CapsLock, NumLock, each one word. NVDA writes scrollLock,</li>
-</ul>
-<p>capsLock and numLock.</p>
-<ul>
-<li>PrintScreen, one word. NVDA writes printScreen.</li>
-<li>NumPadDelete, NumPadEnter, NumPad5. NVDA writes numpadDelete, numpadEnter and</li>
-</ul>
-<p>numpad5, with a lower case p.</p>
-<ul>
-<li>Insert. JAWS calls this key JAWSKey when it is the screen reader modifier;</li>
-</ul>
-<p>NVDA calls the same role NVDA, which is why NVDA appears in these names</p>
-<p>rather than Insert.</p>
-<p>Everything else is spelled the same in both: the letters, the digits, the</p>
-<p>function keys, Enter, Escape, Tab, Space, Backspace, Delete, Home and End.</p>
-</main>
+<h1 id="rules-the-code-follows">Rules the code follows</h1>
+<p><strong>No network call on NVDA’s main thread.</strong> That thread
+is the one NVDA speaks from, so a slow server would hold speech for as
+long as the request took. Everything goes to the worker.</p>
+<p><strong>A dialog opened inside a command must wait for the command to
+return.</strong> Otherwise NVDA never processes the focus change,
+announces nothing, and keeps sending arrow keys to the page underneath.
+That is what lbc.afterScript is for.</p>
+<p><strong>The test that runs for every object NVDA creates does no
+input or output.</strong> It runs thousands of times per page, and it is
+an integer set lookup.</p>
+<p><strong>The browser must use its own profile.</strong> Since Chrome
+and Edge 136, the remote debugging switches are ignored on the default
+profile, so there would be no connection at all.</p>
+<p><strong>Files go where Windows says they go.</strong> The program
+folder is written once by the installer and read after that. Logs, the
+history and the browser profile go in local application data. Settings
+go in roaming application data. Generated pages go in the temporary
+folder.</p>
+<h1 id="things-worth-checking-after-an-edit">Things worth checking after
+an edit</h1>
+<p>Two faults have recurred often enough to be worth a habit.</p>
+<p><strong>A name used but never defined.</strong> Several times an
+automated edit removed something still in use, and it shipped. A scan of
+every module for names loaded but never bound catches it in a
+second.</p>
+<p><strong>A method that promises a value and never returns
+one.</strong> A method named build or get that falls off the end returns
+nothing, and the caller fails on the next line. That one broke the
+Alternate Menu for two releases.</p>
+<p>Use the parser rather than string matching for structural edits.
+Replacing text between two markers has twice destroyed a file, once
+inflating it from 55 KB to 115 MB, because the markers were in the wrong
+order and the match came back empty.</p>
+<h1 id="licence">Licence</h1>
+<p>GNU General Public License version 2, the same licence NVDA uses.</p>
 </body>
 </html>

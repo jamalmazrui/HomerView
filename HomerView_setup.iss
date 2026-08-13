@@ -3,7 +3,7 @@
 ; Source root and installation destination: C:\HomerView
 
 #define AppName "HomerView"
-#define AppVersion "1.41.0"
+#define AppVersion "1.43.1"
 #define AppPublisher "Jamal Mazrui"
 ; A stable name on purpose. The version lives in the add-on's manifest, which is
 ; what NVDA reads, and in AppVersion above. Putting it in the file name as well
@@ -83,12 +83,16 @@ Source: "C:\HomerView\build\{#AddonFile}"; DestDir: "{app}\build"; Flags: ignore
 
 ; Documentation, as Markdown and as a web page. The web page is what the
 ; Alternate Menu and the start page open, in the HomerView window.
-Source: "C:\HomerView\README.md"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\HomerView\README.htm"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\HomerView\ReadMe.md"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\HomerView\ReadMe.htm"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\HomerView\HomerView.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\HomerView\HomerView.htm"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\HomerView\History.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\HomerView\History.htm"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\HomerView\Announce.md"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\HomerView\Announce.htm"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\HomerView\hotkeys.md"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\HomerView\hotkeys.htm"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\HomerView\Developer.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\HomerView\Developer.htm"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\HomerView\Hotkeys.inix"; DestDir: "{app}"; Flags: ignoreversion
@@ -104,8 +108,8 @@ Source: "C:\HomerView\HomerView_setup.iss"; DestDir: "{app}"; Flags: ignoreversi
 ; repository, and a .gitignore beside the program is at best confusing.
 Source: "C:\HomerView\buildAddon.cmd"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\HomerView\buildAddon.ps1"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\HomerView\buildAll.cmd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\HomerView\buildAll.ps1"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\HomerView\buildHomerView.cmd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\HomerView\buildHomerView.ps1"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\HomerView\cleanDir.cmd"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "C:\HomerView\cleanDir.ps1"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 
@@ -124,8 +128,8 @@ Source: "C:\HomerView\installPandoc.ps1"; DestDir: "{app}"; Flags: ignoreversion
 [Icons]
 ; A Start Menu group is created only if the user asks for one, since
 ; DisableProgramGroupPage and AllowNoIcons are both yes.
-Name: "{group}\HomerView quick start"; Filename: "{app}\README.htm"
-Name: "{group}\HomerView user guide"; Filename: "{app}\HomerView.htm"
+Name: "{group}\HomerView read me"; Filename: "{app}\ReadMe.htm"
+Name: "{group}\HomerView app guide"; Filename: "{app}\HomerView.htm"
 Name: "{group}\HomerView history of changes"; Filename: "{app}\History.htm"
 Name: "{group}\HomerView developer notes"; Filename: "{app}\Developer.htm"
 ; A shortcut runs as whoever double-clicks it, so this one can point at the

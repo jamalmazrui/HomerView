@@ -1,10 +1,14 @@
-# HomerView
+# What does not belong in the repository.
 #
-# Logs are written on every run and say nothing a reader of the repository
-# needs. They are also the one file most likely to carry a local path.
+# Grouped by why, because a bare list of names tells the next reader nothing
+# about whether an entry is still needed.
+
+# Logs. Every script writes one beside itself, and they are regenerated on the
+# next run. The single pattern covers them all, so no script needs its own line.
 *.log
 
-# Generated at run time, all of them rewritten on the next run.
+# What HomerView writes while it runs. These land in the folder when the
+# program is run from the source directory rather than from an installation.
 Axe.json
 Ace.json
 Report.html
@@ -14,49 +18,40 @@ MainContent.htm
 HomerView.db
 HomerView.jsonl
 
-# Private correspondence. Drafts live outside the repository.
-Letter_to_*.md
-Transition_*.md
+# Correspondence and working notes. Written for one person, or about the
+# project rather than part of it.
+Announce_draft*.md
 Edge_Hotkeys.md
-Reply_to_*.md
-Announcing_*.md
-Announcing_*.htm
-Letter_to_*.htm
+Letter_to_*
+Reply_to_*
+Transition_*
 
 # Scripts that belong to this machine rather than to the project. The
 # repository script exists to create the repository, so a clone has no use for
-# it; the clean script is a local convenience. Both stay here and are not
-# pushed. The two Git configuration files above are the exception: they
-# describe the repository and belong in it.
+# it, and the clean script is a local convenience.
 clean.cmd
 createHomerViewRepo.cmd
 createHomerViewRepo.ps1
-createHomerViewRepo.log
-cleanDir.log
 
-# Python and build output.
+# Python's own leavings.
 __pycache__/
-*.pyc
-*.pyo
+*.py[cod]
 dist/
 
-# Executables are tracked deliberately, so someone who clones this can build
-# the installer without hunting for pieces. There is nothing to write here for
-# that: they are tracked because nothing excludes them. The two lines that used
-# to sit here re-including them did nothing at all, because an exclamation mark
-# only re-includes what an earlier pattern excluded.
-#
-# Two exceptions.
+# Two large binaries, for two different reasons.
 #
 # pandoc.exe is about 220 megabytes and GitHub refuses any single file over a
-# hundred. It is no longer packaged at all: the installer offers to fetch it
-# on the last page, the way HomerScribe fetches Ollama. A local copy here is
-# ignored rather than committed.
+# hundred. It is no longer packaged at all: the installer offers to fetch it.
+# A local copy here is ignored rather than committed.
 pandoc.exe
-installPandoc.log
-
-# The built installer, which is a release asset rather than source. It is
-# rebuilt from the setup script by anyone who needs it, and committing a
-# hundred megabyte binary on every release would make the repository
-# unpleasant to clone.
+#
+# The built installer is a release asset rather than source. Fifteen copies of
+# it once accounted for 390 megabytes of history, which was most of what a
+# clone had to download, and they had to be removed by rewriting every commit.
+# Attach it to a release instead.
 HomerView_setup.exe
+
+# The built add-on IS tracked, deliberately, so that somebody who clones this
+# can install HomerView without building it first. It is about 400 kilobytes,
+# which is a size worth carrying. Nothing above excludes it; this note is here
+# so nobody adds a line that does.

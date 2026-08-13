@@ -1,227 +1,127 @@
 ﻿---
 title: HomerView for Developers
+subtitle: How to build it, and how it is put together
 author: Jamal Mazrui
 ---
 
-# What this is
+# What you need
 
-HomerView is an NVDA global plugin that launches its own copy of Microsoft Edge
-with the Chrome DevTools Protocol enabled, and then uses three separate views of
-the same page. Most of what it does that is hard to do elsewhere comes from
-having all three at once.
+- **Python 3**, to run the build scripts.
+- **Inno Setup 6**, to compile the installer, from
+  [jrsoftware.org](https://jrsoftware.org/isdl.php).
+- **Git**, if you plan to publish.
+- **NVDA 2025.1 or newer**, to test what you build.
 
-The browser's own window, reached through NVDA's object model and the Windows
-API. That is where the address bar, the tab strip and the toolbars live, none of
-which exist in the page.
+The source lives in C:\HomerView. Nothing else has to be installed; the
+converters HomerView uses at run time are found rather than bundled.
 
-The page as NVDA built it, through the browse mode tree interceptor. That is the
-reading order the user navigates, with its landmarks, headings and text ranges.
+# Building it
 
-The page as the browser sees it, through the protocol, in both directions:
-queries that ask, and commands that act. The self test exercises all three and
-reports each separately, because a protocol connection can answer every query
-while having lost the ability to act.
+    buildHomerView.cmd
 
-# The rules the code follows
+That is the whole of it. Three steps run in order:
 
-No network call runs on NVDA's main thread. Everything that touches the browser
-is queued to a single worker, and results return through wx.CallAfter. A vague
-report of sluggishness becomes a specific line, because every task records the
-thread it ran on and warns if it is the wrong one.
+1. **The setup script is checked**, before anything is compiled. Inno Setup
+   reports a line number and four words when it rejects a script, which is
+   enough to find the line and not enough to explain it. These checks catch the
+   common faults and say what is wrong.
+2. **The add-on is packaged** into build\HomerView.nvda-addon.
+3. **The installer is compiled** into HomerView_setup.exe.
 
-The test for "is this object inside HomerView's browser" performs no input or
-output, because it runs for every object NVDA creates. It is an integer set
-membership check against the browser's process identifiers.
+Two things are verified afterwards. The version in addon\manifest.ini must
+match the one in HomerView_setup.iss, because a release where those disagree is
+one nobody notices until a user reports the wrong number. And every Python file
+on disk must be inside the built add-on, because a module left out builds
+cleanly and fails on the user's machine at the moment they press the key.
 
-A dialog opened from inside a script waits for the script to return first.
-Otherwise NVDA has not processed the focus change, announces nothing, and keeps
-sending arrow keys to the page underneath.
+A log is written beside the script. Upload it if anything looks wrong.
 
-No command takes a key NVDA uses by default, on either the desktop or the
-laptop layout.
+# Publishing a release
 
-# Where the code lives
+    buildHomerView.cmd
+    git add -A
+    git commit -m "HomerView 1.2.3"
+    git push
+    tagRelease
 
-    addon/globalPlugins/homerView/
-        __init__.py       the global plugin: commands that work anywhere
-        pageBuffer.py     the browse mode class and every page command
-        service.py        the worker thread, connection state, process identity
-        cdp.py            the protocol session, reader thread, event dispatch
-        webSocket.py      a loopback-only RFC 6455 client, standard library only
-        edge.py           finding and launching the browser
-        homer/            the shared toolkit: inix, lbc, say, web
+tagRelease reads the version from HomerView_setup.exe and expects that file in
+the project root, which is where the setup script puts it.
 
-The rest are one file per capability: axe, ace, act, capture, contacts,
-convert, copilot, documents, download, exportReport, find, history, mainContent,
-metadata, output, pageExplorer, report, saveAs, selfTest, settings, wcag.
+The add-on always has the same name, HomerView.nvda-addon, so the setup script
+never needs editing when the version changes. Only two files carry the version:
+addon\manifest.ini and HomerView_setup.iss.
 
-# The shared Homer toolkit
+# Tidying up
 
-The homer package holds what is not about HomerView: order-preserving inix
-files, Layout by Code dialogs, a single way to announce text, and dependency
-free HTTP that behaves like a browser. Three rules make it shareable.
+    cleanDir.cmd
 
-No module imports NVDA at the top level, so every one is importable and testable
-in a plain interpreter and the same code serves a program that is not an add-on.
-Nothing depends on anything beyond the standard library except wx, which NVDA is
-built on. No module knows about HomerView.
+Moves everything the project does not need out of the folder and into
+C:\temp\HomerView_misc. It moves rather than deletes, so anything taken by
+mistake can be moved back. Pass -bWhatIf to see what would move first.
 
-To reuse it, copy the folder into your add-on and import relatively. NVDA has no
-dependency manager for add-ons: a library add-on on sys.path works until load
-order changes or somebody removes it, and the add-on store cannot declare or
-protect that dependency. Copying costs a re-copy when a fix lands; sharing costs
-silent breakage in someone else's add-on.
+    python tidyRepo.py
 
-# Building and releasing
+Surveys the repository: files tracked that should not be, large files anywhere
+in the history, and source files missing from it. It prints the whole plan and
+changes nothing unless you add --do-it.
 
-    buildAll.cmd     builds the add-on, then compiles the installer
-    tagRelease       tags the version and publishes the release
+# How the code is arranged
 
-buildAll must run first. tagRelease reads the version from the built installer's
-version resource and expects to find HomerView_setup.exe in the repository root.
+The add-on is a global plugin in addon\globalPlugins\homerView. About forty
+modules, each with one job.
 
-The add-on package has a stable name, HomerView.nvda-addon, so the setup script
-never needs editing for a version. A copy named for the version is written
-beside it for release assets. The version itself lives in the add-on's
-manifest.ini, which is what NVDA reads, and in AppVersion in the setup script.
+The ones worth knowing first:
 
-Every build script writes a log beside itself.
+- **commands.py** is the table of every command: its name, its key and what it
+  does. The gesture bindings, the Alternate Menu, the hotkey summary and the
+  documentation all read from it, so none of them can drift from the others.
+- **cdp.py** speaks to the browser over the Chrome DevTools Protocol.
+- **edge.py** launches and finds the browser.
+- **service.py** is the worker thread. Everything that touches the browser is
+  queued to it, and results come back to NVDA's main thread.
+- **pageBuffer.py** is the browse mode buffer that carries the page commands.
+- **homer/** is the shared toolkit, ported from the C# version used by the
+  other Homer Tools.
 
-# Conventions
+# Rules the code follows
 
-Camel Type: lowerCamelCase for names, Hungarian prefixes on typed variables,
-functions rather than subprocedures, constants named like variables.
+**No network call on NVDA's main thread.** That thread is the one NVDA speaks
+from, so a slow server would hold speech for as long as the request took.
+Everything goes to the worker.
 
-Files a Windows program reads are UTF-8 with a byte order mark and Windows line
-endings. Generated web pages use the .htm extension.
+**A dialog opened inside a command must wait for the command to return.**
+Otherwise NVDA never processes the focus change, announces nothing, and keeps
+sending arrow keys to the page underneath. That is what lbc.afterScript is for.
 
-Keys are written in the order Alt, Control, Shift, with the letter last and
-upper case regardless of Shift.
+**The test that runs for every object NVDA creates does no input or output.**
+It runs thousands of times per page, and it is an integer set lookup.
 
-# What is deliberately not here
+**The browser must use its own profile.** Since Chrome and Edge 136, the remote
+debugging switches are ignored on the default profile, so there would be no
+connection at all.
 
-No language model. The page explorer is rule-based, the act command matches
-rather than infers, and no page content leaves the machine. A local model
-service is detected and logged if one is running, and nothing uses it.
+**Files go where Windows says they go.** The program folder is written once by
+the installer and read after that. Logs, the history and the browser profile go
+in local application data. Settings go in roaming application data. Generated
+pages go in the temporary folder.
 
-No bundled converters. LibreOffice, pandoc, Calibre and 2htm are found rather
-than shipped, because an add-on folder is replaced wholesale on every update and
-sits in a roaming profile that some managed environments will not execute from.
+# Things worth checking after an edit
 
-# Where files belong on Windows
+Two faults have recurred often enough to be worth a habit.
 
-This is settled here once, because four programs in this family face the same
-question and answering it differently in each would be a nuisance to everyone.
+**A name used but never defined.** Several times an automated edit removed
+something still in use, and it shipped. A scan of every module for names loaded
+but never bound catches it in a second.
 
-Windows offers five places, and the choice follows from what a file is rather
-than from what is convenient.
+**A method that promises a value and never returns one.** A method named build
+or get that falls off the end returns nothing, and the caller fails on the next
+line. That one broke the Alternate Menu for two releases.
 
-**The program folder**, `C:\Program Files\<Product>`, reached in an installer
-script as `{autopf}`. Written once by the installer, which has administrator
-rights, and read for ever after. Nothing a program writes at run time belongs
-here. Windows once quietly redirected such writes to a per-user store, which
-hid them from the user and from the program's own uninstaller, and that
-redirection has been discouraged for years. Granting the Users group write
-access to escape the problem trades a real security boundary for a convenience,
-and it also means two people sharing a computer share one file.
+Use the parser rather than string matching for structural edits. Replacing text
+between two markers has twice destroyed a file, once inflating it from 55 KB to
+115 MB, because the markers were in the wrong order and the match came back
+empty.
 
-**Local application data**, `%LOCALAPPDATA%`, which is
-`C:\Users\<name>\AppData\Local\<Product>`. Per user and per machine, and not
-copied anywhere. This is where a log, a database, a cache, a downloaded tool or
-a browser profile belongs. Anything that grows, anything specific to this
-computer, anything that would be meaningless on another one.
+# Licence
 
-**Roaming application data**, `%APPDATA%`, which is
-`C:\Users\<name>\AppData\Roaming\<Product>`. Per user, and in a domain it
-follows the person to whatever computer they sign in to. This is for
-preferences, and only for preferences. The whole folder is copied at sign in
-and sign out, so a log or a database placed here makes every sign in slower for
-no benefit to anyone.
-
-**Machine-wide data**, `C:\ProgramData\<Product>`. Shared by every user of the
-computer. Worth using only when data genuinely is shared, and it needs thought
-about permissions, because a folder every user can write is a folder any user
-can tamper with.
-
-**The user's own folders**, Documents and Downloads. Only for files the user
-asked for and will manage themselves. A saved report or a downloaded file, yes.
-A log, never: the user did not ask for it and should not have to tidy it.
-
-**The temporary folder**, `%TEMP%`. Generated working files that Windows may
-clear whenever it likes. Reports and converted documents live here, because
-they are a way of reading something rather than a document in their own right.
-
-## Where HomerView puts each thing
-
-- Program files, documentation and the converters: the installation folder.
-- The session log and the history database: local application data.
-- Preferences and recently typed values: roaming application data.
-- The browser profile: local application data, because it is large and
-  machine-specific.
-- Generated reports and converted documents: the temporary folder.
-- Downloads and files saved on request: the user's downloads folder.
-
-## The same rule applied to the other tools
-
-2htm converts a document and writes the result where the user asked. It needs no
-per-user folder at all beyond a log, which belongs in local application data.
-
-DbDo and urlFido keep settings, which belong in roaming application data as
-`%APPDATA%\<Product>\<Product>.inix`, and write logs and any cached data to
-local application data. Neither should write to its own installation folder,
-and neither installer should loosen permissions on it.
-
-A shared `%APPDATA%\Homer` folder for settings common to the family would be
-defensible, but only for settings genuinely shared. A setting that belongs to
-one program should stay with that program, so that removing it removes its
-settings too.
-
-# How keys are written
-
-Two conventions govern every key name a person reads, in the documentation, in
-the Alternate Menu, and in anything HomerView speaks.
-
-## Modifiers are listed alphabetically
-
-Alt, then Control, then NVDA, then Shift, then Windows. So Alt+NVDA+F10, not
-NVDA+Alt+F10; Alt+Control+Accent, not Control+Alt+Accent.
-
-The order is arbitrary, and that is the point. Any fixed order would do. What
-matters is that the same combination always reads the same way, so two lists of
-keys can be compared without normalising them first, and a reader hears
-Alt+Control+Shift in that order every time rather than in whatever order the
-author happened to type it.
-
-## Key names follow Freedom Scientific
-
-JAWS key names are used even though these keys are bound in NVDA. A blind
-Windows user has been reading JAWS key names for thirty years, and DownArrow,
-Accent and SemiColon are what they expect to hear.
-
-This applies only to what a person reads. NVDA's gesture identifiers are
-unchanged, because those are what the binding needs. `describeGesture` in
-pageBuffer.py is where one becomes the other.
-
-## Where the two disagree
-
-Freedom Scientific name first, then what NVDA calls the same key.
-
-- Accent, for the grave accent key. NVDA identifies it by the character itself.
-- Apostrophe. NVDA identifies it by the character itself.
-- BackSlash, Slash, Dash, Equals, Comma, Period, LeftBracket, RightBracket.
-  NVDA identifies all of these by the character itself.
-- SemiColon, one word with a capital C. NVDA identifies it by the character.
-- DownArrow, UpArrow, LeftArrow, RightArrow, each one word. NVDA writes
-  downArrow, upArrow, leftArrow, rightArrow in lower camel case.
-- PageUp, PageDown, each one word. NVDA writes pageUp and pageDown.
-- ScrollLock, CapsLock, NumLock, each one word. NVDA writes scrollLock,
-  capsLock and numLock.
-- PrintScreen, one word. NVDA writes printScreen.
-- NumPadDelete, NumPadEnter, NumPad5. NVDA writes numpadDelete, numpadEnter and
-  numpad5, with a lower case p.
-- Insert. JAWS calls this key JAWSKey when it is the screen reader modifier;
-  NVDA calls the same role NVDA, which is why NVDA appears in these names
-  rather than Insert.
-
-Everything else is spelled the same in both: the letters, the digits, the
-function keys, Enter, Escape, Tab, Space, Backspace, Delete, Home and End.
+GNU General Public License version 2, the same licence NVDA uses.

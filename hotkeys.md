@@ -5,8 +5,7 @@ author: Jamal Mazrui
 ---
 
 Generated from the command table in the code, so it cannot drift from what
-the program does. Modifiers are in alphabetical order and key names follow
-Freedom Scientific.
+the program does.
 
 ## Commands with a key
 
@@ -97,6 +96,8 @@ Freedom Scientific.
 These run from the Alternate Menu on Alt+NVDA+F10, and can be given a key in
 NVDA's Input Gestures dialog under the HomerView category.
 
+- **Hotkey Document**. Open the shipped list of every command, key and description. Hotkey Summary on Alt+Shift+H builds the same list from the program itself; this opens the copy that came with it.
+- **Project Announcement**. Open the short description of HomerView, for passing on to somebody who has not met it.
 - **Report Connection**. Says whether HomerView is connected to the browser, and how.
 - **Self Test**. Checks that all three ways of reaching the browser are working.
 
@@ -105,38 +106,4 @@ NVDA's Input Gestures dialog under the HomerView category.
 - **Report Accessibility**. Tests the page and writes a report addressed to whoever publishes the site. Reached by Check Accessibility once an engine is chosen.
 - **Check with Axe**. Tests the page with Deque's axe-core engine. Offered by Check Accessibility.
 - **Check with Equal Access**. Tests the page with IBM's Equal Access engine. Offered by Check Accessibility.
-- **Open User Guide**. Opens the user guide in the HomerView window rather than as a message.
-- **Open History**. Opens the history of changes in the HomerView window.
-
-## How the keys were chosen
-
-The first letter of the first word, where that letter is free. Failing that,
-the first letter of the second word. A letter from the middle of a word is not
-used, because nobody remembers it: the single exception is X for extract and
-export, which is a convention older than any of this.
-
-Beyond that, in order:
-
-  - A key NVDA uses on either the desktop or the laptop layout is never taken.
-  - A JAWS default is used where it is free, because a blind Windows user has
-    had those in their fingers for years. The element lists are here for that
-    reason: NVDA+F5, NVDA+F6 and NVDA+Shift+F7 are where JAWS puts them.
-  - Failing that, an EdSharp binding, since these are the same hands. Where the
-    command is the same as EdSharp's, EdSharp's own sentence describes it, so
-    the two programs read alike: Find at Cursor on Alt+F3, Web Download on
-    Alt+Shift+W, Recent Files on Alt+R, and the whole accent family.
-  - A key Edge uses may be taken when HomerView does everything Edge did with
-    it and more, which is why Control+O and Control+S are here. Where it does
-    not supersede, the key is left alone: plain F1 opens Edge's own help and
-    stays Edge's, so HomerView's documentation uses F1 with a modifier instead.
-  - Where Edge has two keys for one thing, one of them may be taken. F4 selects
-    the address bar, and so do Control+L and Alt+D, so F4 is available.
-  - Where a key resembles one that already exists, the resemblance is the
-    mnemonic. F9 is Edge's reading view, so Shift+F9 makes HomerView's own.
-  - Fewer modifiers is better, because it is easier to press.
-  - An Office convention is worth adopting: F1 for documentation, F3 for
-    finding again, F8 for selecting.
-  - Several rarely used commands that answer one question belong on one key
-    with a picker, not on several keys. Checking a page for accessibility is
-    one command that asks which engine, not two commands.
 

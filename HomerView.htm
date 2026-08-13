@@ -1,238 +1,506 @@
-﻿<!doctype html>
-<html lang="en">
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
 <head>
-<meta charset="utf-8">
-<title>HomerView User Guide</title>
-<style>body{font-family:Segoe UI,Arial,sans-serif;line-height:1.5;margin:0 auto;max-width:60em;padding:1em}pre{background:#f4f4f4;padding:1em;white-space:pre-wrap}code{background:#f4f4f4}</style>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="author" content="Jamal Mazrui" />
+  <title>HomerView</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
 </head>
 <body>
-<main>
-<h1>HomerView</h1>
-<p>An NVDA add-on that runs its own copy of Microsoft Edge and drives it through</p>
-<p>the Chrome DevTools Protocol. This guide lists every command. For a first ten</p>
-<p>minutes, read README.md instead.</p>
-<p>Keys are written with modifiers in alphabetical order, and key names as</p>
-<p>Freedom Scientific writes them.</p>
-<h1>How the commands are organised</h1>
-<p>Commands come in two kinds, and the difference explains why some keys work in</p>
-<p>one place and not another.</p>
-<p>Page commands exist only while you are reading a page HomerView opened, in</p>
-<p>browse mode. That is what lets them use single letters without disturbing</p>
-<p>anything else on the computer. In an edit field, in the address bar, or in</p>
-<p>another program, they are simply not there.</p>
-<p>Commands that work anywhere carry the NVDA key, which NVDA takes before any</p>
-<p>program sees it. Those are for starting HomerView and for the few things worth</p>
-<p>doing from outside a page. Where a command has both kinds of key, both are</p>
-<p>listed, shortest first.</p>
-<p>No HomerView command takes a key NVDA uses by default, on either the desktop</p>
-<p>or the laptop layout. Every command appears in NVDA&#x27;s Input Gestures dialog</p>
-<p>under the HomerView category, where its key can be changed.</p>
-<h1>Starting and finding things</h1>
+<header id="title-block-header">
+<h1 class="title">HomerView</h1>
+<p class="subtitle">The full guide</p>
+<p class="author">Jamal Mazrui</p>
+</header>
+<h1 id="about-this-guide">About this guide</h1>
+<p>This is the complete reference. If you are new to HomerView, read
+ReadMe.md first; it takes about ten minutes and covers what most people
+need.</p>
+<p>Keys are written with the modifiers in alphabetical order, and the
+key names are the ones JAWS uses, because most blind Windows users have
+read those for years. So Alt+NVDA+H, and Accent rather than Grave.</p>
+<h1 id="how-homerview-works">How HomerView works</h1>
+<p>HomerView starts its own copy of Microsoft Edge with a setting turned
+on that lets another program ask the browser questions. That connection
+is what everything here is built on.</p>
+<p>It has to be a separate copy. Since 2025, Edge and Chrome ignore that
+setting when the browser is using its normal profile, so a copy you
+started yourself cannot be asked anything. HomerView runs its own, with
+its own profile.</p>
+<p>That profile is yours and it lasts. Sign in once and your bookmarks,
+passwords and sessions are there every time.</p>
+<h1 id="where-the-commands-work">Where the commands work</h1>
+<p>Commands come in two kinds, and the difference explains why some keys
+work in one place and not another.</p>
+<p>Most commands only exist while you are reading a page HomerView
+opened. That is what lets them use single letters without disturbing
+anything else on the computer. In an edit box, in the address bar, or in
+another program, they are simply not there.</p>
+<p>Commands that must work anywhere carry the NVDA key, because NVDA
+takes those before any program sees them. Launching HomerView is the
+obvious one: there is no page yet.</p>
+<p>Where a command has both, the short key works in a page and the long
+one works anywhere.</p>
+<p>No HomerView command takes a key NVDA already uses, on either the
+desktop or the laptop layout. Every command appears in NVDA’s Input
+Gestures dialog under the HomerView category, so you can change any key
+here or add one.</p>
+<h1 id="starting-homerview">Starting HomerView</h1>
 <ul>
-<li><strong>Alt+NVDA+H</strong> launch or reconnect the HomerView instance of Microsoft Edge</li>
-<li><strong>Alt+NVDA+F10</strong> lists every HomerView command in one alphabetical list</li>
-<li><strong>Alt+Shift+H</strong> shows every HomerView command and its key as a document</li>
-<li><strong>F1</strong> shows the HomerView user guide</li>
-<li><strong>Alt+F1</strong> shows what HomerView is, and where it keeps its files</li>
-<li><strong>Shift+F1</strong> shows the history of changes to HomerView</li>
-<li><strong>Control+F11, or Alt+NVDA+F11</strong> checks for a newer HomerView and installs it</li>
-<li><strong>in the Alternate Menu only</strong> opens the HomerView quick start in the HomerView window</li>
-<li><strong>in the Alternate Menu only</strong> opens the HomerView user guide in the HomerView window</li>
-<li><strong>in the Alternate Menu only</strong> opens the HomerView history of changes in the HomerView window</li>
-<li><strong>in the Alternate Menu only</strong> opens the HomerView developer notes in the HomerView window</li>
-<li><strong>in the Alternate Menu only</strong> check that all three ways of reaching the browser are working</li>
-<li><strong>in the Alternate Menu only</strong> report whether HomerView is connected to Microsoft Edge</li>
-<li><strong>in the Alternate Menu only</strong> open the HomerView log file for this session</li>
+<li><strong>Launch HomerView</strong>, Alt+NVDA+H. Launches or
+reconnects the HomerView copy of Microsoft Edge. H for HomerView, and it
+works anywhere because nothing is running yet.</li>
+<li><strong>Alternate Menu</strong>, Alt+NVDA+F10. Present all commands
+in a single, alphabetized list. F10 opens a menu bar in Windows, and
+this is the menu HomerView has instead.</li>
+<li><strong>Hotkey Summary</strong>, Alt+Shift+H. Display this list of
+command names, hot keys, and descriptions in a new window, as EdSharp
+does on the same key.</li>
 </ul>
-<h1>Getting around a page</h1>
+<h1 id="the-documentation">The documentation</h1>
+<p>HomerView ships six documents. Each has a command, so any of them can
+be opened from the Alternate Menu, and they are read from the
+installation folder, which is usually C:Files.</p>
 <ul>
-<li><strong>J, or Alt+NVDA+J</strong> jump to Main Content: moves to the page&#x27;s main content landmark</li>
-<li><strong>Shift+J</strong> jump to Probable Main Content: finds it when the page declares none</li>
-<li><strong>Alt+DownArrow</strong> moves to the next sentence and reads it</li>
-<li><strong>Alt+UpArrow</strong> moves to the previous sentence and reads it</li>
-<li><strong>Control+DownArrow</strong> moves to the next paragraph and reads it</li>
-<li><strong>Control+UpArrow</strong> moves to the previous paragraph and reads it</li>
-<li><strong>Z</strong> moves to the next element of the same kind as this one</li>
-<li><strong>Shift+Z</strong> moves to the previous element of the same kind as this one</li>
-<li><strong>Alt+Z</strong> moves to the next element of a different kind</li>
-<li><strong>Alt+Shift+Z</strong> moves to the previous element of a different kind</li>
-<li><strong>Control+G</strong> moves to a percentage point through the page</li>
-<li><strong>Alt+G</strong> moves to the percentage point used last time</li>
-<li><strong>NVDA+F6</strong> lists the headings on the page, like the JAWS heading list</li>
-<li><strong>NVDA+Shift+F7</strong> lists the links on the page, like the JAWS link list</li>
-<li><strong>NVDA+F5</strong> lists the form fields on the page, like the JAWS form field list</li>
-<li><strong>Alt+NVDA+L</strong> lists any kind of element on the page, including kinds NVDA&#x27;s own Elements List does not offer</li>
+<li><strong>User Guide</strong>, Control+F1. Open Documentation in the
+HomerView window. F1 is help everywhere, but plain F1 opens Edge’s own
+help and stays Edge’s, so the family here takes F1 with a modifier.</li>
+<li><strong>Quick Start</strong>, Alt+Shift+F1. Open the first ten
+minutes of HomerView, for somebody new to it.</li>
+<li><strong>History of Changes</strong>, Shift+F1. Display list of fixes
+and improvements.</li>
+<li><strong>About HomerView</strong>, Alt+F1. Display version and
+release date, and where HomerView keeps its files.</li>
+<li><strong>Developer Notes</strong>, Control+Shift+F1. Open the notes
+on how HomerView is built and why.</li>
+<li><strong>Hotkey Document</strong>, no key. Open the shipped list of
+every command, key and description. Hotkey Summary on Alt+Shift+H builds
+the same list from the program itself; this opens the copy that came
+with it.</li>
+<li><strong>Project Announcement</strong>, no key. Open the short
+description of HomerView, for passing on to somebody who has not met
+it.</li>
+<li><strong>Session Log</strong>, Alt+Control+F1. Open a copy of this
+session’s log, for working out what went wrong.</li>
 </ul>
-<h1>Finding text</h1>
+<h1 id="moving-through-a-page">Moving through a page</h1>
 <ul>
-<li><strong>Control+F</strong> finds text in the page, using NVDA&#x27;s own find</li>
-<li><strong>Control+Shift+F</strong> finds text backwards in the page, using NVDA&#x27;s own find</li>
-<li><strong>Control+F3</strong> finds a regular expression in the page</li>
-<li><strong>Control+Shift+F3</strong> finds a regular expression backwards in the page</li>
-<li><strong>F3</strong> repeats the last search, whichever kind it was</li>
-<li><strong>Shift+F3</strong> repeats the last search in the opposite direction</li>
-<li><strong>Alt+W</strong> finds the next occurrence of the word at the cursor</li>
-<li><strong>Alt+Shift+W</strong> finds the previous occurrence of the word at the cursor</li>
+<li><strong>Jump to Main</strong>, J, or Alt+NVDA+J. Jumps to the main
+content the page declares. J for Jump, and it is one of only three
+letters NVDA leaves free in a page.</li>
+<li><strong>Jump to Probable Main</strong>, Shift+J. Finds the main
+content of a page that declares none, by weighing every part of it, and
+says that it inferred rather than was told.</li>
+<li><strong>Next Sentence</strong>, Alt+DownArrow. Moves to the next
+sentence and reads it. Alt with an arrow moves by something larger than
+a line and smaller than a paragraph.</li>
+<li><strong>Prior Sentence</strong>, Alt+UpArrow. Moves to the previous
+sentence and reads it.</li>
+<li><strong>Next Paragraph</strong>, Control+DownArrow. Moves to the
+next paragraph and reads it. Control with an arrow moves by paragraph in
+Word and in most editors.</li>
+<li><strong>Prior Paragraph</strong>, Control+UpArrow. Moves to the
+previous paragraph and reads it.</li>
+<li><strong>Next Same Kind</strong>, Z. Moves to the next thing of the
+same kind as the one you are on, whatever that is. Z because NVDA leaves
+it free, and JAWS does this with S.</li>
+<li><strong>Prior Same Kind</strong>, Shift+Z. Moves to the previous
+thing of the same kind as the one you are on.</li>
+<li><strong>Next Different Kind</strong>, Alt+Z. Moves to the next thing
+of a different kind, which JAWS does with D.</li>
+<li><strong>Prior Different Kind</strong>, Alt+Shift+Z. Moves to the
+previous thing of a different kind.</li>
+<li><strong>Go to Percent</strong>, Control+G. Go to percentage point in
+document, as EdSharp does on the same key.</li>
+<li><strong>Go to Percent Again</strong>, Alt+G. Repeat Go command, or
+move a step further with plus or minus.</li>
 </ul>
-<h1>Reading and copying</h1>
+<h1 id="finding-text">Finding text</h1>
 <ul>
-<li><strong>ScrollLock</strong> starts reading continuously, or stops if it is already reading</li>
-<li><strong>Alt+F8</strong> reads the whole page without moving the cursor</li>
-<li><strong>Alt+R</strong> reads the rest of the page from the cursor, without moving it</li>
-<li><strong>Shift+Space</strong> says the selected text, and spells it when pressed twice</li>
-<li><strong>Shift+Backspace</strong> says the run of non-blank characters at the cursor, and spells it when pressed twice</li>
-<li><strong>Control+F8</strong> copies the whole page to the clipboard</li>
-<li><strong>Control+C</strong> copies the selection, or the current line when nothing is selected</li>
-<li><strong>Alt+C</strong> appends the selection, or the current line, to the clipboard</li>
-<li><strong>Control+Space</strong> selects the run of non-blank characters at the cursor</li>
-<li><strong>F8</strong> marks where a selection should begin, so Shift need not be held</li>
-<li><strong>Shift+F8</strong> selects from the marked start to the cursor</li>
-<li><strong>Alt+Shift+F8</strong> returns to the marked start of the selection</li>
-<li><strong>Alt+Apostrophe</strong> says the clipboard text, and spells it when pressed twice</li>
-<li><strong>Alt+Shift+Apostrophe</strong> clears the clipboard</li>
-<li><strong>Control+Apostrophe</strong> saves the clipboard to a text file, proposing a name</li>
-<li><strong>Control+Shift+Apostrophe</strong> appends the clipboard to a text file</li>
+<li><strong>Forward Find</strong>, Control+F. Search forward for string,
+using NVDA’s own find so the dialog and its behaviour are the ones you
+already know.</li>
+<li><strong>Reverse Find</strong>, Control+Shift+F. Search backward for
+string.</li>
+<li><strong>Forward Find with Regular Expression</strong>, Control+F3.
+Search forward for regular expression, which NVDA’s own find cannot
+do.</li>
+<li><strong>Reverse Find with Regular Expression</strong>,
+Control+Shift+F3. Search backward for regular expression.</li>
+<li><strong>Forward Find Again</strong>, F3. Search forward for next
+match, of whichever kind of find was used last.</li>
+<li><strong>Reverse Find Again</strong>, Shift+F3. Search backward for
+previous match.</li>
+<li><strong>Forward Find at Cursor</strong>, Alt+F3. Search forward for
+chunk or selected text, on the key EdSharp uses for it.</li>
+<li><strong>Reverse Find at Cursor</strong>, Alt+Shift+F3. Search
+backward for chunk or selected text.</li>
 </ul>
-<h1>Asking about a page</h1>
+<h1 id="lists-of-what-is-on-the-page">Lists of what is on the page</h1>
 <ul>
-<li><strong>Alt+A</strong> reports the web address of the current HomerView page. Pressing twice spells it, and pressing three times copies it to the clipboard</li>
-<li><strong>Alt+N</strong> says the name of the page, and spells it when pressed twice</li>
-<li><strong>Alt+M</strong> reports what the page says about itself: author, publisher, date, licence</li>
-<li><strong>Alt+Y</strong> says how many characters, words and lines the page or selection holds</li>
-<li><strong>Alt+Shift+Y</strong> says how the page is built</li>
-<li><strong>Control+Shift+Y</strong> counts how often a regular expression matches this page</li>
-<li><strong>Alt+Delete, or Alt+NumPadDelete</strong> says the line, column and percentage position of the cursor</li>
-<li><strong>Alt+U</strong> says where the link at the cursor would go, and copies it when pressed twice</li>
-<li><strong>Alt+P</strong> copies every link address on the page to the clipboard</li>
-<li><strong>Y, or Alt+NVDA+E</strong> summarises the structure of the current HomerView page, the visual aspects a reading order hides, and how best to move around it</li>
-<li><strong>Alt+SemiColon</strong> says the time, and the date when pressed twice</li>
-<li><strong>F4</strong> lists the HomerView tabs and switches to the one you choose</li>
-<li><strong>Shift+F4</strong> says the names of the open HomerView tabs</li>
-<li><strong>in the Alternate Menu only</strong> recently opened: lists the pages and documents you have opened in HomerView, with when each was opened, so you can find something again</li>
-<li><strong>Alt+NVDA+U</strong> reports the web address of the HomerView page, from anywhere in the window</li>
+<li><strong>List Headings</strong>, NVDA+F6. List the headings on the
+page, on the key JAWS uses for its heading list.</li>
+<li><strong>List Form Fields</strong>, NVDA+F5. List the form fields on
+the page, on the key JAWS uses for its form field list.</li>
+<li><strong>List Links</strong>, NVDA+Shift+F7. List the links on the
+page, beside the key JAWS uses for its link list.</li>
+<li><strong>List Elements</strong>, Alt+NVDA+L. Lists any kind of
+element, including kinds NVDA’s own Elements List does not offer. L for
+List.</li>
+<li><strong>Explore Page</strong>, Y, or Alt+NVDA+E. Describes how the
+page is laid out, including what a sighted person can see that your
+reading order never mentions. E for Explore; Y is a second key because
+NVDA leaves it free.</li>
 </ul>
-<h1>Acting on a page</h1>
+<h1 id="asking-about-the-page">Asking about the page</h1>
 <ul>
-<li><strong>Alt+V</strong> acts on the page by describing what you want, such as click sign in</li>
-<li><strong>Control+Enter</strong> submits the form you are filling in, from any field</li>
-<li><strong>Alt+K</strong> tests this page for accessibility, asking which engine to use</li>
-<li><strong>Alt+I</strong> tests the page with the IBM Equal Access engine, alongside axe-core</li>
-<li><strong>Control+O</strong> opens a document of any popular format, converting it to a web page first so that every HomerView command works on it</li>
-<li><strong>Control+S, or Alt+Control+S</strong> saves the current HomerView page as a web page, Markdown, or plain text</li>
-<li><strong>Alt+NVDA+W</strong> lists the file types linked from the current HomerView page, then downloads the ones you choose</li>
-<li><strong>Alt+NVDA+X</strong> extracts the readable part of the current HomerView page and opens it as a plain document in a new tab</li>
-<li><strong>Alt+Q, or Alt+NVDA+Q</strong> looks something up using free web services that need no account</li>
-<li><strong>Alt+NVDA+P</strong> ask Copilot about this page: copies the page text to the clipboard and opens Microsoft Edge&#x27;s Copilot sidebar, ready for you to paste with Control+V and ask a question</li>
-<li><strong>Control+Shift+F4</strong> closes every HomerView tab but this one and the first</li>
-<li><strong>Alt+NVDA+D</strong> close a Microsoft Edge dialog that is blocking the HomerView window</li>
-<li><strong>Alt+NVDA+A</strong> tests the current HomerView page for accessibility problems, finds how to report them to the publisher, and opens the report in a new tab</li>
-<li><strong>in the Alternate Menu only</strong> tests the current HomerView page with axe-core and reports the counts only</li>
+<li><strong>Say Address</strong>, Alt+A. Says the web address of this
+page. Twice spells it, three times copies it. A for Address.</li>
+<li><strong>Say Address Anywhere</strong>, Alt+NVDA+U. Says the web
+address from anywhere in the window, including the address bar.</li>
+<li><strong>Say Metadata</strong>, Alt+M. Says what the page claims
+about itself: author, publisher, date and licence. M for Metadata.</li>
+<li><strong>Say Position</strong>, Alt+Delete, or Alt+NumPadDelete. Says
+the line, column and percentage position of the cursor. Delete sits
+among the navigation keys, which is where a position question
+belongs.</li>
+<li><strong>Say Yield</strong>, Alt+Y. Say number of characters, words,
+and lines in all or selected text.</li>
+<li><strong>Say Yield Structure</strong>, Alt+Shift+Y. Says how the page
+is built: how many headings, links, forms and the rest.</li>
+<li><strong>Yield with Regular Expression</strong>, Control+Shift+Y.
+Count parts of text matching a regular expression, which answers how
+many rather than where.</li>
+<li><strong>Say Url</strong>, Alt+U. Say where the link at the cursor
+would go. U for url.</li>
+<li><strong>Link Target</strong>, Alt+L. Ask what is actually at that
+link without going there: what kind of thing, how big, and whether it
+ends up where it claims. L for Link.</li>
+<li><strong>Page Links to Clipboard</strong>, Alt+Shift+P. Copy every
+link address on the page to the clipboard, as EdSharp copies a path on
+the same key.</li>
+<li><strong>Say Time</strong>, Alt+SemiColon. Say current time and
+date.</li>
 </ul>
-<h1>Speech</h1>
+<h1 id="reading-aloud">Reading aloud</h1>
 <ul>
-<li><strong>Alt+Control+Accent</strong> switches punctuation between all and none</li>
-<li><strong>Control+Accent</strong> speaks faster</li>
-<li><strong>Control+Shift+Accent</strong> speaks slower</li>
-<li><strong>Alt+Accent</strong> speaks louder</li>
-<li><strong>Alt+Shift+Accent</strong> speaks more softly</li>
-<li><strong>Shift+Accent</strong> reports the punctuation level, the rate and the volume</li>
+<li><strong>Read All</strong>, Alt+F8. Say all text, without moving the
+cursor.</li>
+<li><strong>Toggle Reading</strong>, ScrollLock. Starts reading
+continuously, or stops if it is already reading. Scroll Lock because
+nothing else in Edge, NVDA or Windows wants it.</li>
+<li><strong>Say Selected</strong>, Shift+Space. Say selected text, or
+spell if repeated.</li>
+<li><strong>Say Chunk</strong>, Shift+Backspace. Say chunk at cursor, or
+spell if repeated.</li>
 </ul>
-<h1>Invoking a script</h1>
-<p>Alt+V opens a box where each line is one instruction, carried out in order. The</p>
-<p>idea is Stagehand&#x27;s: you say what you want in ordinary words, and the program</p>
-<p>works out which control you meant. HomerView does that matching itself, by role</p>
-<p>and accessible name, against the page&#x27;s own controls. Nothing is sent anywhere</p>
-<p>and no language model is involved.</p>
-<h2>What you can ask for</h2>
+<h1 id="selecting-and-the-clipboard">Selecting and the clipboard</h1>
 <ul>
-<li><strong>click</strong>, and its synonyms press, open, follow, select, choose, activate,</li>
+<li><strong>Start Selection</strong>, F8. Mark starting point of text to
+be selected, so Shift need not be held while you move.</li>
+<li><strong>Complete Selection</strong>, Shift+F8. Select text from
+starting point to cursor.</li>
+<li><strong>Go to Start of Selection</strong>, Alt+Shift+F8. Return to
+start position of selection.</li>
+<li><strong>Select Chunk</strong>, Control+Space. Select contiguous
+sequence of non-blank characters at cursor, or select the next chunk if
+a selection already exists.</li>
+<li><strong>Copy All</strong>, Control+F8. Copy all text to
+clipboard.</li>
+<li><strong>Copy Line</strong>, Control+C. Copy selected text to
+clipboard, or copy current line if no selection.</li>
+<li><strong>Copy Append</strong>, Alt+C. Append selected text to
+clipboard, or append current line if no selection.</li>
+<li><strong>Say Clipboard</strong>, Alt+Apostrophe. Say clipboard text,
+or spell if repeated. The apostrophe is a quotation mark, and a
+clipboard holds a quotation.</li>
+<li><strong>Save Clipboard</strong>, Control+Apostrophe. Saves the
+clipboard to a text file, proposing a name.</li>
+<li><strong>Append Clipboard</strong>, Control+Shift+Apostrophe. Adds
+the clipboard to the end of a text file rather than replacing it.</li>
+<li><strong>Clear Clipboard</strong>, Alt+Shift+Apostrophe. Empties the
+clipboard, so an append starts afresh.</li>
 </ul>
-<p>push, hit, tap, go to</p>
+<h1 id="doing-things-to-the-page">Doing things to the page</h1>
 <ul>
-<li><strong>type</strong>, and its synonyms enter, fill, input, write, put, set</li>
-<li><strong>check</strong>, and its synonyms tick, mark, enable, turn on</li>
-<li><strong>uncheck</strong>, and its synonyms untick, unmark, disable, turn off</li>
-<li><strong>focus</strong>, and its synonyms go, move to, place focus</li>
-<li><strong>read</strong>, and its synonyms say, speak, announce, tell me</li>
+<li><strong>Open Document</strong>, Control+O. Opens a Word file,
+spreadsheet, slide deck, PDF or ebook, converting it to a page so every
+command here works on it. Control+O opens in every program; this one
+opens more.</li>
+<li><strong>Save Page</strong>, Control+S, or Alt+Control+S. Saves the
+page in any of nine formats. Control+S saves in every program; this one
+saves more ways.</li>
+<li><strong>Extract Main Content</strong>, Shift+F9. Extracts the
+readable part of the page into a page of its own that you can search,
+save or send. F9 is Edge’s own reading view, and Shift+F9 is
+HomerView’s, which works on pages Edge will not.</li>
+<li><strong>Web Download</strong>, Alt+Shift+W. Pick files to download
+from a web page, on the key EdSharp uses for it.</li>
+<li><strong>Submit Form</strong>, Control+Enter. Submits the form you
+are filling in, from any field in it, so you need not find the
+button.</li>
+<li><strong>Invoke Script</strong>, Alt+I. Carries out instructions
+written in ordinary words, such as click sign in. I for Invoke.</li>
+<li><strong>Check Accessibility</strong>, Alt+NVDA+A. Tests the page for
+accessibility problems, asking which engine to use, and offers to report
+what it finds to whoever publishes the site. A for Accessibility.</li>
+<li><strong>Consult Copilot</strong>, Alt+NVDA+C. Copies the page text
+and opens Edge’s Copilot sidebar, ready for a question. C for
+Copilot.</li>
+<li><strong>Query Web</strong>, Alt+Q, or Alt+NVDA+Q. Looks something up
+using free services that need no account: a definition, a place, the
+weather, a book. Q for Query.</li>
+<li><strong>Dismiss Dialog</strong>, Alt+NVDA+D. Closes a browser dialog
+that is blocking the window. D for Dismiss, and it works anywhere
+because a dialog is what has the focus.</li>
 </ul>
-<h2>How to name what you mean</h2>
-<p>Use the words you would hear. Click sign in. Type London into city. The name is</p>
-<p>matched against what a screen reader would call the control, so what you hear</p>
-<p>is what you type.</p>
-<p>You may name the kind of thing as well: the search field, the Download link,</p>
-<p>the submit button. Naming a kind makes matches of that kind more likely to win</p>
-<p>rather than ruling others out, so being wrong about the kind costs you nothing.</p>
-<p>Values go after the word into, or after to, or after with. Type Jamal into</p>
-<p>search. Set the country to France.</p>
-<h2>An example</h2>
-<pre><code>
-# sign in, then search
-click sign in
-type me@example.org into email
-type mypassword into password
-click submit
-</code></pre>
-<p>A line beginning with a hash is a comment. Blank lines are skipped.</p>
-<h2>What the buttons do</h2>
+<h1 id="the-window-and-its-tabs">The window and its tabs</h1>
 <ul>
-<li><strong>Test</strong> reads every line the way the runner will and reports the verb, the</li>
+<li><strong>Tab List</strong>, F4. Lists the HomerView tabs and switches
+to the one you choose. F4 is the Homer window list, and Edge has two
+other keys for what F4 does there.</li>
+<li><strong>Tab Names</strong>, Shift+F4. Says the names of the open
+tabs without moving the keyboard anywhere.</li>
+<li><strong>Tab Close Others</strong>, Control+Shift+F4. Closes every
+tab but the one you are reading. Control+F4 closes one tab, so
+Control+Shift+F4 closes the rest.</li>
 </ul>
-<p>target and the value it found, without touching the page. A mistyped</p>
-<p>instruction is caught before it clicks anything.</p>
+<h1 id="speech">Speech</h1>
 <ul>
-<li><strong>Help</strong> explains the vocabulary above from inside the dialog.</li>
-<li><strong>OK</strong> runs the script.</li>
+<li><strong>Voice Faster</strong>, Control+Accent. Increase the voice
+rate. The accent key carries the whole speech family, as it does in
+EdSharp.</li>
+<li><strong>Voice Slower</strong>, Control+Shift+Accent. Decrease the
+voice rate.</li>
+<li><strong>Voice Louder</strong>, Alt+Accent. Increase the voice
+volume.</li>
+<li><strong>Voice Softer</strong>, Alt+Shift+Accent. Decrease the voice
+volume.</li>
+<li><strong>Toggle Punctuation</strong>, Alt+Control+Accent. Toggle the
+voice between all and no punctuation.</li>
+<li><strong>Speech Settings</strong>, Shift+Accent. Reports the
+punctuation level, the rate and the volume.</li>
 </ul>
-<h2>How it behaves</h2>
-<p>A single instruction offers you a choice when several controls could match,</p>
-<p>because there is a reader waiting to answer. A script of several instructions</p>
-<p>does not ask, because the point of a script is that it runs.</p>
-<p>A script stops at the first instruction that matches nothing, since carrying on</p>
-<p>after losing the thread would act on the wrong thing. The result opens as a</p>
-<p>page listing every instruction, what it acted on, and what happened.</p>
-<p>The last script is remembered, so one that was almost right can be corrected</p>
-<p>and run again rather than retyped.</p>
-<h1>Reading documents</h1>
-<p>Control+O opens a Word file, a spreadsheet, a slide deck, a PDF, rich text,</p>
-<p>OpenDocument, EPUB or Markdown. HomerView converts it to a web page in the</p>
-<p>temporary folder and opens that, so every command in this guide works on it.</p>
-<p>Anything it has no converter for is handed to the browser, exactly as the</p>
-<p>browser&#x27;s own Open command would.</p>
-<p>Four converters are used, whichever suits the format, and none is bundled:</p>
-<p>LibreOffice, which covers the most formats and needs no Microsoft Office;</p>
-<p>pandoc, for ebooks, Markdown and OpenDocument text; Calibre, for ebooks; and</p>
-<p>2htm, which drives Microsoft Office and is used only where it is alone in</p>
-<p>handling a format. If a format needs a converter you do not have, HomerView</p>
-<p>says which one to install.</p>
-<h1>Where HomerView puts things</h1>
+<h1 id="now-and-then">Now and then</h1>
 <ul>
-<li>Settings and recently typed values: HomerView.inix in your roaming</li>
+<li><strong>Elevate Version</strong>, Control+F11, or Alt+NVDA+F11.
+Checks whether a newer HomerView exists and installs it.</li>
+<li><strong>Recent Pages</strong>, Alt+R. Open a page from the list of
+those recently used, on the key EdSharp uses for its recent files.</li>
+<li><strong>Report Connection</strong>, no key. Says whether HomerView
+is connected to the browser, and how.</li>
+<li><strong>Self Test</strong>, no key. Checks that all three ways of
+reaching the browser are working.</li>
 </ul>
-<p>application data folder.</p>
+<h1 id="opening-documents">Opening documents</h1>
+<p>Control+O opens a Word file, a spreadsheet, a slide deck, a PDF, rich
+text, OpenDocument, an EPUB or Markdown. HomerView turns it into a web
+page and opens that, so every command in this guide works on it.
+Anything it cannot convert is handed to the browser, exactly as the
+browser’s own Open command would.</p>
+<p>Four converters are used, and none of them ships with HomerView:</p>
 <ul>
-<li>The session log and the record of what you have opened: a HomerView folder in</li>
+<li><strong>LibreOffice</strong> covers the most formats and does not
+need Microsoft Office.</li>
+<li><strong>pandoc</strong> handles ebooks, Markdown and OpenDocument
+text. The installer offers to fetch it, because it is large and not
+everybody needs it.</li>
+<li><strong>Calibre</strong> handles ebooks.</li>
+<li><strong>2htm</strong> drives Microsoft Office, and is used only
+where nothing else can do the job.</li>
 </ul>
-<p>your local application data.</p>
+<p>If a format needs a converter you do not have, HomerView says which
+one.</p>
+<h1 id="signing-in-to-google">Signing in to Google</h1>
+<p>Google will not sign anyone in on a browser started the way HomerView
+starts one. The message says the browser may not be secure. It is aimed
+at scripts that take over accounts, which HomerView is not, but the same
+setting is used by both, so Google cannot tell them apart.</p>
+<p>What works is signing in first. Open the same profile in an ordinary
+Edge window, sign in to Google there, then launch HomerView. The session
+is already in the profile.</p>
+<p>Other sites are mostly fine, and Microsoft accounts are not affected
+at all.</p>
+<h1 id="where-homerview-keeps-things">Where HomerView keeps things</h1>
 <ul>
-<li>Generated pages and reports: a HomerView folder inside the temporary folder,</li>
+<li><strong>Settings</strong> and the values you have typed before:
+HomerView.inix, in your roaming application data folder.</li>
+<li><strong>The log</strong> and the record of what you have opened: a
+HomerView folder in your local application data.</li>
+<li><strong>Generated pages and reports:</strong> a HomerView folder
+inside the temporary folder, which Windows clears on its own.</li>
+<li><strong>Downloads and saved files:</strong> your Downloads
+folder.</li>
+<li><strong>The browser profile:</strong> HomerView, in your local
+application data.</li>
 </ul>
-<p>which Windows clears on its own.</p>
-<ul>
-<li>Downloads and saved files: your downloads folder.</li>
-<li>The browser profile: HomerView inside your local application data.</li>
-</ul>
-<h1>Why the browser is a separate copy</h1>
-<p>Since Chrome 136 and the matching Edge release, the remote debugging switches</p>
-<p>are ignored when the browser uses its default profile. A copy of Edge you</p>
-<p>started yourself therefore cannot be given a debugging connection, and HomerView</p>
-<p>cannot work in it. HomerView runs its own copy with its own profile instead.</p>
-<p>That profile is persistent and is yours. Sign it in once and your bookmarks,</p>
-<p>passwords, extensions and sessions are there every time. Set bAllowSignIn to</p>
-<p>True in edge.py, delete the profile folder, and launch again.</p>
-<p>Google is the exception. It will not sign anyone in on a browser started with</p>
-<p>remote debugging, which is what HomerView needs. Sign in to Google in an</p>
-<p>ordinary Edge window using the same profile first, and HomerView will find the</p>
-<p>session already there.</p>
-</main>
+<p>Uninstalling leaves the log, the history and the settings, because
+those are yours.</p>
+<h1 id="when-something-goes-wrong">When something goes wrong</h1>
+<p>Press Alt+Control+F1 to open this session’s log. It records every
+command, what it did, and what failed. It has answered nearly every
+question put to it, often contradicting the obvious explanation.</p>
+<p>If a command seems to do nothing, open the Alternate Menu with
+Alt+NVDA+F10. It only lists commands that can run right now, so a
+command missing from it is one that has nothing to act on yet.</p>
 </body>
 </html>

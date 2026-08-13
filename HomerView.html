@@ -1,30 +1,8 @@
-﻿"""Markup for the page the HomerView Edge window opens.
-
-about:blank opens a window NVDA has nothing to say about: no document, no tree
-interceptor, no announcement, and no sign the window is ready. This page loads
-instantly, needs no network, and carries a banner, a navigation landmark, a
-main landmark and headings, so every HomerView command has something to work on
-the moment the window appears.
-
-The links meet a strict test: the thing itself must be free and open source
-software, not merely a company that publishes some. That test excludes more
-than it admits, and the exclusions are worth naming because each is a service
-people reasonably assume is open.
-
-DuckDuckGo's browser apps are open source and its search service is not, so the
-service fails. GitHub hosts an enormous amount of free software and is itself
-proprietary. LinkedIn is proprietary. Grok is a proprietary service; some model
-weights have been published, which is not the same thing as the service being
-open. None of them belong here under this rule.
-"""
-
-startPageVersion = "18"
-
-startPageText = """<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="homerViewStartVersion" content="{version}">
+<meta name="homerViewStartVersion" content="17">
 <title>HomerView</title>
 </head>
 <body>
@@ -33,40 +11,29 @@ startPageText = """<!doctype html>
 </header>
 <nav aria-label="Places to start">
 <h2>Places to start</h2>
-<p>Everything here is free, and free in the thing itself rather than only in its
-publisher. For software that means an open source licence. For a library it means
-the works are free to read.</p>
+<p>Everything listed here is free and open source software, the thing itself
+and not merely its publisher.</p>
 <ul>
 <li><a href="https://en.wikipedia.org/">Wikipedia</a>
-&mdash; a general encyclopedia written and revised by volunteers. The articles are
-under a Creative Commons ShareAlike licence, and the MediaWiki software that runs
-them is under the GNU General Public License.</li>
-<li><a href="https://www.gutenberg.org/">Project Gutenberg</a>
-&mdash; more than seventy thousand books whose copyright has expired, as plain text,
-EPUB and Kindle files. Nothing here asks you to sign in, and plain text is the
-easiest thing a screen reader ever meets.</li>
-<li><a href="https://archive.org/">Internet Archive</a>
-&mdash; a library of web pages, books, audio and film, including the Wayback Machine
-that keeps old copies of pages that have changed or gone. Its own software is under
-the GNU Affero General Public License, though some of the books it lends are
-borrowed rather than free.</li>
-<li><a href="https://joinmastodon.org/">Mastodon</a>
-&mdash; social posting run on servers that anyone can set up, rather than on one
-company's. The server software is under the GNU Affero General Public License, and
-the servers talk to each other, so your account is not tied to one of them.</li>
+&mdash; a general encyclopedia, the class of reference site whose articles are
+written and revised by volunteers rather than by a fixed editorial staff.
+Articles under Creative Commons Attribution ShareAlike; the MediaWiki software
+behind them under the GNU General Public License.</li>
 <li><a href="https://searx.space/">SearXNG instances</a>
-&mdash; a search tool that passes your question to several search engines at once and
-merges the answers. GNU Affero General Public License, and you can run your own copy
-if you would rather not use someone else's.</li>
+&mdash; a metasearch engine, the class of tool that passes a query to several
+other search engines and merges what comes back, run either by someone else or
+by you. GNU Affero General Public License.</li>
 <li><a href="https://ollama.com/">Ollama</a>
-&mdash; a way to run language models on your own computer. Nothing you type goes
-anywhere else, and it is under the MIT License.</li>
+&mdash; a way to run language models on your own machine, the class of program
+that answers questions without sending them anywhere. MIT License.</li>
 <li><a href="https://www.mozilla.org/">Mozilla</a>
-&mdash; the makers of the Firefox browser and the Thunderbird mail program. Both are
-open source under the Mozilla Public License.</li>
+&mdash; the makers of Firefox and Thunderbird, the class of organisation that
+develops browsers and mail clients as open source rather than as products with
+source withheld. Mozilla Public License.</li>
 <li><a href="https://www.gnu.org/">GNU Project</a>
-&mdash; where most of the licences above come from. It treats software freedom as
-the point rather than a side effect.</li>
+&mdash; the origin of the licences most of the above are published under, and
+the class of project that treats software freedom as the point rather than a
+side effect.</li>
 </ul>
 </nav>
 <main>
@@ -130,7 +97,7 @@ accessibility tree.</li>
 <p>These open in this window, where every HomerView command works on them. They
 are also in the Alternate Menu, on Alt+NVDA+F10.</p>
 <ul>
-<li><a href="ReadMe.htm">Quick start</a> &mdash; the first ten minutes.</li>
+<li><a href="README.htm">Quick start</a> &mdash; the first ten minutes.</li>
 <li><a href="HomerView.htm">User guide</a> &mdash; every command and what it does.</li>
 <li><a href="History.htm">History of changes</a> &mdash; what changed in each version.</li>
 <li><a href="Developer.htm">Developer notes</a> &mdash; architecture, conventions, building.</li>
@@ -148,12 +115,3 @@ address across.</p>
 </footer>
 </body>
 </html>
-"""
-
-
-def getStartPageText():
-    return startPageText.format(version=startPageVersion)
-
-
-def getVersionMarker():
-    return f'content="{startPageVersion}"'

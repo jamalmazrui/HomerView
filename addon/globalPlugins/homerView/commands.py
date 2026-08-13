@@ -85,6 +85,13 @@ lCommands = [
      "Display version and release date, and where HomerView keeps its files."),
     ("openDeveloperNotes", "Developer Notes", ["kb:control+shift+f1"],
      "Open the notes on how HomerView is built and why."),
+    ("openHotkeyDocument", "Hotkey Document", [],
+     "Open the shipped list of every command, key and description. Hotkey Summary "
+     "on Alt+Shift+H builds the same list from the program itself; this opens the "
+     "copy that came with it."),
+    ("openAnnouncement", "Project Announcement", [],
+     "Open the short description of HomerView, for passing on to somebody who has "
+     "not met it."),
     ("openLog", "Session Log", ["kb:alt+control+f1"],
      "Open a copy of this session's log, for working out what went wrong."),
 
@@ -304,10 +311,6 @@ lFolded = [
      "Tests the page with Deque's axe-core engine. Offered by Check Accessibility."),
     ("runIbmChecker", "Check with Equal Access",
      "Tests the page with IBM's Equal Access engine. Offered by Check Accessibility."),
-    ("openUserGuide", "Open User Guide",
-     "Opens the user guide in the HomerView window rather than as a message."),
-    ("openHistory", "Open History",
-     "Opens the history of changes in the HomerView window."),
 ]
 
 
@@ -337,8 +340,9 @@ def byScript():
 # and the few things a reader needs when no page has focus.
 setAnywhereScripts = {
     "alternateMenu", "dismissDialog", "elevateVersion",
-    "launchHomerView", "openCopilot", "recentPages", "reportAddressAnywhere",
-    "reportConnection", "selfTest", "webUtilities",
+    "launchHomerView", "openAnnouncement", "openCopilot", "openHotkeyDocument",
+    "recentPages", "reportAddressAnywhere", "reportConnection", "selfTest",
+    "webUtilities",
 }
 
 setGlobalScripts = {

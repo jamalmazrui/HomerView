@@ -27,11 +27,16 @@ projectUrl = "https://github.com/JamalMazrui/HomerView"
 # Each document ships as Markdown and as a web page. The web page is what gets
 # opened, because it opens in the HomerView window where every HomerView command
 # works on it, rather than in whichever program owns .md files.
+# Every document HomerView ships. All six are here, and each has a command, so
+# the Alternate Menu can open any of them: a document that ships and cannot be
+# opened from inside the program is a document nobody reads.
 lDocuments = [
-    ("readMe", "README.htm", "README.md", "Quick start"),
+    ("readMe", "ReadMe.htm", "ReadMe.md", "Read me"),
     ("guide", "HomerView.htm", "HomerView.md", "User guide"),
     ("history", "History.htm", "History.md", "History of changes"),
     ("developer", "Developer.htm", "Developer.md", "Developer notes"),
+    ("hotkeys", "hotkeys.htm", "hotkeys.md", "Hotkeys"),
+    ("announce", "Announce.htm", "Announce.md", "About the project"),
 ]
 
 
@@ -246,6 +251,18 @@ def renderMarkdown(sText):
 
 
 def show(sWhich):
+    """Show a document, or the About text.
+
+    Two mechanisms used to do this: openDocument, which opens a shipped web
+    page in the HomerView window, and this, which rendered the Markdown afresh
+    every time. The second existed first and was never retired, so the guide and
+    the history opened one way and the read me another, and only one of the two
+    was checked when a document was renamed.
+
+    Everything now goes through the shipped web page, which is the one pandoc
+    made and the one the installer places. About is the exception, because it
+    is not a document: it is built from what the program knows about itself.
+    """
     logSection(f"Command: show {sWhich}")
     if sWhich == "about":
         from .homer import lbc
@@ -253,29 +270,11 @@ def show(sWhich):
         # Translators: Title of the About dialog.
         lbc.dialogInfo(_("About HomerView"), buildAboutText())
         return
-    elif sWhich == "history":
-        pathDocument = findDocument(["History.md", "CHANGELOG.md"])
-        sHtml = (
-            renderMarkdown(pathDocument.read_text(encoding="utf-8-sig", errors="replace"))
-            if pathDocument
-            else "<h1>History of changes</h1><p>CHANGELOG.md was not found. "
-                 f'It is in the project at <a href="{projectUrl}">{projectUrl}</a>.</p>'
-        )
-        # Translators: Title of the history of changes window.
-        sTitle = _("HomerView history of changes")
-    else:
-        pathDocument = findDocument(["HomerView_User_Guide.md", "README.md"])
-        sHtml = (
-            renderMarkdown(pathDocument.read_text(encoding="utf-8-sig", errors="replace"))
-            if pathDocument
-            else "<h1>HomerView help</h1><p>The user guide was not found. Press Alt+F10 "
-                 "for every command, or Alt+Shift+H for the same list as a document.</p>"
-        )
-        # Translators: Title of the help window.
-        sTitle = _("HomerView help")
-    import wx
-
-    wx.CallAfter(_browseable, sHtml, sTitle)
+    dAliases = {"help": "guide", "guide": "guide", "history": "history",
+                "readMe": "readMe", "developer": "developer",
+                "hotkeys": "hotkeys", "announce": "announce"}
+    sKey = dAliases.get(sWhich, sWhich)
+    return openDocument(sKey)
 
 
 def _browseable(sHtml, sTitle):

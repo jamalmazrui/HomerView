@@ -1,207 +1,267 @@
-﻿<!doctype html>
-<html lang="en">
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
 <head>
-<meta charset="utf-8">
-<title>HomerView Quick Start</title>
-<style>body{font-family:Segoe UI,Arial,sans-serif;line-height:1.5;margin:0 auto;max-width:60em;padding:1em}pre{background:#f4f4f4;padding:1em;white-space:pre-wrap}code{background:#f4f4f4}</style>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="author" content="Jamal Mazrui" />
+  <title>HomerView</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
 </head>
 <body>
-<main>
-<h1>HomerView</h1>
-<p>HomerView is an NVDA add-on that runs its own copy of Microsoft Edge and drives</p>
-<p>it through the Chrome DevTools Protocol. That combination gives a screen reader</p>
-<p>user three things at once: the browser&#x27;s own interface, the page as NVDA has</p>
-<p>built it, and the page as the browser itself sees it. Very little else has all</p>
-<p>three, and most of what HomerView does comes from having them together.</p>
-<p>It is also a document reader. A Word file, a spreadsheet, a slide deck, a PDF or</p>
-<p>an ebook can be opened and read with the same commands as a web page.</p>
-<h1>Introduction for JAWS users</h1>
-<p>If you have used JAWS, a good deal of HomerView will already be in your fingers.</p>
-<p>Where a JAWS command has an obvious place here and the key is free in NVDA, that</p>
-<p>key is used. Where it is not free, the command still exists on a key that costs</p>
-<p>nothing.</p>
-<pre><code>
-Alt+A               say the web address without moving the cursor; twice
-                    spells it, three times copies it
-J                   jump to the main content, where JAWS uses Q
-Shift+J             find the main content when the page never said where
-                    it is, and say that it was a guess
-Z, Shift+Z          next and previous element of the same kind as this one,
-                    as S and Shift+S do in JAWS
-Alt+Z, Alt+Shift+Z  next and previous element of a different kind, as D and
-                    Shift+D do in JAWS
-NVDA+F5             list the form fields, as Insert+F5 does
-NVDA+F6             list the headings, as Insert+F6 does
-NVDA+Shift+F7       list the links; Insert+F7 belongs to NVDA&#x27;s own
-                    Elements List, so the links moved one key over
-Alt+Delete          say how far through the page you are
-Control+F           find, without needing a screen reader modifier, which
-                    is the JAWS judgment and the right one
-Control+F3          find by regular expression; F3 repeats either kind
-Y                   summarise the page, in the spirit of Page Explorer
-</code></pre>
-<p>One thing JAWS reaches that NVDA does not need patching for: the divider you</p>
-<p>move to with Z in JAWS is what NVDA calls a separator, and S already goes there.</p>
-<p>The same is true of a few others under different names. What genuinely had no</p>
-<p>NVDA equivalent was moving by the kind of element you are on, and the main</p>
-<p>content region, and both are in the list above.</p>
-<p>Two things JAWS does that HomerView does differently, and deliberately.</p>
-<p>Page Explorer asks a language model. HomerView reads the page itself, so it</p>
-<p>never invents a region that is not there, and it can report what a model would</p>
-<p>not be told: a bar pinned over the content, an open dialog, text that is on</p>
-<p>screen but hidden from screen readers.</p>
-<p>JAWS labels what it reports, saying &quot;Address&quot; before the address. NVDA speaks</p>
-<p>the value alone, and HomerView follows NVDA. If you would rather have the</p>
-<p>labels, turn them on in NVDA&#x27;s Settings, under HomerView.</p>
-<p>The Homer editor commands are here too, if you have used EdSharp or FileDir.</p>
-<p>Alt+F8 reads the page, Control+F8 copies it, F8 and Shift+F8 select without</p>
-<p>holding Shift, the apostrophe key carries the clipboard commands, and the grave</p>
-<p>accent key adjusts punctuation, rate and volume.</p>
-<h1>Introduction for NVDA users</h1>
-<p>HomerView is where you would expect it to be.</p>
-<p>It appears in the NVDA menu, under Tools, with items for starting the browser,</p>
-<p>listing every command, and opening this guide. Nothing has to be memorised</p>
-<p>before you can find it.</p>
-<p>It has a page in NVDA&#x27;s Settings, under HomerView, holding the few settings</p>
-<p>worth changing and a list of every folder it writes to.</p>
-<p>Every command appears in Input Gestures under one HomerView category, so you can</p>
-<p>see the whole set together and change any key you dislike. Every command has a</p>
-<p>description, so pressing NVDA+1 for input help and then the key tells you what</p>
-<p>it does.</p>
-<p>Commands that work anywhere carry the NVDA key, so they never shadow anything in</p>
-<p>another program. Commands that work only in a page use shorter keys, which they</p>
-<p>can afford because they exist nowhere else.</p>
-<p>No HomerView command takes a key NVDA uses by default, on either the desktop or</p>
-<p>the laptop layout. Where a browser key is taken, such as Control+F, Control+O or</p>
-<p>Control+S, HomerView does everything the browser did with it and more.</p>
-<p>Browse mode still works as you know it. Quick navigation, the Elements List,</p>
-<p>say all, the review cursor and everything else are untouched. HomerView adds to</p>
-<p>them rather than replacing them.</p>
-<h1>What you need</h1>
-<p>NVDA, which is free: <a href="https://www.nvaccess.org/download">https://www.nvaccess.org/download</a></p>
-<p>Microsoft Edge, which is already on your computer. It comes with every modern</p>
-<p>version of Windows, so there is nothing to install for it. HomerView starts its</p>
-<p>own copy with its own settings, and leaves your usual browser alone.</p>
-<p>A converter, only if you want to open Word, Excel, PowerPoint, PDF or ebook</p>
-<p>files. HomerView finds LibreOffice, pandoc, 2htm or Calibre if any is installed,</p>
-<p>and tells you which to install if none is.</p>
-<h1>Quick start</h1>
-<p>Install the add-on, restart NVDA, and press <strong>Alt+NVDA+H</strong>.</p>
-<p>A browser window opens on the HomerView start page, which lists the commands and</p>
-<p>gives you somewhere to begin. From there:</p>
-<p>1. Press <strong>Control+L</strong> and type an address, as you would in any browser.</p>
-<p>2. Press <strong>Alt+A</strong> to hear the web address of the page you are reading. Press it</p>
-<p>twice to spell it, three times to copy it.</p>
-<p>3. Press <strong>J</strong> to jump to the main content, past the banner and the navigation.</p>
-<p>If the page never said where its main content is, <strong>Shift+J</strong> makes a</p>
-<p>sensible guess and tells you it is guessing.</p>
-<p>4. Press <strong>Y</strong> for a summary of how the page is built, including things that are</p>
-<p>on screen but leave no trace in the reading order, such as a cookie banner or</p>
-<p>a bar pinned to the top of the window.</p>
-<p>5. Press <strong>Alt+NVDA+F10</strong> for a list of every command, in one alphabetical list,</p>
-<p>with its key beside it. Press Enter to run whatever you choose. This works</p>
-<p>everywhere, including before HomerView Edge is running, and it can start it</p>
-<p>for you.</p>
-<p>If you remember only one command, make it Alt+NVDA+F10. Everything else can be</p>
-<p>found from there, including how to start HomerView in the first place.</p>
-<h1>Opening a document</h1>
-<p>Press <strong>Control+O</strong> and choose a file. Word, Excel, PowerPoint, PDF, rich text,</p>
-<p>OpenDocument, EPUB and Markdown are all converted to a web page behind the</p>
-<p>scenes and opened in the HomerView window, where every command above works on</p>
-<p>them.</p>
-<p>Conversion needs a converter. HomerView looks for LibreOffice, pandoc, 2htm and</p>
-<p>Calibre, uses whichever suits the format, and tells you which to install if none</p>
-<p>is present. LibreOffice covers the most formats and needs no Microsoft Office.</p>
-<h1>Five commands worth learning early</h1>
+<header id="title-block-header">
+<h1 class="title">HomerView</h1>
+<p class="subtitle">Read the web the way a browser sees it</p>
+<p class="author">Jamal Mazrui</p>
+</header>
+<h1 id="what-homerview-is">What HomerView is</h1>
+<p>HomerView is a free add-on for the NVDA screen reader. It opens its
+own copy of Microsoft Edge and talks to that copy directly, the way a
+web developer’s tools do.</p>
+<p>That matters because of a gap. For thirty years, blind people have
+read the web through a flat copy of the page that the screen reader
+builds. It works. But the browser knows things that never reach that
+copy. You are told a button is not there. You finish an article and
+never learn that a banner was covering half the screen.</p>
+<p>HomerView closes the gap. It can see the page three ways at once: as
+a window, as your reading order, and as the browser itself understands
+it. Almost nothing else has all three.</p>
+<p>No artificial intelligence is involved, and nothing about the pages
+you read leaves your computer.</p>
+<h1 id="what-you-need">What you need</h1>
 <ul>
-<li><strong>ScrollLock</strong> starts reading continuously, and stops it. One key for both.</li>
-<li><strong>Alt+F8</strong> reads the whole page without moving the cursor. <strong>Control+F8</strong></li>
+<li><strong>NVDA 2025.1 or newer.</strong> It is free, from <a
+href="https://www.nvaccess.org/download">nvaccess.org</a>.</li>
+<li><strong>Microsoft Edge.</strong> It comes with Windows.</li>
+<li><strong>Windows 10 or 11.</strong></li>
 </ul>
-<p>copies it.</p>
-<ul>
-<li><strong>Control+F</strong> opens NVDA&#x27;s own find, and <strong>Control+Shift+F</strong> the same search</li>
-</ul>
-<p>backwards. <strong>Control+F3</strong> finds a regular expression, and <strong>Control+Shift+F3</strong></p>
-<p>the same backwards. <strong>F3</strong> and <strong>Shift+F3</strong> repeat whichever kind was used</p>
-<p>last.</p>
-<ul>
-<li><strong>Alt+NVDA+X</strong> extracts the readable part of a page and opens it as a page of</li>
-</ul>
-<p>its own, which you can search, save or send. Edge&#x27;s own reading mode is on</p>
-<p><strong>F9</strong>, which HomerView leaves alone. It works on fewer pages but adds Edge&#x27;s</p>
-<p>reading tools, so the two are worth having together.</p>
-<ul>
-<li><strong>Alt+K</strong> tests the page for accessibility problems and offers to help you</li>
-</ul>
-<p>report them to whoever publishes the site.</p>
-<ul>
-<li><strong>Control+S</strong> saves the page as a single file archive the way Edge does, or as a</li>
-</ul>
-<p>web page, Markdown, plain text, a Word document, a PDF, an image, or the</p>
-<p>accessibility tree.</p>
-<ul>
-<li><strong>Alt+NVDA+W</strong> lists the kinds of file linked from the page and downloads the</li>
-</ul>
-<p>ones you choose.</p>
-<ul>
-<li><strong>Alt+Q</strong> looks something up: a definition, the weather, a place, books,</li>
-</ul>
-<p>research papers, an exchange rate. All of it uses free services that need no</p>
-<p>account.</p>
-<h1>If the installer cannot hand the add-on to NVDA</h1>
+<p>That is all. HomerView uses the Edge you already have.</p>
+<h1 id="quick-start">Quick start</h1>
+<ol type="1">
+<li>Run the installer.</li>
+<li>On the last page, leave the box checked that gives the add-on to
+NVDA. NVDA will ask you to confirm it, then restart.</li>
+<li>Press <strong>Alt+NVDA+H</strong>. A HomerView window opens.</li>
+<li>Press <strong>Alt+NVDA+F10</strong> for a list of every
+command.</li>
+</ol>
+<p>If you remember one command, make it Alt+NVDA+F10. Everything else
+can be found from there.</p>
+<h1 id="if-the-installer-cannot-hand-the-add-on-to-nvda">If the
+installer cannot hand the add-on to NVDA</h1>
 <p>Install it from the file, which is already on your computer.</p>
-<p>1. Press NVDA+N for the NVDA menu.</p>
-<p>2. Choose Tools, then Add-on Store, then Install from external source.</p>
-<p>3. Pick this file:</p>
-<pre><code>
-    HomerView.nvda-addon
-</code></pre>
-<p>It is in the build folder inside wherever HomerView was installed, usually</p>
-<p>C:\Program Files\HomerView\build.</p>
-<p>4. Confirm when NVDA asks, and let it restart.</p>
-<p>Pressing Enter on that same file in File Explorer does the same thing, if that</p>
-<p>is easier.</p>
-<h1>Signing in to Google</h1>
-<p>Google will not sign anyone in on a browser started with remote debugging, and</p>
-<p>remote debugging is what HomerView needs to work at all. The message says the</p>
-<p>browser or app may not be secure. It is aimed at scripts driving a browser to</p>
-<p>take over accounts, which HomerView is not, but from Google&#x27;s side the two look</p>
-<p>the same, because the same switch enables both.</p>
-<p>There is no setting that avoids this. What works is signing in before HomerView</p>
-<p>starts.</p>
-<p>1. Set bAllowSignIn to True in edge.py, if you have not already, and delete the</p>
-<p>folder HomerView keeps its browser profile in, which is HomerView inside</p>
-<p>your local application data folder. This lets the profile hold a sign in.</p>
-<p>2. Launch HomerView once so the profile is rebuilt, then close it.</p>
-<p>3. Open that same profile in an ordinary Edge window, without HomerView, and</p>
-<p>sign in to Google there.</p>
-<p>4. Launch HomerView again. The session is already in the profile, so you are</p>
-<p>signed in.</p>
-<p>The session lasts as long as it would in any browser. Sites other than Google</p>
-<p>are unaffected, and most sign in normally inside HomerView.</p>
-<h1>When something does not work</h1>
-<p>Commands only work in windows HomerView itself opened. An Edge window that was</p>
-<p>already running has no debugging connection and cannot be given one, which is a</p>
-<p>limitation of the browser rather than of HomerView. Press Alt+NVDA+H and use the</p>
-<p>window it opens.</p>
-<p>If a command does nothing, open the Alternate Menu with <strong>Alt+NVDA+F10</strong> and run it</p>
-<p>from there. If it fails, it now says what failed and that the log has the</p>
-<p>detail.</p>
-<h1>The rest of the documentation</h1>
+<ol type="1">
+<li>Press NVDA+N for the NVDA menu.</li>
+<li>Choose Tools, then Add-on Store, then Install from external
+source.</li>
+<li>Pick <strong>HomerView.nvda-addon</strong> from the build folder
+where HomerView was installed, usually C:Files.</li>
+<li>Confirm, and let NVDA restart.</li>
+</ol>
+<p>Pressing Enter on that same file in File Explorer does the same
+thing.</p>
+<h1 id="six-commands-worth-learning-early">Six commands worth learning
+early</h1>
 <ul>
-<li><strong>HomerView.md</strong> is the full user guide: every command, what it does, and why</li>
+<li><strong>Y</strong> describes how the page is laid out. It tells you
+what a sighted person can see that your reading order never mentions: a
+cookie banner, a bar pinned over the text, a dialog waiting for an
+answer.</li>
+<li><strong>J</strong> jumps to the main content, past the menus.
+<strong>Shift+J</strong> finds it on a page that never said where it
+is.</li>
+<li><strong>Alt+NVDA+A</strong> tests the page for accessibility
+problems, then offers to find the publisher’s contact address and write
+the report as an email.</li>
+<li><strong>Control+O</strong> opens a Word file, spreadsheet, slide
+deck, PDF or ebook. It is turned into a web page, so every HomerView
+command works on it.</li>
+<li><strong>Shift+F9</strong> pulls the readable part of a page into a
+page of its own, which you can search, save or send.</li>
+<li><strong>Alt+Q</strong> looks something up: a word, a place, the
+weather, a book. All of it uses free services that need no account.</li>
 </ul>
-<p>it is bound where it is.</p>
+<h1 id="where-to-read-more">Where to read more</h1>
 <ul>
-<li><strong>History.md</strong> records what changed in each version.</li>
-<li><strong>Developer.md</strong> covers the architecture, the shared Homer toolkit, and how to</li>
+<li><strong>HomerView.md</strong> is the full guide. Every command, what
+it does, and how HomerView fits together.</li>
+<li><strong>History.md</strong> says what changed in each release.</li>
+<li><strong>Developer.md</strong> explains how to build HomerView from
+its source.</li>
+<li><strong>Announce.md</strong> is the short description of the
+project.</li>
 </ul>
-<p>build and release.</p>
-<p>All three can be opened from the Alternate Menu, and all are listed on the</p>
-<p>HomerView start page.</p>
-<h1>Licence</h1>
-<p>HomerView is free software under the GNU General Public License, version 2, the</p>
-<p>same licence as NVDA itself.</p>
-</main>
+<p>Each of those also comes as a web page, with the same name and a .htm
+ending, which HomerView itself can open.</p>
+<h1 id="when-something-does-not-work">When something does not work</h1>
+<p>Press <strong>Alt+Control+F1</strong> to open this session’s log. It
+records what HomerView did and what went wrong, and it is the fastest
+way to an answer.</p>
+<p>If a command does nothing, open the Alternate Menu with
+<strong>Alt+NVDA+F10</strong> and run it from there. The menu only lists
+commands that apply right now, so a command missing from it is a command
+that cannot run yet.</p>
+<h1 id="licence">Licence</h1>
+<p>HomerView is free software under the GNU General Public License
+version 2, which is the licence NVDA itself uses.</p>
+<p>Project page: <a
+href="https://github.com/JamalMazrui/HomerView">github.com/JamalMazrui/HomerView</a></p>
 </body>
 </html>

@@ -49,7 +49,7 @@ $lKeepFiles = @(
     "LICENSE.md",
     "HomerView_setup.iss",
     "buildAddon.cmd", "buildAddon.ps1",
-    "buildAll.cmd", "buildAll.ps1",
+    "buildHomerView.cmd", "buildHomerView.ps1",
     "cleanDir.cmd", "cleanDir.ps1",
     "createHomerViewRepo.cmd", "createHomerViewRepo.ps1",
     "clean.cmd",

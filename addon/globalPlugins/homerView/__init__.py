@@ -836,21 +836,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
     def script_openQuickStart(self, gesture):
         documents.openDocument("readMe")
 
-    @script(
-        # Translators: Input help mode message for Open User Guide.
-        description=_("Opens the user guide in the HomerView window rather than as a message."),
-        category="HomerView",
-    )
-    def script_openUserGuide(self, gesture):
-        documents.openDocument("guide")
 
-    @script(
-        # Translators: Input help mode message for Open History.
-        description=_("Opens the history of changes in the HomerView window."),
-        category="HomerView",
-    )
-    def script_openHistory(self, gesture):
-        documents.openDocument("history")
 
     @script(
         # Translators: Input help mode message for Developer Notes.
@@ -915,6 +901,22 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         # Translators: Title of the self test window.
         sTitle = _("HomerView self test")
         output.show(sHtml, sTitle)
+
+    @script(
+        # Translators: Input help mode message for Hotkey Document.
+        description=_("Open the shipped list of every command, key and description. Hotkey Summary on Alt+Shift+H builds the same list from the program itself; this opens the copy that came with it."),
+        category="HomerView",
+    )
+    def script_openHotkeyDocument(self, gesture):
+        documents.openDocument("hotkeys")
+
+    @script(
+        # Translators: Input help mode message for Project Announcement.
+        description=_("Open the short description of HomerView, for passing on to somebody who has not met it."),
+        category="HomerView",
+    )
+    def script_openAnnouncement(self, gesture):
+        documents.openDocument("announce")
 
     @script(
         # Translators: Input help mode message for Session Log.

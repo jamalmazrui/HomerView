@@ -1,5 +1,36 @@
 ﻿# History of Changes
 
+## 1.41.0
+
+- Plain F1 is left to Microsoft Edge, which uses it for its own help and which HomerView does not supersede. The documentation family keeps the F1 association by taking F1 with a modifier instead: Control+F1 the guide, Shift+F1 the history, Alt+F1 about, Alt+Shift+F1 the quick start, Control+Shift+F1 the developer notes, Alt+Control+F1 the session log.
+- A JAWS default is now preferred where one is free, because a blind Windows user has had those in their fingers for years. Failing that, an EdSharp binding, since these are the same hands. Where a command is the same as EdSharp's it now carries EdSharp's own sentence, so the two programs read alike.
+- Several bindings moved to EdSharp's. Find at Cursor is on Alt+F3 and Alt+Shift+F3. Web Download is on Alt+Shift+W. Recent Pages is on Alt+R, where EdSharp opens a recent file. Page Links to Clipboard is on Alt+Shift+P, where EdSharp copies a path.
+- Say Url returns to Alt+U, which was never arbitrary: U is the first letter of url. Link Target takes Alt+L, since L is the first letter of Link and the two commands sit beside each other.
+- Read Rest is gone, and its key with it. Say Name is gone too, because NVDA already reads the title on NVDA+T and a second command for the same thing is a key spent on nothing.
+- A description no longer has to begin with a verb, only to contain one, which reads better for the commands whose name is the subject of the sentence.
+- Hotkeys.inix replaces Hotkeys.ini. The inix format carries a value that runs to more than one line, which ini cannot, and it is what these projects use now.
+
+## 1.40.0
+
+- Every command now has a name of at least two words, a description written the way EdSharp writes them, and a key or an explicit place in the Alternate Menu. All three come from one table in the code, so the bindings, the menu, the hotkey summary and the documentation cannot disagree with each other or drift from what the program does.
+- Descriptions are present tense, lead with a verb, and end with a full stop. Where the key is not obvious the description says why it is that key, because a reader who has to look a command up should come away able to remember it.
+- Keys now follow the first letter of the first word where that letter is free, and the first letter of the second word where it is not. A letter from the middle of a word is never used, since nobody remembers it; X for extract is the one exception, and it is older than this program.
+- Several bindings changed to obey that rule. Invoke Script moves from Alt+V to Alt+I. Say Link moves from Alt+U to Alt+L, with Say Link Target beside it on Alt+Shift+L. Consult Copilot moves to Alt+NVDA+C, Fetch Files to Alt+NVDA+F, and Recent Pages gains Alt+NVDA+R.
+- Extract Main Content moves to Shift+F9, which is the best mnemonic in this release: F9 is Edge's own reading view, and Shift+F9 is HomerView's, which works on the pages Edge will not touch.
+- The documentation is now one family on F1, as Windows programs have always had: F1 the guide, Control+F1 the quick start, Shift+F1 the history, Alt+F1 about, Alt+Shift+F1 the developer notes, Control+Shift+F1 the session log. Four of those had no key at all before.
+- Checking a page for accessibility is now one command that asks which engine rather than three commands on three keys. Alt+K and Alt+I are freed by that, and Alt+I is what Invoke Script now uses.
+- Every binding uses NVDA's own gesture mechanism, so every command appears in Input Gestures under the HomerView category and any key here can be changed or added to.
+- Hotkeys.ini is now written in the same format EdSharp uses, so both programs can be read the same way, and it ships with HomerView.
+
+## 1.39.3
+
+- The history rewrite worked and freed nothing, and the reason was one line.
+- git filter-branch keeps a backup reference to the old commits for every reference it rewrites. A repository with a remote therefore gets at least two: one for the branch and one for the remote-tracking reference. tidyRepo deleted the first and left the second, and a single surviving reference keeps every object it can reach, so a full garbage collection freed nothing and the repository stayed at a hundred and eighty five megabytes.
+- Every backup reference is now removed rather than the one, and the remote-tracking references with them, since those still name the old commits until the next fetch and are rebuilt by the push that follows.
+- The result is now checked before the push rather than only after it. If the old objects are still reachable there is no point pushing, and the script says which references are keeping them alive instead of pushing a repository that is no smaller.
+- Testing this needed a real remote, because the failure cannot happen without one: the second backup reference only exists when there is a remote-tracking reference to rewrite. With one, two hundred and eight megabytes of installers reduced to eighteen kilobytes, and the remote received the small history.
+- The three faults in this script have all been the same shape. Something was left behind, and the script reported success because it checked for the thing it had done rather than the outcome it wanted. Every step now checks the outcome.
+
 ## 1.39.2
 
 - The first real run of tidyRepo.py did most of what was wanted and left two things wrong, both of them faults in the script rather than in the repository.

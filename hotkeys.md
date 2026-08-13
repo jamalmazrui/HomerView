@@ -1,257 +1,142 @@
 ﻿---
 title: HomerView Hotkeys
-subtitle: What every key does, and what is still free
+subtitle: Every command, its key, and why that key
 author: Jamal Mazrui
 ---
 
-Generated from the code, so it cannot drift from what the program does.
-Modifiers are in alphabetical order and key names follow Freedom Scientific.
+Generated from the command table in the code, so it cannot drift from what
+the program does. Modifiers are in alphabetical order and key names follow
+Freedom Scientific.
 
-## Native Microsoft Edge keys
+## Commands with a key
 
-From Microsoft's published list for Windows. Where HomerView takes one, that
-is marked, along with whether it is taken everywhere or only inside a page.
+- **Launch HomerView**, Alt+NVDA+H. Launches or reconnects the HomerView copy of Microsoft Edge. H for HomerView, and it works anywhere because nothing is running yet.
+- **Alternate Menu**, Alt+NVDA+F10. Present all commands in a single, alphabetized list. F10 opens a menu bar in Windows, and this is the menu HomerView has instead.
+- **Hotkey Summary**, Alt+Shift+H. Display this list of command names, hot keys, and descriptions in a new window, as EdSharp does on the same key.
+- **User Guide**, Control+F1. Open Documentation in the HomerView window. F1 is help everywhere, but plain F1 opens Edge's own help and stays Edge's, so the family here takes F1 with a modifier.
+- **Quick Start**, Alt+Shift+F1. Open the first ten minutes of HomerView, for somebody new to it.
+- **History of Changes**, Shift+F1. Display list of fixes and improvements.
+- **About HomerView**, Alt+F1. Display version and release date, and where HomerView keeps its files.
+- **Developer Notes**, Control+Shift+F1. Open the notes on how HomerView is built and why.
+- **Session Log**, Alt+Control+F1. Open a copy of this session's log, for working out what went wrong.
+- **Jump to Main**, J, or Alt+NVDA+J. Jumps to the main content the page declares. J for Jump, and it is one of only three letters NVDA leaves free in a page.
+- **Jump to Probable Main**, Shift+J. Finds the main content of a page that declares none, by weighing every part of it, and says that it inferred rather than was told.
+- **Next Sentence**, Alt+DownArrow. Moves to the next sentence and reads it. Alt with an arrow moves by something larger than a line and smaller than a paragraph.
+- **Prior Sentence**, Alt+UpArrow. Moves to the previous sentence and reads it.
+- **Next Paragraph**, Control+DownArrow. Moves to the next paragraph and reads it. Control with an arrow moves by paragraph in Word and in most editors.
+- **Prior Paragraph**, Control+UpArrow. Moves to the previous paragraph and reads it.
+- **Next Same Kind**, Z. Moves to the next thing of the same kind as the one you are on, whatever that is. Z because NVDA leaves it free, and JAWS does this with S.
+- **Prior Same Kind**, Shift+Z. Moves to the previous thing of the same kind as the one you are on.
+- **Next Different Kind**, Alt+Z. Moves to the next thing of a different kind, which JAWS does with D.
+- **Prior Different Kind**, Alt+Shift+Z. Moves to the previous thing of a different kind.
+- **Go to Percent**, Control+G. Go to percentage point in document, as EdSharp does on the same key.
+- **Go to Percent Again**, Alt+G. Repeat Go command, or move a step further with plus or minus.
+- **Forward Find**, Control+F. Search forward for string, using NVDA's own find so the dialog and its behaviour are the ones you already know.
+- **Reverse Find**, Control+Shift+F. Search backward for string.
+- **Forward Find with Regular Expression**, Control+F3. Search forward for regular expression, which NVDA's own find cannot do.
+- **Reverse Find with Regular Expression**, Control+Shift+F3. Search backward for regular expression.
+- **Forward Find Again**, F3. Search forward for next match, of whichever kind of find was used last.
+- **Reverse Find Again**, Shift+F3. Search backward for previous match.
+- **Forward Find at Cursor**, Alt+F3. Search forward for chunk or selected text, on the key EdSharp uses for it.
+- **Reverse Find at Cursor**, Alt+Shift+F3. Search backward for chunk or selected text.
+- **List Headings**, NVDA+F6. List the headings on the page, on the key JAWS uses for its heading list.
+- **List Form Fields**, NVDA+F5. List the form fields on the page, on the key JAWS uses for its form field list.
+- **List Links**, NVDA+Shift+F7. List the links on the page, beside the key JAWS uses for its link list.
+- **List Elements**, Alt+NVDA+L. Lists any kind of element, including kinds NVDA's own Elements List does not offer. L for List.
+- **Explore Page**, Y, or Alt+NVDA+E. Describes how the page is laid out, including what a sighted person can see that your reading order never mentions. E for Explore; Y is a second key because NVDA leaves it free.
+- **Say Address**, Alt+A. Says the web address of this page. Twice spells it, three times copies it. A for Address.
+- **Say Address Anywhere**, Alt+NVDA+U. Says the web address from anywhere in the window, including the address bar.
+- **Say Metadata**, Alt+M. Says what the page claims about itself: author, publisher, date and licence. M for Metadata.
+- **Say Position**, Alt+Delete, or Alt+NumPadDelete. Says the line, column and percentage position of the cursor. Delete sits among the navigation keys, which is where a position question belongs.
+- **Say Yield**, Alt+Y. Say number of characters, words, and lines in all or selected text.
+- **Say Yield Structure**, Alt+Shift+Y. Says how the page is built: how many headings, links, forms and the rest.
+- **Yield with Regular Expression**, Control+Shift+Y. Count parts of text matching a regular expression, which answers how many rather than where.
+- **Say Url**, Alt+U. Say where the link at the cursor would go. U for url.
+- **Link Target**, Alt+L. Ask what is actually at that link without going there: what kind of thing, how big, and whether it ends up where it claims. L for Link.
+- **Page Links to Clipboard**, Alt+Shift+P. Copy every link address on the page to the clipboard, as EdSharp copies a path on the same key.
+- **Say Time**, Alt+SemiColon. Say current time and date.
+- **Read All**, Alt+F8. Say all text, without moving the cursor.
+- **Toggle Reading**, ScrollLock. Starts reading continuously, or stops if it is already reading. Scroll Lock because nothing else in Edge, NVDA or Windows wants it.
+- **Say Selected**, Shift+Space. Say selected text, or spell if repeated.
+- **Say Chunk**, Shift+Backspace. Say chunk at cursor, or spell if repeated.
+- **Start Selection**, F8. Mark starting point of text to be selected, so Shift need not be held while you move.
+- **Complete Selection**, Shift+F8. Select text from starting point to cursor.
+- **Go to Start of Selection**, Alt+Shift+F8. Return to start position of selection.
+- **Select Chunk**, Control+Space. Select contiguous sequence of non-blank characters at cursor, or select the next chunk if a selection already exists.
+- **Copy All**, Control+F8. Copy all text to clipboard.
+- **Copy Line**, Control+C. Copy selected text to clipboard, or copy current line if no selection.
+- **Copy Append**, Alt+C. Append selected text to clipboard, or append current line if no selection.
+- **Say Clipboard**, Alt+Apostrophe. Say clipboard text, or spell if repeated. The apostrophe is a quotation mark, and a clipboard holds a quotation.
+- **Save Clipboard**, Control+Apostrophe. Saves the clipboard to a text file, proposing a name.
+- **Append Clipboard**, Control+Shift+Apostrophe. Adds the clipboard to the end of a text file rather than replacing it.
+- **Clear Clipboard**, Alt+Shift+Apostrophe. Empties the clipboard, so an append starts afresh.
+- **Open Document**, Control+O. Opens a Word file, spreadsheet, slide deck, PDF or ebook, converting it to a page so every command here works on it. Control+O opens in every program; this one opens more.
+- **Save Page**, Control+S, or Alt+Control+S. Saves the page in any of nine formats. Control+S saves in every program; this one saves more ways.
+- **Extract Main Content**, Shift+F9. Extracts the readable part of the page into a page of its own that you can search, save or send. F9 is Edge's own reading view, and Shift+F9 is HomerView's, which works on pages Edge will not.
+- **Web Download**, Alt+Shift+W. Pick files to download from a web page, on the key EdSharp uses for it.
+- **Submit Form**, Control+Enter. Submits the form you are filling in, from any field in it, so you need not find the button.
+- **Invoke Script**, Alt+I. Carries out instructions written in ordinary words, such as click sign in. I for Invoke.
+- **Check Accessibility**, Alt+NVDA+A. Tests the page for accessibility problems, asking which engine to use, and offers to report what it finds to whoever publishes the site. A for Accessibility.
+- **Consult Copilot**, Alt+NVDA+C. Copies the page text and opens Edge's Copilot sidebar, ready for a question. C for Copilot.
+- **Query Web**, Alt+Q, or Alt+NVDA+Q. Looks something up using free services that need no account: a definition, a place, the weather, a book. Q for Query.
+- **Dismiss Dialog**, Alt+NVDA+D. Closes a browser dialog that is blocking the window. D for Dismiss, and it works anywhere because a dialog is what has the focus.
+- **Tab List**, F4. Lists the HomerView tabs and switches to the one you choose. F4 is the Homer window list, and Edge has two other keys for what F4 does there.
+- **Tab Names**, Shift+F4. Says the names of the open tabs without moving the keyboard anywhere.
+- **Tab Close Others**, Control+Shift+F4. Closes every tab but the one you are reading. Control+F4 closes one tab, so Control+Shift+F4 closes the rest.
+- **Voice Faster**, Control+Accent. Increase the voice rate. The accent key carries the whole speech family, as it does in EdSharp.
+- **Voice Slower**, Control+Shift+Accent. Decrease the voice rate.
+- **Voice Louder**, Alt+Accent. Increase the voice volume.
+- **Voice Softer**, Alt+Shift+Accent. Decrease the voice volume.
+- **Toggle Punctuation**, Alt+Control+Accent. Toggle the voice between all and no punctuation.
+- **Speech Settings**, Shift+Accent. Reports the punctuation level, the rate and the volume.
+- **Elevate Version**, Control+F11, or Alt+NVDA+F11. Checks whether a newer HomerView exists and installs it.
+- **Recent Pages**, Alt+R. Open a page from the list of those recently used, on the key EdSharp uses for its recent files.
 
-- **Alt+D** select the address.
-- **Control+L** select the address.
-- **F4** select the address. **HomerView takes this in a HomerView page.**
-- **Control+E** search from the address bar.
-- **Control+K** search from the address bar.
-- **Control+Enter** add www and com around what is typed. **HomerView takes this everywhere.**
-- **Control+T** new tab.
-- **Control+W** close the tab.
-- **Control+F4** close the tab.
-- **Control+Shift+T** reopen the last closed tab.
-- **Control+Shift+K** duplicate the tab.
-- **Control+Tab** next tab.
-- **Control+Shift+Tab** previous tab.
-- **Control+PageDown** next tab.
-- **Control+PageUp** previous tab.
-- **Control+1** first tab, through Control+8 for the eighth.
-- **Control+9** last tab.
-- **Control+M** mute the tab.
-- **Control+N** new window.
-- **Control+Shift+N** new InPrivate window.
-- **Control+Shift+W** close the window.
-- **Alt+F4** close the window.
-- **Alt+LeftArrow** back.
-- **Alt+RightArrow** forward.
-- **Alt+Home** home page.
-- **Control+R** reload.
-- **F5** reload.
-- **Control+Shift+R** reload ignoring the cache.
-- **Escape** stop loading, or close a dialog.
-- **Control+F** find on the page. **HomerView takes this in a HomerView page.**
-- **Control+G** next result. **HomerView takes this in a HomerView page.**
-- **Control+Shift+G** previous result.
-- **F3** find in the tab. **HomerView takes this in a HomerView page.**
-- **Control+D** save as a favourite.
-- **Control+Shift+D** save all tabs as favourites.
-- **Control+Shift+O** open favourites.
-- **Control+Shift+B** show the favourites bar.
-- **Alt+Shift+B** focus the favourites bar.
-- **Control+H** history.
-- **Control+J** downloads.
-- **Control+Shift+Y** collections. **HomerView takes this in a HomerView page.**
-- **Control+Shift+Delete** clear browsing data.
-- **Control+O** open a file. **HomerView takes this everywhere.**
-- **Control+S** save the page. **HomerView takes this everywhere.**
-- **Control+P** print.
-- **Control+Shift+P** print with the system dialog.
-- **Control+U** view source.
-- **F9** Immersive Reader.
-- **Control+Shift+U** Read Aloud.
-- **Control+Plus** zoom in.
-- **Control+Minus** zoom out.
-- **Control+0** reset the zoom.
-- **F11** full screen.
-- **Alt** focus Settings and more.
-- **F10** focus Settings and more.
-- **Alt+F** the Settings menu.
-- **Shift+F10** the context menu.
-- **Alt+Shift+T** focus the toolbar.
-- **F6** next pane.
-- **Shift+F6** previous pane.
-- **Control+F6** the web content pane.
-- **F1** Edge help. **HomerView takes this in a HomerView page.**
-- **F7** caret browsing.
-- **Control+Shift+I** developer tools.
-- **F12** developer tools.
-- **Control+Shift+V** paste without formatting.
-- **Control+Shift+Period** Copilot in the sidebar.
-- **Control+Shift+E** show the sidebar.
-
-## NVDA keys available in a page
-
-NVDA's browse mode spends almost the whole alphabet on quick navigation.
-Shift with any of them moves backwards. None of these is taken by HomerView.
-
-- **A** next annotation
-- **B** next button
-- **C** next combo box
-- **D** next landmark
-- **E** next edit field
-- **F** next form field
-- **G** next graphic
-- **H** next heading
-- **I** next list item
-- **K** next link
-- **L** next list
-- **M** next frame
-- **N** next past a block of links
-- **O** next embedded object
-- **P** next paragraph
-- **Q** next block quote
-- **R** next radio button
-- **S** next separator
-- **T** next table
-- **U** next unvisited link
-- **V** next visited link
-- **W** next spelling error
-- **X** next check box
-- **1** through **9** next heading at that level
-- **Comma** the start of a container, and **Shift+Comma** the end
-
-The only letters NVDA leaves unassigned are J, Y and Z.
-
-## HomerView commands with a key
-
-Each line gives every key that runs the command, shortest first.
-
-- **Alt+V** acts on the page by describing what you want, such as click sign in
-- **Control+Shift+Apostrophe** appends the clipboard to a text file
-- **Alt+C** appends the selection, or the current line, to the clipboard
-- **Alt+NVDA+P** ask Copilot about this page: copies the page text to the clipboard and opens Microsoft Edge's Copilot sidebar, ready for you to paste with Control+V and ask a question
-- **Alt+Shift+U** asks what is at the link under the cursor, without going there
-- **Control+F11, or Alt+NVDA+F11** checks for a newer HomerView and installs it
-- **Alt+Shift+Apostrophe** clears the clipboard
-- **Alt+NVDA+D** close a Microsoft Edge dialog that is blocking the HomerView window
-- **Control+Shift+F4** closes every HomerView tab but this one and the first
-- **Alt+P** copies every link address on the page to the clipboard
-- **Control+C** copies the selection, or the current line when nothing is selected
-- **Control+F8** copies the whole page to the clipboard
-- **Control+Shift+Y** counts how often a regular expression matches this page
-- **Alt+NVDA+X** extracts the readable part of the current HomerView page and opens it as a plain document in a new tab
-- **Control+Shift+F3** finds a regular expression backwards in the page
-- **Control+F3** finds a regular expression in the page
-- **Control+Shift+F** finds text backwards in the page, using NVDA's own find
-- **Control+F** finds text in the page, using NVDA's own find
-- **Alt+W** finds the next occurrence of the word at the cursor
-- **Alt+Shift+W** finds the previous occurrence of the word at the cursor
-- **J, or Alt+NVDA+J** jump to Main Content: moves to the page's main content landmark
-- **Shift+J** jump to Probable Main Content: finds it when the page declares none
-- **Alt+NVDA+H** launch or reconnect the HomerView instance of Microsoft Edge
-- **Alt+NVDA+L** lists any kind of element on the page, including kinds NVDA's own Elements List does not offer
-- **Alt+NVDA+F10** lists every HomerView command in one alphabetical list
-- **Alt+NVDA+W** lists the file types linked from the current HomerView page, then downloads the ones you choose
-- **NVDA+F5** lists the form fields on the page, like the JAWS form field list
-- **NVDA+F6** lists the headings on the page, like the JAWS heading list
-- **F4** lists the HomerView tabs and switches to the one you choose
-- **NVDA+Shift+F7** lists the links on the page, like the JAWS link list
-- **Alt+Q, or Alt+NVDA+Q** looks something up using free web services that need no account
-- **F8** marks where a selection should begin, so Shift need not be held
-- **Control+G** moves to a percentage point through the page
-- **Alt+Z** moves to the next element of a different kind
-- **Z** moves to the next element of the same kind as this one
-- **Control+DownArrow** moves to the next paragraph and reads it
-- **Alt+DownArrow** moves to the next sentence and reads it
-- **Alt+G** moves to the percentage point used last time
-- **Alt+Shift+Z** moves to the previous element of a different kind
-- **Shift+Z** moves to the previous element of the same kind as this one
-- **Control+UpArrow** moves to the previous paragraph and reads it
-- **Alt+UpArrow** moves to the previous sentence and reads it
-- **Control+O** opens a document of any popular format, converting it to a web page first so that every HomerView command works on it
-- **Alt+R** reads the rest of the page from the cursor, without moving it
-- **Alt+F8** reads the whole page without moving the cursor
-- **Shift+F3** repeats the last search in the opposite direction
-- **F3** repeats the last search, whichever kind it was
-- **Shift+Accent** reports the punctuation level, the rate and the volume
-- **Alt+A** reports the web address of the current HomerView page. Pressing twice spells it, and pressing three times copies it to the clipboard
-- **Alt+NVDA+U** reports the web address of the HomerView page, from anywhere in the window
-- **Alt+M** reports what the page says about itself: author, publisher, date, licence
-- **Alt+Shift+F8** returns to the marked start of the selection
-- **Control+Apostrophe** saves the clipboard to a text file, proposing a name
-- **Control+S, or Alt+Control+S** saves the current HomerView page as a web page, Markdown, or plain text
-- **Alt+Y** says how many characters, words and lines the page or selection holds
-- **Alt+Shift+Y** says how the page is built
-- **Alt+Apostrophe** says the clipboard text, and spells it when pressed twice
-- **Alt+Delete, or Alt+NumPadDelete** says the line, column and percentage position of the cursor
-- **Alt+N** says the name of the page, and spells it when pressed twice
-- **Shift+F4** says the names of the open HomerView tabs
-- **Shift+Backspace** says the run of non-blank characters at the cursor, and spells it when pressed twice
-- **Shift+Space** says the selected text, and spells it when pressed twice
-- **Alt+SemiColon** says the time, and the date when pressed twice
-- **Alt+U** says where the link at the cursor would go
-- **Shift+F8** selects from the marked start to the cursor
-- **Control+Space** selects the run of non-blank characters at the cursor
-- **Alt+Shift+H** shows every HomerView command and its key as a document
-- **Shift+F1** shows the history of changes to HomerView
-- **F1** shows the HomerView user guide
-- **Alt+F1** shows what HomerView is, and where it keeps its files
-- **Control+Accent** speaks faster
-- **Alt+Accent** speaks louder
-- **Alt+Shift+Accent** speaks more softly
-- **Control+Shift+Accent** speaks slower
-- **ScrollLock** starts reading continuously, or stops if it is already reading
-- **Control+Enter** submits the form you are filling in, from any field
-- **Y, or Alt+NVDA+E** summarises the structure of the current HomerView page, the visual aspects a reading order hides, and how best to move around it
-- **Alt+Control+Accent** switches punctuation between all and none
-- **Alt+NVDA+A** tests the current HomerView page for accessibility problems, finds how to report them to the publisher, and opens the report in a new tab
-- **Alt+I** tests the page with the IBM Equal Access engine, alongside axe-core
-- **Alt+K** tests this page for accessibility, asking which engine to use
-
-## HomerView commands without a key
+## Commands without a key
 
 These run from the Alternate Menu on Alt+NVDA+F10, and can be given a key in
 NVDA's Input Gestures dialog under the HomerView category.
 
-- Check that all three ways of reaching the browser are working
-- Open the HomerView log file for this session
-- Opens the HomerView developer notes in the HomerView window
-- Opens the HomerView history of changes in the HomerView window
-- Opens the HomerView quick start in the HomerView window
-- Opens the HomerView user guide in the HomerView window
-- Recently opened: lists the pages and documents you have opened in HomerView, with when each was opened, so you can find something again
-- Report whether HomerView is connected to Microsoft Edge
-- Tests the current HomerView page with axe-core and reports the counts only
+- **Report Connection**. Says whether HomerView is connected to the browser, and how.
+- **Self Test**. Checks that all three ways of reaching the browser are working.
 
-## Keys still free
+## Commands reached from another command
 
-Letters that none of Microsoft Edge, NVDA or HomerView uses. Checked against
-all three, not against HomerView alone, since a key free only of HomerView is
-not free at all.
+- **Report Accessibility**. Tests the page and writes a report addressed to whoever publishes the site. Reached by Check Accessibility once an engine is chosen.
+- **Check with Axe**. Tests the page with Deque's axe-core engine. Offered by Check Accessibility.
+- **Check with Equal Access**. Tests the page with IBM's Equal Access engine. Offered by Check Accessibility.
+- **Open User Guide**. Opens the user guide in the HomerView window rather than as a message.
+- **Open History**. Opens the history of changes in the HomerView window.
 
-- **no modifier** nothing free
-- **Alt** with B, E, H, J, L, O, S, T, X
-- **Control** with A, B, I, Q, V, X, Y, Z
-- **Shift** with Y
-- **Alt+Control** with A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, T, U, V, W, X, Y, Z
-- **Alt+Shift** with A, C, D, E, F, G, I, J, K, L, M, N, O, P, Q, R, S, V, X
-- **Control+Shift** with A, C, H, J, L, M, Q, S, X, Z
-- **Alt+Control+Shift** with A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z
-- **Alt+NVDA** with B, C, F, G, I, K, M, N, O, R, S, T, V, Y, Z
-- **NVDA+Shift** with A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z
-- **Control+NVDA** with A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z
-- **Alt+Control+NVDA** with A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z
+## How the keys were chosen
 
-## Patterns worth noticing
+The first letter of the first word, where that letter is free. Failing that,
+the first letter of the second word. A letter from the middle of a word is not
+used, because nobody remembers it: the single exception is X for extract and
+export, which is a convention older than any of this.
 
-- Single letters are almost all NVDA's. Only J, Y and Z were ever available,
-  and HomerView uses all three: J for the main content, Y for the page
-  summary, Z for moving by the kind of element you are on.
-- Alt with a letter is HomerView's usual shape for a page command, because
-  Edge uses Alt mainly for its menus and NVDA not at all.
-- Alt+NVDA is the shape for anything that must work outside a page, because
-  NVDA takes those before any program sees them.
-- Control with a letter is mostly Edge's, and HomerView takes only three:
-  Control+F, Control+O and Control+S, each of which does everything Edge did
-  with it and more.
-- Alt+Control is almost entirely free, and Alt+Control+Shift entirely so.
-  Between them that is roughly fifty combinations nobody uses, which is where
-  anything added later should go.
-- The function keys are the crowded ones. F1 through F12 are almost all
-  spoken for by Edge, NVDA or HomerView, which is why new commands have gone
-  to letters rather than to function keys.
-- Where a command has two keys, the short one works in a page and the long
-  one works anywhere. That is the pattern rather than an accident: a page
-  command can afford a short key because it exists nowhere else.
+Beyond that, in order:
+
+  - A key NVDA uses on either the desktop or the laptop layout is never taken.
+  - A JAWS default is used where it is free, because a blind Windows user has
+    had those in their fingers for years. The element lists are here for that
+    reason: NVDA+F5, NVDA+F6 and NVDA+Shift+F7 are where JAWS puts them.
+  - Failing that, an EdSharp binding, since these are the same hands. Where the
+    command is the same as EdSharp's, EdSharp's own sentence describes it, so
+    the two programs read alike: Find at Cursor on Alt+F3, Web Download on
+    Alt+Shift+W, Recent Files on Alt+R, and the whole accent family.
+  - A key Edge uses may be taken when HomerView does everything Edge did with
+    it and more, which is why Control+O and Control+S are here. Where it does
+    not supersede, the key is left alone: plain F1 opens Edge's own help and
+    stays Edge's, so HomerView's documentation uses F1 with a modifier instead.
+  - Where Edge has two keys for one thing, one of them may be taken. F4 selects
+    the address bar, and so do Control+L and Alt+D, so F4 is available.
+  - Where a key resembles one that already exists, the resemblance is the
+    mnemonic. F9 is Edge's reading view, so Shift+F9 makes HomerView's own.
+  - Fewer modifiers is better, because it is easier to press.
+  - An Office convention is worth adopting: F1 for documentation, F3 for
+    finding again, F8 for selecting.
+  - Several rarely used commands that answer one question belong on one key
+    with a picker, not on several keys. Checking a page for accessibility is
+    one command that asks which engine, not two commands.
+

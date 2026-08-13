@@ -76,107 +76,75 @@ maximumLoggedLandmarks = 40
 # They live on the browse mode class, so they exist only inside HomerView pages
 # and cannot shadow anything in Edge, in other browsers, or in Windows.
 dHomerGestures = {
-    "kb:alt+f8": "readAll",
-    # Scroll Lock, because nothing else wants it: not Edge, not NVDA, not
-    # Windows since about 1981. One large isolated key that both starts and
-    # stops continuous reading.
-    "kb:scrolllock": "toggleSayAll",
-    # The Homer grave accent family, as EdSharp arranges it. Punctuation moves
-    # to Control+Alt+Grave because HomerView does not use NVDA's modifier for
-    # page commands; the other four are unchanged. None of the five is used by
-    # Edge, by NVDA, or by Windows.
-    "kb:control+alt+`": "togglePunctuation",
-    "kb:control+`": "speakFaster",
-    "kb:control+shift+`": "speakSlower",
-    "kb:alt+`": "speakLouder",
-    "kb:alt+shift+`": "speakSofter",
-    "kb:shift+`": "reportSpeechSettings",
-    "kb:control+f8": "copyAll",
-    "kb:control+c": "copyLineOrSelection",
-    "kb:alt+c": "copyAppend",
-    "kb:alt+m": "pageInformation",
-    # Q for query. NVDA uses plain Q for block quotes, and Alt+Q is free in
-    # Edge, in NVDA and in Windows.
-    "kb:alt+q": "webUtilities",
-    # Homer puts a window list on F4. Microsoft Edge uses F4 to select the
-    # address bar, but Control+L and Alt+D both do that too, so this takes the
-    # least used of three ways to do one thing and loses nothing.
-    "kb:f4": "chooseTab",
-    "kb:shift+f4": "sayTabs",
-    # Control+F4 is deliberately absent. Microsoft Edge already closes the
-    # current tab with it, which is exactly what it should do, so the family
-    # has a gap on purpose rather than by oversight.
-    "kb:control+shift+f4": "closeOtherTabs",
-    "kb:alt+downarrow": "nextSentence",
-    "kb:alt+uparrow": "priorSentence",
-    "kb:control+downarrow": "nextParagraph",
-    "kb:control+uparrow": "priorParagraph",
-    "kb:alt+k": "runAccessibilityCheck",
-    "kb:alt+v": "actOnPage",
-    "kb:shift+j": "proxyMainContent",
-    "kb:y": "explorePage",
-    # The two things JAWS reaches and NVDA does not. Z is the last letter NVDA
-    # leaves unassigned, and both commands belong to one key family so there is
-    # one thing to remember rather than two.
-    "kb:z": "nextSameType",
-    "kb:shift+z": "priorSameType",
-    "kb:alt+z": "nextDifferentType",
-    "kb:alt+shift+z": "priorDifferentType",
-    "kb:alt+i": "runIbmChecker",
-    "kb:control+f": "findText",
-    "kb:control+shift+f": "findTextBackwards",
-    "kb:control+f3": "findByPattern",
-    "kb:control+o": "openOtherFormat",
-    "kb:alt+w": "findWordAtCursor",
-    "kb:alt+shift+w": "findWordAtCursorBackwards",
-    "kb:f1": "showHelp",
-    "kb:alt+f1": "showAbout",
-    "kb:control+f11": "elevateVersion",
-    "kb:shift+f1": "showHistory",
-    "kb:control+shift+f3": "findByPatternBackwards",
     "kb:f3": "findAgain",
-    "kb:shift+f3": "findAgainBackwards",
+    "kb:f4": "chooseTab",
+    "kb:f8": "startSelection",
+    "kb:j": "moveToMainContent",
+    "kb:scrolllock": "toggleSayAll",
+    "kb:y": "explorePage",
+    "kb:z": "nextSameType",
     "kb:NVDA+f5": "listFormFields",
     "kb:NVDA+f6": "listHeadings",
-    "kb:NVDA+shift+f7": "listLinks",
-    "kb:NVDA+alt+l": "listAnyElements",
-    "kb:alt+y": "sayYield",
-    "kb:alt+shift+y": "sayYieldStructure",
-    # EdSharp counts pattern matches on Control+Shift+Y, and the word Pattern
-    # is used here as it is for Control+F3, so the two read as a family.
-    "kb:control+shift+y": "sayYieldPattern",
-    # JAWS reports progress through a page on Alt+Delete. NVDA's own equivalent
-    # is NVDA+Delete, which reports the position of the review cursor including
-    # the percentage through the document. Both spellings of Delete are bound,
-    # because the keypad's Delete is a different key identifier and a user who
-    # reaches for one will not think to try the other.
-    "kb:alt+delete": "sayPosition",
-    "kb:alt+numpadDelete": "sayPosition",
-    "kb:shift+space": "saySelected",
-    "kb:shift+backspace": "sayChunk",
-    "kb:alt+r": "sayRest",
-    "kb:control+space": "selectChunk",
-    "kb:f8": "startSelection",
-    "kb:shift+f8": "completeSelection",
-    "kb:alt+shift+f8": "goToSelectionStart",
-    "kb:alt+u": "urlReference",
-    # Alt+U says the address; Alt+Shift+U asks what is at it. The pair reads as
-    # the two halves of one question.
-    "kb:alt+shift+u": "describeLinkTarget",
-    "kb:alt+p": "pageUrls",
-    "kb:alt+n": "pageName",
-    "kb:alt+;": "sayTime",
-    "kb:control+g": "goToPercent",
-    "kb:alt+g": "goToPercentAgain",
     "kb:alt+'": "quoteClipboard",
-    "kb:alt+shift+'": "clearClipboard",
+    "kb:alt+;": "sayTime",
+    "kb:alt+`": "speakLouder",
+    "kb:alt+a": "reportPageAddress",
+    "kb:alt+c": "copyAppend",
+    "kb:alt+delete": "sayPosition",
+    "kb:alt+downarrow": "nextSentence",
+    "kb:alt+f1": "showAbout",
+    "kb:alt+f3": "findWordAtCursor",
+    "kb:alt+f8": "readAll",
+    "kb:alt+g": "goToPercentAgain",
+    "kb:alt+i": "actOnPage",
+    "kb:alt+l": "describeLinkTarget",
+    "kb:alt+m": "pageInformation",
+    "kb:alt+numpadDelete": "sayPosition",
+    "kb:alt+u": "urlReference",
+    "kb:alt+uparrow": "priorSentence",
+    "kb:alt+y": "sayYield",
+    "kb:alt+z": "nextDifferentType",
     "kb:control+'": "saveClipboard",
-    "kb:control+shift+'": "appendClipboard",
-    # The Alternate Menu is deliberately not bound here. It is on NVDA+Alt+F10
-    # alone, which works everywhere, because a command whose whole purpose is
-    # to find other commands must never be one of the things that sometimes
-    # does nothing. See the note in __init__.py.
+    "kb:control+`": "speakFaster",
+    "kb:control+c": "copyLineOrSelection",
+    "kb:control+downarrow": "nextParagraph",
+    "kb:control+f": "findText",
+    "kb:control+f1": "showHelp",
+    "kb:control+f3": "findByPattern",
+    "kb:control+f8": "copyAll",
+    "kb:control+g": "goToPercent",
+    "kb:control+o": "openOtherFormat",
+    "kb:control+space": "selectChunk",
+    "kb:control+uparrow": "priorParagraph",
+    "kb:shift+`": "reportSpeechSettings",
+    "kb:shift+backspace": "sayChunk",
+    "kb:shift+f1": "showHistory",
+    "kb:shift+f3": "findAgainBackwards",
+    "kb:shift+f4": "sayTabs",
+    "kb:shift+f8": "completeSelection",
+    "kb:shift+j": "proxyMainContent",
+    "kb:shift+space": "saySelected",
+    "kb:shift+z": "priorSameType",
+    "kb:NVDA+alt+a": "runAccessibilityCheck",
+    "kb:NVDA+alt+e": "explorePage",
+    "kb:NVDA+alt+j": "moveToMainContent",
+    "kb:NVDA+alt+l": "listAnyElements",
+    "kb:NVDA+shift+f7": "listLinks",
+    "kb:alt+control+`": "togglePunctuation",
+    "kb:alt+shift+'": "clearClipboard",
+    "kb:alt+shift+`": "speakSofter",
+    "kb:alt+shift+f3": "findWordAtCursorBackwards",
+    "kb:alt+shift+f8": "goToSelectionStart",
     "kb:alt+shift+h": "hotkeySummary",
+    "kb:alt+shift+p": "pageUrls",
+    "kb:alt+shift+y": "sayYieldStructure",
+    "kb:alt+shift+z": "priorDifferentType",
+    "kb:control+shift+'": "appendClipboard",
+    "kb:control+shift+`": "speakSlower",
+    "kb:control+shift+f": "findTextBackwards",
+    "kb:control+shift+f3": "findByPatternBackwards",
+    "kb:control+shift+f4": "closeOtherTabs",
+    "kb:control+shift+y": "sayYieldPattern",
 }
 
 # How a key is written when a person is going to read it.
@@ -577,37 +545,37 @@ class HomerViewBuffer:
         )
 
     @script(
-        description=_("Starts reading continuously, or stops if it is already reading"),
+        description=_("Starts reading continuously, or stops if it is already reading. Scroll Lock because nothing else in Edge, NVDA or Windows wants it."),
         category="HomerView",
     )
     def script_toggleSayAll(self, gesture):
         self.runSafely("toggleSayAll", lambda: homerCommands.toggleSayAll(self))
 
     @script(
-        description=_("Switches punctuation between all and none"),
+        description=_("Toggle the voice between all and no punctuation."),
         category="HomerView",
     )
     def script_togglePunctuation(self, gesture):
         self.runSafely("togglePunctuation", speechControl.togglePunctuation)
 
-    @script(description=_("Speaks faster"), category="HomerView")
+    @script(description=_("Increase the voice rate. The accent key carries the whole speech family, as it does in EdSharp."), category="HomerView")
     def script_speakFaster(self, gesture):
         self.runSafely("speakFaster", lambda: speechControl.adjustRate(True))
 
-    @script(description=_("Speaks slower"), category="HomerView")
+    @script(description=_("Decrease the voice rate."), category="HomerView")
     def script_speakSlower(self, gesture):
         self.runSafely("speakSlower", lambda: speechControl.adjustRate(False))
 
-    @script(description=_("Speaks louder"), category="HomerView")
+    @script(description=_("Increase the voice volume."), category="HomerView")
     def script_speakLouder(self, gesture):
         self.runSafely("speakLouder", lambda: speechControl.adjustVolume(True))
 
-    @script(description=_("Speaks more softly"), category="HomerView")
+    @script(description=_("Decrease the voice volume."), category="HomerView")
     def script_speakSofter(self, gesture):
         self.runSafely("speakSofter", lambda: speechControl.adjustVolume(False))
 
     @script(
-        description=_("Reports the punctuation level, the rate and the volume"),
+        description=_("Reports the punctuation level, the rate and the volume."),
         category="HomerView",
         speakOnDemand=True,
     )
@@ -618,79 +586,76 @@ class HomerViewBuffer:
             "reportSpeechSettings",
             lambda: output.lines(_("Speech settings"), speechControl.reportSpeechSettings()))
 
-    @script(description=_("Reads the whole page without moving the cursor"), category="HomerView")
+    @script(description=_("Say all text, without moving the cursor."), category="HomerView")
     def script_readAll(self, gesture):
         self.runSafely("readAll", lambda: homerCommands.readAll(self))
 
-    @script(description=_("Copies the whole page to the clipboard"), category="HomerView")
+    @script(description=_("Copy all text to clipboard."), category="HomerView")
     def script_copyAll(self, gesture):
         self.runSafely("copyAll", lambda: homerCommands.copyAll(self))
 
-    @script(description=_("Copies the selection, or the current line when nothing is selected"), category="HomerView")
+    @script(description=_("Copy selected text to clipboard, or copy current line if no selection."), category="HomerView")
     def script_copyLineOrSelection(self, gesture):
         self.runSafely("copyLineOrSelection", lambda: homerCommands.copyLineOrSelection(self))
 
-    @script(description=_("Appends the selection, or the current line, to the clipboard"), category="HomerView")
+    @script(description=_("Append selected text to clipboard, or append current line if no selection."), category="HomerView")
     def script_copyAppend(self, gesture):
         self.runSafely("copyAppend", lambda: homerCommands.copyAppend(self))
 
     @script(
-        description=_("Reports what the page says about itself: author, publisher, date, licence"),
+        description=_("Says what the page claims about itself: author, publisher, date and licence. M for Metadata."),
         category="HomerView",
         speakOnDemand=True,
     )
     def script_pageInformation(self, gesture):
         self.runSafely("pageInformation", lambda: homerCommands.pageInformation(self))
 
-    @script(description=_("Says how many characters, words and lines the page or selection holds"), category="HomerView", speakOnDemand=True)
+    @script(description=_("Say number of characters, words, and lines in all or selected text."), category="HomerView", speakOnDemand=True)
     def script_sayYield(self, gesture):
         self.runSafely("sayYield", lambda: homerCommands.sayYield(self))
 
-    @script(description=_("Says how the page is built"), category="HomerView")
+    @script(description=_("Says how the page is built: how many headings, links, forms and the rest."), category="HomerView")
     def script_sayYieldStructure(self, gesture):
         self.runSafely("sayYieldStructure", lambda: homerCommands.sayYieldStructure(self))
 
     @script(
-        description=_("Counts how often a regular expression matches this page"),
+        description=_("Count parts of text matching a regular expression, which answers how many rather than where."),
         category="HomerView",
     )
     def script_sayYieldPattern(self, gesture):
         self.runSafely("sayYieldPattern", lambda: homerCommands.sayYieldPattern(self))
 
-    @script(description=_("Says the line, column and percentage position of the cursor"), category="HomerView", speakOnDemand=True)
+    @script(description=_("Says the line, column and percentage position of the cursor. Delete sits among the navigation keys, which is where a position question belongs."), category="HomerView", speakOnDemand=True)
     def script_sayPosition(self, gesture):
         self.runSafely("sayPosition", lambda: homerCommands.sayPosition(self))
 
-    @script(description=_("Says the selected text, and spells it when pressed twice"), category="HomerView", speakOnDemand=True)
+    @script(description=_("Say selected text, or spell if repeated."), category="HomerView", speakOnDemand=True)
     def script_saySelected(self, gesture):
         self.runSafely("saySelected", lambda: homerCommands.saySelected(self))
 
-    @script(description=_("Says the run of non-blank characters at the cursor, and spells it when pressed twice"), category="HomerView", speakOnDemand=True)
+    @script(description=_("Say chunk at cursor, or spell if repeated."), category="HomerView", speakOnDemand=True)
     def script_sayChunk(self, gesture):
         self.runSafely("sayChunk", lambda: homerCommands.sayChunk(self))
 
-    @script(description=_("Reads the rest of the page from the cursor, without moving it"), category="HomerView")
-    def script_sayRest(self, gesture):
-        self.runSafely("sayRest", lambda: homerCommands.sayRest(self))
 
-    @script(description=_("Selects the run of non-blank characters at the cursor"), category="HomerView")
+    @script(description=_("Select contiguous sequence of non-blank characters at cursor, or select the next chunk if a selection already exists."), category="HomerView")
     def script_selectChunk(self, gesture):
         self.runSafely("selectChunk", lambda: homerCommands.selectChunk(self))
 
-    @script(description=_("Marks where a selection should begin, so Shift need not be held"), category="HomerView")
+    @script(description=_("Mark starting point of text to be selected, so Shift need not be held while you move."), category="HomerView")
     def script_startSelection(self, gesture):
         self.runSafely("startSelection", lambda: homerCommands.startSelection(self))
 
-    @script(description=_("Selects from the marked start to the cursor"), category="HomerView")
+    @script(description=_("Select text from starting point to cursor."), category="HomerView")
     def script_completeSelection(self, gesture):
         self.runSafely("completeSelection", lambda: homerCommands.completeSelection(self))
 
-    @script(description=_("Returns to the marked start of the selection"), category="HomerView")
+    @script(description=_("Return to start position of selection."), category="HomerView")
     def script_goToSelectionStart(self, gesture):
         self.runSafely("goToSelectionStart", lambda: homerCommands.goToSelectionStart(self))
 
     @script(
-        description=_("Says where the link at the cursor would go"),
+        description=_("Say where the link at the cursor would go. U for url."),
         category="HomerView",
         speakOnDemand=True,
     )
@@ -698,26 +663,23 @@ class HomerViewBuffer:
         self.runSafely("urlReference", lambda: homerCommands.urlReference(self))
 
     @script(
-        description=_("Asks what is at the link under the cursor, without going there"),
+        description=_("Ask what is actually at that link without going there: what kind of thing, how big, and whether it ends up where it claims. L for Link."),
         category="HomerView",
     )
     def script_describeLinkTarget(self, gesture):
         self.runSafely("describeLinkTarget",
                        lambda: homerCommands.describeLinkTarget(self))
 
-    @script(description=_("Copies every link address on the page to the clipboard"), category="HomerView")
+    @script(description=_("Copy every link address on the page to the clipboard, as EdSharp copies a path on the same key."), category="HomerView")
     def script_pageUrls(self, gesture):
         self.runSafely("pageUrls", lambda: homerCommands.pageUrls(self))
 
-    @script(description=_("Says the name of the page, and spells it when pressed twice"), category="HomerView", speakOnDemand=True)
-    def script_pageName(self, gesture):
-        self.runSafely("pageName", lambda: homerCommands.pageName(self))
 
-    @script(description=_("Says the time, and the date when pressed twice"), category="HomerView", speakOnDemand=True)
+    @script(description=_("Say current time and date."), category="HomerView", speakOnDemand=True)
     def script_sayTime(self, gesture):
         self.runSafely("sayTime", lambda: homerCommands.sayTime())
 
-    @script(description=_("Moves to a percentage point through the page"), category="HomerView")
+    @script(description=_("Go to percentage point in document, as EdSharp does on the same key."), category="HomerView")
     def script_goToPercent(self, gesture):
         # Deferred, so NVDA has finished the script before the dialog opens.
         lbcModule.afterScript(self._goToPercentNow)
@@ -733,7 +695,7 @@ class HomerViewBuffer:
             homerLog.info(f"Relative move from {iCurrent} percent to {iNumber} percent")
         homerCommands.goToPercent(self, iNumber)
 
-    @script(description=_("Moves to the percentage point used last time"), category="HomerView")
+    @script(description=_("Repeat Go command, or move a step further with plus or minus."), category="HomerView")
     def script_goToPercentAgain(self, gesture):
         iPercent = homerCommands.lastPercent(self)
         if iPercent is None:
@@ -742,49 +704,49 @@ class HomerViewBuffer:
             return
         homerCommands.goToPercent(self, iPercent)
 
-    @script(description=_("Says the clipboard text, and spells it when pressed twice"), category="HomerView", speakOnDemand=True)
+    @script(description=_("Say clipboard text, or spell if repeated. The apostrophe is a quotation mark, and a clipboard holds a quotation."), category="HomerView", speakOnDemand=True)
     def script_quoteClipboard(self, gesture):
         self.runSafely("quoteClipboard", lambda: clipboardTools.sayClipboard())
 
-    @script(description=_("Clears the clipboard"), category="HomerView")
+    @script(description=_("Empties the clipboard, so an append starts afresh."), category="HomerView")
     def script_clearClipboard(self, gesture):
         self.runSafely("clearClipboard", lambda: clipboardTools.clearClipboard())
 
-    @script(description=_("Saves the clipboard to a text file, proposing a name"), category="HomerView")
+    @script(description=_("Saves the clipboard to a text file, proposing a name."), category="HomerView")
     def script_saveClipboard(self, gesture):
         self.runSafely("saveClipboard", lambda: clipboardTools.exportClipboard(False))
 
-    @script(description=_("Appends the clipboard to a text file"), category="HomerView")
+    @script(description=_("Adds the clipboard to the end of a text file rather than replacing it."), category="HomerView")
     def script_appendClipboard(self, gesture):
         self.runSafely("appendClipboard", lambda: clipboardTools.exportClipboard(True))
 
-    @script(description=_("Shows every HomerView command and its key as a document"), category="HomerView")
+    @script(description=_("Display this list of command names, hot keys, and descriptions in a new window, as EdSharp does on the same key."), category="HomerView")
     def script_hotkeySummary(self, gesture):
         self.runSafely("hotkeySummary", lambda: alternateMenu.showHotkeySummary(self.buildCommandEntries()))
 
     @script(
-        description=_("Acts on the page by describing what you want, such as click sign in"),
+        description=_("Carries out instructions written in ordinary words, such as click sign in. I for Invoke."),
         category="HomerView",
     )
     def script_actOnPage(self, gesture):
         self.runSafely("actOnPage", lambda: homerCommands.actOnPage())
 
     @script(
-        description=_("Tests the page with the IBM Equal Access engine, alongside axe-core"),
+        description=_("Tests the page with IBM's Equal Access engine. Offered by Check Accessibility."),
         category="HomerView",
     )
     def script_runIbmChecker(self, gesture):
         self.runSafely("runIbmChecker", lambda: homerCommands.runIbmChecker())
 
     @script(
-        description=_("Jump to Probable Main Content: finds it when the page declares none"),
+        description=_("Finds the main content of a page that declares none, by weighing every part of it, and says that it inferred rather than was told."),
         category="HomerView",
     )
     def script_proxyMainContent(self, gesture):
         self.runSafely("proxyMainContent", lambda: homerCommands.moveToProxyMainContent(self, gesture))
 
     @script(
-        description=_("Moves to the next element of the same kind as this one"),
+        description=_("Moves to the next thing of the same kind as the one you are on, whatever that is. Z because NVDA leaves it free, and JAWS does this with S."),
         category="HomerView",
     )
     def script_nextSameType(self, gesture):
@@ -792,7 +754,7 @@ class HomerViewBuffer:
                        lambda: homerCommands.moveByTypeRelation(self, True, True))
 
     @script(
-        description=_("Moves to the previous element of the same kind as this one"),
+        description=_("Moves to the previous thing of the same kind as the one you are on."),
         category="HomerView",
     )
     def script_priorSameType(self, gesture):
@@ -800,7 +762,7 @@ class HomerViewBuffer:
                        lambda: homerCommands.moveByTypeRelation(self, True, False))
 
     @script(
-        description=_("Moves to the next element of a different kind"),
+        description=_("Moves to the next thing of a different kind, which JAWS does with D."),
         category="HomerView",
     )
     def script_nextDifferentType(self, gesture):
@@ -808,7 +770,7 @@ class HomerViewBuffer:
                        lambda: homerCommands.moveByTypeRelation(self, False, True))
 
     @script(
-        description=_("Moves to the previous element of a different kind"),
+        description=_("Moves to the previous thing of a different kind."),
         category="HomerView",
     )
     def script_priorDifferentType(self, gesture):
@@ -816,21 +778,21 @@ class HomerViewBuffer:
                        lambda: homerCommands.moveByTypeRelation(self, False, False))
 
     @script(
-        description=_("Looks something up using free web services that need no account"),
+        description=_("Looks something up using free services that need no account: a definition, a place, the weather, a book. Q for Query."),
         category="HomerView",
     )
     def script_webUtilities(self, gesture):
         self.runSafely("webUtilities", homerCommands.webUtilities)
 
     @script(
-        description=_("Lists the HomerView tabs and switches to the one you choose"),
+        description=_("Lists the HomerView tabs and switches to the one you choose. F4 is the Homer window list, and Edge has two other keys for what F4 does there."),
         category="HomerView",
     )
     def script_chooseTab(self, gesture):
         self.runSafely("chooseTab", homerCommands.chooseTab)
 
     @script(
-        description=_("Says the names of the open HomerView tabs"),
+        description=_("Says the names of the open tabs without moving the keyboard anywhere."),
         category="HomerView",
         speakOnDemand=True,
     )
@@ -838,41 +800,41 @@ class HomerViewBuffer:
         self.runSafely("sayTabs", homerCommands.sayTabs)
 
     @script(
-        description=_("Closes every HomerView tab but this one and the first"),
+        description=_("Closes every tab but the one you are reading. Control+F4 closes one tab, so Control+Shift+F4 closes the rest."),
         category="HomerView",
     )
     def script_closeOtherTabs(self, gesture):
         self.runSafely("closeOtherTabs", homerCommands.closeOtherTabs)
 
-    @script(description=_("Summarises the structure of this page"), category="HomerView")
+    @script(description=_("Describes how the page is laid out, including what a sighted person can see that your reading order never mentions. E for Explore; Y is a second key because NVDA leaves it free."), category="HomerView")
     def script_explorePage(self, gesture):
         self.runSafely("explorePage", lambda: homerCommands.explorePageFromBuffer())
 
-    @script(description=_("Moves to the next sentence and reads it"), category="HomerView")
+    @script(description=_("Moves to the next sentence and reads it. Alt with an arrow moves by something larger than a line and smaller than a paragraph."), category="HomerView")
     def script_nextSentence(self, gesture):
         self.runSafely("nextSentence", lambda: homerCommands.moveBySentence(self, True))
 
-    @script(description=_("Moves to the previous sentence and reads it"), category="HomerView")
+    @script(description=_("Moves to the previous sentence and reads it."), category="HomerView")
     def script_priorSentence(self, gesture):
         self.runSafely("priorSentence", lambda: homerCommands.moveBySentence(self, False))
 
-    @script(description=_("Moves to the next paragraph and reads it"), category="HomerView")
+    @script(description=_("Moves to the next paragraph and reads it. Control with an arrow moves by paragraph in Word and in most editors."), category="HomerView")
     def script_nextParagraph(self, gesture):
         self.runSafely("nextParagraph", lambda: homerCommands.moveByParagraph(self, True))
 
-    @script(description=_("Moves to the previous paragraph and reads it"), category="HomerView")
+    @script(description=_("Moves to the previous paragraph and reads it."), category="HomerView")
     def script_priorParagraph(self, gesture):
         self.runSafely("priorParagraph", lambda: homerCommands.moveByParagraph(self, False))
 
     @script(
-        description=_("Tests this page for accessibility, asking which engine to use"),
+        description=_("Tests the page for accessibility problems, asking which engine to use, and offers to report what it finds to whoever publishes the site. A for Accessibility."),
         category="HomerView",
     )
     def script_runAccessibilityCheck(self, gesture):
         self.runSafely("runAccessibilityCheck", homerCommands.runAccessibilityCheck)
 
     @script(
-        description=_("Finds text in the page, using NVDA's own find"),
+        description=_("Search forward for string, using NVDA's own find so the dialog and its behaviour are the ones you already know."),
         category="HomerView",
     )
     def script_findText(self, gesture):
@@ -892,7 +854,7 @@ class HomerViewBuffer:
         self.runSafely("findText", lambda: self._nvdaFind(False))
 
     @script(
-        description=_("Finds text backwards in the page, using NVDA's own find"),
+        description=_("Search backward for string."),
         category="HomerView",
     )
     def script_findTextBackwards(self, gesture):
@@ -945,7 +907,7 @@ class HomerViewBuffer:
         self.doFindText(sText, reverse=bBackwards, caseSensitive=bCase)
 
     @script(
-        description=_("Finds a regular expression in the page"),
+        description=_("Search forward for regular expression, which NVDA's own find cannot do."),
         category="HomerView",
     )
     def script_findByPattern(self, gesture):
@@ -953,7 +915,7 @@ class HomerViewBuffer:
         self.runSafely("findByPattern", lambda: homerCommands.askAndFind(self, False, True))
 
     @script(
-        description=_("Finds a regular expression backwards in the page"),
+        description=_("Search backward for regular expression."),
         category="HomerView",
     )
     def script_findByPatternBackwards(self, gesture):
@@ -961,49 +923,49 @@ class HomerViewBuffer:
         self.runSafely("findByPatternBackwards",
                        lambda: homerCommands.askAndFind(self, True, True))
 
-    @script(description=_("Finds the next occurrence of the word at the cursor"), category="HomerView")
+    @script(description=_("Search forward for chunk or selected text, on the key EdSharp uses for it."), category="HomerView")
     def script_findWordAtCursor(self, gesture):
         self.runSafely("findWordAtCursor", lambda: homerCommands.findWordAtCursor(self, False))
 
-    @script(description=_("Finds the previous occurrence of the word at the cursor"), category="HomerView")
+    @script(description=_("Search backward for chunk or selected text."), category="HomerView")
     def script_findWordAtCursorBackwards(self, gesture):
         self.runSafely("findWordAtCursorBackwards", lambda: homerCommands.findWordAtCursor(self, True))
 
     @script(
-        description=_("Opens a document of any popular format, or a web address"),
+        description=_("Opens a Word file, spreadsheet, slide deck, PDF or ebook, converting it to a page so every command here works on it. Control+O opens in every program; this one opens more."),
         category="HomerView",
     )
     def script_openOtherFormat(self, gesture):
         self.runSafely("openOtherFormat", lambda: homerCommands.openDocument())
 
     @script(
-        description=_("Checks for a newer HomerView and installs it"),
+        description=_("Checks whether a newer HomerView exists and installs it."),
         category="HomerView",
     )
     def script_elevateVersion(self, gesture):
         self.runSafely("elevateVersion", homerCommands.elevateVersion)
 
-    @script(description=_("Shows the HomerView user guide"), category="HomerView")
+    @script(description=_("Open Documentation in the HomerView window. F1 is help everywhere, but plain F1 opens Edge's own help and stays Edge's, so the family here takes F1 with a modifier."), category="HomerView")
     def script_showHelp(self, gesture):
         self.runSafely("showHelp", lambda: homerCommands.showDocument("help"))
 
-    @script(description=_("Shows what HomerView is, and where it keeps its files"), category="HomerView")
+    @script(description=_("Display version and release date, and where HomerView keeps its files."), category="HomerView")
     def script_showAbout(self, gesture):
         self.runSafely("showAbout", lambda: homerCommands.showDocument("about"))
 
-    @script(description=_("Shows the history of changes to HomerView"), category="HomerView")
+    @script(description=_("Display list of fixes and improvements."), category="HomerView")
     def script_showHistory(self, gesture):
         self.runSafely("showHistory", lambda: homerCommands.showDocument("history"))
 
     @script(
-        description=_("Repeats the last search, whichever kind it was"),
+        description=_("Search forward for next match, of whichever kind of find was used last."),
         category="HomerView",
     )
     def script_findAgain(self, gesture):
         self.runSafely("findAgain", lambda: self._repeatFind(False))
 
     @script(
-        description=_("Repeats the last search in the opposite direction"),
+        description=_("Search backward for previous match."),
         category="HomerView",
     )
     def script_findAgainBackwards(self, gesture):
@@ -1043,15 +1005,15 @@ class HomerViewBuffer:
     def script_listAnyElements(self, gesture):
         self.runSafely("listAnyElements", lambda: homerCommands.chooseElementList(self))
 
-    @script(description=_("Lists the headings on the page, like the JAWS heading list"), category="HomerView")
+    @script(description=_("List the headings on the page, on the key JAWS uses for its heading list."), category="HomerView")
     def script_listHeadings(self, gesture):
         self.runSafely("listHeadings", lambda: homerCommands.listElements(self, "heading", _("Headings")))
 
-    @script(description=_("Lists the links on the page, like the JAWS link list"), category="HomerView")
+    @script(description=_("List the links on the page, beside the key JAWS uses for its link list."), category="HomerView")
     def script_listLinks(self, gesture):
         self.runSafely("listLinks", lambda: homerCommands.listElements(self, "link", _("Links")))
 
-    @script(description=_("Lists the form fields on the page, like the JAWS form field list"), category="HomerView")
+    @script(description=_("List the form fields on the page, on the key JAWS uses for its form field list."), category="HomerView")
     def script_listFormFields(self, gesture):
         self.runSafely("listFormFields", lambda: homerCommands.listElements(self, "formField", _("Form fields")))
 
@@ -1121,7 +1083,6 @@ class HomerViewBuffer:
             self._homer("sayPosition", _("Say the line, column and percentage position of the cursor")),
             self._homer("saySelected", _("Say the selected text")),
             self._homer("sayChunk", _("Say the run of non-blank characters at the cursor")),
-            self._homer("sayRest", _("Read the rest of the page from the cursor")),
             self._homer("selectChunk", _("Select the run of non-blank characters at the cursor")),
             self._homer("startSelection", _("Mark where a selection should begin")),
             self._homer("completeSelection", _("Select from the marked start to the cursor")),
@@ -1130,7 +1091,6 @@ class HomerViewBuffer:
             self._homer("describeLinkTarget",
                         _("Ask what is at the link under the cursor, without going there")),
             self._homer("pageUrls", _("Copy every link address on the page to the clipboard")),
-            self._homer("pageName", _("Say the name of the page")),
             self._homer("sayTime", _("Say the time, and the date when pressed twice")),
             self._homer("goToPercent", _("Move to a percentage point through the page")),
             self._homer("goToPercentAgain", _("Move to the percentage point used last time")),

@@ -426,8 +426,8 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             logError("The gesture map could not be recorded")
 
     @script(
-        # Translators: Input help mode message for the launch command.
-        description=_("Launch or reconnect the HomerView instance of Microsoft Edge"),
+        # Translators: Input help mode message for Launch HomerView.
+        description=_("Launches or reconnects the HomerView copy of Microsoft Edge. H for HomerView, and it works anywhere because nothing is running yet."),
         category="HomerView",
         gesture="kb:NVDA+alt+h",
     )
@@ -443,8 +443,8 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         )
 
     @script(
-        # Translators: Input help mode message for the connection status command.
-        description=_("Report whether HomerView is connected to Microsoft Edge"),
+        # Translators: Input help mode message for Report Connection.
+        description=_("Says whether HomerView is connected to the browser, and how."),
         category="HomerView",
     )
     def script_reportConnection(self, gesture):
@@ -462,8 +462,8 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             ui.message(_("HomerView is not connected"))
 
     @script(
-        # Translators: Input help mode message for the dismiss dialog command.
-        description=_("Close a Microsoft Edge dialog that is blocking the HomerView window"),
+        # Translators: Input help mode message for Dismiss Dialog.
+        description=_("Closes a browser dialog that is blocking the window. D for Dismiss, and it works anywhere because a dialog is what has the focus."),
         category="HomerView",
         gesture="kb:NVDA+alt+d",
     )
@@ -476,13 +476,9 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         service.submit("closeDialogs", service.taskCloseDialogs, self._reportDialogsClosed, self._reportError)
 
     @script(
-        # Translators: Input help mode message for the accessibility report command.
-        description=_(
-            "Tests the current HomerView page for accessibility problems, finds how to "
-            "report them to the publisher, and opens the report in a new tab"
-        ),
+        # Translators: Input help mode message for Report Accessibility.
+        description=_("Tests the page and writes a report addressed to whoever publishes the site. Reached by Check Accessibility once an engine is chosen."),
         category="HomerView",
-        gesture="kb:NVDA+alt+a",
     )
     def script_accessibilityReport(self, gesture):
         homerLog.info("Command: accessibility report")
@@ -500,8 +496,8 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         )
 
     @script(
-        # Translators: Input help mode message for the quick axe command.
-        description=_("Tests the current HomerView page with axe-core and reports the counts only"),
+        # Translators: Input help mode message for Check with Axe.
+        description=_("Tests the page with Deque's axe-core engine. Offered by Check Accessibility."),
         category="HomerView",
     )
     def script_runAxe(self, gesture):
@@ -515,13 +511,9 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         service.submit("runAxe", service.taskRunAxe, self._reportAxeResults, self._reportError)
 
     @script(
-        # Translators: Input help mode message for the page explorer command.
-        description=_(
-            "Summarises the structure of the current HomerView page, the visual aspects a "
-            "reading order hides, and how best to move around it"
-        ),
+        # Translators: Input help mode message for Explore Page.
+        description=_("Describes how the page is laid out, including what a sighted person can see that your reading order never mentions. E for Explore; Y is a second key because NVDA leaves it free."),
         category="HomerView",
-        gesture="kb:NVDA+alt+e",
         speakOnDemand=True,
     )
     def script_explorePage(self, gesture):
@@ -537,13 +529,10 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         )
 
     @script(
-        # Translators: Input help mode message for the main content command.
-        description=_(
-            "Extracts the readable part of the current HomerView page and opens it "
-            "as a plain document in a new tab"
-        ),
+        # Translators: Input help mode message for Extract Main Content.
+        description=_("Extracts the readable part of the page into a page of its own that you can search, save or send. F9 is Edge's own reading view, and Shift+F9 is HomerView's, which works on pages Edge will not."),
         category="HomerView",
-        gesture="kb:NVDA+alt+x",
+        gesture="kb:shift+f9",
     )
     def script_extractMainContent(self, gesture):
         homerLog.info("Command: extract the main content")
@@ -561,13 +550,10 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         )
 
     @script(
-        # Translators: Input help mode message for the download command.
-        description=_(
-            "Lists the file types linked from the current HomerView page, then downloads "
-            "the ones you choose"
-        ),
+        # Translators: Input help mode message for Web Download.
+        description=_("Pick files to download from a web page, on the key EdSharp uses for it."),
         category="HomerView",
-        gesture="kb:NVDA+alt+w",
+        gesture="kb:alt+shift+w",
     )
     def script_downloadFiles(self, gesture):
         homerLog.info("Command: download files")
@@ -585,8 +571,8 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         )
 
     @script(
-        # Translators: Input help mode message for the alternate menu command.
-        description=_("Lists every HomerView command in one alphabetical list"),
+        # Translators: Input help mode message for Alternate Menu.
+        description=_("Present all commands in a single, alphabetized list. F10 opens a menu bar in Windows, and this is the menu HomerView has instead."),
         category="HomerView",
         gesture="kb:NVDA+alt+f10",
     )
@@ -640,16 +626,9 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         alternateMenu.showAlternateMenu(lEntries)
 
     @script(
-        # Translators: Input help mode message for the open other format command.
-        description=_(
-            "Opens a document of any popular format, converting it to a web page first "
-            "so that every HomerView command works on it"
-        ),
+        # Translators: Input help mode message for Open Document.
+        description=_("Opens a Word file, spreadsheet, slide deck, PDF or ebook, converting it to a page so every command here works on it. Control+O opens in every program; this one opens more."),
         category="HomerView",
-        # Control+F10 was the original suggestion and was later superseded by
-        # Control+O, which is Edge's own key for this and a strict superset of
-        # what Edge does with it. One key for one command is clearer.
-        gesture="kb:control+o",
     )
     def script_openOtherFormat(self, gesture):
         # Deferred like every other dialog, so NVDA has finished the script
@@ -682,10 +661,10 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         )
 
     @script(
-        # Translators: Input help mode message for the save as command.
-        description=_("Saves the current HomerView page as a web page, Markdown, or plain text"),
+        # Translators: Input help mode message for Save Page.
+        description=_("Saves the page in any of nine formats. Control+S saves in every program; this one saves more ways."),
         category="HomerView",
-        gestures=["kb:control+s", "kb:control+alt+s"],
+        gestures=['kb:control+s', 'kb:control+alt+s'],
     )
     def script_saveAs(self, gesture):
         homerLog.info("Command: save as")
@@ -737,12 +716,10 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         )
 
     @script(
-        # Translators: Input help mode message for the recent pages command.
-        description=_(
-            "Recently opened: lists the pages and documents you have opened in "
-            "HomerView, with when each was opened, so you can find something again"
-        ),
+        # Translators: Input help mode message for Recent Pages.
+        description=_("Open a page from the list of those recently used, on the key EdSharp uses for its recent files."),
         category="HomerView",
+        gesture="kb:alt+r",
     )
     def script_recentPages(self, gesture):
         homerLog.info("Command: recent pages")
@@ -780,11 +757,9 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         output.show("\n".join(lParts), sTitle)
 
     @script(
-        # Translators: Input help mode message for the report address command.
-        description=_("Reports the web address of the HomerView page, from anywhere in the window"),
+        # Translators: Input help mode message for Say Address Anywhere.
+        description=_("Says the web address from anywhere in the window, including the address bar."),
         category="HomerView",
-        # Not NVDA+A: that is Say All on NVDA's laptop layout, and a HomerView
-        # command must never shadow an NVDA default on either layout.
         gesture="kb:NVDA+alt+u",
         speakOnDemand=True,
     )
@@ -815,8 +790,8 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         )
 
     @script(
-        # Translators: Input help mode message for the submit form command.
-        description=_("Submits the form you are filling in, from any field"),
+        # Translators: Input help mode message for Submit Form.
+        description=_("Submits the form you are filling in, from any field in it, so you need not find the button."),
         category="HomerView",
         gesture="kb:control+enter",
     )
@@ -824,14 +799,10 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         homerCommandsModule.submitForm()
 
     @script(
-        # Translators: Input help mode message for the Copilot command.
-        description=_(
-            "Ask Copilot about this page: copies the page text to the clipboard and "
-            "opens Microsoft Edge's Copilot sidebar, ready for you to paste with "
-            "Control+V and ask a question"
-        ),
+        # Translators: Input help mode message for Consult Copilot.
+        description=_("Copies the page text and opens Edge's Copilot sidebar, ready for a question. C for Copilot."),
         category="HomerView",
-        gesture="kb:NVDA+alt+p",
+        gesture="kb:NVDA+alt+c",
     )
     def script_openCopilot(self, gesture):
         homerLog.info("Command: open Copilot")
@@ -857,58 +828,60 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         )
 
     @script(
-        # Translators: Input help mode message for the quick start command.
-        description=_("Opens the HomerView quick start in the HomerView window"),
+        # Translators: Input help mode message for Quick Start.
+        description=_("Open the first ten minutes of HomerView, for somebody new to it."),
         category="HomerView",
+        gesture="kb:alt+shift+f1",
     )
     def script_openQuickStart(self, gesture):
         documents.openDocument("readMe")
 
     @script(
-        # Translators: Input help mode message for the user guide command.
-        description=_("Opens the HomerView user guide in the HomerView window"),
+        # Translators: Input help mode message for Open User Guide.
+        description=_("Opens the user guide in the HomerView window rather than as a message."),
         category="HomerView",
     )
     def script_openUserGuide(self, gesture):
         documents.openDocument("guide")
 
     @script(
-        # Translators: Input help mode message for the history command.
-        description=_("Opens the HomerView history of changes in the HomerView window"),
+        # Translators: Input help mode message for Open History.
+        description=_("Opens the history of changes in the HomerView window."),
         category="HomerView",
     )
     def script_openHistory(self, gesture):
         documents.openDocument("history")
 
     @script(
-        # Translators: Input help mode message for the developer notes command.
-        description=_("Opens the HomerView developer notes in the HomerView window"),
+        # Translators: Input help mode message for Developer Notes.
+        description=_("Open the notes on how HomerView is built and why."),
         category="HomerView",
+        gesture="kb:control+shift+f1",
     )
     def script_openDeveloperNotes(self, gesture):
         documents.openDocument("developer")
 
     @script(
-        # Translators: Input help mode message for the elevate version command.
-        description=_("Checks for a newer HomerView and installs it"),
+        # Translators: Input help mode message for Elevate Version.
+        description=_("Checks whether a newer HomerView exists and installs it."),
         category="HomerView",
-        gesture="kb:NVDA+alt+f11",
+        gestures=['kb:control+f11', 'kb:NVDA+alt+f11'],
     )
     def script_elevateVersion(self, gesture):
         homerCommandsModule.elevateVersion()
 
     @script(
-        # Translators: Input help mode message for the web utilities command.
-        description=_("Looks something up using free web services that need no account"),
+        # Translators: Input help mode message for Query Web.
+        description=_("Looks something up using free services that need no account: a definition, a place, the weather, a book. Q for Query."),
         category="HomerView",
-        gesture="kb:NVDA+alt+q",
+        gestures=['kb:alt+q', 'kb:NVDA+alt+q'],
     )
     def script_webUtilities(self, gesture):
         homerCommandsModule.webUtilities()
 
     @script(
-        # Translators: Input help mode message for the self test command.
-        description=_("Check that all three ways of reaching the browser are working"),
+        # Translators: Input help mode message for Self Test.
+        description=_("Checks that all three ways of reaching the browser are working."),
         category="HomerView",
     )
     def script_selfTest(self, gesture):
@@ -944,9 +917,10 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         output.show(sHtml, sTitle)
 
     @script(
-        # Translators: Input help mode message for the open log command.
-        description=_("Open the HomerView log file for this session"),
+        # Translators: Input help mode message for Session Log.
+        description=_("Open a copy of this session's log, for working out what went wrong."),
         category="HomerView",
+        gesture="kb:alt+control+f1",
     )
     def script_openLog(self, gesture):
         homerLog.info("Command: open the log file")

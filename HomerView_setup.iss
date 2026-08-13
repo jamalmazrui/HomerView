@@ -3,7 +3,7 @@
 ; Source root and installation destination: C:\HomerView
 
 #define AppName "HomerView"
-#define AppVersion "1.39.2"
+#define AppVersion "1.41.0"
 #define AppPublisher "Jamal Mazrui"
 ; A stable name on purpose. The version lives in the add-on's manifest, which is
 ; what NVDA reads, and in AppVersion above. Putting it in the file name as well
@@ -91,6 +91,7 @@ Source: "C:\HomerView\History.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\HomerView\History.htm"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\HomerView\Developer.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\HomerView\Developer.htm"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\HomerView\Hotkeys.inix"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\HomerView\LICENSE.md"; DestDir: "{app}"; DestName: "License.txt"; Flags: ignoreversion
 
 ; Source, so the installed copy can be read and rebuilt.

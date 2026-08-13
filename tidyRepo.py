@@ -593,10 +593,48 @@ def main():
                 return 1
         say("")
         say("Reclaiming the space.")
-        run(["git", "for-each-ref", "--format=%(refname)", "refs/original"])
-        run(["git", "update-ref", "-d", "refs/original/refs/heads/" + dState["branch"]])
+        say("  Nothing may still point at the old commits, or git keeps every")
+        say("  object they reach and the rewrite frees nothing. An earlier")
+        say("  version deleted one backup ref and left the rest, so the history")
+        say("  was rewritten and the repository stayed the same size.")
+
+        # Every backup ref filter-branch made, not just the branch's. It makes
+        # one per ref it rewrote, so a repository with a remote has at least
+        # two, and the one for the remote-tracking ref was what kept 390 MB of
+        # installers alive through a full gc.
+        result = run(["git", "for-each-ref", "--format=%(refname)", "refs/original"])
+        lOriginal = [s.strip() for s in (result.stdout or "").splitlines() if s.strip()]
+        for sRef in lOriginal:
+            run(["git", "update-ref", "-d", sRef])
+        say(f"  removed {len(lOriginal)} backup refs left by the rewrite")
+
+        # The remote-tracking refs as well. They still name the old commits
+        # until the next fetch, and they are rebuilt by the push below.
+        result = run(["git", "for-each-ref", "--format=%(refname)", "refs/remotes"])
+        lRemote = [s.strip() for s in (result.stdout or "").splitlines() if s.strip()]
+        for sRef in lRemote:
+            run(["git", "update-ref", "-d", sRef])
+        if lRemote:
+            say(f"  removed {len(lRemote)} remote-tracking refs; the push restores them")
+
         run(["git", "reflog", "expire", "--expire=now", "--all"])
         run(["git", "gc", "--prune=now", "--aggressive"])
+
+        # Checked here rather than only at the end, because if this did not
+        # work there is no point pushing.
+        result = run(["git", "rev-list", "--objects", "--all"])
+        iLeft = sum(1 for sLine in (result.stdout or "").splitlines()
+                    if any(sName in sLine for sName in lNames))
+        if iLeft:
+            say("")
+            say(f"  {iLeft} of the old objects are STILL reachable, so the space")
+            say("  was not reclaimed. These refs still exist:")
+            result = run(["git", "for-each-ref", "--format=%(refname)"])
+            for sLine in (result.stdout or "").splitlines()[:12]:
+                say(f"    {sLine.strip()}")
+            say("  Nothing has been pushed. The backup folder is your way back.")
+            return 1
+        say("  the old objects are gone")
         say("")
 
     # Anything still outstanding. Usually nothing, because the untracking was

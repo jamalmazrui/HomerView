@@ -8,6 +8,14 @@
 <body>
 <main>
 <h1>History of Changes</h1>
+<h2>1.39.2</h2>
+<ul>
+<li>The first real run of tidyRepo.py did most of what was wanted and left two things wrong, both of them faults in the script rather than in the repository.</li>
+<li>It reported that nothing oversized remained in the history when fifteen copies of the installer, twenty six megabytes each, were still there. Nothing was wrong with the check except the question it asked: it looked for a single file over GitHub&#x27;s hundred megabyte limit, and no single copy came close. What matters is what a name costs in total, since a build output committed on every release accumulates. Counted that way the installer accounted for about three hundred and ninety megabytes, which is most of what a clone had to download. It is now counted by name across copies, and the closing line says what was actually checked rather than offering a bare reassurance.</li>
+<li>It also left three source modules out of the repository. The commit step used git add with the tracked-only switch, which was the fix for an earlier fault where the script committed its own log, and it went too far: a file git has never seen is not a tracked change, so linkTarget.py, mainContentFinder.py and homer/util.py were never added. Anyone cloning would have got an add-on that could not import three of its own modules. Untracked files are now sorted into those that belong, which are added, and those that do not, which are left alone.</li>
+<li>Adding files stages them, and the history rewrite refuses to run with anything staged, which is the same fault that appeared when untracking staged them. There is now one commit point covering both, so a third variant of it cannot appear.</li>
+<li>Tested against a repository built with fifteen distinct copies of a twenty six megabyte installer and three untracked source files: three hundred and ninety megabytes of history reduced to twenty kilobytes, the missing source added, and the development files untracked but still on disk.</li>
+</ul>
 <h2>1.39.1</h2>
 <ul>
 <li>tidyRepo.py now commits outstanding work rather than refusing to run. The log of the first attempt showed it stopping on twenty two uncommitted changes and telling the user to commit them by hand, which was half right: the tree must be clean before a history rewrite, because rewriting under a dirty one loses work. But sending someone away to do that themselves is another round, and avoiding rounds is the entire reason this is one script. Committing preserves the work just as well.</li>

@@ -31,6 +31,19 @@ Alt+NVDA+H, never NVDA+Alt+H. Key names are the ones JAWS uses, because most
 blind Windows users have read those for years, so Accent rather than Grave and
 SemiColon rather than semicolon.
 
+**Where each command works.** Most act at the reading cursor — Start and
+Complete Selection, Copy Line, Link Target, Jump to Probable Main, and the find
+family — and they need the reading cursor to be active, because outside it there
+is no cursor for them to act at. Control+C especially must go on meaning copy in
+a form field.
+
+A few act on the page, the window or the program instead: Copy All, Say
+Metadata, Page Links and Tab Names. **On NVDA these also work outside browse
+mode**, so they answer in the address bar and in form fields, and only inside
+HomerView's own browser. On JAWS they are still scoped to the virtual cursor;
+the mechanism that would extend them needs HomerView's scripts chained into
+Edge's own script set, which is not done yet.
+
 **JAWSKey** is Insert, or Caps Lock if you have set JAWS that way. **NVDA** is
 whichever key you have set as the NVDA modifier. The two play the same part, so
 a command on Alt+NVDA+H is on Alt+JAWSKey+H, and this document writes each in

@@ -94,7 +94,12 @@ for ($i = 0; $i -lt $lSourceLines.Count; $i++) {
     $sLine = $lSourceLines[$i]
     if ($sLine.TrimStart().StartsWith(";")) { continue }
     if ($sLine -match '^(?:string |int |)(?:Function|Script)\s+\w') { continue }
-    foreach ($match in ([regex]::Matches($sLine, '\b(\w+)\s*\('))) {
+    # A METHOD CALL IS NOT A SCRIPT CALL. "oFile.ReadAll ()" is a method on a
+    # COM object and has nothing to do with the readAll Script, but \b matches
+    # after the dot, so every run warned that line 339 called ReadAll before it
+    # was defined. A warning that is always wrong teaches the reader to skip
+    # warnings, which is how a real one gets missed.
+    foreach ($match in ([regex]::Matches($sLine, '(?<![.\w])(\w+)\s*\('))) {
         $sName = $match.Groups[1].Value
         if ($lDefined.ContainsKey($sName) -and $lDefined[$sName] -gt ($i + 1)) {
             writeLog "WARNING: line $($i + 1) calls $sName, which is not defined until line $($lDefined[$sName])."

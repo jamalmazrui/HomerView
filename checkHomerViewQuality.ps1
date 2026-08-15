@@ -266,10 +266,24 @@ function checkThree {
 }
 
 function checkFour {
-    param ($oMenu, $lKeys)
+    param ($oMenu, $lKeys, [string] $sChain)
     writeLog "CHECK 4  every keyed command is on the menu, and the menu key matches the .jkm"
     $dKeyOf = @{}
     foreach ($oEntry in $lKeys) { $dKeyOf[$oEntry.Script] = $oEntry.Key }
+    # Keys bound in the BROWSER'S OWN map are not in the .jkm, which records
+    # them only as comments, so the binder is read for those. Without this the
+    # menu was compared against an empty entry and every page-level command was
+    # reported as showing a key the .jkm did not have -- correctly, for a rule
+    # that had not caught up with a third place a key can live.
+    if ($sChain) {
+        foreach ($sLine in (textLines $sChain)) {
+            foreach ($oMatch in ([regex]'"([^"=]+)=(\w+)"').Matches($sLine)) {
+                if (-not $dKeyOf.ContainsKey($oMatch.Groups[2].Value)) {
+                    $dKeyOf[$oMatch.Groups[2].Value] = $oMatch.Groups[1].Value
+                }
+            }
+        }
+    }
     foreach ($oPair in $oMenu.Pairs) {
         $sShown = ""
         # The row IS the pairing now, so there is no item to go looking for:
@@ -604,6 +618,12 @@ function checkFourteen {
     foreach ($sLine in (textLines $sChain)) {
         if ($sLine -match '\$lCommonKeys\s*=') { $sSection = "Common Keys" }
         if ($sLine -match '\$lVirtualKeys\s*=') { $sSection = "Virtual Keys" }
+        # A THIRD HOME FOR A KEY: the browser's own map, msedge.jkm, which
+        # chainJawsScripts writes so that a page-level command works in any
+        # cursor mode while Edge is in front, and in no other program. The
+        # project .jkm records those as comments, so the binder is the
+        # authority for them and the .jkm cannot be asked about them.
+        if ($sLine -match '\$lBrowserKeys\s*=') { $sSection = "Browser Keys" }
         foreach ($oMatch in ([regex]'"([^"=]+)=(\w+)"').Matches($sLine)) {
             $dChain[$oMatch.Groups[2].Value] = $oMatch.Groups[1].Value
             $dChainSection[$oMatch.Groups[2].Value] = $sSection
@@ -619,16 +639,26 @@ function checkFourteen {
     foreach ($sScript in $dMap.Keys) {
         if (-not $dChain.ContainsKey($sScript)) {
             reportFail ($sScript + " is in the .jkm on " + $dMap[$sScript] + " but chainJawsScripts binds nothing for it")
-        } elseif ((normalKey $dChain[$sScript]) -ne (normalKey $dMap[$sScript])) {
+        } elseif ((normalKey $dChain[$sScript]) -ne (normalKey $dMap[$sScript]) -and
+                  $dChainSection[$sScript] -ne "Browser Keys") {
+            # A BROWSER KEY MAY ALSO BE A VIRTUAL KEY, on purpose: while the
+            # application key map is unproven the same key stays in
+            # [Virtual Keys] as a fallback, so a wrongly-named browser map
+            # costs nothing.
             reportFail ($sScript + ": the .jkm says " + $dMap[$sScript] + " but chainJawsScripts binds " + $dChain[$sScript])
         } elseif ($dChainSection[$sScript] -ne $dMapSection[$sScript]) {
             reportFail ($sScript + " is in [" + $dMapSection[$sScript] + "] in the .jkm but chainJawsScripts binds it in [" + $dChainSection[$sScript] + "]")
         }
     }
+    $iBrowser = 0
     foreach ($sScript in $dChain.Keys) {
+        if ($dChainSection[$sScript] -eq "Browser Keys") { $iBrowser += 1; continue }
         if (-not $dMap.ContainsKey($sScript)) {
             reportFail ("chainJawsScripts binds " + $dChain[$sScript] + " to " + $sScript + ", which is not in the .jkm")
         }
+    }
+    if ($iBrowser -gt 0) {
+        reportNote ($iBrowser.ToString() + " command(s) are bound in the browser's own key map")
     }
     # And the summary the user reads, which is a third copy of the same list.
     $aSummary = scriptBlock $aLines "showHotkeySummary"
@@ -798,7 +828,7 @@ $lChecks = @(
     { checkOne    $lScripts $lKeys },
     { checkTwo    $oMenu $lScripts },
     { checkThree  $oMenu },
-    { checkFour   $oMenu $lKeys },
+    { checkFour   $oMenu $lKeys $sChain },
     { checkFive   $sJsd $lScripts },
     { checkSix    $aJss },
     { checkSeven  $aJss },

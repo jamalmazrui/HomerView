@@ -258,12 +258,43 @@ class EdgeManager:
         return lHandles
 
     def activateHandle(self, iHandle):
-        """Bring one window to the front and say whether Windows allowed it."""
+        """Bring one window to the front and say whether Windows allowed it.
+
+        WINDOWS DOES NOT SIMPLY LET A PROGRAM TAKE THE FOREGROUND. A bare
+        SetForegroundWindow succeeds only when the caller already owns the
+        foreground window; otherwise it flashes the taskbar button and returns
+        false, which is why this used to report "Windows would not bring its
+        window forward. Try Alt+Tab."
+
+        The way through is to ATTACH OUR INPUT QUEUE TO THE FOREGROUND WINDOW'S
+        THREAD, so the two share a notion of who is in front, raise the window
+        while attached, and detach again. Restoring first matters too: a
+        minimised window cannot be brought forward at all.
+        """
         try:
-            ctypes.windll.user32.ShowWindow(iHandle, 9)  # SW_RESTORE
-            bResult = bool(ctypes.windll.user32.SetForegroundWindow(iHandle))
-            iForeground = ctypes.windll.user32.GetForegroundWindow()
+            oUser = ctypes.windll.user32
+            oUser.ShowWindow(iHandle, 9)  # SW_RESTORE
+            iFront = oUser.GetForegroundWindow()
+            iOurs = ctypes.windll.kernel32.GetCurrentThreadId()
+            iTheirs = oUser.GetWindowThreadProcessId(iFront, None) if iFront else 0
+            bAttached = False
+            if iTheirs and iTheirs != iOurs:
+                bAttached = bool(oUser.AttachThreadInput(iOurs, iTheirs, True))
+            oUser.BringWindowToTop(iHandle)
+            bResult = bool(oUser.SetForegroundWindow(iHandle))
+            if bAttached:
+                oUser.AttachThreadInput(iOurs, iTheirs, False)
+            iForeground = oUser.GetForegroundWindow()
             bReally = int(iForeground) == int(iHandle)
+            if not bReally:
+                # Edge sometimes creates the window a moment before it will
+                # take the foreground. A second attempt costs a tenth of a
+                # second and often succeeds.
+                time.sleep(0.12)
+                oUser.BringWindowToTop(iHandle)
+                bResult = bool(oUser.SetForegroundWindow(iHandle))
+                iForeground = oUser.GetForegroundWindow()
+                bReally = int(iForeground) == int(iHandle)
             homerLog.info(
                 f"Activated window {iHandle}: call returned {bResult}, "
                 f"foreground is now {iForeground}, actually in front: {bReally}"

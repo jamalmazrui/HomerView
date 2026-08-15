@@ -2130,6 +2130,36 @@ namespace Homer
                     oDialog.Title = sTitle;
                     oDialog.Filter = sFilter;
                     oDialog.RestoreDirectory = true;
+
+                    // THE NAME COMES FROM THE PAGE, AND THE EXTENSION FROM THE
+                    // TYPE HE PICKS.
+                    //
+                    // Save Page offered an EMPTY name box: the script sent a
+                    // title and a filter and nothing else, so there was nothing
+                    // to disappear -- it was never filled in. Choosing Markdown
+                    // then left him typing a whole path by hand.
+                    //
+                    // A name with NO EXTENSION plus AddExtension is what makes
+                    // the file type do the work: Windows appends the extension
+                    // of the SELECTED filter when the typed name has none. Pick
+                    // Markdown and the page's own title comes back as .md.
+                    if (bSave)
+                    {
+                        oDialog.AddExtension = true;
+                        Match matchFirst = Regex.Match(sFilter, "\\*\\.(\\w+)");
+                        if (matchFirst.Success)
+                            ((System.Windows.Forms.SaveFileDialog) oDialog).DefaultExt =
+                                matchFirst.Groups[1].Value;
+                        if (sStart == "")
+                        {
+                            string sTitleNow = Tidy(EvaluateText("(() => document.title)()"));
+                            if (sTitleNow != "" && !sTitleNow.StartsWith("ERROR:"))
+                            {
+                                sStart = Path.Combine(DownloadsFolder(), SafeStem(sTitleNow));
+                                Log("  the name box starts as " + Path.GetFileName(sStart));
+                            }
+                        }
+                    }
                     if (sStart != "")
                     {
                         try
@@ -2137,7 +2167,12 @@ namespace Homer
                             string sFolder = Path.GetDirectoryName(sStart);
                             if (!string.IsNullOrEmpty(sFolder) && Directory.Exists(sFolder))
                                 oDialog.InitialDirectory = sFolder;
-                            oDialog.FileName = Path.GetFileName(sStart);
+                            // WITHOUT the extension for a save, so the chosen
+                            // file type supplies it. With it for an open, where
+                            // the name is a real file.
+                            oDialog.FileName = bSave
+                                ? Path.GetFileNameWithoutExtension(sStart)
+                                : Path.GetFileName(sStart);
                         }
                         catch (Exception) { }
                     }
@@ -2260,6 +2295,9 @@ namespace Homer
                 }
                 if (oOut.Length > 0) Log("    " + Abbreviate(oOut.ToString().Trim(), 300));
                 if (oErr.Length > 0) Log("    " + Abbreviate(oErr.ToString().Trim(), 300));
+                if (oOut.Length == 0 && oErr.Length == 0)
+                    Log("    it printed nothing on either stream");
+                Log("    exit code " + oProcess.ExitCode.ToString());
                 return oProcess.ExitCode;
             }
         }
@@ -2340,9 +2378,29 @@ namespace Homer
                     // place, which looks like success and is not.
                     string sArguments = sConverter == "pandoc.exe"
                         ? "\"" + sPath + "\" -s -o \"" + sTarget + "\""
-                        : "\"" + sPath + "\" -o \"" + sFolder + "\" -f";
-                    Log("  converting with " + sProgram);
+                        : "\"" + sPath + "\" -o \"" + sFolder + "\" -f -l";
+                    Log("  converting with " + sProgram + " " + sArguments);
                     int iExit = RunAndWait(sProgram, sArguments, ConvertBudget(sPath));
+                    // ITS OWN LOG, FOLDED INTO OURS.
+                    //
+                    // Twice now a conversion has failed with an exit code and
+                    // NOTHING ELSE: 2htm printed nothing on either stream, so
+                    // the log said only that it had failed. -l makes it write
+                    // 2htm.log beside the output, and reading that in is the
+                    // difference between "it failed" and knowing why.
+                    string sTheirLog = Path.Combine(sFolder, "2htm.log");
+                    if (sConverter == "2htm.exe" && File.Exists(sTheirLog))
+                    {
+                        try
+                        {
+                            string sTheirs = File.ReadAllText(sTheirLog);
+                            Log("  2htm's own log, " + sTheirs.Length.ToString() + " characters:");
+                            foreach (string sLine in sTheirs.Split('\n'))
+                                if (sLine.Trim() != "") Log("    | " + sLine.TrimEnd());
+                        }
+                        catch (Exception oError)
+                        { Log("  its log could not be read: " + oError.Message); }
+                    }
                     if (File.Exists(sTarget) && new FileInfo(sTarget).Length > 0)
                     {
                         Log("  wrote " + sTarget + ", "
@@ -2406,8 +2464,7 @@ namespace Homer
                 if (sExtension == ".htm" || sExtension == ".html")
                 {
                     File.WriteAllText(sPath, sHtml, new UTF8Encoding(true));
-                    return "{\"value\":" + Quote("Saved " + sPath + ", "
-                        + new FileInfo(sPath).Length.ToString() + " bytes.") + "}";
+                    return "{\"value\":" + Quote("Saved " + Path.GetFileName(sPath)) + "}";
                 }
                 // Anything else goes through pandoc, from a temporary copy of
                 // the page rather than from the address, so what is saved is
@@ -2424,8 +2481,7 @@ namespace Homer
                     "\"" + sTemp + "\" -s -o \"" + sPath + "\"",
                     ConvertBudget(sTemp));
                 if (File.Exists(sPath) && new FileInfo(sPath).Length > 0)
-                    return "{\"value\":" + Quote("Saved " + sPath + ", "
-                        + new FileInfo(sPath).Length.ToString() + " bytes.") + "}";
+                    return "{\"value\":" + Quote("Saved " + Path.GetFileName(sPath)) + "}";
                 return "{\"error\":" + Quote("pandoc ended with code "
                     + iExit.ToString() + " and wrote nothing.") + "}";
             }
@@ -3479,6 +3535,313 @@ namespace Homer
             }
         }
 
+        // --- Bringing the window to the front --------------------------------
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern bool SetForegroundWindow(IntPtr hWindow);
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern bool ShowWindow(IntPtr hWindow, int iCommand);
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern bool IsIconic(IntPtr hWindow);
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern bool IsWindowVisible(IntPtr hWindow);
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern IntPtr GetForegroundWindow();
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern bool BringWindowToTop(IntPtr hWindow);
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern bool AttachThreadInput(uint iAttach, uint iAttachTo, bool bAttach);
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern uint GetWindowThreadProcessId(IntPtr hWindow, out uint iProcess);
+        [System.Runtime.InteropServices.DllImport("kernel32.dll")]
+        private static extern uint GetCurrentThreadId();
+
+        private const int iSwRestore = 9;
+        private const int iSwShow = 5;
+
+        /// <summary>
+        /// Puts the HomerView browser window in front, and means it.
+        ///
+        /// NOTHING DID THIS BEFORE. Launch reported "connected" and Open
+        /// Document reported "opened", both truthfully, while the window stayed
+        /// wherever it was -- so a reader pressed the launch key, was told
+        /// nothing was wrong, and then had to hunt through Alt+Tab for the
+        /// window that had supposedly just been opened for them.
+        ///
+        /// WINDOWS DOES NOT SIMPLY LET A PROGRAM TAKE THE FOREGROUND. A process
+        /// may only do it when it already owns the foreground window, or when
+        /// the foreground process hands the right over. The way through is to
+        /// ATTACH OUR INPUT QUEUE TO THE FOREGROUND WINDOW'S THREAD, which makes
+        /// the two threads share a notion of who is in front, do the raising
+        /// while attached, and detach again. Restoring first matters too: a
+        /// minimised window cannot be brought forward, and Edge may well have
+        /// been minimised.
+        ///
+        /// The window is found by TITLE, from the page the debugger says is
+        /// active, because several Edge windows may be open and only one of
+        /// them is ours.
+        /// </summary>
+        private static bool ActivateWindow(IntPtr hWindow)
+        {
+            if (hWindow == IntPtr.Zero) return false;
+            try
+            {
+                if (IsIconic(hWindow)) ShowWindow(hWindow, iSwRestore);
+                else ShowWindow(hWindow, iSwShow);
+
+                IntPtr hFront = GetForegroundWindow();
+                uint iOurs = GetCurrentThreadId();
+                uint iTheirProcess;
+                uint iTheirs = hFront == IntPtr.Zero
+                    ? 0 : GetWindowThreadProcessId(hFront, out iTheirProcess);
+
+                bool bAttached = false;
+                if (iTheirs != 0 && iTheirs != iOurs)
+                    bAttached = AttachThreadInput(iOurs, iTheirs, true);
+                BringWindowToTop(hWindow);
+                bool bDone = SetForegroundWindow(hWindow);
+                if (bAttached) AttachThreadInput(iOurs, iTheirs, false);
+
+                // One more try after a breath. Edge sometimes creates the
+                // window a moment before it is ready to take the foreground,
+                // and the second attempt costs a tenth of a second.
+                if (!bDone || GetForegroundWindow() != hWindow)
+                {
+                    Thread.Sleep(120);
+                    BringWindowToTop(hWindow);
+                    bDone = SetForegroundWindow(hWindow);
+                }
+                Log("  activation " + (bDone ? "succeeded" : "was refused by Windows"));
+                return bDone;
+            }
+            catch (Exception oError)
+            {
+                Log("  the window could not be activated: " + oError.Message);
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Brings the HomerView window forward. THE PROTOCOL FIRST.
+        ///
+        /// I reached for the Windows API before checking what was already
+        /// here, and that was the wrong order twice over.
+        ///
+        /// THE NVDA SIDE ALREADY DOES THIS PROPERLY: Target.activateTarget,
+        /// then the window as a fallback. And the protocol is the better tool
+        /// for exactly the reasons he warned about. SetForegroundWindow is
+        /// governed by a permission rule -- a process may only take the
+        /// foreground when it already owns it -- and by timing, since a window
+        /// that has just been created will refuse for a moment. The protocol
+        /// has neither problem: the browser is being asked to raise its own
+        /// window, which it is always entitled to do, and it is asked over a
+        /// connection that already exists.
+        ///
+        /// /json/activate/&lt;id&gt; is documented as bringing a page into the
+        /// foreground and answering "Target activated". It is a plain HTTP
+        /// request on the debugging port, so it needs no socket and no wait.
+        ///
+        /// The Windows API stays as a LAST RESORT, for the case the protocol
+        /// cannot reach: a MINIMISED window, which Chromium will activate as a
+        /// tab without restoring, and a window buried behind another
+        /// application. It runs only when the browser is still not in front.
+        /// </summary>
+        private static bool ActivateBrowser()
+        {
+            bool bProtocol = false;
+            string sTargetId = ActivePageTargetId();
+            if (sTargetId != "")
+            {
+                try
+                {
+                    string sAnswer = HttpGet("/json/activate/" + sTargetId);
+                    bProtocol = sAnswer != null && sAnswer.IndexOf("activated",
+                        StringComparison.OrdinalIgnoreCase) >= 0;
+                    Log("  the protocol was asked to activate the tab: "
+                        + (sAnswer == null ? "no answer" : sAnswer.Trim()));
+                }
+                catch (Exception oError)
+                { Log("  the protocol could not activate the tab: " + oError.Message); }
+            }
+            else
+            {
+                Log("  no page target to activate");
+            }
+
+            // A MINIMISED WINDOW is the case the protocol leaves undone: the
+            // tab becomes the active one inside a window that is still not on
+            // screen. Asking for the window state is cheap and settles it.
+            try
+            {
+                string sSocket = FindActivePageSocket();
+                if (sSocket != null)
+                {
+                    string sWindow = SendAndWait(sSocket,
+                        "{\"id\":1,\"method\":\"Browser.getWindowForTarget\"}");
+                    Match matchId = Regex.Match(sWindow ?? "", "\"windowId\"\\s*:\\s*(\\d+)");
+                    bool bMinimised = (sWindow ?? "").Contains("\"minimized\"");
+                    if (matchId.Success && bMinimised)
+                    {
+                        SendAndWait(sSocket,
+                            "{\"id\":1,\"method\":\"Browser.setWindowBounds\",\"params\":{"
+                            + "\"windowId\":" + matchId.Groups[1].Value
+                            + ",\"bounds\":{\"windowState\":\"normal\"}}}");
+                        Log("  the window was minimised, so it was restored");
+                    }
+                }
+            }
+            catch (Exception oError)
+            { Log("  the window state could not be read: " + oError.Message); }
+
+            // Only now, and only if it is still not in front.
+            if (bProtocol && BrowserIsInFront()) 
+            {
+                Log("  the protocol was enough");
+                return true;
+            }
+            return ActivateByWindow();
+        }
+
+        /// <summary>
+        /// The target id of the page the reader is in, taken from the end of
+        /// its debugger socket address, which is where Chromium puts it.
+        /// </summary>
+        private static string ActivePageTargetId()
+        {
+            try
+            {
+                string sSocket = FindActivePageSocket();
+                if (sSocket == null) return "";
+                int iSlash = sSocket.LastIndexOf('/');
+                return iSlash < 0 ? "" : sSocket.Substring(iSlash + 1);
+            }
+            catch (Exception) { return ""; }
+        }
+
+        /// <summary>
+        /// Whether an Edge window is the foreground window.
+        /// </summary>
+        /// <summary>
+        /// Whether any Edge process has a window a person could actually see.
+        ///
+        /// A debugging port that answers is NOT the same as a usable browser:
+        /// Edge can go on running with every window closed, and a stale port
+        /// file makes that state look like a healthy connection.
+        /// </summary>
+        /// <summary>
+        /// Asks the browser we are already connected to for a new window.
+        ///
+        /// Target.createTarget takes a newWindow flag, so the window comes
+        /// from the running process rather than from a second one that would
+        /// only hand off to it and exit.
+        /// </summary>
+        private static bool OpenWindow(string sStartUrl)
+        {
+            try
+            {
+                string sVersion = HttpGet("/json/version");
+                Match match = Regex.Match(sVersion,
+                    "\"webSocketDebuggerUrl\"\\s*:\\s*\"([^\"]+)\"");
+                if (!match.Success) return false;
+                string sUrl = string.IsNullOrEmpty(sStartUrl) ? StartPageUrl() : sStartUrl;
+                SendAndWait(match.Groups[1].Value,
+                    "{\"id\":1,\"method\":\"Target.createTarget\",\"params\":{\"url\":"
+                    + Quote(sUrl) + ",\"newWindow\":true}}");
+                // Read the outcome rather than the action: a window either
+                // exists a moment later or it does not.
+                for (int iTry = 0; iTry < 20; iTry++)
+                {
+                    Thread.Sleep(100);
+                    if (BrowserHasWindow())
+                    {
+                        Log("  the running browser opened a window");
+                        return true;
+                    }
+                }
+                return false;
+            }
+            catch (Exception oError)
+            {
+                Log("  a window could not be asked for: " + oError.Message);
+                return false;
+            }
+        }
+
+        private static bool BrowserHasWindow()
+        {
+            try
+            {
+                foreach (Process oProcess in Process.GetProcessesByName("msedge"))
+                    if (oProcess.MainWindowHandle != IntPtr.Zero
+                        && IsWindowVisible(oProcess.MainWindowHandle))
+                        return true;
+            }
+            catch (Exception) { }
+            return false;
+        }
+
+        private static bool BrowserIsInFront()
+        {
+            try
+            {
+                IntPtr hFront = GetForegroundWindow();
+                if (hFront == IntPtr.Zero) return false;
+                uint iProcess;
+                GetWindowThreadProcessId(hFront, out iProcess);
+                foreach (Process oProcess in Process.GetProcessesByName("msedge"))
+                    if ((uint) oProcess.Id == iProcess) return true;
+            }
+            catch (Exception) { }
+            return false;
+        }
+
+        /// <summary>
+        /// The last resort: find our window by title and raise it ourselves.
+        /// Matched by title because several Edge windows may be open and only
+        /// one is ours; any OTHER belongs to the reader's own browsing.
+        /// </summary>
+        private static bool ActivateByWindow()
+        {
+            string sTitle = "";
+            try
+            {
+                string sTargets = HttpGet("/json/list");
+                foreach (Match match in Regex.Matches(sTargets ?? "",
+                    "\"title\"\\s*:\\s*\"((?:[^\"\\\\]|\\\\.)*)\""))
+                {
+                    string sOne = Unescape(match.Groups[1].Value).Trim();
+                    if (sOne != "" && sOne.Length > sTitle.Length) sTitle = sOne;
+                }
+            }
+            catch (Exception) { }
+
+            IntPtr hBest = IntPtr.Zero;
+            foreach (Process oProcess in Process.GetProcessesByName("msedge"))
+            {
+                try
+                {
+                    IntPtr hWindow = oProcess.MainWindowHandle;
+                    if (hWindow == IntPtr.Zero || !IsWindowVisible(hWindow)) continue;
+                    string sWindowTitle = oProcess.MainWindowTitle ?? "";
+                    if (sTitle != "" && sWindowTitle.StartsWith(sTitle,
+                        StringComparison.OrdinalIgnoreCase))
+                    {
+                        hBest = hWindow;
+                        Log("  window matched by title: " + Abbreviate(sWindowTitle, 80));
+                        break;
+                    }
+                    if (hBest == IntPtr.Zero) hBest = hWindow;
+                }
+                catch (Exception) { }
+            }
+            if (hBest == IntPtr.Zero)
+            {
+                Log("  no Edge window was found to raise");
+                return false;
+            }
+            return ActivateWindow(hBest);
+        }
+
         private static string ClipboardFile(string sPath)
         {
             if (string.IsNullOrEmpty(sPath))
@@ -3557,8 +3920,47 @@ namespace Homer
                 try
                 {
                     string sExisting = HttpGet("/json/version");
-                    if (sExisting.Contains("webSocketDebuggerUrl"))
+                    // BRACES, BECAUSE THERE ARE TWO STATEMENTS NOW.
+                    //
+                    // This was a brace-less if, and adding the activation call
+                    // under it left the RETURN unconditional: whatever the
+                    // browser answered, Launch reported "connected: true" and
+                    // never launched. That is why the launch key stopped
+                    // launching once the window had gone -- the port file was
+                    // still on disk, ReadPort succeeded, and the answer was a
+                    // confident lie.
+                    if (sExisting.Contains("webSocketDebuggerUrl") && BrowserHasWindow())
+                    {
+                        // RECONNECTING IS THE CASE THAT MATTERS MOST. The
+                        // window already exists, so nothing else will bring
+                        // it forward, and a reader who pressed the launch key
+                        // is expecting to be taken there.
+                        ActivateBrowser();
                         return "{\"launched\":false,\"connected\":true}";
+                    }
+                    // A DEBUGGER THAT ANSWERS IS NOT A WINDOW HE CAN SEE.
+                    // Edge can leave a process alive with no window at all.
+                    //
+                    // AND STARTING ANOTHER BROWSER IS THE ONE THING THAT
+                    // CANNOT WORK HERE, which I learned by doing it: a second
+                    // Edge launched on a profile another process still owns
+                    // HANDS OFF TO THAT PROCESS AND EXITS. No new window, no
+                    // new debugging port, and after ten seconds of waiting the
+                    // answer was "the browser started but never answered" --
+                    // after which nothing worked at all, because the port file
+                    // no longer matched anything.
+                    //
+                    // THE BROWSER IS ALIVE AND REACHABLE. It does not need
+                    // starting; it needs a window. Target.createTarget with
+                    // newWindow asks the process we are already talking to for
+                    // exactly that.
+                    Log("  the debugger answers but there is no window, so one is asked for");
+                    if (OpenWindow(sStartUrl))
+                    {
+                        ActivateBrowser();
+                        return "{\"launched\":false,\"connected\":true}";
+                    }
+                    Log("  a window could not be opened in the running browser");
                 }
                 catch (Exception)
                 {
@@ -3672,8 +4074,15 @@ namespace Homer
                     continue;
                 try
                 {
+                    // BRACES. The same fault as in Launch below: adding the
+                    // activation call under a brace-less if made the return
+                    // unconditional, so this loop reported success on its very
+                    // first turn whether or not the browser had answered.
                     if (HttpGet("/json/version").Contains("webSocketDebuggerUrl"))
+                    {
+                        ActivateBrowser();
                         return "{\"launched\":true,\"connected\":true}";
+                    }
                 }
                 catch (Exception)
                 {
@@ -4047,6 +4456,19 @@ namespace Homer
                     "{\"id\":1,\"method\":\"Target.createTarget\",\"params\":{\"url\":"
                     + Quote(sUrl) + "}}";
                 SendAndWait(match.Groups[1].Value, sMessage);
+                // EVERY PATH THAT OPENS A TAB BELONGS HERE, not at each caller.
+                // A tab opened in a window that stays behind another one is a
+                // thing done and not delivered: the reader is told it opened
+                // and then has to find it by Alt+Tab. Report, guide, log,
+                // converted document, extracted article -- all of them arrive
+                // through this one function, so all of them are brought
+                // forward by fixing it once.
+                //
+                // A short wait first: the tab has been asked for but the window
+                // may not have finished taking it, and activating before then
+                // raises the window with the previous page still in it.
+                Thread.Sleep(150);
+                ActivateBrowser();
                 return "opened in a new tab.";
             }
             catch (Exception exception)

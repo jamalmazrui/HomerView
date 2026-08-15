@@ -546,6 +546,42 @@ EndIf
 EndFunction
 
 
+; Whether opening this file will run a converter.
+;
+; The same list the helper uses to pass a file through untouched. Kept in
+; step with it by check 17, because two places deciding the same question
+; differently is how a message comes to describe something that did not
+; happen.
+Int Function needsConverting (string sPath)
+Var
+    int iDot,
+    string sExtension
+Let iDot = StringContains (sPath, ".")
+If iDot == 0 Then
+    Return True
+EndIf
+; -1 is the LAST segment, which JAWS 7 and later support directly. Counting
+; the segments first would work too and gives one more place to be wrong.
+Let sExtension = StringLower (StringSegment (sPath, ".", -1))
+If sExtension == "htm" Then
+    Return False
+EndIf
+If sExtension == "html" Then
+    Return False
+EndIf
+If sExtension == "txt" Then
+    Return False
+EndIf
+If sExtension == "xml" Then
+    Return False
+EndIf
+If sExtension == "svg" Then
+    Return False
+EndIf
+Return True
+EndFunction
+
+
 ; Adds the clipboard to the end of a text file. Control+Shift+Apostrophe.
 ;
 ; The apostrophe family is his across every one of his programs: Alt for say,
@@ -988,13 +1024,21 @@ EndScript
 ; see the guide, since default.jkm is never touched.
 Script launchHomerView ()
 Var string sAnswer
-SayMessage (OT_STATUS, "Starting")
+SayMessage (OT_STATUS, "Launching HomerView")
 Let sAnswer = callBridge ("launch", "")
 If sAnswer == "" Then
     Return
 EndIf
 If xmlValue (sAnswer, "/root/connected") == "true" Then
-    SayMessage (OT_MESSAGE, "HomerView is ready.")
+    ; NOTHING IS SAID HERE ON PURPOSE.
+    ;
+    ; A browser window opening announces itself: the screen reader reads the
+    ; new window and its page, as it does for any other window. Saying "ready"
+    ; on top of that is a second voice for one event, and it arrives just as
+    ; the reader is listening for the page. The window IS the confirmation.
+    ;
+    ; A FAILURE still speaks, below, because nothing else would say so.
+    logLine ("launchHomerView: launched, and the window will announce itself")
 Else
     SayMessage (OT_ERROR, xmlValue (sAnswer, "/root/error"))
 EndIf
@@ -1325,7 +1369,16 @@ If sPath == "" Then
     logLine ("openDocument: no file was chosen")
     Return
 EndIf
-SayMessage (OT_STATUS, "Converting")
+; "CONVERTING" ONLY WHEN SOMETHING IS CONVERTED.
+;
+; A web page, a text file, an XML or SVG file is opened AS IT IS: no
+; converter runs and no temporary copy is made. Saying "Converting" over
+; that is a claim about work that is not happening, and the reader has no
+; way to tell the difference between a message that is wrong and one that
+; is about to be followed by a wait.
+If needsConverting (sPath) Then
+    SayMessage (OT_STATUS, "Converting")
+EndIf
 Let sAnswer = callBridge ("openDocument", sPath)
 If xmlValue (sAnswer, "/root/error") != "" Then
     sayOrShow (xmlValue (sAnswer, "/root/error"))

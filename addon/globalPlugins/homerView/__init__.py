@@ -46,6 +46,66 @@ from .service import service
 addonHandler.initTranslation()
 
 
+# PAGE-LEVEL COMMANDS THAT SHOULD ALSO WORK OUTSIDE BROWSE MODE.
+#
+# These are bound on the browse-mode buffer, which is NVDA's equivalent of
+# JAWS's [Virtual Keys]: they fire while reading a page and NOT in the address
+# bar, in a form field, or in focus mode. But none of them acts at the cursor
+# -- they act on the PAGE, the WINDOW or the PROGRAM -- so there is no reason
+# for them to stop working the moment focus moves to an edit box.
+#
+# The gesture is bound HERE TOO, and getScript below hands it back to the
+# buffer whenever browse mode is active, so the existing behaviour (repeat
+# presses, speakOnDemand, everything) is untouched in the case that already
+# works. This fallback runs only when the buffer would not have fired at all.
+#
+# THE COMMAND FUNCTION IS THE SAME ONE. Each buffer script is a one-line call
+# to homerCommands.<name>(treeInterceptor); this looks the interceptor up from
+# the focus instead of from self, and calls exactly that. No second
+# implementation to drift.
+dOutsideBrowseMode = {
+    "kb:control+f8": "copyAll",
+    "kb:alt+m": "pageInformation",
+    "kb:alt+shift+p": "pageUrls",
+    "kb:shift+f4": "sayTabs",
+}
+
+
+# COMMANDS THAT BELONG TO THE BROWSER, NOT TO EVERY PROGRAM.
+#
+# A global plugin's gestures fire in EVERY application, so without this list
+# Control+S in Word would save HomerView's page and Shift+F9 in Notepad would
+# extract an article from a browser the user was not looking at. getScript
+# below returns None for these unless the focus is in HomerView's own Edge,
+# which lets the key reach whatever the user is actually using.
+#
+# The test is by PROCESS, not by name: an ordinary Edge window is also called
+# msedge, and HomerView's commands must not act on a page in one of those.
+#
+# THIS IS THE SAME SCOPE THE JAWS SIDE GETS FROM msedge.jkm, reached by a
+# different road. The rule for membership is the same one: a command that acts
+# on the PAGE, the WINDOW or the PROGRAM belongs here, and works in any mode
+# while the browser is in front.
+#
+# Commands defined in homerCommands are NOT here because they do not need to
+# be: they are bound to the browse-mode tree interceptor, which is NVDA's own
+# equivalent of [Virtual Keys] and already scopes them to a document.
+setBrowserScopedScripts = frozenset({
+    "script_downloadFiles",
+    "script_extractMainContent",
+    "script_listNames",
+    "script_openAnnouncement",
+    "script_openDeveloperNotes",
+    "script_openHotkeyDocument",
+    "script_openLog",
+    "script_openOtherFormat",
+    "script_openQuickStart",
+    "script_reportAddressAnywhere",
+    "script_saveAs",
+    "script_submitForm",
+})
+
+
 class GlobalPlugin(globalPluginHandler.GlobalPlugin):
     scriptCategory = "HomerView"
 
@@ -127,6 +187,14 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
                 )
             else:
                 homerLog.warning(f"No script exists for the published command {sName}")
+        # The page-level fallbacks, bound last so they cannot displace a
+        # published command that already claimed the same key.
+        for sGesture in dOutsideBrowseMode:
+            try:
+                if sGesture not in (getattr(self, "_gestureMap", None) or {}):
+                    self.bindGesture(sGesture, "outsideBrowseMode")
+            except Exception:
+                logError(f"The fallback {sGesture} could not be bound")
         # Record what is bound globally, so a key that does nothing can be
         # checked against this list rather than guessed at.
         try:
@@ -259,6 +327,54 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         except Exception:
             logError("Classifying an object raised")
 
+    @script(
+        # Translators: Input help mode message for the page-level commands
+        # when they are used outside browse mode.
+        description=_(
+            "Runs the HomerView page command on this key when browse mode is not "
+            "active, so it works in the address bar and in form fields too"
+        ),
+        category="HomerView",
+    )
+    def script_outsideBrowseMode(self, gesture):
+        """Run a page-level command against the page the focus is in.
+
+        getScript only returns this when browse mode is NOT active, so the
+        buffer's own binding is untouched in the case that already works.
+        """
+        sCommand = ""
+        try:
+            from . import homerCommands
+            for sGesture in getattr(gesture, "normalizedIdentifiers", None) or []:
+                if sGesture in dOutsideBrowseMode:
+                    sCommand = dOutsideBrowseMode[sGesture]
+                    break
+            if not sCommand:
+                return
+            # NOT EVERY COMMAND TAKES THE PAGE. Most are defined as
+            # <name>(treeInterceptor), but sayTabs() takes nothing at all --
+            # it asks the browser about its windows, not the page about
+            # itself. Calling them all the same way would have thrown on the
+            # first press of Shift+F4, so the signature is READ rather than
+            # assumed, exactly as the buffer does by passing sayTabs as a bare
+            # callable and the others as lambdas over self.
+            import inspect
+            functionCommand = getattr(homerCommands, sCommand)
+            bWantsPage = len(inspect.signature(functionCommand).parameters) > 0
+            treeInterceptor = getattr(api.getFocusObject(), "treeInterceptor", None)
+            if bWantsPage and treeInterceptor is None:
+                # Translators: Reported when a page command is used where there
+                # is no page.
+                ui.message(_("There is no page here"))
+                return
+            homerLog.info(f"Command outside browse mode: {sCommand}")
+            if bWantsPage:
+                functionCommand(treeInterceptor)
+            else:
+                functionCommand()
+        except Exception:
+            logError(f"The command {sCommand or gesture} could not be run outside browse mode")
+
     def getScript(self, gesture):
         """Resolve a global key, recording the ones that matter.
 
@@ -268,15 +384,35 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         with the browser would show itself.
         """
         functionScript = super().getScript(gesture)
+        # THE BUFFER WINS WHENEVER BROWSE MODE IS ACTIVE.
+        #
+        # A global plugin is asked FIRST, so binding a page command here would
+        # otherwise SHADOW the browse-mode one -- the same trap as an
+        # application key map on the JAWS side. Returning None hands the key
+        # straight back, so reading a page behaves exactly as it did, repeat
+        # presses and all, and this fallback runs only where the buffer would
+        # not have fired.
+        #
+        # AND ONLY IN HOMERVIEW'S OWN BROWSER. Outside it these keys belong to
+        # whatever the user is actually using.
+        if (
+            functionScript is not None
+            and getattr(functionScript, "__name__", "") == "script_outsideBrowseMode"
+        ):
+            if not self._focusIsHomerViewEdge():
+                return None
+            try:
+                treeInterceptor = getattr(api.getFocusObject(), "treeInterceptor", None)
+                if treeInterceptor is not None and getattr(
+                        treeInterceptor, "passThrough", True) is False:
+                    return None
+            except Exception:
+                logError("Browse mode could not be tested; the fallback is not used")
+                return None
         if (
             functionScript is not None
             and getattr(functionScript, "__name__", "")
-            in (
-                "script_submitForm",
-                "script_reportAddressAnywhere",
-                "script_openOtherFormat",
-                "script_saveAs",
-            )
+            in setBrowserScopedScripts
             and not self._focusIsHomerViewEdge()
         ):
             # Outside HomerView's own browser this key belongs to whatever has
@@ -435,7 +571,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
     def script_launchHomerView(self, gesture):
         homerLog.info("Command: launch or reconnect")
         # Translators: Reported while HomerView Edge is starting.
-        ui.message(_("Starting"))
+        ui.message(_("Launching HomerView"))
         service.submit(
             "launch",
             service.taskLaunch,
@@ -1340,22 +1476,29 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         if sCarried:
             # Translators: Reported when the page from another Edge window was
             # reopened in the HomerView window.
-            ui.message(
-                _("HomerView Edge is ready, and reopened the page you were on")
-            )
+            ui.message(_("Reopened the page you were on"))
             return
         lDialogs = dConnection.get("dialogs") or []
         if lDialogs:
             # Translators: Reported when Edge opened a dialog that blocks the window.
             ui.message(
                 _(
-                    "HomerView Edge is ready, but Microsoft Edge is showing a dialog that may "
-                    "block the address bar. Press Alt+NVDA+D to close it."
+                    "Microsoft Edge is showing a dialog that may block the address "
+                    "bar. Press Alt+NVDA+D to close it."
                 )
             )
             return
-        # Translators: Reported once HomerView Edge is ready.
-        ui.message(_("HomerView Edge is ready"))
+        # NOTHING IS SAID HERE ON PURPOSE.
+        #
+        # A browser window opening announces itself: NVDA reads the new window
+        # and its page, as it does for any other window. Saying "ready" on top
+        # of that is a second voice for one event, and it arrives just as the
+        # reader is listening for the page. The window IS the confirmation.
+        #
+        # Every branch above still speaks, because each reports something the
+        # window itself cannot: a refused activation, a lost connection, a
+        # blocking dialog, a page carried over.
+        homerLog.info("Launched; the window will announce itself")
 
     def _reportError(self, exception):
         homerLog.error(f"Launch failed: {exception}")

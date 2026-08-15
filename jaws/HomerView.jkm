@@ -6,30 +6,22 @@
 ; chainJawsScripts, which copies the factory file first and adds to it. This
 ; copy is kept so the keys have one readable home in the project.
 ;
-; Sections matter more than keys here.
+; SECTIONS MATTER MORE THAN KEYS HERE.
 ;
-; [Common Keys] applies everywhere and to both the desktop and laptop layouts.
-; Only launching belongs there, because before HomerView runs there is no
-; browser window to be in.
+; [Common Keys] applies everywhere, in every application and every cursor mode.
+; Only commands that must work before HomerView is running belong there, plus
+; the few that are about HomerView itself rather than about a page.
 ;
-; [Virtual Keys] applies only while the virtual cursor is active. Every other
-; command is a question about a web page, so that is exactly the right scope,
-; and it is why none of these can interfere with typing.
+; [Virtual Keys] applies while the VIRTUAL CURSOR is active, which for a web
+; page is most of the time. It is NOT the same as "while Edge is in front": in
+; the address bar or a form field these do not fire, and the key reaches the
+; browser instead.
 ;
-; What is deliberately absent: JAWS already moves to a declared main region
-; with Q, says the address with JAWSKey+A, lists headings, links and form
-; fields with JAWSKey+F5, F6 and F7, says the title with JAWSKey+T, finds with
-; Control+F, and describes an element with Shift+JAWSKey+F1. Binding any of
-; those would take a key a JAWS user already knows and give it something almost
-; the same.
-;
-; SHIFT+Q IS TAKEN, at his decision and against the general rule. Shift with a
-; navigation quick key means the previous element of that kind, so Shift+Q
-; natively means the previous main region -- and a page has one main region, so
-; the native meaning has nowhere to go. Q remains JAWS's own.
-;
-; Modifiers in alphabetical order, which is the Homer convention: Alt, Control,
-; JAWSKey, Shift.
+; Scoping a command to the BROWSER -- every cursor mode, Edge only -- needs
+; more than an msedge.jkm: HomerView's scripts have to be CHAINED INTO EDGE'S
+; OWN SCRIPT SET, because Edge already has JAWS scripts and a key map naming
+; our commands cannot resolve them otherwise. That work is described in
+; chainJawsScripts and is not done yet.
 
 [Common Keys]
 Alt+JAWSKey+A=checkAccessibility

@@ -28,11 +28,17 @@
 # that. Creating a user default.jkm that holds only our line is the thing to
 # avoid, and it is what this project rightly refused to do before.
 #
-# Everything goes in default.jkm, and no application key map is touched at all.
-# That is not a shortcut: a key map has a [Virtual Keys] section for commands
-# available only while the virtual cursor is active, so JAWS does the scoping
-# that an application key map would otherwise have to do. Only launching sits
-# in [Common Keys], because before HomerView runs there is no browser to be in.
+# ALMOST everything goes in default.jkm. [Virtual Keys] there scopes a command
+# to "while the virtual cursor is active", which is the right scope for reading
+# a page, and only launching sits in [Common Keys], because before HomerView
+# runs there is no browser to be in.
+#
+# THE ONE EXCEPTION IS msedge.jkm, and it is not a shortcut either. A command
+# like Open Document should work whenever the BROWSER is in front -- address
+# bar, form field, focus mode -- which is a scope [Virtual Keys] cannot express
+# and [Common Keys] over-expresses, since that would take Control+O from every
+# application on the machine. An application key map says exactly the intended
+# thing: this key, in this program, in any cursor mode.
 #
 # Everything it changes is backed up first, everything it does is recorded in a
 # manifest beside the scripts, and -bUndo puts it all back.
@@ -268,6 +274,132 @@ $lCommonKeys = @(
     "Alt+Shift+H=showHotkeySummary",
     "Alt+JAWSKey+L=copyLogToClipboard"
 )
+
+# WHAT EDGE'S SETTINGS ARE ACTUALLY CALLED, discovered rather than assumed.
+#
+# I assumed "msedge" and was wrong, and the evidence was in this script's own
+# log all along: it probes for default, MyExtensions and msedge files and
+# reported NOTHING for msedge, in either settings folder. A key map named
+# msedge.jkm sits where JAWS never looks.
+#
+# JAWS+Q in the browser says what is really going on:
+#
+#   "Microsoft Edge with Chromium settings are used in the msedge.dll
+#    application. The configuration name is wikipedia."
+#
+# Two facts there. THE APPLICATION IS msedge.DLL, not the exe. And its
+# SETTINGS ALIAS is "Microsoft Edge with Chromium" -- that is the base name
+# JAWS loads configuration files under, exactly as Appendix D describes for
+# Internet Explorer: take the executable name, look it up in ConfigNames.ini,
+# and load every file beginning with the alias found there.
+#
+# ("wikipedia" is a third layer again: JAWS 17 and later load a DOMAIN script
+# set on top of the application's when a matching site is open. Not something
+# to write to, but worth knowing it is there, because a domain key map would
+# take precedence over ours on that site.)
+#
+# So the alias is looked up rather than hard-coded, because it can differ by
+# JAWS version and language. ConfigNames.ini first, in the user folder then
+# the shared one; then any existing Edge key map in either folder; and only
+# then the name JAWS reported here, as a last resort.
+function browserConfigName {
+    param([string] $pathUser, [string] $pathShared)
+    foreach ($pathWhere in @($pathUser, $pathShared)) {
+        if (-not $pathWhere) { continue }
+        $pathIni = Join-Path $pathWhere "ConfigNames.ini"
+        if (-not (Test-Path $pathIni)) { continue }
+        foreach ($sLine in (Get-Content $pathIni)) {
+            if ($sLine -match '^\s*msedge\s*=\s*(.+?)\s*$') {
+                writeLog "    ConfigNames.ini in $pathWhere says msedge is '$($Matches[1])'"
+                return $Matches[1]
+            }
+        }
+    }
+    foreach ($pathWhere in @($pathUser, $pathShared)) {
+        if (-not $pathWhere) { continue }
+        $oFound = Get-ChildItem -Path $pathWhere -Filter "*Edge*.jkm" -File -ErrorAction SilentlyContinue |
+            Select-Object -First 1
+        if ($oFound) {
+            $sName = [System.IO.Path]::GetFileNameWithoutExtension($oFound.Name)
+            writeLog "    found an existing Edge key map, so the settings name is '$sName'"
+            return $sName
+        }
+    }
+    writeLog "    no Edge settings name could be discovered; using the name JAWS reported"
+    return "Microsoft Edge with Chromium"
+}
+
+
+# KEYS SCOPED TO THE BROWSER, IN ANY CURSOR MODE.
+#
+# A key map has a section per cursor context, so [Virtual Keys] in default.jkm
+# means "only while the virtual cursor is active" -- which is NOT the same as
+# "while the browser is in front". Control+O in the address bar, in a form
+# field, or in focus mode fell through to whatever else wanted it, and once
+# fell all the way through to Adobe Reader.
+#
+# [Common Keys] in default.jkm would fix the mode and break the scope: JAWS
+# would intercept Control+O in EVERY application and have to hand it back by
+# hand, which is the global hotkey he explicitly does not want.
+#
+# WHICH COMMANDS BELONG HERE, AND WHICH STAY IN [Virtual Keys]:
+#
+#   A command that acts on the PAGE, the WINDOW or the PROGRAM belongs here.
+#   Saving the page, listing its names, downloading its files, opening a
+#   document or a guide, naming the tabs -- none of these depend on where the
+#   cursor is, and all of them are things to want while typing in a form or
+#   standing in the address bar.
+#
+#   A command that acts AT THE CURSOR stays in [Virtual Keys], because outside
+#   the virtual cursor there IS no cursor for it to act at. Start and Complete
+#   Selection, Copy Line, Link Target, Jump to Probable Main and the whole find
+#   family are meaningless in a form field, and Control+C especially must go on
+#   meaning copy there.
+#
+#   The clipboard family stays virtual too. It is not cursor-bound, but it
+#   belongs to the reading workflow, and an apostrophe combination is a poorer
+#   thing to intercept while somebody is typing.
+#
+# AN APPLICATION KEY MAP IS THE MECHANISM THAT MEANS WHAT HE ASKED FOR. Keys in
+# msedge.jkm apply when Edge is the active application and nowhere else, and
+# [Common Keys] WITHIN THAT FILE means every cursor mode within it. Word keeps
+# its own Control+O and never sees ours.
+$lBrowserKeys = @(
+    # EMPTY, AND NOW FOR A REASON I CAN CITE RATHER THAN GUESS.
+    #
+    # Freedom Scientific's own script manual, 3.2 Processing Keystrokes, gives
+    # the algorithm exactly:
+    #
+    #   JAWS first looks for the keystroke in the APPLICATION key map. If it
+    #   finds it there, it notes the script name and then looks for that
+    #   script IN THE APPLICATION SCRIPT FILE.
+    #
+    #   Only if the keystroke is NOT in the application key map does it search
+    #   the default key map -- and a script named there is looked for in the
+    #   application script file first, then in the default file.
+    #
+    # HomerView's scripts live in MyExtensions, which belongs to the DEFAULT
+    # chain, not to Edge's script file. So a key in Edge's key map names a
+    # script Edge's script file does not contain.
+    #
+    # AND 2.8 Keyboard Manager Options MAKES IT WORSE, WHICH IS WHY THIS IS
+    # EMPTY RATHER THAN LEFT AS A TEST: "If a keystroke is assigned in both the
+    # application and default key map files, ONLY THE APPLICATION KEYSTROKE IS
+    # ACTIVE. JAWS always acts on the first keystroke it finds and it looks in
+    # the application key map file first."
+    #
+    # So the fallback I thought I had was not one. Putting Control+O in Edge's
+    # map would have SHADOWED the working [Virtual Keys] binding and could have
+    # broken the one command he most wants, in the one mode where it works
+    # today.
+    #
+    # THE ROUTE THAT MAKES THIS WORK is to put HomerView's scripts INTO Edge's
+    # script set -- Doug Lee's .chain, or the Merge technique from his own
+    # HomerKit: a user copy of Edge's script file with Use "HomerView.jsb"
+    # added, recompiled. Then the application script file DOES contain
+    # openDocument and the application key map resolves. That is the next
+    # piece of work and it is worth doing carefully.
+)
 # Shift+Q IS taken, at his decision: a page has one main region, so the native
 # meaning of Shift+Q -- the PREVIOUS one -- has nowhere to go. Every letter is
 # already a navigation quick key, and Shift with a
@@ -281,38 +413,38 @@ $lCommonKeys = @(
 # it everywhere: Control+F1 collapses the ribbon in Office, and a guide is not
 # worth taking that. It is on the Alternate Menu, which works anywhere.
 $lVirtualKeys = @(
-    "Alt+Apostrophe=sayClipboard",
-    "Alt+C=copyAppend",
-    "Alt+F8=readAll",
-    "Alt+L=describeLinkTarget",
+    "Alt+Control+F1=openSessionLog",
+    "Alt+F1=showAbout",
     "Alt+M=sayMetadata",
     "Alt+N=listNames",
-    "Alt+Shift+Apostrophe=clearClipboard",
+    "Alt+Shift+F1=openQuickStart",
     "Alt+Shift+P=copyPageLinks",
     "Alt+Shift+W=downloadFiles",
-    "Control+Apostrophe=saveClipboard",
-    "Control+C=copySelection",
     "Control+F1=openUserGuide",
     "Control+F8=copyAll",
     "Control+O=openDocument",
     "Control+S=savePage",
+    "Control+Shift+E=extractByPattern",
+    "Control+Shift+F1=openDeveloperNotes",
+    "Shift+F1=showHistory",
+    "Shift+F4=sayTabNames",
+    "Shift+F9=extractMainContent",
+    "Alt+Apostrophe=sayClipboard",
+    "Alt+C=copyAppend",
+    "Alt+F8=readAll",
+    "Alt+L=describeLinkTarget",
+    "Alt+Shift+Apostrophe=clearClipboard",
+    "Control+Apostrophe=saveClipboard",
+    "Control+C=copySelection",
     "F8=startSelection",
     "Shift+F8=completeSelection",
     "Control+Shift+Apostrophe=appendClipboard",
     "Shift+Q=moveToProbableMain",
-    "Shift+F4=sayTabNames",
-    "Alt+Control+F1=openSessionLog",
-    "Alt+F1=showAbout",
-    "Alt+Shift+F1=openQuickStart",
     "Control+F3=findByPattern",
-    "Control+Shift+E=extractByPattern",
     "Control+Shift+F=findBackwards",
-    "Control+Shift+F1=openDeveloperNotes",
     "Control+Shift+F3=findByPatternBackwards",
     "F3=findNext",
-    "Shift+F1=showHistory",
     "Shift+F3=findPrevious",
-    "Shift+F9=extractMainContent"
 )
 
 $iDone = 0
@@ -359,7 +491,7 @@ foreach ($folderVersion in $lVersions) {
         # answers on its own the question of whether another script set has
         # been here first, and what the browser's files are really called.
         writeLog "  what is already in place:"
-        foreach ($sBase in @("default", "MyExtensions", "msedge")) {
+        foreach ($sBase in @("default", "MyExtensions", "msedge", "Microsoft Edge with Chromium")) {
             foreach ($sWhere in @("user", "shared")) {
                 $pathWhere = if ($sWhere -eq "user") { $pathUser } else { $pathShared }
                 if (-not $pathWhere) { continue }
@@ -567,6 +699,54 @@ foreach ($folderVersion in $lVersions) {
                     $iFailed += 1
                 }
             }
+            # --- the browser's own key map ---------------------------------
+            #
+            # Same discipline as default.jkm: back up before changing, take our
+            # old block out before putting a new one in, and if there is no user
+            # copy yet, COPY THE FACTORY FILE FIRST rather than writing a file
+            # that holds only our keys.
+            #
+            # If Edge has no factory msedge.jkm at all, one is created holding
+            # just [Common Keys] and our line. That is safe here in a way it
+            # would not be for default.jkm: an application key map that does not
+            # exist takes nothing away, because JAWS falls through to the
+            # default map for everything it does not name.
+            $sEdgeBase = browserConfigName $pathUser $pathShared
+            writeLog "    the browser's settings are called '$sEdgeBase'"
+            $pathUserEdgeJkm = Join-Path $pathUser "$sEdgeBase.jkm"
+            $pathSharedEdgeJkm = if ($pathShared) { Join-Path $pathShared "$sEdgeBase.jkm" } else { "" }
+            if (Test-Path $pathUserEdgeJkm) {
+                if (-not (Test-Path "$pathUserEdgeJkm.homerViewBackup")) {
+                    Copy-Item $pathUserEdgeJkm "$pathUserEdgeJkm.homerViewBackup" -Force
+                    writeLog "    backed up $sEdgeBase.jkm before changing it"
+                }
+                $iOldEdge = removeOurBlock $pathUserEdgeJkm
+                if ($iOldEdge -gt 0) {
+                    writeLog "    removed $iOldEdge line(s) from $sEdgeBase.jkm written by an earlier release"
+                }
+            } elseif ($pathSharedEdgeJkm -and (Test-Path $pathSharedEdgeJkm)) {
+                Copy-Item $pathSharedEdgeJkm $pathUserEdgeJkm -Force
+                writeLog "    copied the factory $sEdgeBase.jkm into the user folder, so nothing is lost"
+                $lManifest += "created|$sEdgeBase.jkm"
+            } else {
+                Set-Content -Path $pathUserEdgeJkm -Value @("[Common Keys]") -Encoding UTF8
+                writeLog "    no factory $sEdgeBase.jkm exists, so a new one was written with only our key"
+                $lManifest += "created|$sEdgeBase.jkm"
+            }
+            addToSection $pathUserEdgeJkm "[Common Keys]" $lBrowserKeys
+            writeLog "    added $($lBrowserKeys.Count) key(s) to [Common Keys] in $sEdgeBase.jkm"
+            writeLog "      these work whenever Edge is in front, in any cursor mode, and nowhere else"
+            if ($lManifest -notcontains "created|$sEdgeBase.jkm") {
+                $lManifest += "edited|$sEdgeBase.jkm"
+            }
+            $sEdgeFinal = Get-Content $pathUserEdgeJkm -Raw
+            foreach ($sKey in $lBrowserKeys) {
+                if (-not $sEdgeFinal.Contains($sKey)) {
+                    writeLog "    ERROR: $sKey is not in $sEdgeBase.jkm after writing it"
+                    $iFailed += 1
+                }
+            }
+
             # What is in the file now, not what was written to it.
             #
             # Every step in this script reported success while the launch key

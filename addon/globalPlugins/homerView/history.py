@@ -67,7 +67,7 @@ class HistoryStore:
             # opened is data rather than a preference: it is specific to this
             # machine, it grows, and it is of no use on another computer, so it
             # does not belong in a roaming profile.
-            pathFolder = logger.pathLogFile.parent if logger.pathLogFile else paths.getTempFolder()
+            pathFolder = logger.dataFolder() if logger.dataFolder() else paths.getTempFolder()
         except Exception:
             pathFolder = paths.getTempFolder()
         if bSqliteAvailable:

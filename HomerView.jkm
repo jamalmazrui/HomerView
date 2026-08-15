@@ -1,0 +1,41 @@
+﻿; HomerView.jkm -- HomerView key map for Microsoft Edge
+;
+; Loaded with HomerView.jsb whenever Edge has focus.
+;
+; What is deliberately absent matters as much as what is here. JAWS already
+; moves to a declared main region with Q, says the web address with JAWSKey+A,
+; lists headings, links and form fields with JAWSKey+F5, F6 and F7, says the
+; title with JAWSKey+T, and finds with Control+F and F3. HomerView on NVDA has
+; its own versions of all of those, and only because NVDA lacks them. Binding
+; them here would take keys a JAWS user already knows and give them something
+; almost, but not quite, the same. That is worse than adding nothing.
+;
+; So this binds the commands JAWS does not have, and one that fills the gap Q
+; leaves.
+;
+; Modifiers are written in alphabetical order, which is the Homer convention:
+; Alt, Control, JAWSKey, Shift.
+
+[Common Keys]
+
+; -----------------------------------------------------------------
+; Shift+Q. About half the web declares no main region at all, and on
+; those pages Q has nothing to move to. This weighs every part of the
+; page, the most text with the fewest links winning, and says that it
+; inferred the answer rather than being told it. On a page that does
+; declare one, it says so and sends you to Q.
+; -----------------------------------------------------------------
+Shift+Q=moveToProbableMain
+
+; -----------------------------------------------------------------
+; The commands nothing else has. All of these ask the browser
+; something a reading order cannot answer.
+; -----------------------------------------------------------------
+Alt+JAWSKey+E=explorePage
+Alt+JAWSKey+A=checkAccessibility
+Alt+L=describeLinkTarget
+Shift+F9=extractMainContent
+
+[Keyboard Layouts]
+Desktop=Common
+Laptop=Common

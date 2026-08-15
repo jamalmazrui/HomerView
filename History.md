@@ -9,6 +9,53 @@ What changed, newest first. Written the way you would tell somebody, not as a
 list of commit messages. The reasoning behind each change is in the code, where
 it belongs. This is the short version.
 
+# Version 1.48.3
+
+- Fixed the JAWS script so that it compiles. Its functions declared a return type after the parameter list, which is how most languages write it and is not how JAWS Script does: the type goes before the word Function. Every function in the file had it the wrong way round.
+- The installation was copying the scripts into Notifications and VoiceProfiles as well. Those sit beside the language folder but are not script folders, so the files went where nothing would ever read them, and both the work and the log were three times longer than they needed to be. Only folders named with a three letter language code are used now.
+- Worst of the three: the installation reported a successful compile for every folder while the compiler had rejected the source in all of them. It checked whether a file had appeared, and one had, because scompile writes a small stub even when it refuses the source. It now reads what the compiler actually said, and treats a suspiciously small result as the stub it is.
+- That is the same fault this project has had several times over: checking that a step ran rather than that it worked. It is now checked the other way in every step of the JAWS installation.
+
+# Version 1.48.2
+
+- The JAWS installation now always writes its log to C:\temp\HomerView\installJawsScripts.log, and says so on screen before it starts.
+- A fixed path on purpose. A log whose location depends on which user ran it, or on whether a folder could be created, is a log nobody can find, and that is what happened: a whole installation ran, said something went wrong near the end, and left nothing behind to say what.
+- It is run through a small wrapper rather than by PowerShell directly, and the wrapper redirects everything into that file. That catches what the script itself never could: if PowerShell refuses to run it at all, because of an execution policy or a blocked file, the script never starts and so never writes a line. The wrapper is outside that and records it anyway.
+- The window now stays open until a key is pressed, and prints the whole log before it waits. Nothing scrolls away unread.
+
+# Version 1.48.1
+
+- Fixed the installer failing with a rights error about a log file. The two scripts it runs on the last page, for the JAWS scripts and for pandoc, each wrote a log beside themselves, which after installation means inside Program Files. That folder is read only without elevation, and both scripts deliberately run as the ordinary user, so the very first line failed before either had done anything or said why.
+- The rule elsewhere in this project is that a script logs beside itself, and this is the exception that rule always had: a script installed under Program Files cannot write there. Their logs now go where HomerView's own logs go, in the user's local application data, and each is named for when it ran.
+- Neither script now stops if the log cannot be started. Losing the record is a nuisance; losing the installation is a failure.
+- The pandoc installer now checks that it can write to the installation folder before downloading, rather than fetching two hundred megabytes and then finding it has nowhere to put them. If it cannot, it says which command to run from an elevated prompt.
+
+# Version 1.48.0
+
+- Fixed Log to Clipboard, which failed for a tester with an access violation writing to address zero. The cause is a trap that catches everyone once. Python's ctypes assumes a Windows function returns a thirty two bit integer unless told otherwise, and GlobalAlloc and GlobalLock return sixty four bit handles and pointers. The top half of each was being thrown away, so the handle was not a handle, locking it returned nothing, and copying bytes to nothing is what raised. Every one of those functions now has its types declared, and each result is checked before it is used.
+- Fixed two commands in the Alternate Menu that could not run. User guide and History of changes still named scripts that were removed four releases ago; the menu warned about it in the log and offered them anyway. They now point at the commands that do the same job, and the menu refuses to publish a command with no script rather than offering one that does nothing.
+- The JAWS installation no longer touches default.jkm. It merged one line there, to give launching a key that works everywhere, and that was not worth the risk: a copy of that file in the user settings folder can shadow the factory one instead of adding to it, which would cost the user every built-in JAWS binding. The launch command is reached from the Start Menu shortcut, or from a key assigned in JAWS Keyboard Manager, which is the supported way and leaves the user's settings theirs. An installation made by an earlier version is cleaned up on removal.
+
+
+- Fixed the installer failing to compile. The uninstall entry that removes the JAWS scripts used runasoriginaluser, which is a flag for the install section and not for the uninstall one. Inno Setup rejects a flag it does not recognise rather than ignoring it. The two sections look similar enough that the mistake is easy to make.
+- The build log now carries what Inno Setup actually said. It printed its complaint to the console while the log recorded four words, so the one log a person uploads said that something had gone wrong and nothing about what. That is the opposite of why the log exists.
+- The checks that run before Inno Setup now know which flags each section accepts, so this class of mistake is caught by the build rather than by the compiler.
+
+# Version 1.47.0
+
+- HomerView now supports both major screen readers from one installer. The last page offers the NVDA add-on and, separately, the JAWS scripts, and each checkbox appears only when that screen reader is actually installed.
+- The JAWS scripts are compiled in place, once for each JAWS version on the machine, with that version's own compiler. A script binary built by one year's compiler is not reliably loaded by another year's JAWS, which is why they are not built once and copied.
+- The installation runs as the ordinary user rather than elevated, because JAWS keeps its settings under the user's own roaming application data. An elevated run would put everything in the administrator's profile, where the user would never see it.
+- One line is merged into default.jkm for the launch key, since launching cannot live in the browser key map: before HomerView runs there is no browser window. The original file is kept beside it, because a user's default key map may hold years of their own work.
+- Added HomerViewBridge.exe, the piece JAWS scripting cannot supply for itself. JAWS cannot open a WebSocket, which is where every browser command that reads or acts on a page travels, so the bridge holds that side and the scripts read its answers. It needs nothing registered.
+- buildHomerView now builds the bridge as well, so one script and one log cover the whole build.
+- On what the JAWS scripts deliberately do NOT do: JAWS already moves to a declared main region, says the web address, lists headings, links and form fields, and finds text. HomerView on NVDA has its own versions of those only because NVDA lacks them. Six commands are bound, and they are the ones nothing else has.
+
+# Version 1.46.2
+
+- Fixed something the move to a logs folder would have broken. Nine places asked for the log file's parent folder when what they wanted was HomerView's own folder, and until the logs moved into a subfolder those were the same thing. Left alone, the history database and the browser profile would have moved into the logs folder with them, and an upgrade would have looked to a user like losing their browsing history.
+- HomerView's folder is now named directly rather than worked out from where a file happens to sit, which is what let the two drift apart in the first place.
+
 # Version 1.46.1
 
 - Log to Clipboard moves to Control+Shift+L. Alt+Control with a letter, and Alt+Control+Shift with a letter, belong to Windows desktop and start menu shortcuts, which a user may have set for themselves; a program that overrides one is taking something that was not its to take. That convention is now written down with the other rules about choosing keys, so it will not be broken again by accident.

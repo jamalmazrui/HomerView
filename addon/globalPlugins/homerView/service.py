@@ -356,7 +356,7 @@ class HomerViewService:
 
     def taskRunAxe(self):
         """Test the focused page with axe-core and save the results."""
-        pathFolder = logger.pathLogFile.parent if logger.pathLogFile else Path.cwd()
+        pathFolder = logger.dataFolder() if logger.dataFolder() else Path.cwd()
         return axe.runAxe(self.cdpSession, pathFolder)
 
     def taskAccessibilityReport(self):
@@ -367,7 +367,7 @@ class HomerViewService:
         a pre-written email sit in the same command rather than behind another
         one the user has to know about.
         """
-        pathData = logger.pathLogFile.parent if logger.pathLogFile else Path.cwd()
+        pathData = logger.dataFolder() if logger.dataFolder() else Path.cwd()
         dScan = axe.runAxe(self.cdpSession, pathData)
         dResults = dScan["results"]
         sPageUrl = dScan.get("pageUrl", "")
@@ -514,7 +514,7 @@ class HomerViewService:
         return task
 
     def taskRunAce(self):
-        pathData = logger.pathLogFile.parent if logger.pathLogFile else Path.cwd()
+        pathData = logger.dataFolder() if logger.dataFolder() else Path.cwd()
         dSummary = ace.runAce(self.cdpSession, pathData)
         history.record("aceScan", dSummary.get("pageTitle", ""), dSummary.get("pageUrl", ""),
                        dSummary.get("counts", {}))

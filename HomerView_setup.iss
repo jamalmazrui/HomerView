@@ -3,7 +3,7 @@
 ; Source root and installation destination: C:\HomerView
 
 #define AppName "HomerView"
-#define AppVersion "1.46.1"
+#define AppVersion "1.48.3"
 #define AppPublisher "Jamal Mazrui"
 ; A stable name on purpose. The version lives in the add-on's manifest, which is
 ; what NVDA reads, and in AppVersion above. Putting it in the file name as well
@@ -25,11 +25,13 @@ DefaultGroupName={#AppName}
 ; there is no Start Menu folder to choose, no separate licence page, no
 ; component or task selection, and no readme afterwards.
 DisableProgramGroupPage=yes
-; Shown every time, even on a reinstall. Left to itself this defaults to auto,
-; which hides the page when a previous install of the same AppId is found. The
-; page is worth seeing: it says where the program is going, and it is obviously
-; editable. UsePreviousAppDir above means a reinstall only needs Enter.
-DisableDirPage=no
+; Hidden when a previous install of the same AppId is found, which is what the
+; other Homer Tools do: a reinstall then asks nothing at all and goes where the
+; last one went. A first install still chooses the folder. This used to be no,
+; on the reasoning that the page was worth seeing because it says where the
+; program is going. It says that on the finished page too, and a page that only
+; ever needs Enter is a page that has stopped being read.
+DisableDirPage=auto
 DisableReadyPage=yes
 DisableFinishedPage=no
 AllowNoIcons=yes
@@ -120,6 +122,22 @@ Source: "C:\HomerView\2htm.exe"; DestDir: "{app}"; Flags: ignoreversion skipifso
 ; pandoc is NOT packaged. It is about 220 megabytes, which GitHub refuses and
 ; which is a long download to impose on someone who may already have it or may
 ; never open an ebook. The Run section below offers to fetch it instead.
+; The JAWS side. The bridge is the one piece JAWS scripting cannot supply for
+; itself, and the scripts are copied into every JAWS version by the script
+; below rather than by this section, because they must be compiled in place.
+Source: "C:\HomerView\HomerView.exe"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "C:\HomerView\HomerView.cs"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "C:\HomerView\jaws\*"; DestDir: "{app}\jaws"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "C:\HomerView\installJawsScripts.ps1"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "C:\HomerView\installJawsScripts.cmd"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
+; Run by installJawsScripts.ps1, not by hand. It writes the MyExtensions file
+; that makes JAWS load our scripts at all, and puts the keys into the user's own
+; copy of default.jkm.
+Source: "C:\HomerView\chainJawsScripts.ps1"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
+; One line, the version. Written by buildHomerView so the installed scripts and
+; their log can say which build they came from without being told.
+Source: "C:\HomerView\version.txt"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
+
 Source: "C:\HomerView\installPandoc.cmd"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\HomerView\installPandoc.ps1"; DestDir: "{app}"; Flags: ignoreversion
 
@@ -172,11 +190,69 @@ Filename: "{app}\build\{#AddonFile}"; Description: "Install the HomerView add-on
 ;
 ; runascurrentuser matters. winget installs per user, into the profile of
 ; whoever is signed in, and this installer is running elevated.
+; The JAWS scripts, checked by default when JAWS is installed and absent
+; entirely when it is not. A checkbox offering to install scripts for a screen
+; reader the user does not have is a question with only one sensible answer,
+; which is not worth asking.
+;
+; runasoriginaluser matters more here than anywhere. JAWS keeps its settings
+; under the user's own roaming application data, and this installer runs
+; elevated; without the flag the scripts would go into the administrator's
+; profile and the user would see nothing at all.
+; Run through the wrapper rather than PowerShell directly, so a refusal to run
+; the script at all is still recorded. The log is one timestamped file in
+; %LOCALAPPDATA%\HomerView\logs, and the window stays open until a key is
+; pressed so nothing scrolls away unread.
+;
+; The version is handed over rather than looked up. Nothing that reaches the
+; installation folder carries it, and a log that does not say which build wrote
+; it has to be dated by guesswork.
+Filename: "{app}\installJawsScripts.cmd"; \
+  Parameters: "-sVersion {#AppVersion}"; \
+  WorkingDir: "{app}"; \
+  Description: "Install the HomerView scripts for JAWS (recommended)"; \
+  Flags: postinstall skipifsilent runasoriginaluser waituntilterminated; \
+  Check: HaveJaws
+
+; THE SAME STEP AGAIN, FOR A SILENT INSTALLATION.
+;
+; Every postinstall entry carries skipifsilent, which is right for the two that
+; need a person -- the add-on opens NVDA's own dialog, and pandoc is a 220 MB
+; download nobody should be given without being asked. But it meant that
+; /SILENT copied the files, reported success, and installed NO JAWS SCRIPTS AT
+; ALL. An installer that succeeds without doing the thing is the same fault as
+; a check that passes without checking.
+;
+; So this entry runs the JAWS step when, and only when, the wizard is silent.
+; runhidden because there is no window worth showing, and -bQuiet so the
+; wrapper does not stop at "press any key" that nobody is there to press.
+Filename: "{app}\installJawsScripts.cmd"; \
+  Parameters: "-sVersion {#AppVersion} -bQuiet"; \
+  WorkingDir: "{app}"; \
+  Flags: runhidden runasoriginaluser waituntilterminated; \
+  Check: JawsAndSilent
+
 Filename: "{cmd}"; \
   Parameters: "/c """"{app}\installPandoc.cmd"""""; \
   WorkingDir: "{app}"; \
   Description: "Install pandoc, for reading ebooks, Markdown and OpenDocument text (about 220 MB)"; \
-  Flags: postinstall skipifsilent runascurrentuser
+  Flags: postinstall skipifsilent runascurrentuser; \
+  Check: NeedPandoc
+
+[UninstallRun]
+; Take the JAWS scripts back out. Ours to remove, since we put them there, and
+; leaving compiled scripts behind for a program that is gone would be untidy at
+; best and confusing at worst.
+;
+; No runasoriginaluser here: that is a [Run] flag and [UninstallRun] does not
+; accept it, which is what stopped this script compiling the first time. The
+; uninstaller usually runs as the user who is removing the program, so the
+; settings folder it finds is theirs.
+Filename: "{app}\installJawsScripts.cmd"; \
+  Parameters: "-bUninstall"; \
+  WorkingDir: "{app}"; \
+  Flags: runhidden waituntilterminated skipifdoesntexist; \
+  RunOnceId: "RemoveJawsScripts"
 
 [UninstallDelete]
 Type: files; Name: "{app}\HomerView.log"
@@ -259,6 +335,68 @@ begin
     Log('HomerView: NVDA was ' + gsNvdaPath);
   end;
   Result := gsNvdaPath;
+end;
+
+{ Whether JAWS is installed for this user.
+  Its settings live under the user's roaming application data, one folder per
+  version, and that folder is what JAWS actually loads scripts from. If it is
+  not there, JAWS is not here, and the checkbox is not offered. }
+{ ---------------------------------------------------------------------------
+  Whether pandoc still needs fetching.
+
+  The task that offers it was shown on every reinstall, whether or not pandoc
+  was already sitting in the installation folder. The script it runs does check,
+  and exits saying so, but by then a person has already been offered a two
+  hundred megabyte download, ticked a box, watched a window open and closed it
+  again. An offer that is always declined by the program is an offer that should
+  not have been made.
+  --------------------------------------------------------------------------- }
+
+function NeedPandoc(): Boolean;
+begin
+  Result := not FileExists(ExpandConstant('{app}\pandoc.exe'));
+end;
+
+function HaveJaws(): Boolean;
+var
+  sPath: String;
+  findRec: TFindRec;
+begin
+  Result := False;
+  sPath := ExpandConstant('{userappdata}\Freedom Scientific\JAWS');
+  if not DirExists(sPath) then
+    Exit;
+  { A year folder, rather than merely the parent, because an uninstalled JAWS
+    can leave the parent behind empty. }
+  if FindFirst(sPath + '\*', findRec) then
+  begin
+    try
+      repeat
+        if (findRec.Attributes and FILE_ATTRIBUTE_DIRECTORY) <> 0 then
+        begin
+          if (findRec.Name <> '.') and (findRec.Name <> '..') then
+          begin
+            if DirExists(sPath + '\' + findRec.Name + '\Settings') then
+            begin
+              Result := True;
+              Log('HomerView: JAWS ' + findRec.Name + ' found');
+              Exit;
+            end;
+          end;
+        end;
+      until not FindNext(findRec);
+    finally
+      FindClose(findRec);
+    end;
+  end;
+end;
+
+// Both conditions in one identifier, because a Check clause names a function
+// of ours rather than taking an expression. WizardSilent is built in and is
+// true for /SILENT and /VERYSILENT alike.
+function JawsAndSilent(): Boolean;
+begin
+  Result := HaveJaws and WizardSilent;
 end;
 
 function HaveNvda(): Boolean;

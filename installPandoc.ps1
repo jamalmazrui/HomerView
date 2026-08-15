@@ -16,12 +16,37 @@
 #   3. The release on GitHub, fetched and unpacked here, for a machine where
 #      winget is absent or declines.
 #
-# Writes installPandoc.log beside this script.
+# Writes to the one runtime log, %LOCALAPPDATA%\HomerView\logs\HomerViewJaws.log.
 
 $ErrorActionPreference = "Stop"
 
 $pathRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
-$pathLog = Join-Path $pathRoot "installPandoc.log"
+# The log does NOT go beside this script.
+#
+# The rule everywhere else in this project is that a script logs beside itself,
+# and that rule has one exception, which is exactly this case: a script
+# INSTALLED under Program Files cannot write there. That folder is read only
+# without elevation, and this script deliberately runs as the ordinary user,
+# because the settings it touches are the user's own.
+#
+# So the log goes where the program's other logs go, in the user's local
+# application data, beside HomerView's own. An earlier version wrote beside
+# itself and failed at the first line with a rights error, before it had done
+# anything or said why.
+$pathLogFolder = Join-Path $env:LOCALAPPDATA "HomerView\logs"
+try { New-Item -ItemType Directory -Path $pathLogFolder -Force | Out-Null } catch { }
+# The newest session log, joined rather than started. A new file per run left a
+# folder filling with installPandoc-20260814-062206.log and its neighbours,
+# each saying the same eight lines.
+$pathLog = ""
+try {
+    $newest = Get-ChildItem -Path $pathLogFolder -Filter "HomerViewJAWS*.log" -ErrorAction Stop |
+        Sort-Object LastWriteTime -Descending | Select-Object -First 1
+    if ($newest) { $pathLog = $newest.FullName }
+} catch { }
+# Nothing is started here either. This runs from the installer, which has just
+# made a log; if there is none, there is nobody to write to and a file of eight
+# lines on its own helps no one.
 $pathTarget = Join-Path $pathRoot "pandoc.exe"
 
 function writeLog {
@@ -31,13 +56,37 @@ function writeLog {
     try { Add-Content -Path $pathLog -Value $sStamped -Encoding UTF8 } catch { }
 }
 
-Set-Content -Path $pathLog -Value "" -Encoding UTF8
-writeLog "installPandoc starting"
+try {
+    Add-Content -Path $pathLog -Value "" -Encoding UTF8
+} catch {
+    # A script that cannot write its log should still do its job. Losing the
+    # record is a nuisance; losing the installation is a failure.
+    Write-Host "The log could not be started at $pathLog : $($_.Exception.Message)"
+}
+writeLog "--- installPandoc ---"
 writeLog "  script: $($MyInvocation.MyCommand.Path)"
 writeLog "  PowerShell: $($PSVersionTable.PSVersion)"
 writeLog "  platform: $([System.Environment]::OSVersion.VersionString)"
 writeLog "  working directory: $(Get-Location)"
 writeLog "  target: $pathTarget"
+
+# Program Files is not writable without elevation, and this runs as the user.
+# Better to say so at the start than to download two hundred megabytes and then
+# fail to put it anywhere.
+try {
+    $pathProbe = Join-Path $pathRoot "writeProbe.tmp"
+    Set-Content -Path $pathProbe -Value "x" -ErrorAction Stop
+    Remove-Item $pathProbe -Force
+    writeLog "  the installation folder is writable"
+} catch {
+    writeLog ""
+    writeLog "$pathRoot cannot be written to from here, so pandoc cannot be placed."
+    writeLog "Run this again from an elevated command prompt:"
+    writeLog "  `"$pathRoot\installPandoc.cmd`""
+    writeLog "HomerView works without pandoc; only ebooks, Markdown and OpenDocument"
+    writeLog "text need it, and LibreOffice covers most other formats."
+    exit 1
+}
 
 if (Test-Path $pathTarget) {
     $nSize = [math]::Round((Get-Item $pathTarget).Length / 1MB, 1)

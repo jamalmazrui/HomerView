@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>HomerView Developer Notes</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">HomerView Developer Notes</h1>
+</header>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#the-pieces" id="toc-the-pieces">The pieces</a></li>
+<li><a href="#rebuilding" id="toc-rebuilding">Rebuilding</a>
+<ul>
+<li><a href="#requirements" id="toc-requirements">Requirements</a></li>
+<li><a href="#installing-what-you-built"
+id="toc-installing-what-you-built">Installing what you built</a></li>
+</ul></li>
+<li><a href="#the-quality-checks" id="toc-the-quality-checks">The
+quality checks</a></li>
+<li><a href="#conventions-worth-knowing-before-you-change-anything"
+id="toc-conventions-worth-knowing-before-you-change-anything">Conventions
+worth knowing before you change anything</a></li>
+<li><a href="#testing-a-change" id="toc-testing-a-change">Testing a
+change</a></li>
+<li><a href="#source" id="toc-source">Source</a></li>
+</ul>
+</nav>
+<p>How to rebuild HomerView from source, and what the pieces are.</p>
+<p>HomerView has two front ends and one engine. The <strong>NVDA
+add-on</strong> is Python; the <strong>JAWS scripts</strong> are JSL;
+both talk to the same helper program, and both are maintained at parity.
+Neither is the reference implementation. When the two would answer one
+question differently, that is a bug in whichever one is newer.</p>
+<h2 id="the-pieces">The pieces</h2>
+<ul>
+<li><strong><code>addon/</code></strong> — the NVDA add-on, Python.
+<code>commands.py</code> is the authoritative command list for that
+side: name, display name, keys and description.</li>
+<li><strong><code>jaws/HomerView.jss</code></strong> — the JAWS scripts,
+JSL. <code>HomerView.jkm</code> is the readable home of the key
+bindings; <code>HomerView.jsd</code> is the documentation JAWS shows in
+its own dialogs.</li>
+<li><strong><code>HomerView.cs</code></strong> — the helper, C# against
+.NET Framework 4.8, compiled to <code>HomerView.exe</code>. It holds the
+WebSocket connection to Edge, the accessibility engines, the download
+machinery, the file dialogs and the converters. Anything JSL cannot do,
+the helper does.</li>
+<li><strong><code>buildHomerView.ps1</code></strong> — the build.</li>
+<li><strong><code>checkJawsScripts.ps1</code></strong> — compiles the
+JAWS scripts against every installed JAWS version, after running the
+quality checks.</li>
+<li><strong><code>checkHomerViewQuality.ps1</code></strong> — fifteen
+checks over the source, described below.</li>
+<li><strong><code>chainJawsScripts.ps1</code></strong> — writes the key
+bindings into the user’s <code>default.jkm</code> and hooks
+<code>MyExtensions.jss</code>. This is what actually binds keys;
+<code>HomerView.jkm</code> is documentation.</li>
+<li><strong><code>installJawsScripts.ps1</code></strong> — the
+installer’s JAWS step.</li>
+<li><strong><code>HomerView_setup.iss</code></strong> — the Inno Setup
+script.</li>
+</ul>
+<h2 id="rebuilding">Rebuilding</h2>
+<p>From the source folder:</p>
+<pre><code>powershell -ExecutionPolicy Bypass -File buildHomerView.ps1</code></pre>
+<p>That compiles the helper with <code>csc</code>, runs the quality
+checks, compiles the JAWS scripts against each installed JAWS version,
+builds the NVDA add-on, and runs Inno Setup over
+<code>HomerView_setup.iss</code>. It writes
+<code>buildHomerView.log</code>; read that rather than the console.</p>
+<p>The build fails if the quality checks fail. That is deliberate.</p>
+<h3 id="requirements">Requirements</h3>
+<ul>
+<li>Windows 10 or later</li>
+<li>.NET Framework 4.8 (<code>csc.exe</code> from the framework folder;
+no SDK needed)</li>
+<li>Inno Setup 6</li>
+<li>JAWS 2024 or later installed, for <code>scompile.exe</code></li>
+<li>PowerShell 5.1</li>
+</ul>
+<p>Nothing is downloaded during a build. The converters — pandoc and
+2htm — are <strong>found, not bundled</strong>: a program folder is
+replaced wholesale on update, and some managed environments will not
+execute from a roaming profile.</p>
+<h3 id="installing-what-you-built">Installing what you built</h3>
+<pre><code>HomerView_setup.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /LOG=&quot;setup.log&quot;</code></pre>
+<p>Run that from an elevated prompt; silent mode suppresses the wizard,
+not elevation. The JAWS scripts install silently; the NVDA add-on and
+pandoc do not, because one needs NVDA’s own dialog and the other is a
+large download nobody should be handed unasked.</p>
+<p>Afterwards press <strong>Alt+Shift+H</strong>: its first line gives
+the version and install time, which is how you confirm which build JAWS
+actually has loaded.</p>
+<h2 id="the-quality-checks">The quality checks</h2>
+<p><code>checkHomerViewQuality.ps1</code> runs before any compiler and
+gates the build. Each check reports <strong>what it found</strong>
+before it judges anything, because a check that reports only a verdict
+cannot be debugged.</p>
+<ol type="1">
+<li>Every script in the key map exists in the source, and back</li>
+<li>Every script the menu performs exists</li>
+<li>Every menu row reads name, comma, sentence, optional parenthesised
+key</li>
+<li>Every keyed command’s menu key matches the key map</li>
+<li>The documentation file and the scripts correspond</li>
+<li>No lone backslash in a string literal (JSL escapes are
+<code>\\ \" \r \n \t \7 \'</code>)</li>
+<li>No C-style comments</li>
+<li>No <code>Null</code>, no <code>Let</code> without assignment, every
+declared name carries its type</li>
+<li>Nothing used before it is defined</li>
+<li>Every helper command has a case in the C#, and every dispatched
+method exists</li>
+<li>Arguments reach the helper through a file, not the command line</li>
+<li>No orphaned C# attribute; <code>[STAThread]</code> sits on
+<code>Main</code></li>
+<li>The answer-file encoding contract holds across the C# and the
+JSL</li>
+<li>The key map, the binder and the Hotkey Summary agree, sections
+included</li>
+<li>Every Hotkey Summary link names a real function and a real
+script</li>
+<li>No menu command name contains another</li>
+</ol>
+<h2
+id="conventions-worth-knowing-before-you-change-anything">Conventions
+worth knowing before you change anything</h2>
+<p><strong>Anything JSL cannot do, the helper does.</strong> JSL has no
+WebSocket, no JSON, no file dialogs, no clipboard reading. Rather than
+working around that in JSL, add a command to the helper.</p>
+<p><strong>Anything page-sized stays on the helper’s side.</strong> A
+Windows command line takes about 32,000 characters, and a page’s links
+can exceed that. Every argument is written to a file and the path is
+passed instead.</p>
+<p><strong>Reduce in the browser, not afterwards.</strong> A command
+that brings a whole accessibility report back and parses it will appear
+to hang on a large page. Return one line per finding and a count of the
+rest.</p>
+<p><strong>Anything HomerView opens goes to HomerView’s
+browser.</strong> Opening a file through the shell hands it to whatever
+Windows thinks opens <code>.htm</code>, where no HomerView command
+works.</p>
+<p><strong>Mark, then navigate.</strong> Where the browser has found
+something the virtual cursor must move to, the browser marks it with an
+attribute of ours and the scripts move to whatever carries it. An
+attribute is the one thing both sides can see.</p>
+<p><strong>Check that it worked, not that it ran.</strong> An exit code
+is not a result. Every step that matters reports what it found.</p>
+<h2 id="testing-a-change">Testing a change</h2>
+<pre><code>powershell -ExecutionPolicy Bypass -File checkJawsScripts.ps1</code></pre>
+<p>runs the quality checks and compiles the JAWS scripts against every
+installed version without building anything else. It is the fast
+loop.</p>
+<p>For the NVDA side, rebuild the add-on and install it in a scratch
+NVDA profile.</p>
+<h2 id="source">Source</h2>
+<p><a href="https://github.com/JamalMazrui/HomerView"
+class="uri">https://github.com/JamalMazrui/HomerView</a></p>
+</body>
+</html>

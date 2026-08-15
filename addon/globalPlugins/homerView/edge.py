@@ -354,7 +354,7 @@ class EdgeManager:
             if sLast:
                 homerLog.info(f"Reopening the page this profile last had open: {abbreviate(sLast, 200)}")
                 return sLast
-        pathFolder = logger.pathLogFile.parent if logger.pathLogFile else self.pathProfile.parent
+        pathFolder = logger.dataFolder() if logger.dataFolder() else self.pathProfile.parent
         pathStart = pathFolder / startPageFileName
         try:
             bCurrent = False

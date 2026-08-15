@@ -1,0 +1,74 @@
+﻿; HomerView.jkm -- HomerView's keys, for reference
+;
+; NOT WHAT BINDS THEM. JAWS loads an application key map named after the
+; executable, and nothing on this machine is called HomerView.exe, so this file
+; is never read. The bindings are written into the user's own default.jkm by
+; chainJawsScripts, which copies the factory file first and adds to it. This
+; copy is kept so the keys have one readable home in the project.
+;
+; Sections matter more than keys here.
+;
+; [Common Keys] applies everywhere and to both the desktop and laptop layouts.
+; Only launching belongs there, because before HomerView runs there is no
+; browser window to be in.
+;
+; [Virtual Keys] applies only while the virtual cursor is active. Every other
+; command is a question about a web page, so that is exactly the right scope,
+; and it is why none of these can interfere with typing.
+;
+; What is deliberately absent: JAWS already moves to a declared main region
+; with Q, says the address with JAWSKey+A, lists headings, links and form
+; fields with JAWSKey+F5, F6 and F7, says the title with JAWSKey+T, finds with
+; Control+F, and describes an element with Shift+JAWSKey+F1. Binding any of
+; those would take a key a JAWS user already knows and give it something almost
+; the same.
+;
+; SHIFT+Q IS TAKEN, at his decision and against the general rule. Shift with a
+; navigation quick key means the previous element of that kind, so Shift+Q
+; natively means the previous main region -- and a page has one main region, so
+; the native meaning has nowhere to go. Q remains JAWS's own.
+;
+; Modifiers in alphabetical order, which is the Homer convention: Alt, Control,
+; JAWSKey, Shift.
+
+[Common Keys]
+Alt+JAWSKey+A=checkAccessibility
+Alt+JAWSKey+D=dismissDialog
+Alt+JAWSKey+F10=showHomerViewMenu
+Alt+JAWSKey+H=launchHomerView
+Alt+JAWSKey+I=checkAccessibilityIbm
+Alt+JAWSKey+L=copyLogToClipboard
+Alt+Shift+H=showHotkeySummary
+
+[Virtual Keys]
+Alt+Apostrophe=sayClipboard
+Alt+C=copyAppend
+Alt+Control+F1=openSessionLog
+Alt+F1=showAbout
+Alt+F8=readAll
+Alt+L=describeLinkTarget
+Alt+M=sayMetadata
+Alt+Shift+Apostrophe=clearClipboard
+Alt+Shift+F1=openQuickStart
+Alt+Shift+P=copyPageLinks
+Alt+Shift+W=downloadFiles
+Control+Apostrophe=saveClipboard
+Control+C=copySelection
+Control+F1=openUserGuide
+Control+F3=findByPattern
+Control+F8=copyAll
+Control+O=openDocument
+Control+S=savePage
+Control+Shift+Apostrophe=appendClipboard
+Control+Shift+E=extractByPattern
+Control+Shift+F1=openDeveloperNotes
+Control+Shift+F3=findByPatternBackwards
+Control+Shift+F=findBackwards
+F3=findNext
+F8=startSelection
+Shift+F1=showHistory
+Shift+F3=findPrevious
+Shift+F4=sayTabNames
+Shift+F8=completeSelection
+Shift+F9=extractMainContent
+Shift+Q=moveToProbableMain

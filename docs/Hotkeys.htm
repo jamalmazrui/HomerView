@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>HomerView Hotkeys</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">HomerView Hotkeys</h1>
+</header>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#why-some-keys-differ-between-the-two"
+id="toc-why-some-keys-differ-between-the-two">Why some keys differ
+between the two</a></li>
+<li><a href="#keys-that-homerview-deliberately-leaves-alone"
+id="toc-keys-that-homerview-deliberately-leaves-alone">Keys that
+HomerView deliberately leaves alone</a></li>
+<li><a href="#every-command" id="toc-every-command">Every command</a>
+<ul>
+<li><a href="#getting-started" id="toc-getting-started">Getting
+started</a></li>
+<li><a href="#reading-the-page" id="toc-reading-the-page">Reading the
+page</a></li>
+<li><a href="#finding" id="toc-finding">Finding</a></li>
+<li><a href="#selecting-and-copying"
+id="toc-selecting-and-copying">Selecting and copying</a></li>
+<li><a href="#the-clipboard" id="toc-the-clipboard">The
+clipboard</a></li>
+<li><a href="#documents-and-files"
+id="toc-documents-and-files">Documents and files</a></li>
+<li><a href="#accessibility"
+id="toc-accessibility">Accessibility</a></li>
+<li><a href="#tabs-and-dialogs" id="toc-tabs-and-dialogs">Tabs and
+dialogs</a></li>
+<li><a href="#homerviews-own-documents"
+id="toc-homerviews-own-documents">HomerView’s own documents</a></li>
+</ul></li>
+</ul>
+</nav>
+<p>Every HomerView command, for <strong>JAWS</strong> and
+<strong>NVDA</strong>. The two are kept at parity: the same commands and
+the same answers, on keys chosen to suit each screen reader’s
+conventions.</p>
+<p>Where a command has no key, it is on the Alternate Menu —
+<strong>Alt+JAWSKey+F10</strong> on JAWS, <strong>NVDA+Alt+F10</strong>
+on NVDA — which lists everything with its key beside it.</p>
+<p><strong>Alt+Shift+H</strong> shows the same list in a window where
+each key is a link: press Enter on a line to run that command.</p>
+<p>Two notes on reading the keys below. <strong>JAWSKey</strong> is the
+Insert key, or Caps Lock if you have set JAWS that way. On NVDA,
+<strong>NVDA</strong> is whichever key you have set as the NVDA
+modifier.</p>
+<h2 id="why-some-keys-differ-between-the-two">Why some keys differ
+between the two</h2>
+<p>Most are identical. Where they are not, there is a reason:</p>
+<ul>
+<li><strong>Jump to Probable Main</strong> is Shift+Q on JAWS, beside
+JAWS’s own Q for the main region, and Shift+J on NVDA. Each follows its
+own screen reader’s vocabulary.</li>
+<li><strong>Log to Clipboard</strong> is Alt+JAWSKey+L on JAWS and
+Control+Shift+L on NVDA. Commands that must work before a browser has
+loaded carry the screen-reader modifier on JAWS.</li>
+<li><strong>Tab List</strong> has no JAWS key because F4 on JAWS puts
+the cursor in Edge’s address bar. It is on the menu instead; Tab Names,
+which merely says what is open, has Shift+F4 on both.</li>
+</ul>
+<h2 id="keys-that-homerview-deliberately-leaves-alone">Keys that
+HomerView deliberately leaves alone</h2>
+<p><strong>Control+F</strong> is your screen reader’s own find, and it
+stays that way. HomerView adds the reverse and the pattern searches that
+neither screen reader provides, and leaves the forward text search where
+you already know it.</p>
+<p>There is likewise no HomerView command for listing headings, links,
+form fields or elements, or for exploring the page, because JAWS and
+NVDA both do those well.</p>
+<h2 id="every-command">Every command</h2>
+<h3 id="getting-started">Getting started</h3>
+<ul>
+<li><strong>Launch HomerView</strong> — JAWS: Alt+JAWSKey+H. NVDA:
+NVDA+Alt+H.</li>
+<li><strong>Alternate Menu</strong> — JAWS: Alt+JAWSKey+F10. NVDA:
+NVDA+Alt+F10.</li>
+<li><strong>Hotkey Summary</strong> — JAWS: Alt+Shift+H. NVDA:
+Alt+Shift+H.</li>
+</ul>
+<h3 id="reading-the-page">Reading the page</h3>
+<ul>
+<li><strong>Jump to Probable Main</strong> — JAWS: Shift+Q. NVDA:
+Shift+J.</li>
+<li><strong>Read All</strong> — JAWS: Alt+F8. NVDA: Alt+F8.</li>
+<li><strong>Extract Main Content</strong> — JAWS: Shift+F9. NVDA:
+Shift+F9.</li>
+<li><strong>Say Metadata</strong> — JAWS: Alt+M. NVDA: Alt+M.</li>
+<li><strong>Link Target</strong> — JAWS: Alt+L. NVDA: Alt+L.</li>
+</ul>
+<h3 id="finding">Finding</h3>
+<ul>
+<li><strong>Reverse Find</strong> — JAWS: Control+Shift+F. NVDA:
+Control+Shift+F.</li>
+<li><strong>Forward Find with Regular Expression</strong> — JAWS:
+Control+F3. NVDA: Control+F3.</li>
+<li><strong>Reverse Find with Regular Expression</strong> — JAWS:
+Control+Shift+F3. NVDA: Control+Shift+F3.</li>
+<li><strong>Forward Find Again</strong> — JAWS: F3. NVDA: F3.</li>
+<li><strong>Reverse Find Again</strong> — JAWS: Shift+F3. NVDA:
+Shift+F3.</li>
+<li><strong>Extract with Regular Expression</strong> — JAWS:
+Control+Shift+E. NVDA: not yet on NVDA.</li>
+</ul>
+<h3 id="selecting-and-copying">Selecting and copying</h3>
+<ul>
+<li><strong>Start Selection</strong> — JAWS: F8. NVDA: F8.</li>
+<li><strong>Complete Selection</strong> — JAWS: Shift+F8. NVDA:
+Shift+F8.</li>
+<li><strong>Copy Line</strong> — JAWS: Control+C. NVDA: Control+C.</li>
+<li><strong>Copy Append</strong> — JAWS: Alt+C. NVDA: Alt+C.</li>
+<li><strong>Copy All</strong> — JAWS: Control+F8. NVDA: Control+F8.</li>
+<li><strong>Page Links to Clipboard</strong> — JAWS: Alt+Shift+P. NVDA:
+Alt+Shift+P.</li>
+</ul>
+<h3 id="the-clipboard">The clipboard</h3>
+<ul>
+<li><strong>Say Clipboard</strong> — JAWS: Alt+Apostrophe. NVDA:
+Alt+apostrophe.</li>
+<li><strong>Save Clipboard</strong> — JAWS: Control+Apostrophe. NVDA:
+Control+apostrophe.</li>
+<li><strong>Append Clipboard</strong> — JAWS: Control+Shift+Apostrophe.
+NVDA: Control+Shift+apostrophe.</li>
+<li><strong>Clear Clipboard</strong> — JAWS: Alt+Shift+Apostrophe. NVDA:
+Alt+Shift+apostrophe.</li>
+</ul>
+<h3 id="documents-and-files">Documents and files</h3>
+<ul>
+<li><strong>Open Document</strong> — JAWS: Control+O. NVDA:
+Control+O.</li>
+<li><strong>Save Page</strong> — JAWS: Control+S. NVDA: Control+S,
+Control+Alt+S.</li>
+<li><strong>Web Download</strong> — JAWS: Alt+Shift+W. NVDA:
+Alt+Shift+W.</li>
+</ul>
+<h3 id="accessibility">Accessibility</h3>
+<ul>
+<li><strong>Check with Axe</strong> — JAWS: Alt+JAWSKey+A. NVDA: on the
+Alternate Menu, under Check Accessibility.</li>
+<li><strong>Check with Equal Access</strong> — JAWS: Alt+JAWSKey+I.
+NVDA: on the Alternate Menu, under Check Accessibility.</li>
+</ul>
+<h3 id="tabs-and-dialogs">Tabs and dialogs</h3>
+<ul>
+<li><strong>Tab List</strong> — JAWS: on the Alternate Menu only. NVDA:
+F4.</li>
+<li><strong>Tab Names</strong> — JAWS: Shift+F4. NVDA: Shift+F4.</li>
+<li><strong>Dismiss Dialog</strong> — JAWS: Alt+JAWSKey+D. NVDA:
+NVDA+Alt+D.</li>
+</ul>
+<h3 id="homerviews-own-documents">HomerView’s own documents</h3>
+<ul>
+<li><strong>User Guide</strong> — JAWS: Control+F1. NVDA:
+Control+F1.</li>
+<li><strong>Quick Start</strong> — JAWS: Alt+Shift+F1. NVDA:
+Alt+Shift+F1.</li>
+<li><strong>History of Changes</strong> — JAWS: Shift+F1. NVDA:
+Shift+F1.</li>
+<li><strong>Developer Notes</strong> — JAWS: Control+Shift+F1. NVDA:
+Control+Shift+F1.</li>
+<li><strong>Hotkey Document</strong> — JAWS: on the Alternate Menu only.
+NVDA: on the Alternate Menu only.</li>
+<li><strong>Project Announcement</strong> — JAWS: on the Alternate Menu
+only. NVDA: on the Alternate Menu only.</li>
+<li><strong>About HomerView</strong> — JAWS: Alt+F1. NVDA: Alt+F1.</li>
+<li><strong>Log to Clipboard</strong> — JAWS: Alt+JAWSKey+L. NVDA:
+Control+Shift+L.</li>
+<li><strong>Session Log</strong> — JAWS: Alt+Control+F1. NVDA:
+Alt+Control+F1.</li>
+</ul>
+</body>
+</html>

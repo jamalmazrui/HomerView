@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>HomerView User Guide</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">HomerView User Guide</h1>
+</header>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#what-homerview-is" id="toc-what-homerview-is">What
+HomerView is</a></li>
+<li><a href="#what-homerview-deliberately-does-not-do"
+id="toc-what-homerview-deliberately-does-not-do">What HomerView
+deliberately does not do</a></li>
+<li><a href="#getting-started" id="toc-getting-started">Getting
+started</a>
+<ul>
+<li><a href="#starting-homerview" id="toc-starting-homerview">Starting
+HomerView</a></li>
+<li><a href="#the-alternate-menu" id="toc-the-alternate-menu">The
+Alternate Menu</a></li>
+<li><a href="#the-hotkey-summary" id="toc-the-hotkey-summary">The Hotkey
+Summary</a></li>
+</ul></li>
+<li><a href="#tutorial" id="toc-tutorial">Tutorial</a>
+<ul>
+<li><a href="#reading-an-article-properly"
+id="toc-reading-an-article-properly">Reading an article
+properly</a></li>
+<li><a href="#deciding-whether-to-follow-a-link"
+id="toc-deciding-whether-to-follow-a-link">Deciding whether to follow a
+link</a></li>
+<li><a href="#finding-things" id="toc-finding-things">Finding
+things</a></li>
+<li><a href="#selecting-a-passage"
+id="toc-selecting-a-passage">Selecting a passage</a></li>
+<li><a href="#gathering-files-from-a-page"
+id="toc-gathering-files-from-a-page">Gathering files from a
+page</a></li>
+<li><a href="#checking-accessibility"
+id="toc-checking-accessibility">Checking accessibility</a></li>
+<li><a href="#opening-a-document-that-is-not-a-web-page"
+id="toc-opening-a-document-that-is-not-a-web-page">Opening a document
+that is not a web page</a></li>
+</ul></li>
+<li><a href="#reference" id="toc-reference">Reference</a>
+<ul>
+<li><a href="#where-things-go" id="toc-where-things-go">Where things
+go</a></li>
+<li><a href="#the-log" id="toc-the-log">The log</a></li>
+<li><a href="#homerviews-own-documents"
+id="toc-homerviews-own-documents">HomerView’s own documents</a></li>
+<li><a href="#hotkeys" id="toc-hotkeys">Hotkeys</a></li>
+</ul></li>
+<li><a href="#troubleshooting"
+id="toc-troubleshooting">Troubleshooting</a></li>
+</ul>
+</nav>
+<p>HomerView is a screen-reader companion for reading the web. It works
+with <strong>JAWS</strong> and with <strong>NVDA</strong>, and the two
+are kept at parity on purpose: the same commands, the same answers, on
+keys chosen to suit each screen reader’s own conventions. Where this
+guide gives two keys, the first is JAWS and the second is NVDA.</p>
+<h2 id="what-homerview-is">What HomerView is</h2>
+<p>HomerView launches and drives its own copy of Microsoft Edge through
+the Chrome DevTools Protocol. That connection is the whole point. It
+lets HomerView ask the browser questions that a screen reader, which
+sees only the rendered result, cannot answer:</p>
+<ul>
+<li>the page as scripts have actually built it, including links that
+were not in the file the server sent</li>
+<li>the browser’s own cookies and user agent, so a file behind a sign-in
+can be fetched exactly as a click would fetch it</li>
+<li>what a link’s server says about the thing at the other end, before
+you go there</li>
+</ul>
+<p>It uses a separate browser profile, so your ordinary browsing is
+untouched.</p>
+<h2 id="what-homerview-deliberately-does-not-do">What HomerView
+deliberately does not do</h2>
+<p>There is no HomerView command for listing headings, listing links,
+listing form fields, exploring the page, saying the address, or finding
+text forwards. JAWS and NVDA already do all of those well, and a second
+way of doing them would be one more thing to remember for no gain.</p>
+<p>HomerView adds a command only where it can do something your screen
+reader cannot, or can do it noticeably better. Reverse find exists
+because JAWS’s own find goes forward only. Pattern find exists because
+neither screen reader can search by regular expression. Copy All exists
+because selecting a whole page and copying it takes the browser’s
+selection, which drags in the navigation and the footers.</p>
+<h2 id="getting-started">Getting started</h2>
+<h3 id="starting-homerview">Starting HomerView</h3>
+<p><strong>Alt+JAWSKey+H</strong> / <strong>NVDA+Alt+H</strong> launches
+HomerView’s Edge window, or reconnects to it if it is already
+running.</p>
+<h3 id="the-alternate-menu">The Alternate Menu</h3>
+<p><strong>Alt+JAWSKey+F10</strong> / <strong>NVDA+Alt+F10</strong>
+opens a list of every command, each with its key beside it. This is the
+discovery surface: nothing in HomerView is hidden behind a keystroke you
+must already know. Arrow to a command and press Enter.</p>
+<h3 id="the-hotkey-summary">The Hotkey Summary</h3>
+<p><strong>Alt+Shift+H</strong> shows every command in a window where
+each key line is a link. Press Enter on a line to run that command. Its
+first line gives the version and the installation time, which is how you
+confirm which build is loaded.</p>
+<h2 id="tutorial">Tutorial</h2>
+<p>The Quick Start in ReadMe.htm gets you moving in five minutes. This
+tutorial goes further, and assumes you have HomerView running.</p>
+<h3 id="reading-an-article-properly">Reading an article properly</h3>
+<p>Open a news article or a long blog post — somewhere with a lot of
+navigation around the content.</p>
+<p>Press <strong>Shift+Q</strong> / <strong>Shift+J</strong>, Jump to
+Probable Main. On a page that declares its main region you land there
+and hear “Main content, as the page declares it”. On a page that
+declares nothing, HomerView weighs every part of the page — how much
+text it holds, how much of that text is links — and moves you to the
+winner, saying “Main content, by weighing the page”. Either way you are
+past the navigation in one keystroke.</p>
+<p>Now press <strong>Shift+F9</strong>, Extract Main Content. HomerView
+runs Mozilla’s Readability over the page and opens the result in a tab
+of its own: the article, its title and byline, and its links, without
+the surrounding furniture. Every other HomerView command works on that
+tab, because it is a real page in HomerView’s own browser.</p>
+<p>If you would rather have the text than the tab,
+<strong>Alt+F8</strong> is Read All. It reads the whole page from the
+top and does not move your cursor, which is the difference between it
+and your screen reader’s Say All: that one starts wherever you are and
+leaves you further down.</p>
+<h3 id="deciding-whether-to-follow-a-link">Deciding whether to follow a
+link</h3>
+<p>Put the cursor on any link and press <strong>Alt+L</strong>, Link
+Target.</p>
+<p>HomerView asks the link’s server about the thing at the other end
+without fetching the whole of it, and tells you what it is: a web page,
+a PDF, a Zip archive; how big; the title of the page if it is a page;
+roughly how many words and how many minutes that is; whether there is a
+paywall; and, importantly, whether the address ends up somewhere other
+than where it appeared to point. Shortened links are resolved and
+named.</p>
+<p>If the link cannot be reached at all, you still get its address,
+because that was known before anything was asked.</p>
+<h3 id="finding-things">Finding things</h3>
+<p>Your screen reader’s own <strong>Control+F</strong> searches forward,
+and HomerView leaves that key alone.</p>
+<ul>
+<li><strong>Control+Shift+F</strong> searches
+<strong>backwards</strong>, which JAWS has no key for.</li>
+<li><strong>Control+F3</strong> searches forward for a <strong>regular
+expression</strong>.</li>
+<li><strong>Control+Shift+F3</strong> searches backwards for one.</li>
+<li><strong>F3</strong> and <strong>Shift+F3</strong> move to the next
+and previous match, of whichever kind of find you did last.</li>
+</ul>
+<p>Try <strong>Control+F3</strong> with a pattern like
+<code>\d{4}</code> to jump between years on a page, or
+<code>\$[\d,]+</code> to move between prices.</p>
+<p><strong>Control+Shift+E</strong>, Extract with Regular Expression,
+answers the other question: not “where is the next one” but “what are
+they all”. It gathers every match into a window, each separated by a
+form feed between blank lines, so they read as a series of small pages
+rather than a run-on list.</p>
+<h3 id="selecting-a-passage">Selecting a passage</h3>
+<p>HomerView uses EdSharp’s convention, which is a pair rather than a
+drag:</p>
+<ol type="1">
+<li>Move to where the passage begins and press <strong>F8</strong>,
+Start Selection.</li>
+<li>Move to where it ends — by arrow, by heading, by find, however
+suits.</li>
+<li>Press <strong>Shift+F8</strong>, Complete Selection.</li>
+</ol>
+<p>Then <strong>Control+C</strong> copies it. With no selection,
+Control+C copies the line the cursor is on, which is the case that comes
+up most often and which the browser’s own Control+C does nothing
+about.</p>
+<p><strong>Alt+C</strong>, Copy Append, adds the selection or the line
+to what is already on the clipboard, with a blank line between. That is
+how you gather three passages from different parts of a page into one
+note without a second window to paste into.</p>
+<p><strong>Control+F8</strong> copies the whole page.</p>
+<h3 id="gathering-files-from-a-page">Gathering files from a page</h3>
+<p>Find a page with documents on it — an agency’s publications page is
+ideal — and press <strong>Alt+Shift+W</strong>, Web Download.</p>
+<p>HomerView tells you what is there by kind: “pdf: PDF document, 11.
+docx: Word document, 6. html: Web page, 1.” and offers you the sensible
+ones already filled in. Page addresses and script assets are listed but
+not chosen for you, since they are numerous and rarely wanted; type
+<code>html</code> if you want them.</p>
+<p>Then each file is named aloud as it is fetched, and silence after a
+name means it arrived. Only a failure says anything more. At the end a
+message box gives the count, the folder and anything that did not
+come.</p>
+<p>The files go to a folder under Downloads named after the page, and a
+second run adds to that folder rather than replacing it.</p>
+<p>The reason this works where a plain download would not is that the
+request carries the browser’s own cookies, user agent and referrer, plus
+the Sec-Fetch headers a click produces. A file gated behind a sign-in
+comes to you as it would to a click.</p>
+<h3 id="checking-accessibility">Checking accessibility</h3>
+<p><strong>Alt+JAWSKey+A</strong> runs Deque’s axe-core over the page
+and writes a readable report to your Downloads folder as
+<code>Axe-&lt;page title&gt;.htm</code>, then opens it.</p>
+<p>The report starts in plain language — how many problems, and the
+reminder that an automated tool finds roughly thirty to forty per cent
+of accessibility problems. Then the severity breakdown, the failure rate
+(impact-weighted faults per thousand bytes of page, for comparing a page
+with itself over time), the three most common problems, the recommended
+next steps, and then each problem with its WCAG criterion
+<strong>named</strong> and its conformance level given, up to five
+places each with the selector, the element and the engine’s own
+explanation.</p>
+<p><strong>Alt+JAWSKey+I</strong> runs IBM’s Equal Access engine
+instead. Its unified ruleset folds EN 301 549 and Section 508 in with
+WCAG, which is the superset several procurement regimes actually ask
+about. It writes four files — json, csv, xlsx and html — into a folder
+named <code>&lt;page title&gt; - accessibility</code> under Downloads,
+replacing that folder each run, and opens the HTML report.</p>
+<p>Use both. They disagree usefully.</p>
+<h3 id="opening-a-document-that-is-not-a-web-page">Opening a document
+that is not a web page</h3>
+<p><strong>Control+O</strong> opens a file dialog — the classic Windows
+one, with a real folder tree — and will open a Word document, a PDF, an
+ebook, a spreadsheet or a slide deck by converting it to a web page
+first. After that every HomerView command works on it: find, extract,
+select, copy, read all.</p>
+<p><strong>Control+S</strong> saves the page you are on, as a web page
+or as anything pandoc can write — Word, OpenDocument, Markdown, EPUB —
+chosen simply by naming the file.</p>
+<p>Conversion needs pandoc or 2htm. HomerView looks for them where they
+usually live and says plainly when neither is there.</p>
+<h2 id="reference">Reference</h2>
+<h3 id="where-things-go">Where things go</h3>
+<ul>
+<li><strong>Downloads\&lt;page title&gt;</strong> — files fetched by Web
+Download. Kept between runs; duplicate names are numbered.</li>
+<li><strong>Downloads\Axe-&lt;page title&gt;.htm</strong> — the axe
+report.</li>
+<li><strong>Downloads\&lt;page title&gt; - accessibility</strong> — the
+IBM reports, replaced each run.</li>
+<li><strong>%LOCALAPPDATA%\HomerView\logs</strong> — the log, one file
+per installation, holding the installation and every session since.</li>
+<li><strong>%LOCALAPPDATA%\HomerView\EdgeProfile</strong> — HomerView’s
+browser profile.</li>
+</ul>
+<h3 id="the-log">The log</h3>
+<p>Everything HomerView does is logged: every command, every answer,
+every failure, in the order it happened.</p>
+<ul>
+<li><strong>Alt+JAWSKey+L</strong> / <strong>Control+Shift+L</strong>
+puts the log on the clipboard, ready to attach to a message.</li>
+<li><strong>Alt+Control+F1</strong> opens the same log to read.</li>
+</ul>
+<h3 id="homerviews-own-documents">HomerView’s own documents</h3>
+<ul>
+<li><strong>Control+F1</strong> — this guide</li>
+<li><strong>Alt+Shift+F1</strong> — the Quick Start</li>
+<li><strong>Shift+F1</strong> — the history of changes</li>
+<li><strong>Control+Shift+F1</strong> — the developer notes</li>
+<li><strong>Alt+F1</strong> — which build is loaded and where everything
+lives</li>
+<li>The hotkey document and the project announcement are on the
+Alternate Menu</li>
+</ul>
+<h3 id="hotkeys">Hotkeys</h3>
+<p>This section is also available as a document of its own, Hotkeys.htm,
+and as the Hotkey Summary on <strong>Alt+Shift+H</strong>, where every
+key is a link you can press Enter on.</p>
+<h4 id="getting-started-1">Getting started</h4>
+<ul>
+<li><strong>Launch HomerView</strong> — JAWS: Alt+JAWSKey+H. NVDA:
+NVDA+Alt+H.</li>
+<li><strong>Alternate Menu</strong> — JAWS: Alt+JAWSKey+F10. NVDA:
+NVDA+Alt+F10.</li>
+<li><strong>Hotkey Summary</strong> — JAWS: Alt+Shift+H. NVDA:
+Alt+Shift+H.</li>
+</ul>
+<h4 id="reading-the-page">Reading the page</h4>
+<ul>
+<li><strong>Jump to Probable Main</strong> — JAWS: Shift+Q. NVDA:
+Shift+J.</li>
+<li><strong>Read All</strong> — JAWS: Alt+F8. NVDA: Alt+F8.</li>
+<li><strong>Extract Main Content</strong> — JAWS: Shift+F9. NVDA:
+Shift+F9.</li>
+<li><strong>Say Metadata</strong> — JAWS: Alt+M. NVDA: Alt+M.</li>
+<li><strong>Link Target</strong> — JAWS: Alt+L. NVDA: Alt+L.</li>
+</ul>
+<h4 id="finding">Finding</h4>
+<ul>
+<li><strong>Reverse Find</strong> — JAWS: Control+Shift+F. NVDA:
+Control+Shift+F.</li>
+<li><strong>Forward Find with Regular Expression</strong> — JAWS:
+Control+F3. NVDA: Control+F3.</li>
+<li><strong>Reverse Find with Regular Expression</strong> — JAWS:
+Control+Shift+F3. NVDA: Control+Shift+F3.</li>
+<li><strong>Forward Find Again</strong> — JAWS: F3. NVDA: F3.</li>
+<li><strong>Reverse Find Again</strong> — JAWS: Shift+F3. NVDA:
+Shift+F3.</li>
+<li><strong>Extract with Regular Expression</strong> — JAWS:
+Control+Shift+E. NVDA: not yet on NVDA.</li>
+</ul>
+<h4 id="selecting-and-copying">Selecting and copying</h4>
+<ul>
+<li><strong>Start Selection</strong> — JAWS: F8. NVDA: F8.</li>
+<li><strong>Complete Selection</strong> — JAWS: Shift+F8. NVDA:
+Shift+F8.</li>
+<li><strong>Copy Line</strong> — JAWS: Control+C. NVDA: Control+C.</li>
+<li><strong>Copy Append</strong> — JAWS: Alt+C. NVDA: Alt+C.</li>
+<li><strong>Copy All</strong> — JAWS: Control+F8. NVDA: Control+F8.</li>
+<li><strong>Page Links to Clipboard</strong> — JAWS: Alt+Shift+P. NVDA:
+Alt+Shift+P.</li>
+</ul>
+<h4 id="the-clipboard">The clipboard</h4>
+<ul>
+<li><strong>Say Clipboard</strong> — JAWS: Alt+Apostrophe. NVDA:
+Alt+apostrophe.</li>
+<li><strong>Save Clipboard</strong> — JAWS: Control+Apostrophe. NVDA:
+Control+apostrophe.</li>
+<li><strong>Append Clipboard</strong> — JAWS: Control+Shift+Apostrophe.
+NVDA: Control+Shift+apostrophe.</li>
+<li><strong>Clear Clipboard</strong> — JAWS: Alt+Shift+Apostrophe. NVDA:
+Alt+Shift+apostrophe.</li>
+</ul>
+<h4 id="documents-and-files">Documents and files</h4>
+<ul>
+<li><strong>Open Document</strong> — JAWS: Control+O. NVDA:
+Control+O.</li>
+<li><strong>Save Page</strong> — JAWS: Control+S. NVDA: Control+S,
+Control+Alt+S.</li>
+<li><strong>Web Download</strong> — JAWS: Alt+Shift+W. NVDA:
+Alt+Shift+W.</li>
+</ul>
+<h4 id="accessibility">Accessibility</h4>
+<ul>
+<li><strong>Check with Axe</strong> — JAWS: Alt+JAWSKey+A. NVDA: on the
+Alternate Menu, under Check Accessibility.</li>
+<li><strong>Check with Equal Access</strong> — JAWS: Alt+JAWSKey+I.
+NVDA: on the Alternate Menu, under Check Accessibility.</li>
+</ul>
+<h4 id="tabs-and-dialogs">Tabs and dialogs</h4>
+<ul>
+<li><strong>Tab List</strong> — JAWS: on the Alternate Menu only. NVDA:
+F4.</li>
+<li><strong>Tab Names</strong> — JAWS: Shift+F4. NVDA: Shift+F4.</li>
+<li><strong>Dismiss Dialog</strong> — JAWS: Alt+JAWSKey+D. NVDA:
+NVDA+Alt+D.</li>
+</ul>
+<h4 id="homerviews-own-documents-1">HomerView’s own documents</h4>
+<ul>
+<li><strong>User Guide</strong> — JAWS: Control+F1. NVDA:
+Control+F1.</li>
+<li><strong>Quick Start</strong> — JAWS: Alt+Shift+F1. NVDA:
+Alt+Shift+F1.</li>
+<li><strong>History of Changes</strong> — JAWS: Shift+F1. NVDA:
+Shift+F1.</li>
+<li><strong>Developer Notes</strong> — JAWS: Control+Shift+F1. NVDA:
+Control+Shift+F1.</li>
+<li><strong>Hotkey Document</strong> — JAWS: on the Alternate Menu only.
+NVDA: on the Alternate Menu only.</li>
+<li><strong>Project Announcement</strong> — JAWS: on the Alternate Menu
+only. NVDA: on the Alternate Menu only.</li>
+<li><strong>About HomerView</strong> — JAWS: Alt+F1. NVDA: Alt+F1.</li>
+<li><strong>Log to Clipboard</strong> — JAWS: Alt+JAWSKey+L. NVDA:
+Control+Shift+L.</li>
+<li><strong>Session Log</strong> — JAWS: Alt+Control+F1. NVDA:
+Alt+Control+F1.</li>
+</ul>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<p><strong>A command says the browser is not running.</strong> Press
+Alt+JAWSKey+H / NVDA+Alt+H to launch or reconnect.</p>
+<p><strong>A key does nothing.</strong> Open the Alternate Menu and run
+the command from there. If it works from the menu, the key is being
+taken by something else. Report it with the log attached.</p>
+<p><strong>Edge shows a warning about an unsupported command-line
+flag.</strong> It should not any more; if it does, the log’s launch line
+lists every flag passed.</p>
+<p><strong>An accessibility check says the engine could not be
+loaded.</strong> That means the engine could not be downloaded; check
+the internet connection. It is cached after the first successful
+run.</p>
+<p><strong>Opening a Word file or PDF says it could not be
+converted.</strong> Install pandoc or 2htm. HomerView finds them but
+does not ship them.</p>
+<p><strong>Something took a long time and nothing came back.</strong>
+Send the log. Every command records how long its parts took.</p>
+</body>
+</html>

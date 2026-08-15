@@ -59,6 +59,30 @@ def copyPaths(lPaths):
     kernel32 = ctypes.windll.kernel32
     user32 = ctypes.windll.user32
 
+    # Every one of these has to be declared, and the reason is worth stating
+    # because the failure is silent and looks like something else.
+    #
+    # ctypes assumes a function returns a C int, which is 32 bits, on every
+    # platform. GlobalAlloc and GlobalLock return 64-bit handles and pointers
+    # on 64-bit Windows. Undeclared, the top half of each is thrown away, and
+    # what comes back is a truncated value that is not a valid handle. Then
+    # GlobalLock fails, returns nothing, and memmove writes to address zero.
+    #
+    # Which is exactly what happened on a tester's machine: an access violation
+    # writing 0x0000000000000000, from a line that was merely copying bytes.
+    kernel32.GlobalAlloc.restype = wintypes.HGLOBAL
+    kernel32.GlobalAlloc.argtypes = [wintypes.UINT, ctypes.c_size_t]
+    kernel32.GlobalLock.restype = wintypes.LPVOID
+    kernel32.GlobalLock.argtypes = [wintypes.HGLOBAL]
+    kernel32.GlobalUnlock.restype = wintypes.BOOL
+    kernel32.GlobalUnlock.argtypes = [wintypes.HGLOBAL]
+    kernel32.GlobalFree.restype = wintypes.HGLOBAL
+    kernel32.GlobalFree.argtypes = [wintypes.HGLOBAL]
+    user32.SetClipboardData.restype = wintypes.HANDLE
+    user32.SetClipboardData.argtypes = [wintypes.UINT, wintypes.HANDLE]
+    user32.OpenClipboard.restype = wintypes.BOOL
+    user32.OpenClipboard.argtypes = [wintypes.HWND]
+
     # The names, each ending in a null, and a second null after the last one.
     # That double ending is how Windows knows the list has finished.
     sNames = "\0".join(lPaths) + "\0\0"
@@ -78,7 +102,14 @@ def copyPaths(lPaths):
         # allocated movable and never freed here. Freeing it would take the
         # clipboard's own data away underneath whatever pastes next.
         handleDrop = kernel32.GlobalAlloc(GMEM_MOVEABLE, len(bBlock))
+        if not handleDrop:
+            homerLog.warning("The clipboard memory could not be allocated")
+            return False
         pointerDrop = kernel32.GlobalLock(handleDrop)
+        if not pointerDrop:
+            kernel32.GlobalFree(handleDrop)
+            homerLog.warning("The clipboard memory could not be locked")
+            return False
         ctypes.memmove(pointerDrop, bBlock, len(bBlock))
         kernel32.GlobalUnlock(handleDrop)
         if not user32.SetClipboardData(CF_HDROP, handleDrop):
@@ -90,7 +121,12 @@ def copyPaths(lPaths):
         sText = "\r\n".join(lPaths)
         bText = sText.encode("utf-16-le") + b"\x00\x00"
         handleText = kernel32.GlobalAlloc(GMEM_MOVEABLE, len(bText))
+        if not handleText:
+            return True
         pointerText = kernel32.GlobalLock(handleText)
+        if not pointerText:
+            kernel32.GlobalFree(handleText)
+            return True
         ctypes.memmove(pointerText, bText, len(bText))
         kernel32.GlobalUnlock(handleText)
         if not user32.SetClipboardData(CF_UNICODETEXT, handleText):

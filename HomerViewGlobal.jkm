@@ -1,0 +1,15 @@
+﻿; HomerViewGlobal.jkm -- the one HomerView key that must work anywhere
+;
+; Launching cannot be bound in the Edge key map, because before HomerView runs
+; there is no Edge window to be focused. So this one binding belongs in the
+; default key map, which applies everywhere.
+;
+; The installer MERGES this line into default.jkm rather than replacing the
+; file, and keeps a copy of the original beside it. A user's default key map
+; may hold years of their own customisation, and replacing it would be taking
+; something that was not ours to take.
+;
+; Alt+JAWSKey+H, which is the NVDA binding with JAWS substituted for NVDA.
+
+[Common Keys]
+Alt+JAWSKey+H=launchHomerView

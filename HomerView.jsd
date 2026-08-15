@@ -1,0 +1,17 @@
+﻿; HomerView.jsd -- what the Key Describer says about each command
+;
+; Present tense, one sentence, and where the key is not obvious the sentence
+; says why it is that key.
+
+checkAccessibility=Check Accessibility
+checkAccessibility_Synopsis=Tests the page for accessibility problems and says how many were found. A for Accessibility.
+describeLinkTarget=Link Target
+describeLinkTarget_Synopsis=Asks what is at the link under the cursor without going there: what kind of thing, how big, and whether it ends up where it claims. L for Link.
+explorePage=Explore Page
+explorePage_Synopsis=Describes how the page is laid out, including what a sighted person can see that your reading order never mentions. E for Explore.
+extractMainContent=Extract Main Content
+extractMainContent_Synopsis=Extracts the readable part of the page into a tab of its own. F9 is Edge's own reading view, and Shift+F9 is HomerView's, which works on pages Edge will not.
+launchHomerView=Launch HomerView
+launchHomerView_Synopsis=Launches or reconnects HomerView's copy of Microsoft Edge. H for HomerView, and it works anywhere because nothing is running yet.
+moveToProbableMain=Jump to Probable Main
+moveToProbableMain_Synopsis=Finds the main content of a page that declares none, by weighing every part of it. Q moves to a main region the page declared; this is the case Q cannot serve.

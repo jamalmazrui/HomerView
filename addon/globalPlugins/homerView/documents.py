@@ -49,8 +49,8 @@ def findInstalledDocument(sName):
 
     lFolders = []
     if logger.pathLogFile:
-        lFolders.append(logger.pathLogFile.parent)
-        lFolders.append(logger.pathLogFile.parent / "docs")
+        lFolders.append(logger.dataFolder())
+        lFolders.append(logger.dataFolder() / "docs")
     for sVariable in ("PROGRAMFILES", "PROGRAMFILES(X86)"):
         sRoot = os.environ.get(sVariable, "")
         if sRoot:
@@ -202,8 +202,8 @@ def findDocument(lNames):
 
     lFolders = []
     if logger.pathLogFile:
-        lFolders.append(logger.pathLogFile.parent)
-        lFolders.append(logger.pathLogFile.parent / "docs")
+        lFolders.append(logger.dataFolder())
+        lFolders.append(logger.dataFolder() / "docs")
     lFolders.append(Path(__file__).resolve().parents[2])
     lFolders.append(Path(__file__).resolve().parents[2] / "doc" / "en")
     for pathFolder in lFolders:

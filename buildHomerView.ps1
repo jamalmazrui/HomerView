@@ -70,7 +70,39 @@ function checkSetupScript {
             $iProblems += 1
         }
     
-        # A line beginning with an opening bracket is read as a section header, and
+        # A flag valid in one section is not valid in every section. Inno Setup
+    # rejects an unknown flag rather than ignoring it, and runasoriginaluser in
+    # [UninstallRun] is what stopped a build: it is a [Run] flag, and the two
+    # sections look similar enough that the mistake is easy.
+    $dSectionFlags = @{
+        "Run" = @("postinstall","skipifsilent","runascurrentuser","runasoriginaluser",
+            "nowait","shellexec","waituntilterminated","waituntilidle","runhidden",
+            "runminimized","runmaximized","skipifdoesntexist","unchecked","hidewizard",
+            "64bit","dontlogparameters")
+        "UninstallRun" = @("runhidden","runminimized","runmaximized","shellexec",
+            "skipifdoesntexist","waituntilterminated","waituntilidle","64bit",
+            "dontlogparameters","hidewizard")
+    }
+    $sSection = ""
+    $iLine = 0
+    foreach ($sLine in $lLines) {
+        $iLine += 1
+        $sTrimmed = $sLine.Trim()
+        if ($sTrimmed -match '^\[(\w+)\]') { $sSection = $Matches[1] }
+        if (-not $dSectionFlags.ContainsKey($sSection)) { continue }
+        if ($sTrimmed -notmatch 'Flags:\s*([^;\\]+)') { continue }
+        foreach ($sFlag in ($Matches[1] -split '\s+')) {
+            if (-not $sFlag) { continue }
+            if ($dSectionFlags[$sSection] -notcontains $sFlag.ToLower()) {
+                writeLog "ERROR: line $iLine uses the flag $sFlag, which is not valid in"
+                writeLog "       the [$sSection] section. Inno Setup rejects an unknown flag"
+                writeLog "       rather than ignoring it."
+                $iProblems += 1
+            }
+        }
+    }
+
+    # A line beginning with an opening bracket is read as a section header, and
         # a line beginning with a hash as a preprocessor directive, in both cases
         # before Pascal is compiled and regardless of any comment it sits inside.
         $lValidSections = @("[setup]","[types]","[components]","[tasks]","[dirs]","[files]",
@@ -122,6 +154,88 @@ function checkSetupScript {
     }
 }
 
+function buildBridge {
+    # The command line utility the JAWS scripts use.
+    #
+    # JAWS scripting cannot open a WebSocket, which is where every Chrome
+    # DevTools command that reads or acts on a page travels. This program holds
+    # that side: a script runs it, it asks the browser, and it writes the answer
+    # to a file the script reads.
+    #
+    # Compiled with csc.exe from the .NET Framework, which is on every Windows
+    # machine already, so this needs no Visual Studio and no NuGet.
+    $pathSource = Join-Path $pathRoot "HomerView.cs"
+    $pathBridge = Join-Path $pathRoot "HomerView.exe"
+    if (-not (Test-Path $pathSource)) {
+        writeLog "HomerView.cs is not here, so the JAWS bridge is skipped."
+        writeLog "The NVDA add-on does not need it; only the JAWS scripts do."
+        return
+    }
+
+    $pathCompiler = Join-Path $env:WINDIR "Microsoft.NET\Framework64\v4.0.30319\csc.exe"
+    if (-not (Test-Path $pathCompiler)) {
+        writeLog "ERROR: the .NET Framework compiler was not found at $pathCompiler."
+        writeLog "       That file ships with Windows, so something is unusual here."
+        exit 1
+    }
+
+    if (Test-Path $pathBridge) {
+        Remove-Item $pathBridge -Force
+        writeLog "Removed the previous $pathBridge"
+    }
+    writeLog "Compiling with $pathCompiler"
+    # System.Windows.Forms for the clipboard, which is the only way to put a
+    # file on it in the format Explorer and Outlook understand. No window is
+    # ever shown; the assembly is referenced for one class.
+    #
+    # System.Runtime.Serialization for JsonReaderWriterFactory, which reads the
+    # browser's JSON and presents it as XML. That is what lets the JAWS side
+    # use the XML functions it has instead of the JSON functions it does not,
+    # and it means no JSON parser is written by hand on either side.
+    #
+    # System.Xml for XmlDocument and XPath. csc reads csc.rsp and references a
+    # list of assemblies by default, and System.Xml is very likely on it -- but
+    # "very likely" is how this project has lost afternoons before, a duplicate
+    # reference costs nothing, and being wrong costs a build.
+    #
+    # ALL THREE SHIP WITH .NET FRAMEWORK. Nothing is downloaded, and no third
+    # party JSON library is needed: JsonReaderWriterFactory has been in
+    # System.Runtime.Serialization since .NET 3.5.
+    #
+    # System.IO.Compression for ZipArchive, which is how the .xlsx is
+    # written. A spreadsheet is a zip of XML parts, so writing one needs no
+    # library -- the same approach exportReport.py takes on the NVDA side.
+    $sOutput = & $pathCompiler /nologo /target:exe /platform:x64 `
+        /reference:System.Windows.Forms.dll `
+        /reference:System.Runtime.Serialization.dll `
+        /reference:System.Xml.dll `
+        /reference:System.IO.Compression.dll `
+        "/out:$pathBridge" $pathSource 2>&1 | Out-String
+    $iExit = $LASTEXITCODE
+    foreach ($sLine in ($sOutput -split "`n")) {
+        if ($sLine.Trim()) { writeLog "    $($sLine.Trim())" }
+    }
+    if ($iExit -ne 0 -or -not (Test-Path $pathBridge)) {
+        writeLog "ERROR: the bridge did not build, exit code $iExit."
+        exit 1
+    }
+    writeLog "Built HomerView.exe, $([math]::Round((Get-Item $pathBridge).Length / 1KB)) KB."
+
+    # It must at least run. A program that compiles and will not start is worth
+    # finding here rather than from a JAWS script that got no answer.
+    $pathProbe = Join-Path $env:TEMP "HomerViewProbe.txt"
+    if (Test-Path $pathProbe) { Remove-Item $pathProbe -Force }
+    & $pathBridge "tabs" $pathProbe 2>&1 | Out-Null
+    if (Test-Path $pathProbe) {
+        writeLog "It runs and answers. (An error about connecting is expected here:"
+        writeLog "HomerView's browser is not running during a build.)"
+        Remove-Item $pathProbe -Force
+    } else {
+        writeLog "WARNING: the bridge wrote no file, which it should do even on failure."
+    }
+}
+
+
 function buildAddon {
     # Packaging the add-on, folded in from what used to be a second script.
     #
@@ -151,6 +265,15 @@ function buildAddon {
         exit 1
     }
     writeLog "Version $sVersion"
+
+    # Written out so the installed program can say what it is.
+    #
+    # Nothing that reaches the installation folder carried the version, so the
+    # JAWS log's header said "HomerView unknown". The installer passes it as a
+    # parameter too, and this is the belt to that pair of braces: a parameter
+    # can go astray between four programs, a file in the folder cannot.
+    Set-Content -Path (Join-Path $pathRoot "version.txt") -Value $sVersion -Encoding ASCII -NoNewline
+    writeLog "Wrote version.txt"
 
     if (-not (Test-Path $pathBuild)) {
         New-Item -ItemType Directory -Path $pathBuild | Out-Null
@@ -225,12 +348,77 @@ writeLog ""
 # announced it was checking the setup script. A check nobody can act on is not
 # a check, and the whole point of these is to stop a bad script reaching Inno
 # Setup, which reports a line number and four words.
-writeLog "Step 1 of 3: checking the setup script and the sources"
+writeLog "Step 1 of 5: checking the setup script and the sources"
 writeLog "Checking HomerView_setup.iss"
 checkSetupScript
+
+# A second copy of a shipped file is a copy that will diverge, and this one
+# already had. The installer ships jaws\*, so the copies of HomerView.jss,
+# HomerView.jkm, HomerView.jsd and HomerViewGlobal.jkm that sat in the project
+# root were read by nobody, and the root HomerView.jss had been left behind at
+# an older and broken revision. Anyone opening the one in the root would have
+# been reading a file that no build and no installer had touched for days.
+foreach ($sStray in @("HomerView.jss", "HomerView.jkm", "HomerView.jsd", "HomerViewGlobal.jkm")) {
+    $pathStray = Join-Path $pathRoot $sStray
+    if (Test-Path $pathStray) {
+        writeLog "WARNING: $sStray is in the project root as well as in jaws\, and only the"
+        writeLog "         one in jaws\ is built and shipped. Delete the root copy."
+    }
+}
 writeLog ""
 
-writeLog "Step 2 of 3: building the add-on"
+# The JAWS scripts, before anything is built rather than after everything is
+# installed.
+#
+# Every JSL failure so far has been found by building an add-on, compiling an
+# installer, running it, ticking the JAWS box and then opening a log in
+# C:\temp: minutes for an answer the compiler gives in under a second. The
+# check runs here, on the same footing as the setup script check, and for the
+# same reason.
+#
+# It does not stop the build. The NVDA add-on is unaffected by the state of the
+# JAWS scripts, and an installer worth testing should still be produced. What
+# it does is make the build finish with a failure, so that tagRelease does not
+# run on a release whose JAWS half does not compile.
+writeLog "Step 2 of 5: checking that the JAWS scripts compile"
+$script:bJawsFailed = $false
+$pathCheck = Join-Path $pathRoot "checkJawsScripts.ps1"
+if (-not (Test-Path $pathCheck)) {
+    writeLog "WARNING: checkJawsScripts.ps1 is not here, so the JAWS scripts were not checked."
+} else {
+    # A child process, and its output captured into this log. The one log a
+    # person is asked for has to hold the reason, not a note that the reason
+    # is in another file.
+    $sOutput = & powershell -NoProfile -ExecutionPolicy Bypass -File $pathCheck 2>&1 | Out-String
+    $iCheck = $LASTEXITCODE
+    foreach ($sLine in ($sOutput -split "`n")) {
+        $sTrimmed = $sLine.Trim()
+        if (-not $sTrimmed) { continue }
+        # The child stamps its own lines and this log stamps them again, so
+        # every folded line read "2026-08-14 00:39:18  2026-08-14 00:39:18 ...".
+        # Twice the date and none of the meaning, on every line of a log that
+        # is listened to rather than glanced at.
+        # The trailing whitespace is optional. It was not, and the child's
+        # BLANK lines arrive as a bare timestamp with nothing after it for the
+        # pattern to match, so half of them survived and the log still read
+        # like a stutter.
+        $sTrimmed = ($sTrimmed -replace '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\s*', '').Trim()
+        if (-not $sTrimmed) { continue }
+        writeLog "    $sTrimmed"
+    }
+    if ($iCheck -ne 0) {
+        writeLog "ERROR: the JAWS scripts did not compile. The build carries on, because the"
+        writeLog "       NVDA add-on does not depend on them, but it will finish as a failure."
+        $script:bJawsFailed = $true
+    }
+}
+writeLog ""
+
+writeLog "Step 3 of 5: building the bridge for JAWS"
+buildBridge
+writeLog ""
+
+writeLog "Step 4 of 5: building the add-on"
 buildAddon
 
 # Even on success, record what the add-on build produced, so this log alone
@@ -261,9 +449,26 @@ if (-not $pathCompiler) {
 }
 writeLog "Inno Setup compiler: $pathCompiler"
 
-writeLog "Step 3 of 3: compiling the installer"
-& $pathCompiler (Join-Path $pathRoot "HomerView_setup.iss")
-if ($LASTEXITCODE -ne 0) { writeLog "ERROR: the installer did not compile"; exit 1 }
+writeLog "Step 5 of 5: compiling the installer"
+# Captured, not just run. The first version let Inno Setup print to the console
+# and logged four words when it failed, so the one log a person uploads said
+# that something went wrong and nothing about what. Inno Setup names the line
+# and the reason; that belongs in the log.
+$sOutput = & $pathCompiler (Join-Path $pathRoot "HomerView_setup.iss") 2>&1 | Out-String
+$iExit = $LASTEXITCODE
+if ($iExit -ne 0) {
+    writeLog "ERROR: the installer did not compile, exit code $iExit."
+    writeLog "Inno Setup said:"
+    foreach ($sLine in ($sOutput -split "`n")) {
+        if ($sLine.Trim()) { writeLog "    $($sLine.Trim())" }
+    }
+    exit 1
+}
+# On success only the last few lines matter; the rest is a list of files.
+$lLines = @($sOutput -split "`n" | Where-Object { $_.Trim() })
+foreach ($sLine in ($lLines | Select-Object -Last 3)) {
+    writeLog "    $($sLine.Trim())"
+}
 
 $pathInstaller = Join-Path $pathRoot "HomerView_setup.exe"
 if (-not (Test-Path $pathInstaller)) {
@@ -335,6 +540,12 @@ try {
     writeLog "WARNING: the add-on could not be checked: $($_.Exception.Message)"
 }
 
+if ($script:bJawsFailed) {
+    writeLog "The add-on and the installer were built, and can be installed and tested."
+    writeLog "The JAWS scripts did not compile, so this build is NOT ready for tagRelease."
+    writeLog "buildHomerView finished with a failure"
+    exit 1
+}
 writeLog "Ready for tagRelease."
 writeLog "buildHomerView finished"
 

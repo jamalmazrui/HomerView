@@ -183,13 +183,17 @@ href="https://jrsoftware.org/isdl.php">jrsoftware.org</a>.</li>
 converters HomerView uses at run time are found rather than bundled.</p>
 <h1 id="building-it">Building it</h1>
 <pre><code>buildHomerView.cmd</code></pre>
-<p>That is the whole of it. Three steps run in order:</p>
+<p>That is the whole of it. Four steps run in order:</p>
 <ol type="1">
 <li><strong>The setup script is checked</strong>, before anything is
 compiled. Inno Setup reports a line number and four words when it
 rejects a script, which is enough to find the line and not enough to
 explain it. These checks catch the common faults and say what is
 wrong.</li>
+<li><strong>The bridge is compiled</strong> into HomerViewBridge.exe,
+with csc.exe from the .NET Framework. That is the piece the JAWS scripts
+use, because JAWS scripting cannot open a WebSocket. The NVDA add-on
+does not need it.</li>
 <li><strong>The add-on is packaged</strong> into build.nvda-addon.</li>
 <li><strong>The installer is compiled</strong> into
 HomerView_setup.exe.</li>
@@ -205,6 +209,28 @@ There used to be two, because packaging the add-on was a separate
 program, and the reason for a failure could be in whichever of them
 nobody had been asked for. Nothing about zipping a folder needed its own
 script.</p>
+<h1 id="the-jaws-side">The JAWS side</h1>
+<p>HomerView supports both screen readers from one installer. The last
+page offers the NVDA add-on and, separately, the JAWS scripts. Each
+checkbox appears only when that screen reader is actually installed,
+because offering to install scripts for a screen reader somebody does
+not have is a question with one sensible answer.</p>
+<p>The JAWS scripts are installed by installJawsScripts.ps1 rather than
+by the installer’s file section, because they have to be
+<strong>compiled in place</strong>. A .jsb built by one year’s compiler
+is not reliably loaded by another year’s JAWS, so the script finds every
+JAWS version on the machine and compiles the source with that version’s
+own scompile.exe.</p>
+<p>It runs as the ordinary user, never elevated. JAWS keeps its settings
+under the user’s roaming application data, and an elevated run would
+write to the administrator’s profile instead, where the user would never
+see it.</p>
+<p>One line goes into default.jkm, for the launch key, because launching
+cannot live in the Edge key map: before HomerView runs there is no Edge
+window. That file is merged rather than replaced, and the original is
+kept beside it as default.jkm.beforeHomerView. A user’s default key map
+may hold years of their own work.</p>
+<p>Uninstalling takes all of it back out.</p>
 <h1 id="publishing-a-release">Publishing a release</h1>
 <pre><code>buildHomerView.cmd
 git add -A

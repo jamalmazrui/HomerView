@@ -223,6 +223,24 @@ class SessionFileHandler(logging.FileHandler):
             pass
 
 
+pathDataFolder = None
+
+
+def dataFolder():
+    """HomerView's own folder, which is not where the log lives any more.
+
+    Nine places asked for the log's parent folder when what they wanted was
+    HomerView's folder, and those were the same thing until the logs moved into
+    a subfolder of their own. Left alone, the history database and the browser
+    profile would have moved into the logs folder with them, and an upgrade
+    would have looked to a user like losing their history.
+
+    So the folder is named directly rather than inferred from where a file
+    happens to sit.
+    """
+    return pathDataFolder or (pathLogFile.parent if pathLogFile else None)
+
+
 def sessionLogName():
     """A name that says which session this was.
 
@@ -264,6 +282,8 @@ def startSession(sAddonVersion=""):
         return None
     # A logs folder inside HomerView's own, so the folder a user opens is not
     # a wall of log files with the settings and the database among them.
+    global pathDataFolder
+    pathDataFolder = pathFolder
     pathFolder = pathFolder / "logs"
     try:
         pathFolder.mkdir(parents=True, exist_ok=True)

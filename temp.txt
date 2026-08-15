@@ -1,2 +1,36 @@
-'buildhomerviewbridge' is not recognized as an internal or external command,
-operable program or batch file.
+=== tagRelease.ps1 (installer-version edition, 2026-07-13) ===
+Started: 2026-08-15 11:21:57
+Log:     C:\HomerView\tagRelease.log
+Repo:    C:\HomerView
+App:     HomerView  (from the directory name)
+
+--- Tool checks ---
+git: git version 2.47.1.windows.1
+gh:  gh version 2.92.0 (2026-04-28)
+gh authentication: OK
+
+--- Discovery ---
+Setup script: HomerView_setup.iss
+Installer:    HomerView_setup.exe  (from OutputBaseFilename)
+GitHub repo:  jamalmazrui/HomerView  (from the origin remote)
+
+--- Version ---
+Version (stamped in HomerView_setup.exe): 1.48.3
+  built: 8/15/2026 11:20:24 AM   2,913,958 bytes
+
+=== ALREADY RELEASED -- nothing was published. ===
+
+The installer on disk carries v1.48.3, which is already on GitHub.
+So this is the same build that was released before -- there is nothing new.
+
+BuildHomerView.cmd takes a NEW version every time it runs, and skips any number
+that is already released.  So:
+
+  1. BuildHomerView.cmd
+  2. Compile HomerView_setup.iss in Inno Setup   <- this is the step that stamps the
+                                          new version into the installer
+  3. git add -A  /  git commit  /  git push
+  4. tagRelease
+
+
+--- Log saved at: C:\HomerView\tagRelease.log ---

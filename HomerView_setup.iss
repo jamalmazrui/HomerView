@@ -3,10 +3,28 @@
 ; Source root and installation destination: C:\HomerView
 
 #define AppName "HomerView"
-#define AppVersion "1.48.3"
+; THE VERSION COMES FROM ONE PLACE, and it is not this file.
+;
+; It used to be written here AND in the add-on manifest, and the two were kept
+; level by hand. They stopped being level: the manifest said 1.48.3 while the
+; documentation described 1.48.5, and tagRelease refused to publish because the
+; installer it found on disk carried a version already released. Nothing was
+; broken; the release simply did not happen, and the reason was two numbers that
+; had to agree and no mechanism making them.
+;
+; manifest.ini is the source. buildHomerView reads it and writes version.txt
+; beside this script, and this reads that. A build must therefore precede a
+; compile, which was already true and is now enforced rather than remembered.
+#if FileExists(SourcePath + "\version.txt")
+#define FileHandle FileOpen(SourcePath + "\version.txt")
+#define AppVersion Trim(FileRead(FileHandle))
+#expr FileClose(FileHandle)
+#else
+#error version.txt is missing. Run buildHomerView before compiling this script.
+#endif
 #define AppPublisher "Jamal Mazrui"
-; A stable name on purpose. The version lives in the add-on's manifest, which is
-; what NVDA reads, and in AppVersion above. Putting it in the file name as well
+; A stable name on purpose. The version lives in the add-on's manifest and
+; reaches this script through version.txt. Putting it in the file name as well
 ; meant this line had to be edited for every release, and forgetting would break
 ; the compile for a reason unrelated to the change.
 #define AddonFile "HomerView.nvda-addon"

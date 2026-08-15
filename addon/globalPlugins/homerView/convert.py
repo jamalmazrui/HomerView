@@ -31,7 +31,30 @@ from pathlib import Path
 from . import paths
 from .logger import abbreviate, homerLog, logError, logSection
 
-conversionTimeoutSeconds = 300.0
+# HOW LONG TO WAIT FOR A CONVERTER, SCALED TO THE FILE.
+#
+# This was a flat five minutes, which is far past the point where a reader
+# concludes the program has hung: they hear "Converting", then silence, and the
+# silence is the whole problem. A flat short timeout is no better, since a large
+# PDF genuinely takes a while.
+#
+# So it scales: a base, plus an allowance for each megabyte, with a ceiling. A
+# 200 kilobyte document fails fast; a two megabyte PDF gets forty seconds;
+# nothing waits past a minute. The same numbers as the JAWS side, so the two
+# give up at the same moment on the same file.
+conversionBaseSeconds = 18.0
+conversionSecondsPerMegabyte = 11.0
+conversionCeilingSeconds = 60.0
+
+
+def conversionBudget(pathSource):
+    """Seconds to allow this file, by its size."""
+    try:
+        iBytes = pathSource.stat().st_size
+    except Exception:
+        iBytes = 0
+    nSeconds = conversionBaseSeconds + (iBytes // (1024 * 1024)) * conversionSecondsPerMegabyte
+    return min(nSeconds, conversionCeilingSeconds)
 executableName = "2htm.exe"
 pandocName = "pandoc.exe"
 
@@ -181,12 +204,14 @@ def findCalibre():
     return None
 
 
-def runConverter(lArguments, pathTarget, sTool):
-    homerLog.info(f"Running {sTool}: {lArguments}")
+def runConverter(lArguments, pathTarget, sTool, nBudget=conversionCeilingSeconds):
+    """Run a converter, bounded. The budget comes from the caller, which knows
+    the source file; this function only sees the argument list."""
+    homerLog.info(f"Running {sTool} with {nBudget:.0f} seconds: {lArguments}")
     try:
         completed = subprocess.run(
             lArguments, capture_output=True, text=True,
-            timeout=conversionTimeoutSeconds,
+            timeout=nBudget,
             creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
         )
     except subprocess.TimeoutExpired:
@@ -208,7 +233,7 @@ def convertWithLibreOffice(pathSource, pathFolder):
         str(pathExecutable), "--headless", "--norestore", "--convert-to", "html",
         "--outdir", str(pathFolder), str(pathSource),
     ]
-    if runConverter(lArguments, pathTarget, "LibreOffice"):
+    if runConverter(lArguments, pathTarget, "LibreOffice", conversionBudget(pathSource)):
         # This project writes .htm rather than .html.
         pathFinal = pathFolder / f"{pathSource.stem}.htm"
         try:
@@ -227,7 +252,8 @@ def convertWithCalibre(pathSource, pathFolder):
     if not pathExecutable:
         return None
     pathTarget = pathFolder / f"{pathSource.stem}.htmlz"
-    if runConverter([str(pathExecutable), str(pathSource), str(pathTarget)], pathTarget, "Calibre"):
+    if runConverter([str(pathExecutable), str(pathSource), str(pathTarget)], pathTarget,
+                    "Calibre", conversionBudget(pathSource)):
         homerLog.info(f"Calibre wrote {pathTarget}")
         return pathTarget
     return None
@@ -323,7 +349,7 @@ def convertWithPandoc(pathSource, pathFolder):
     homerLog.info(f"Running: {lArguments}")
     completed = subprocess.run(
         lArguments, capture_output=True, text=True,
-        timeout=conversionTimeoutSeconds,
+        timeout=conversionBudget(pathSource),
         creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
     )
     if completed.stderr:
@@ -429,7 +455,7 @@ def convertToHtml(sSourcePath, bPlainText=False):
             lArguments,
             capture_output=True,
             text=True,
-            timeout=conversionTimeoutSeconds,
+            timeout=conversionBudget(pathSource),
             creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
         )
     except subprocess.TimeoutExpired:

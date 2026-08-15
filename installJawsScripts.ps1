@@ -14,6 +14,12 @@
 
 param(
     [switch] $bUninstall,
+    # WHERE TO LOG, when the usual place is about to be deleted.
+    #
+    # The uninstaller passes a path in the temporary folder, because the folder
+    # this normally logs into is removed moments later -- so a removal that went
+    # wrong would erase the only record of how. Empty means the usual place.
+    [string] $pathLogFile = "",
     [string] $sHomerVersion = "unknown"
 )
 
@@ -39,6 +45,7 @@ try { New-Item -ItemType Directory -Path $pathLogFolder -Force | Out-Null } catc
 # opening either. The scripts and the bridge append to the newest one, so an
 # installation and the commands that follow it stay together in one file.
 $pathLog = Join-Path $pathLogFolder ("HomerViewJAWS{0:yyyyMMdd-HHmmss}.log" -f (Get-Date))
+if ($pathLogFile -ne "") { $pathLog = $pathLogFile }
 
 function writeLog {
     param([string] $sMessage)
@@ -382,24 +389,34 @@ writeLog ""
 # so its answer is worth logging and worth nothing else. If a command
 # afterwards behaves like an older build, restarting JAWS is still the certain
 # cure, and Alt+Shift+H says which build is actually loaded.
-if (-not $bUninstall) {
-    $bReloaded = $false
-    try {
-        $oJaws = New-Object -ComObject "freedomsci.jawsapi" -ErrorAction Stop
-        $bScheduled = $oJaws.RunFunction("ReloadAllConfigs")
-        writeLog "Asked JAWS to reload its configurations: scheduled = $bScheduled"
-        $bReloaded = $true
-        [void] [System.Runtime.InteropServices.Marshal]::ReleaseComObject($oJaws)
-    } catch {
-        writeLog "JAWS could not be asked to reload: $($_.Exception.Message)"
-    }
-    if ($bReloaded) {
-        writeLog "No restart should be needed. Press Alt+Shift+H to see which build is loaded;"
-        writeLog "if it is not this one, restart JAWS."
-    } else {
-        writeLog "RESTART JAWS for this to take effect."
-    }
-} 
+# ON REMOVAL TOO, AND THERE FOR A BETTER REASON.
+#
+# On installation a reload saves a restart. On REMOVAL it prevents a fault:
+# JAWS still holds the old HomerView.jsb in memory and the old keys bound, so
+# every HomerView key goes on half-working against a program whose files have
+# gone, until something makes JAWS look again. Asking for the reload is the
+# difference between an uninstall that finishes now and one that finishes
+# whenever the user next restarts JAWS.
+$bReloaded = $false
+try {
+    $oJaws = New-Object -ComObject "freedomsci.jawsapi" -ErrorAction Stop
+    $bScheduled = $oJaws.RunFunction("ReloadAllConfigs")
+    writeLog "Asked JAWS to reload its configurations: scheduled = $bScheduled"
+    $bReloaded = $true
+    [void] [System.Runtime.InteropServices.Marshal]::ReleaseComObject($oJaws)
+} catch {
+    writeLog "JAWS could not be asked to reload: $($_.Exception.Message)"
+}
+if ($bReloaded -and $bUninstall) {
+    writeLog "JAWS has been asked to reload, so the removed keys stop responding now."
+} elseif ($bReloaded) {
+    writeLog "No restart should be needed. Press Alt+Shift+H to see which build is loaded;"
+    writeLog "if it is not this one, restart JAWS."
+} elseif ($bUninstall) {
+    writeLog "RESTART JAWS so it forgets the scripts that have just been removed."
+} else {
+    writeLog "RESTART JAWS for this to take effect."
+}
 writeLog "The log is at $pathLog"
 # The exit code says what happened, because until now it did not. This script
 # reported every failure in its log and then exited nought, so the window that

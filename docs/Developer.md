@@ -72,6 +72,49 @@ should be handed unasked.
 Afterwards press **Alt+Shift+H**: its first line gives the version and install
 time, which is how you confirm which build JAWS actually has loaded.
 
+## Removing HomerView
+
+NVDA can remove an add-on from its own Add-on Store. **JAWS has nothing of the
+kind**: scripts compiled into a settings folder and keys written into a user's
+`default.jkm` stay there until something takes them out. The uninstaller is the
+only way back, so it is treated as a feature rather than as plumbing.
+
+It appears in two places, both stated explicitly in the `.iss` rather than left
+to Inno's defaults, because a default nobody has written down is one a later
+edit can switch off unnoticed:
+
+- **`unins000.exe` in the installation folder**, from `UninstallFilesDir={app}`
+- **Windows Apps and Features**, from `CreateUninstallRegKey=yes`, listed under
+  the program's name and version
+
+What removal takes out:
+
+- **The JAWS scripts** — `HomerView.jss`, `.jkm`, `.jsd` and the compiled
+  `.jsb`, from every language folder of every installed JAWS version
+- **The key bindings**, by running `chainJawsScripts -bUndo`, which removes the
+  block from the user's `default.jkm` and unhooks `MyExtensions.jss`
+- **The NVDA add-on**, through NVDA's own `--remove-addon` rather than by
+  deleting folders behind its back, since NVDA keeps its own record of what is
+  installed
+- **`%LOCALAPPDATA%\HomerView`** entirely — the log, the cached engines, the
+  extracted pages and the whole Edge profile
+- **The program folder**, which is Inno's own job
+
+What removal deliberately leaves alone: **your Downloads folder**. The reports
+and the fetched files are yours, and an uninstaller that deletes a person's
+downloads has badly overstepped.
+
+Two details worth knowing:
+
+**JAWS is asked to reload at the end.** On installation a reload saves a
+restart; on removal it prevents a fault, because JAWS otherwise holds the old
+compiled scripts in memory and the old keys bound, and every HomerView key goes
+on half-working against a program whose files have gone.
+
+**The removal log goes to `%TEMP%\HomerViewUninstall.log`**, not to HomerView's
+own folder, because that folder is deleted moments later — so a removal that
+went wrong would otherwise erase the only record of how.
+
 ## The quality checks
 
 `checkHomerViewQuality.ps1` runs before any compiler and gates the build. Each

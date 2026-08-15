@@ -82,6 +82,28 @@ def showBrowseable(sHtml, sTitle):
     return "browseable"
 
 
+def buffer(sTitle, lLines):
+    """NVDA's answer to the JAWS user buffer: a browseable message.
+
+    THE THREE SHAPES ARE NOT INTERCHANGEABLE, and the JAWS side settled which
+    is which. Speech for a sentence heard once and discarded. A message box for
+    a short set of facts worth copying whole. And a BROWSEABLE MESSAGE for
+    anything you want to move through by line and character, search within, and
+    leave with Escape -- which is precisely what the JAWS side puts in a user
+    buffer.
+
+    Where JAWS calls sayVirtual, NVDA calls this. Anything else would give the
+    same command two different characters on the two screen readers.
+    """
+    lKept = [str(s) for s in lLines if s is not None and str(s).strip()]
+    sHtml = "<br>".join(
+        str(s).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+        for s in lKept
+    )
+    homerLog.info(f"Buffer: {sTitle}, {len(lKept)} lines")
+    return showBrowseable(sHtml, sTitle)
+
+
 def lines(sTitle, lLines):
     """Several lines of result, in a box that can be re-read and copied.
 

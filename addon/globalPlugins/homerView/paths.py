@@ -10,7 +10,9 @@ Downloads belong wherever the user's downloads already go, which is a known
 folder and not always under the profile.
 """
 
+from urllib.parse import unquote
 import os
+import re
 import tempfile
 import winreg
 from pathlib import Path
@@ -105,6 +107,13 @@ def getTempFolder():
     return pathFolder
 
 
+setReservedNames = {
+    "CON", "PRN", "AUX", "NUL",
+    "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
+    "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9",
+}
+
+
 def getDownloadsFolder():
     """Return the user's downloads folder, however it has been redirected."""
     try:
@@ -121,14 +130,57 @@ def getDownloadsFolder():
 
 
 def uniquePath(pathFolder, sName):
-    """Return a path that does not yet exist, numbering duplicates as Windows does."""
-    pathCandidate = pathFolder / sName
-    if not pathCandidate.exists():
-        return pathCandidate
-    sStem = pathCandidate.stem
-    sSuffix = pathCandidate.suffix
-    for iCount in range(2, 1000):
-        pathCandidate = pathFolder / f"{sStem} ({iCount}){sSuffix}"
-        if not pathCandidate.exists():
-            return pathCandidate
-    return pathFolder / f"{sStem} ({os.getpid()}){sSuffix}"
+    """Return where a file goes. It REPLACES whatever is already there.
+
+    This used to number duplicates as the other Homer tools do -- name (2),
+    name (3). HomerView deliberately does not any more. The folder is named
+    after the page, so a second run on the same page re-fetches the same
+    things, and a folder filling with numbered copies of one report is worse
+    than a folder holding the current one. The name is kept for the callers.
+    """
+    return pathFolder / sName
+
+
+def safeStem(sTitle, sFallback="report"):
+    """A page title turned into a name Windows will accept.
+
+    Ported from urlFido's folderNameFromTitle so that both halves of HomerView
+    name a folder identically. Two rules matter and are easy to miss: a
+    trailing dot or space is illegal at the end of a Windows name, and a
+    reserved device name -- CON, PRN, AUX, NUL, COM1 to COM9, LPT1 to LPT9 --
+    cannot be a file or folder at all.
+
+    Percent escapes are undone first. "%20" is read aloud as "percent two
+    zero", over and over, which is tedious with a screen reader. Three passes,
+    because doubly-escaped names turn up on real sites.
+    """
+    sName = (sTitle or "").strip()
+    for _iPass in range(3):
+        if "%" not in sName:
+            break
+        try:
+            sNext = unquote(sName)
+        except Exception:
+            break
+        if sNext == sName:
+            break
+        sName = sNext
+    sName = re.sub(r'[<>:"/\\|?*\x00-\x1f]', "", sName)
+    sName = re.sub(r"\s+", " ", sName).strip().rstrip(". ")
+    if sName.split(".")[0].upper() in setReservedNames:
+        sName = "_" + sName
+    sName = sName[:70].rstrip(". ")
+    return sName or sFallback
+
+
+def pageFolder(sPageTitle):
+    """The one folder for this page, shared by everything the page produces.
+
+    Downloads, both accessibility reports and the extracted article all live
+    here, each under its own name -- Axe.htm, IBM.htm, Main.htm. The folder is
+    KEPT between runs and each tool replaces its own files, because emptying a
+    folder that also holds downloads destroys them.
+    """
+    pathFolder = getDownloadsFolder() / safeStem(sPageTitle)
+    pathFolder.mkdir(parents=True, exist_ok=True)
+    return pathFolder

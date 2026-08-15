@@ -43,26 +43,28 @@ The other one worth knowing is **Alt+Shift+H**, the Hotkey Summary, which lists
 every command in a window where each key is a link: press Enter on a line to run
 that command.
 
-### Five things to try
+### Six things to try
 
 Open any article, then:
 
-1. **Shift+Q** (JAWS) or **Shift+J** (NVDA) — jumps to the main content, past
+1. **Shift+Q** on JAWS, **Shift+J** on NVDA — jumps to the main content, past
    the navigation, whether or not the page declares where it is.
 2. **Shift+F9** — extracts the readable article into a tab of its own, with the
    navigation, adverts and footers gone but the links kept.
 3. **Alt+L**, with the cursor on a link — says what is at the other end without
    going there: what kind of thing it is, how big, its title, and whether the
    address leads somewhere other than it appears.
-4. **Alt+JAWSKey+A** (JAWS) or the Alternate Menu (NVDA) — checks the page for
+4. **Alt+JAWSKey+A** on JAWS, **Alt+NVDA+A** on NVDA — checks the page for
    accessibility problems and saves a readable report to your Downloads folder,
    opening it in a tab.
 5. **Alt+Shift+W** — offers you every file the page links to, by kind, and
    fetches the ones you choose using the browser's own cookies.
+6. **Alt+N** — lists the people, places, organisations and dates the page
+   mentions, which is a different question from what is on it.
 
 ### If something goes wrong
 
-Press **Alt+JAWSKey+L** (JAWS) or **Control+Shift+L** (NVDA) to put the log file
+Press **Alt+JAWSKey+L** on JAWS, **Control+Shift+L** on NVDA, to put the log file
 on the clipboard, ready to attach to a message. The log records every command,
 every answer and every failure, in order.
 

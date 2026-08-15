@@ -4,8 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="author" content="Jamal Mazrui" />
-  <title>HomerView</title>
+  <title>HomerView Read Me</title>
   <style>
     html {
       color: #1a1a1a;
@@ -167,108 +166,119 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">HomerView</h1>
-<p class="subtitle">Read the web the way a browser sees it</p>
-<p class="author">Jamal Mazrui</p>
+<h1 class="title">HomerView Read Me</h1>
 </header>
-<h1 id="what-homerview-is">What HomerView is</h1>
-<p>HomerView is a free add-on for the NVDA screen reader. It opens its
-own copy of Microsoft Edge and talks to that copy directly, the way a
-web developer’s tools do.</p>
-<p>That matters because of a gap. For thirty years, blind people have
-read the web through a flat copy of the page that the screen reader
-builds. It works. But the browser knows things that never reach that
-copy. You are told a button is not there. You finish an article and
-never learn that a banner was covering half the screen.</p>
-<p>HomerView closes the gap. It can see the page three ways at once: as
-a window, as your reading order, and as the browser itself understands
-it. Almost nothing else has all three.</p>
-<p>No artificial intelligence is involved, and nothing about the pages
-you read leaves your computer.</p>
-<h1 id="what-you-need">What you need</h1>
+<nav id="TOC" role="doc-toc">
 <ul>
-<li><strong>NVDA 2025.1 or newer.</strong> It is free, from <a
-href="https://www.nvaccess.org/download">nvaccess.org</a>.</li>
-<li><strong>Microsoft Edge.</strong> It comes with Windows.</li>
-<li><strong>Windows 10 or 11.</strong></li>
+<li><a href="#quick-start" id="toc-quick-start">Quick Start</a>
+<ul>
+<li><a href="#install-it" id="toc-install-it">Install it</a></li>
+<li><a href="#start-it" id="toc-start-it">Start it</a></li>
+<li><a href="#the-one-key-to-remember"
+id="toc-the-one-key-to-remember">The one key to remember</a></li>
+<li><a href="#six-things-to-try" id="toc-six-things-to-try">Six things
+to try</a></li>
+<li><a href="#if-something-goes-wrong"
+id="toc-if-something-goes-wrong">If something goes wrong</a></li>
+</ul></li>
+<li><a href="#what-is-in-the-box" id="toc-what-is-in-the-box">What is in
+the box</a></li>
+<li><a href="#requirements" id="toc-requirements">Requirements</a></li>
+<li><a href="#licence-and-source" id="toc-licence-and-source">Licence
+and source</a></li>
 </ul>
-<p>That is all. HomerView uses the Edge you already have.</p>
-<h1 id="quick-start">Quick start</h1>
+</nav>
+<p>HomerView is a screen-reader companion for reading the web, for
+<strong>JAWS</strong> and <strong>NVDA</strong> equally. It drives its
+own copy of Microsoft Edge and answers questions about the page that a
+screen reader alone cannot.</p>
+<p>This file is the short version. The full guide is HomerView.htm,
+which you can open from inside HomerView with
+<strong>Control+F1</strong>.</p>
+<h2 id="quick-start">Quick Start</h2>
+<h3 id="install-it">Install it</h3>
+<p>Run <strong>HomerView_setup.exe</strong>. It detects JAWS and NVDA
+and offers to set up whichever it finds. On JAWS it also compiles and
+binds the scripts for every JAWS version installed, and asks JAWS to
+reload, so no restart is normally needed.</p>
+<p>To confirm which build is loaded afterwards, press
+<strong>Alt+Shift+H</strong>. Its first line gives the version and when
+it was installed.</p>
+<h3 id="start-it">Start it</h3>
+<ul>
+<li><strong>JAWS:</strong> Alt+JAWSKey+H</li>
+<li><strong>NVDA:</strong> NVDA+Alt+H</li>
+</ul>
+<p>A HomerView window of Microsoft Edge opens on a start page. This is a
+separate browser profile, so it does not disturb your ordinary browsing.
+Press the same key again later and it reconnects rather than opening a
+second one.</p>
+<h3 id="the-one-key-to-remember">The one key to remember</h3>
+<ul>
+<li><strong>JAWS:</strong> Alt+JAWSKey+F10</li>
+<li><strong>NVDA:</strong> NVDA+Alt+F10</li>
+</ul>
+<p>That is the Alternate Menu, and every command is on it with its key
+beside it. Nothing in HomerView is hidden behind a keystroke you have to
+know in advance. If you remember only one key, remember that one.</p>
+<p>The other one worth knowing is <strong>Alt+Shift+H</strong>, the
+Hotkey Summary, which lists every command in a window where each key is
+a link: press Enter on a line to run that command.</p>
+<h3 id="six-things-to-try">Six things to try</h3>
+<p>Open any article, then:</p>
 <ol type="1">
-<li>Run the installer.</li>
-<li>On the last page, leave the box checked that gives the add-on to
-NVDA. NVDA will ask you to confirm it, then restart.</li>
-<li>Press <strong>Alt+NVDA+H</strong>. A HomerView window opens.</li>
-<li>Press <strong>Alt+NVDA+F10</strong> for a list of every
-command.</li>
+<li><strong>Shift+Q</strong> on JAWS, <strong>Shift+J</strong> on NVDA —
+jumps to the main content, past the navigation, whether or not the page
+declares where it is.</li>
+<li><strong>Shift+F9</strong> — extracts the readable article into a tab
+of its own, with the navigation, adverts and footers gone but the links
+kept.</li>
+<li><strong>Alt+L</strong>, with the cursor on a link — says what is at
+the other end without going there: what kind of thing it is, how big,
+its title, and whether the address leads somewhere other than it
+appears.</li>
+<li><strong>Alt+JAWSKey+A</strong> on JAWS, <strong>Alt+NVDA+A</strong>
+on NVDA — checks the page for accessibility problems and saves a
+readable report to your Downloads folder, opening it in a tab.</li>
+<li><strong>Alt+Shift+W</strong> — offers you every file the page links
+to, by kind, and fetches the ones you choose using the browser’s own
+cookies.</li>
+<li><strong>Alt+N</strong> — lists the people, places, organisations and
+dates the page mentions, which is a different question from what is on
+it.</li>
 </ol>
-<p>If you remember one command, make it Alt+NVDA+F10. Everything else
-can be found from there.</p>
-<h1 id="if-the-installer-cannot-hand-the-add-on-to-nvda">If the
-installer cannot hand the add-on to NVDA</h1>
-<p>Install it from the file, which is already on your computer.</p>
-<ol type="1">
-<li>Press NVDA+N for the NVDA menu.</li>
-<li>Choose Tools, then Add-on Store, then Install from external
+<h3 id="if-something-goes-wrong">If something goes wrong</h3>
+<p>Press <strong>Alt+JAWSKey+L</strong> on JAWS,
+<strong>Control+Shift+L</strong> on NVDA, to put the log file on the
+clipboard, ready to attach to a message. The log records every command,
+every answer and every failure, in order.</p>
+<p><strong>Alt+Control+F1</strong> opens the same log to read rather
+than to send.</p>
+<h2 id="what-is-in-the-box">What is in the box</h2>
+<ul>
+<li><strong>ReadMe.htm</strong> — this file.</li>
+<li><strong>HomerView.htm</strong> — the full user guide and reference,
+including a tutorial.</li>
+<li><strong>Hotkeys.htm</strong> — every key, for both screen
+readers.</li>
+<li><strong>History.htm</strong> — what changed in each release.</li>
+<li><strong>Developer.htm</strong> — how to rebuild HomerView from
 source.</li>
-<li>Pick <strong>HomerView.nvda-addon</strong> from the build folder
-where HomerView was installed, usually C:Files.</li>
-<li>Confirm, and let NVDA restart.</li>
-</ol>
-<p>Pressing Enter on that same file in File Explorer does the same
-thing.</p>
-<h1 id="six-commands-worth-learning-early">Six commands worth learning
-early</h1>
-<ul>
-<li><strong>Y</strong> describes how the page is laid out. It tells you
-what a sighted person can see that your reading order never mentions: a
-cookie banner, a bar pinned over the text, a dialog waiting for an
-answer.</li>
-<li><strong>J</strong> jumps to the main content, past the menus.
-<strong>Shift+J</strong> finds it on a page that never said where it
-is.</li>
-<li><strong>Alt+NVDA+A</strong> tests the page for accessibility
-problems, then offers to find the publisher’s contact address and write
-the report as an email.</li>
-<li><strong>Control+O</strong> opens a Word file, spreadsheet, slide
-deck, PDF or ebook. It is turned into a web page, so every HomerView
-command works on it.</li>
-<li><strong>Shift+F9</strong> pulls the readable part of a page into a
-page of its own, which you can search, save or send.</li>
-<li><strong>Alt+Q</strong> looks something up: a word, a place, the
-weather, a book. All of it uses free services that need no account.</li>
+<li><strong>Announce.htm</strong> — what the project is for.</li>
 </ul>
-<h1 id="where-to-read-more">Where to read more</h1>
+<p>Each is on the Alternate Menu, and most have a key of their own.</p>
+<h2 id="requirements">Requirements</h2>
 <ul>
-<li><strong>HomerView.md</strong> is the full guide. Every command, what
-it does, and how HomerView fits together.</li>
-<li><strong>History.md</strong> says what changed in each release.</li>
-<li><strong>Developer.md</strong> explains how to build HomerView from
-its source.</li>
-<li><strong>Announce.md</strong> is the short description of the
-project.</li>
+<li>Windows 10 or later</li>
+<li>Microsoft Edge</li>
+<li>JAWS 2024 or later, or NVDA 2023.1 or later</li>
+<li>Optional: pandoc or 2htm, for opening Word documents, PDFs, ebooks
+and spreadsheets as web pages. HomerView finds them if they are
+installed and says plainly when they are not.</li>
 </ul>
-<p>Each of those also comes as a web page, with the same name and a .htm
-ending, which HomerView itself can open.</p>
-<h1 id="when-something-does-not-work">When something does not work</h1>
-<p>Press <strong>Alt+Control+F1</strong> to open this session’s log. It
-records what HomerView did and what went wrong, and it is the fastest
-way to an answer.</p>
-<p>Press <strong>Control+Shift+L</strong> to put that log on the
-clipboard as a file. Pressing Control+V in an email message then
-attaches it, rather than typing its name into the message. That is how
-to send a full report of what happened.</p>
-<p>HomerView never sends the log anywhere by itself, and your user name
-is taken out of it as it is written. HomerView.md says exactly what it
-contains.</p>
-<p>If a command does nothing, open the Alternate Menu with
-<strong>Alt+NVDA+F10</strong> and run it from there. The menu only lists
-commands that apply right now, so a command missing from it is a command
-that cannot run yet.</p>
-<h1 id="licence">Licence</h1>
-<p>HomerView is free software under the GNU General Public License
-version 2, which is the licence NVDA itself uses.</p>
-<p>Project page: <a
-href="https://github.com/JamalMazrui/HomerView">github.com/JamalMazrui/HomerView</a></p>
+<h2 id="licence-and-source">Licence and source</h2>
+<p>Free and open source. The source, issues and releases are at <a
+href="https://github.com/JamalMazrui/HomerView"
+class="uri">https://github.com/JamalMazrui/HomerView</a>.</p>
 </body>
 </html>

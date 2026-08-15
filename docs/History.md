@@ -7,6 +7,82 @@ What changed, newest first, written the way you would tell somebody rather than
 as a list of commit messages. The reasoning behind each change is in the code,
 where it belongs. This is the short version.
 
+## Version 1.48.5 — 15 August 2026
+
+### List Names
+
+A new command on **Alt+N**, on both screen readers. It reads the page with a
+rule-based English parser and lists the people, places, organisations, dates,
+amounts and percentages it finds, saved as `Names.htm` beside the page's other
+files. It answers a question headings and links cannot: not how a page is
+arranged or where it goes, but who and what it is about. It guesses, and the
+report says so.
+
+### Find Contacts became a command of its own
+
+It had been buried inside Report Accessibility on the NVDA side, so a reader who
+simply wanted an address had to run a whole accessibility scan to get one. It is
+now **Alt+NVDA+C** and **Alt+JAWSKey+C**.
+
+### One folder for each page
+
+Everything a page produces now goes to one folder under Downloads named after
+the page: the files you download, `Axe.htm` and `Axe.json`, the four `IBM`
+files, `Main.htm` and `Names.htm`. Each tool replaces its own files, and the
+folder is kept between sessions, so running a check no longer deletes what you
+downloaded a minute earlier. Downloads replace by name rather than being
+numbered, and no name uses `%20`.
+
+### Removal takes everything with it
+
+JAWS has no add-on manager, so the uninstaller is the only way back and it now
+behaves like it. It removes the compiled scripts from every JAWS version, the
+key bindings from your `default.jkm`, the `MyExtensions` hook, the NVDA add-on
+through NVDA's own mechanism, and the whole of `%LOCALAPPDATA%\HomerView`. It
+leaves your Downloads folder alone, because the reports and fetched files are
+yours.
+
+JAWS is asked to reload at the end, so the removed keys stop responding
+immediately rather than at the next restart. The removal writes its log to
+`%TEMP%\HomerViewUninstall.log`, which survives the folder it used to live in.
+
+The uninstaller is in the installation folder and in Windows Apps and Features.
+
+### Explore Page gave back its single letter
+
+In browse mode a bare letter is a navigation key: press it and you expect to
+land somewhere. Explore Page had **Y** and does not move anywhere, so it now has
+only **Alt+NVDA+E**, which it already had. The four commands that keep a bare
+letter — Jump to Main, Jump to Probable Main, Next Same Kind and Prior Same Kind
+— all move, which is what the convention is for.
+
+### The page is kept as evidence
+
+Running either accessibility check now also saves the page itself beside the
+report: `Page.htm` (the markup after script has run), `Page.png`, `Page.pdf`,
+and `Tree.json` (the accessibility tree, with the reasons any node was left out
+of it). These used to be things you asked Save Page for one at a time, which was
+the wrong shape — by the time a report tells you something is wrong, it is too
+late to go back and capture the page as it then was.
+
+Save Page still offers the complete archive Edge itself produces, alongside the
+document formats.
+
+### NVDA uses a browseable message where JAWS uses a user buffer
+
+The same commands now have the same character on both: a sentence is spoken, a
+short set of facts goes in a box you can copy whole, and anything you want to
+move through line by line opens in a window you can search and leave with
+Escape.
+
+### Fixes
+
+A page from a previous session was reopening on its own, because HomerView's
+browser profile remembered what had been open. It does not restore any more.
+
+Both accessibility reports now answer in a single spoken line, so the report
+opened in a tab keeps the focus instead of sitting behind a summary of itself.
+
 ## Version 1.48.4 — 14 August 2026
 
 The release that brought the JAWS side level with the NVDA side. HomerView now

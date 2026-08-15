@@ -166,10 +166,11 @@ lCommands = [
     ("listAnyElements", "List Elements", ["kb:NVDA+alt+l"],
      "Lists any kind of element, including kinds NVDA's own Elements List does "
      "not offer. L for List."),
-    ("explorePage", "Explore Page", ["kb:y", "kb:NVDA+alt+e"],
+    ("explorePage", "Explore Page", ["kb:NVDA+alt+e"],
      "Describes how the page is laid out, including what a sighted person can see "
-     "that your reading order never mentions. E for Explore; Y is a second key "
-     "because NVDA leaves it free."),
+     "that your reading order never mentions. E for Explore. It gave up its bare "
+     "Y: a single letter in browse mode reads as a navigation key, and this "
+     "command does not move anywhere."),
 
     # --- Asking about the page --------------------------------------------
     ("reportPageAddress", "Say Address", ["kb:alt+a"],
@@ -313,6 +314,14 @@ lCommands = [
 # Anything reached only from within another command, so it needs a name and a
 # description but no key of its own.
 lFolded = [
+    ("listNames", "List Names", ["kb:alt+n"],
+     "Lists the people, places, organisations and dates a page mentions, saved "
+     "as Names.htm in the page's folder and opened. A rule-based engine reads "
+     "the text, so it guesses; the report says so."),
+    ("findContacts", "Find Contacts", ["kb:NVDA+alt+c"],
+     "Finds who to tell about this site: email addresses, the accessibility "
+     "statement, contact pages and social media. Looks at this page, the home "
+     "page, and the addresses a statement usually lives at."),
     ("accessibilityReport", "Report Accessibility",
      "Tests the page and writes a report addressed to whoever publishes the site. "
      "Reached by Check Accessibility once an engine is chosen."),
@@ -361,7 +370,7 @@ lGroups = [
         "openOtherFormat", "saveAs", "extractMainContent", "downloadFiles",
         "submitForm", "actOnPage", "runAccessibilityCheck", "openCopilot",
         "webUtilities", "dismissDialog", "runAxe", "runIbmChecker",
-        "accessibilityReport"]),
+        "accessibilityReport", "findContacts", "listNames"]),
     ("The window and its tabs", [
         "chooseTab", "sayTabs", "closeOtherTabs"]),
     ("Adjusting the voice", [

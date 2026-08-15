@@ -27,7 +27,10 @@ from .logger import abbreviate, homerLog, logSection
 
 extractTimeoutSeconds = 60.0
 fetchTimeoutSeconds = 30.0
-mainContentFileName = "MainContent.htm"
+# In the page's own folder, not a temporary one: an extracted article is
+# something a reader may well keep, and it belongs beside the reports and
+# the downloads from the same page.
+mainContentFileName = "Main.htm"
 userAgent = "HomerView (+NVDA add-on)"
 
 lReadabilityCdnUrls = [
@@ -196,7 +199,7 @@ def extractMainContent(cdpSession):
     if not dArticle:
         raise MainContentError("No main content could be identified on this page")
 
-    pathFolder = paths.getTempFolder()
+    pathFolder = paths.pageFolder(sTitle)
     pathDocument = pathFolder / mainContentFileName
     # UTF-8 with a byte order mark and Windows line endings, matching the
     # convention for every other .htm file in this project.

@@ -13,6 +13,22 @@
 
 [Setup]
 AppId={{E728BC1D-448B-4D56-A549-4C5603A3A9B5}
+
+; THE UNINSTALLER IS STATED, NOT ASSUMED.
+;
+; NVDA can remove an add-on from its own Add-on Store. JAWS has nothing of the
+; kind: scripts compiled into a settings folder and keys written into a user's
+; default.jkm stay there until something takes them out. So the uninstaller is
+; the only way back, and it must be somewhere a person can find it.
+;
+; Inno does all four of these by default. They are written down anyway, because
+; a default that nobody has stated is a default that a later edit can turn off
+; without anyone noticing.
+Uninstallable=yes
+CreateUninstallRegKey=yes
+UninstallFilesDir={app}
+UninstallDisplayName={#AppName} {#AppVersion}
+UninstallDisplayIcon={app}\HomerView.exe
 AppName={#AppName}
 AppVersion={#AppVersion}
 AppPublisher={#AppPublisher}
@@ -248,13 +264,42 @@ Filename: "{cmd}"; \
 ; accept it, which is what stopped this script compiling the first time. The
 ; uninstaller usually runs as the user who is removing the program, so the
 ; settings folder it finds is theirs.
+; THE LOG GOES SOMEWHERE THAT SURVIVES THE UNINSTALL.
+;
+; HomerView normally logs into its own data folder, and [UninstallDelete] below
+; deletes that folder a moment later -- so a removal that went wrong would erase
+; the only record of how. The removal log goes to the temporary folder instead,
+; where it outlives the program and can still be sent.
 Filename: "{app}\installJawsScripts.cmd"; \
-  Parameters: "-bUninstall"; \
+  Parameters: "-bUninstall -pathLogFile ""{%TEMP}\HomerViewUninstall.log"""; \
   WorkingDir: "{app}"; \
   Flags: runhidden waituntilterminated skipifdoesntexist; \
   RunOnceId: "RemoveJawsScripts"
 
+; NO runasoriginaluser below. It is a [Run] flag and [UninstallRun] rejects it;
+; the comment above records that this exact mistake stopped the script compiling
+; once already, and I made it again while writing this entry.
+;
+; And the NVDA add-on, through NVDA's own mechanism rather than by deleting
+; folders under it. NVDA keeps its own record of what is installed, and a
+; directory removed behind its back leaves that record claiming an add-on that
+; is not there. --remove-addon is how NVDA is told.
+Filename: "{code:GetNvdaPath}"; \
+  Parameters: "--remove-addon ""HomerView"""; \
+  Flags: runhidden waituntilterminated skipifdoesntexist; \
+  RunOnceId: "RemoveNvdaAddon"; \
+  Check: HaveNvda
+
 [UninstallDelete]
+; EVERYTHING HOMERVIEW MADE, not only what it installed.
+;
+; The program folder is Inno's to clear. These are the places HomerView wrote to
+; while it ran: its own data folder holds the log, the cached engines, the
+; extracted pages and the whole Edge profile, and none of it means anything once
+; the program is gone. Downloads are deliberately NOT touched -- reports and
+; fetched files are the user's, and an uninstaller that deletes a person's
+; Downloads folder has badly overstepped.
+Type: filesandordirs; Name: "{localappdata}\HomerView"
 Type: files; Name: "{app}\HomerView.log"
 Type: files; Name: "{app}\HomerView.previous.log"
 Type: files; Name: "{app}\Axe.json"

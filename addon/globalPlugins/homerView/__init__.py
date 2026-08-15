@@ -435,7 +435,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
     def script_launchHomerView(self, gesture):
         homerLog.info("Command: launch or reconnect")
         # Translators: Reported while HomerView Edge is starting.
-        ui.message(_("Starting HomerView Edge"))
+        ui.message(_("Starting"))
         service.submit(
             "launch",
             service.taskLaunch,
@@ -460,7 +460,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         else:
             homerLog.info("Not connected")
             # Translators: Reported when HomerView has no connection.
-            ui.message(_("HomerView is not connected"))
+            ui.message(_("Not connected"))
 
     @script(
         # Translators: Input help mode message for Dismiss Dialog.
@@ -472,23 +472,125 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         homerLog.info("Command: dismiss a blocking dialog")
         if not service.isConnected():
             # Translators: Reported when HomerView has no connection.
-            ui.message(_("HomerView is not connected"))
+            ui.message(_("Not connected"))
             return
         service.submit("closeDialogs", service.taskCloseDialogs, self._reportDialogsClosed, self._reportError)
 
     @script(
+        # Translators: Input help mode message for List Names.
+        description=_(
+            "Lists the people, places, organisations and dates a page mentions, "
+            "saved as Names.htm in the page's folder and opened. A rule-based "
+            "engine reads the text, so it guesses; the report says so."
+        ),
+        category="HomerView",
+        gesture="kb:alt+n",
+    )
+    def script_listNames(self, gesture):
+        homerLog.info("Command: list names")
+        if not service.isConnected():
+            # Translators: Reported when HomerView has no connection.
+            ui.message(_("Not connected"))
+            return
+        # Translators: Reported while the page is read for names.
+        ui.message(_("Reading names"))
+        service.submit(
+            "listNames",
+            service.taskListNames,
+            self._reportListNames,
+            self._reportError,
+        )
+
+    def _reportListNames(self, dSummary):
+        """One spoken line: the list has just been opened in a tab of its own.
+
+        A message box in front of it would take the focus away from the thing
+        itself, which is the same rule the accessibility reports follow.
+        """
+        dCounts = dSummary.get("counts", {}) or {}
+        sFound = ", ".join(
+            f"{iCount} {sHeading.lower()}" for sHeading, iCount in dCounts.items()
+        )
+        # Translators: Reported after the names on a page have been listed.
+        ui.message(
+            _("{found}. Saved as Names.htm in {folder}.").format(
+                # The folder's last part, without importing pathlib into a
+                # module that has managed without it.
+                folder=os.path.basename(dSummary.get("folder", "")),
+                found=sFound,
+            )
+        )
+
+    @script(
+        # Translators: Input help mode message for Find Contacts.
+        description=_(
+            "Finds who to tell about this site: email addresses, the "
+            "accessibility statement, contact pages and social media. Looks at "
+            "this page, the home page, and the addresses a statement usually "
+            "lives at."
+        ),
+        category="HomerView",
+        gesture="kb:NVDA+alt+c",
+    )
+    def script_findContacts(self, gesture):
+        homerLog.info("Command: find contacts")
+        if not service.isConnected():
+            # Translators: Reported when HomerView has no connection.
+            ui.message(_("Not connected"))
+            return
+        # Translators: Reported while contact discovery is running.
+        ui.message(_("Finding contacts"))
+        service.submit(
+            "findContacts",
+            service.taskFindContacts,
+            self._reportFindContacts,
+            self._reportError,
+        )
+
+    def _reportFindContacts(self, dSummary):
+        """Show the channels, as the JAWS side does.
+
+        Shown rather than spoken: this is a list of addresses to read at your
+        own pace and copy from, not a sentence.
+        """
+        dContacts = dSummary.get("contacts", {}) or {}
+        lLines = ["Who to tell about " + (dSummary.get("pageUrl") or "")]
+        if dContacts.get("statement"):
+            lLines += ["", "Accessibility statement", dContacts["statement"]]
+        for sKey, sHeading in (
+            ("mailto", "Email"),
+            ("accessibility", "Accessibility pages"),
+            ("contact", "Contact pages"),
+            ("social", "Social media"),
+        ):
+            lValues = dContacts.get(sKey) or []
+            if lValues:
+                lLines += ["", sHeading] + [str(v) for v in lValues[:12]]
+        if len(lLines) == 1:
+            # Translators: Reported when no contact channel could be found.
+            ui.message(_("No contacts found"))
+            return
+        # A buffer, not a message box: a list of addresses to read at your
+        # own pace and copy from, which is what the JAWS side puts in its
+        # user buffer.
+        output.buffer(_("HomerView contacts"), lLines)
+
+    @script(
         # Translators: Input help mode message for Report Accessibility.
-        description=_("Tests the page and writes a report addressed to whoever publishes the site. Reached by Check Accessibility once an engine is chosen."),
+        description=_(
+            "Tests the page and writes a report addressed to whoever publishes "
+            "the site. Reached by Check Accessibility once an engine is chosen."
+        ),
         category="HomerView",
     )
     def script_accessibilityReport(self, gesture):
         homerLog.info("Command: accessibility report")
         if not service.isConnected():
             # Translators: Reported when HomerView has no connection.
-            ui.message(_("HomerView is not connected"))
+            ui.message(_("Not connected"))
             return
         # Translators: Reported while the accessibility test is running.
-        ui.message(_("Testing the page and looking for reporting channels"))
+        ui.message(_("Checking"))
         service.submit(
             "accessibilityReport",
             service.taskAccessibilityReport,
@@ -505,10 +607,10 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         homerLog.info("Command: run axe-core")
         if not service.isConnected():
             # Translators: Reported when HomerView has no connection.
-            ui.message(_("HomerView is not connected"))
+            ui.message(_("Not connected"))
             return
         # Translators: Reported while the accessibility test is running.
-        ui.message(_("Testing the page with axe-core"))
+        ui.message(_("Checking with axe"))
         service.submit("runAxe", service.taskRunAxe, self._reportAxeResults, self._reportError)
 
     @script(
@@ -521,10 +623,10 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         homerLog.info("Command: explore the page")
         if not service.isConnected():
             # Translators: Reported when HomerView has no connection.
-            ui.message(_("HomerView is not connected"))
+            ui.message(_("Not connected"))
             return
         # Translators: Reported while the page structure is analysed.
-        ui.message(_("Exploring the page"))
+        ui.message(_("Exploring"))
         service.submit(
             "explorePage", service.taskExplorePage, self._showPageSummary, self._reportError
         )
@@ -539,10 +641,10 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         homerLog.info("Command: extract the main content")
         if not service.isConnected():
             # Translators: Reported when HomerView has no connection.
-            ui.message(_("HomerView is not connected"))
+            ui.message(_("Not connected"))
             return
         # Translators: Reported while the readable part of the page is found.
-        ui.message(_("Extracting the main content"))
+        ui.message(_("Extracting"))
         service.submit(
             "extractMainContent",
             service.taskExtractMainContent,
@@ -560,10 +662,10 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         homerLog.info("Command: download files")
         if not service.isConnected():
             # Translators: Reported when HomerView has no connection.
-            ui.message(_("HomerView is not connected"))
+            ui.message(_("Not connected"))
             return
         # Translators: Reported while the page's links are examined.
-        ui.message(_("Looking for downloadable links"))
+        ui.message(_("Scanning links"))
         service.submit(
             "analyseLinks",
             service.taskAnalyseLinks,
@@ -640,7 +742,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         homerLog.info("Command: open another format")
         if not service.isConnected():
             # Translators: Reported when HomerView has no connection.
-            ui.message(_("Press Alt+NVDA+H first to start HomerView Edge"))
+            ui.message(_("Not started. Press Alt+NVDA+H"))
             return
         def onPath(sPath):
             if not sPath:
@@ -671,7 +773,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         homerLog.info("Command: save as")
         if not service.isConnected():
             # Translators: Reported when HomerView has no connection.
-            ui.message(_("HomerView is not connected"))
+            ui.message(_("Not connected"))
             return
         lbc.afterScript(self._saveAsNow)
 
@@ -781,13 +883,13 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         homerLog.info("Command: report the page address, from anywhere")
         if not service.isConnected():
             # Translators: Reported when HomerView has no connection.
-            ui.message(_("Press Alt+NVDA+H first to start HomerView Edge"))
+            ui.message(_("Not started. Press Alt+NVDA+H"))
             return
         service.submit(
             "activePageUrl",
             service.taskActivePageUrl,
-            lambda sUrl: ui.message(sUrl or _("The web address is unavailable")),
-            lambda exception: ui.message(_("The web address is unavailable")),
+            lambda sUrl: ui.message(sUrl or _("No address")),
+            lambda exception: ui.message(_("No address")),
         )
 
     @script(
@@ -809,7 +911,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         homerLog.info("Command: open Copilot")
         if not service.isConnected():
             # Translators: Reported when HomerView has no connection.
-            ui.message(_("Press Alt+NVDA+H first to start HomerView Edge"))
+            ui.message(_("Not started. Press Alt+NVDA+H"))
             return
         # Translators: Reported while Copilot is opened.
         ui.message(_("Opening Copilot"))
@@ -820,7 +922,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         homerLog.info(f"Copilot: {dContext}")
         if not dContext.get("sent"):
             # Translators: Reported when the Copilot shortcut could not be sent.
-            ui.message(_("Copilot could not be opened. The log has the detail."))
+            ui.message(_("Copilot did not open"))
             return
         # Translators: Reported after opening Copilot. The placeholder is a count.
         ui.message(
@@ -887,7 +989,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             self._showSelfTest(None)
             return
         # Translators: Reported while the self test runs.
-        ui.message(_("Running the self test"))
+        ui.message(_("Testing"))
         service.submit("selfTest", service.taskSelfTest, self._showSelfTest, self._reportError)
 
     def _showSelfTest(self, tProtocol):
@@ -934,17 +1036,17 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 
         if not logger.pathLogFile or not logger.pathLogFile.exists():
             # Translators: Reported when there is no log to copy.
-            ui.message(_("There is no log for this session yet"))
+            ui.message(_("No log yet"))
             return
         # Flushed first, so what gets attached includes whatever happened up to
         # the moment of asking, which is usually the part that matters.
         logger.flushLog()
         if pathClipboard.copyPaths([logger.pathLogFile]):
             # Translators: Reported after the log is put on the clipboard.
-            ui.message(_("Log copied. Press Control+V to attach it."))
+            ui.message(_("Log on the clipboard"))
         else:
             # Translators: Reported when the clipboard would not take the file.
-            ui.message(_("The log could not be put on the clipboard"))
+            ui.message(_("Clipboard refused"))
 
     @script(
         # Translators: Input help mode message for Session Log.
@@ -956,7 +1058,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         homerLog.info("Command: open the log file")
         if not logger.pathLogFile:
             # Translators: Reported when no log file could be created.
-            ui.message(_("No HomerView log file is available"))
+            ui.message(_("No log"))
             return
         ui.message(str(logger.pathLogFile))
         try:
@@ -1097,7 +1199,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         lExtensions = dAnalysis.get("extensions") or []
         if not lExtensions:
             # Translators: Reported when a page links to no downloadable files.
-            ui.message(_("No downloadable files are linked from this page"))
+            ui.message(_("No files linked"))
             return
         dCounts = dAnalysis.get("counts") or {}
         lDefault = dAnalysis.get("default") or lExtensions

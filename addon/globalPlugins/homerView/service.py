@@ -24,6 +24,7 @@ from pathlib import Path
 from . import ace
 from . import act
 from . import axe
+from . import capture
 from . import contacts
 from . import copilot
 from . import exportReport
@@ -34,6 +35,7 @@ from . import convert
 from . import download
 from . import logger
 from . import metadata
+from . import names
 from .history import history
 from . import mainContent
 from . import pageExplorer
@@ -359,6 +361,23 @@ class HomerViewService:
         pathFolder = logger.dataFolder() if logger.dataFolder() else Path.cwd()
         return axe.runAxe(self.cdpSession, pathFolder)
 
+    def taskListNames(self):
+        """Read the focused page for people, places, organisations and dates."""
+        return names.listNames(self.cdpSession)
+
+    def taskFindContacts(self):
+        """Find who to tell about this site, without testing anything first.
+
+        Contact discovery was only reachable through Report Accessibility, which
+        meant a reader who simply wanted an address had to run a whole scan to
+        get one -- and would not think to look there for it. It is a command of
+        its own on both screen readers now.
+        """
+        dTarget, sSessionId = self.cdpSession.findActivePageSession()
+        sPageUrl = dTarget.get("url", "")
+        dContacts = contacts.discoverContacts(self.cdpSession, sSessionId, sPageUrl)
+        return {"contacts": dContacts, "pageUrl": sPageUrl}
+
     def taskAccessibilityReport(self):
         """Scan, find the reporting channels, write the report, and open it.
 
@@ -377,11 +396,18 @@ class HomerViewService:
         except Exception:
             logError("Contact discovery failed; the report will omit that section")
             dContacts = contacts.emptyContacts()
-        # The reports are working documents rather than records, so they go to
-        # the temporary folder that Windows clears on its own. The raw axe
-        # result stays beside the log, where it was asked for.
+        # THE PAGE'S OWN FOLDER, beside everything else that page produced.
+        #
+        # These used to go to the temporary folder on the grounds that they are
+        # working documents. That was wrong twice over: a reader who has just
+        # been told where a report is expects to find it there tomorrow, and it
+        # split one page's output across two places. Axe.htm sits with IBM.htm,
+        # Main.htm and the downloads.
+        pathFolder = paths.pageFolder(sPageTitle)
+        # The page itself, beside the report: what was tested, as it then was.
+        capture.captureForReport(self.cdpSession, dScan["sessionId"], pathFolder)
         pathHtml, pathText = report.writeReports(
-            dResults, dContacts, sPageTitle, sPageUrl, paths.getTempFolder()
+            dResults, dContacts, sPageTitle, sPageUrl, pathFolder
         )
         dSummary = {
             "contacts": {
@@ -518,10 +544,21 @@ class HomerViewService:
         dSummary = ace.runAce(self.cdpSession, pathData)
         history.record("aceScan", dSummary.get("pageTitle", ""), dSummary.get("pageUrl", ""),
                        dSummary.get("counts", {}))
+        # The page itself, beside the report, exactly as the axe path does it.
+        try:
+            capture.captureForReport(
+                self.cdpSession,
+                dSummary.get("sessionId") or self.cdpSession.findActivePageSession()[1],
+                paths.pageFolder(dSummary.get("pageTitle", "")),
+            )
+        except Exception:
+            logError("The page could not be captured beside the IBM report")
         # Every format the user asked for, in the downloads folder, without
         # anyone having to ask for them separately.
         dSummary["exported"] = exportReport.exportAll(
-            "IBM accessibility",
+            # The root name of every IBM output file: IBM.htm, IBM.json,
+            # IBM.csv, IBM.xlsx, all in the page's own folder.
+            "IBM",
             dSummary.get("pageTitle", ""),
             dSummary.get("report") or dSummary.get("buckets", {}),
             ace.buildRows(dSummary),

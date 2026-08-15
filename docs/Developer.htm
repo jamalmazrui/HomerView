@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
 <head>
   <meta charset="utf-8" />
@@ -177,6 +177,8 @@
 <li><a href="#installing-what-you-built"
 id="toc-installing-what-you-built">Installing what you built</a></li>
 </ul></li>
+<li><a href="#removing-homerview" id="toc-removing-homerview">Removing
+HomerView</a></li>
 <li><a href="#the-quality-checks" id="toc-the-quality-checks">The
 quality checks</a></li>
 <li><a href="#conventions-worth-knowing-before-you-change-anything"
@@ -253,6 +255,53 @@ large download nobody should be handed unasked.</p>
 <p>Afterwards press <strong>Alt+Shift+H</strong>: its first line gives
 the version and install time, which is how you confirm which build JAWS
 actually has loaded.</p>
+<h2 id="removing-homerview">Removing HomerView</h2>
+<p>NVDA can remove an add-on from its own Add-on Store. <strong>JAWS has
+nothing of the kind</strong>: scripts compiled into a settings folder
+and keys written into a user’s <code>default.jkm</code> stay there until
+something takes them out. The uninstaller is the only way back, so it is
+treated as a feature rather than as plumbing.</p>
+<p>It appears in two places, both stated explicitly in the
+<code>.iss</code> rather than left to Inno’s defaults, because a default
+nobody has written down is one a later edit can switch off
+unnoticed:</p>
+<ul>
+<li><strong><code>unins000.exe</code> in the installation
+folder</strong>, from <code>UninstallFilesDir={app}</code></li>
+<li><strong>Windows Apps and Features</strong>, from
+<code>CreateUninstallRegKey=yes</code>, listed under the program’s name
+and version</li>
+</ul>
+<p>What removal takes out:</p>
+<ul>
+<li><strong>The JAWS scripts</strong> — <code>HomerView.jss</code>,
+<code>.jkm</code>, <code>.jsd</code> and the compiled <code>.jsb</code>,
+from every language folder of every installed JAWS version</li>
+<li><strong>The key bindings</strong>, by running
+<code>chainJawsScripts -bUndo</code>, which removes the block from the
+user’s <code>default.jkm</code> and unhooks
+<code>MyExtensions.jss</code></li>
+<li><strong>The NVDA add-on</strong>, through NVDA’s own
+<code>--remove-addon</code> rather than by deleting folders behind its
+back, since NVDA keeps its own record of what is installed</li>
+<li><strong><code>%LOCALAPPDATA%\HomerView</code></strong> entirely —
+the log, the cached engines, the extracted pages and the whole Edge
+profile</li>
+<li><strong>The program folder</strong>, which is Inno’s own job</li>
+</ul>
+<p>What removal deliberately leaves alone: <strong>your Downloads
+folder</strong>. The reports and the fetched files are yours, and an
+uninstaller that deletes a person’s downloads has badly overstepped.</p>
+<p>Two details worth knowing:</p>
+<p><strong>JAWS is asked to reload at the end.</strong> On installation
+a reload saves a restart; on removal it prevents a fault, because JAWS
+otherwise holds the old compiled scripts in memory and the old keys
+bound, and every HomerView key goes on half-working against a program
+whose files have gone.</p>
+<p><strong>The removal log goes to
+<code>%TEMP%\HomerViewUninstall.log</code></strong>, not to HomerView’s
+own folder, because that folder is deleted moments later — so a removal
+that went wrong would otherwise erase the only record of how.</p>
 <h2 id="the-quality-checks">The quality checks</h2>
 <p><code>checkHomerViewQuality.ps1</code> runs before any compiler and
 gates the build. Each check reports <strong>what it found</strong>

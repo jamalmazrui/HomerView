@@ -260,6 +260,7 @@ writeLog ""
 # the browser's own key map.
 $lCommonKeys = @(
     "Alt+JAWSKey+A=checkAccessibility",
+    "Alt+JAWSKey+C=findContacts",
     "Alt+JAWSKey+D=dismissDialog",
     "Alt+JAWSKey+F10=showHomerViewMenu",
     "Alt+JAWSKey+H=launchHomerView",
@@ -285,6 +286,7 @@ $lVirtualKeys = @(
     "Alt+F8=readAll",
     "Alt+L=describeLinkTarget",
     "Alt+M=sayMetadata",
+    "Alt+N=listNames",
     "Alt+Shift+Apostrophe=clearClipboard",
     "Alt+Shift+P=copyPageLinks",
     "Alt+Shift+W=downloadFiles",
@@ -633,7 +635,7 @@ if ($iFailed -gt 0) {
 }
 if (-not $bUndo) {
     writeLog "RESTART JAWS, then try Alt+JAWSKey+H from anywhere, Alt+JAWSKey+F10 for"
-    writeLog "the menu, and Alt+JAWSKey+E on a web page."
+    writeLog "the menu, and Alt+Shift+H for every key."
     writeLog "With HomerView's browser focused, Insert+Q says which scripts are loaded."
     writeLog "To put everything back: chainJawsScripts -bUndo"
 }

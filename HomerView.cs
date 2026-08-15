@@ -127,6 +127,31 @@ namespace Homer
         }
 
         private const int iCallTimeoutSeconds = 20;
+        // HOW LONG TO WAIT FOR A CONVERTER, SCALED TO THE FILE.
+        //
+        // A flat ninety seconds was wrong in both directions. For a small
+        // document it is far longer than anyone will sit through: the reader
+        // hears "Converting", then silence, and concludes the program has
+        // hung -- which is the very impression the timeout exists to prevent.
+        // For a very large one it is not generous enough to be worth having.
+        //
+        // So it scales: a base, plus an allowance for each megabyte, with a
+        // ceiling. A 200 kilobyte document gets about twenty seconds and fails
+        // fast; a two megabyte PDF gets forty; nothing waits past a minute.
+        private const int iConvertBaseSeconds = 18;
+        private const int iConvertSecondsPerMegabyte = 11;
+        private const int iConvertCeilingSeconds = 60;
+
+        private static int ConvertBudget(string sPath)
+        {
+            long iBytes = 0;
+            try { iBytes = new FileInfo(sPath).Length; }
+            catch (Exception) { }
+            int iSeconds = iConvertBaseSeconds
+                + (int) (iBytes / (1024 * 1024) * iConvertSecondsPerMegabyte);
+            if (iSeconds > iConvertCeilingSeconds) iSeconds = iConvertCeilingSeconds;
+            return iSeconds;
+        }
 
         // --- The log ---------------------------------------------------------
         //
@@ -317,14 +342,14 @@ namespace Homer
                     && sCommand != "clipboardfile" && sCommand != "clipboardtext"
                     && sCommand != "clipboardinfo" && sCommand != "clipboardsay"
                     && sCommand != "clipboardclear" && sCommand != "clipboardtofile"
-                    && sCommand != "clipboardadd" && sCommand != "exportfolder"
+                    && sCommand != "clipboardadd" && sCommand != "pagefolder"
                     && sCommand != "openpage" && sCommand != "savedialog"
                     && sCommand != "opendialog"
                     && !ReadPort())
                 {
                     Log("  no port file, so the browser is not running");
                     WriteResult(sOutputFile,
-                        XmlAnswer("{\"error\":\"HomerView's browser is not running. Press the launch key.\"}"));
+                        XmlAnswer("{\"error\":\"Not running. Press the launch key.\"}"));
                     return 1;
                 }
                 switch (sCommand)
@@ -362,6 +387,12 @@ namespace Homer
                         break;
                     case "clipboardfile":
                         sResult = ClipboardFile(sArgument);
+                        break;
+                    case "pagenames":
+                        sResult = PageNames();
+                        break;
+                    case "contacts":
+                        sResult = ContactSummary();
                         break;
                     case "findmark":
                         sResult = FindMark(sArgument);
@@ -402,7 +433,7 @@ namespace Homer
                     case "axeready":
                         sResult = InjectEngine(sAxeCacheName, lAxeUrls, sAxePresent, 200000)
                             ? "{\"value\":\"ready\"}"
-                            : "{\"error\":\"The axe engine could not be downloaded. Check the internet connection.\"}";
+                            : "{\"error\":\"axe could not be downloaded\"}";
                         break;
                     case "ace":
                         sResult = Ace(sArgument);
@@ -410,8 +441,8 @@ namespace Homer
                     case "copyall":
                         sResult = CopyAllText();
                         break;
-                    case "exportfolder":
-                        sResult = "{\"value\":" + Quote(ExportFolder(sArgument)) + "}";
+                    case "pagefolder":
+                        sResult = "{\"value\":" + Quote(PageFolder(sArgument)) + "}";
                         break;
                     case "clipboardadd":
                         sResult = ClipboardAdd(sArgument);
@@ -570,7 +601,7 @@ namespace Homer
             }
             catch (Exception)
             {
-                return "{\"error\":\"That is not an address this can look up.\"}";
+                return "{\"error\":\"Not a lookable address\"}";
             }
             // ONLY THE WEB CAN BE ASKED. WebRequest.Create hands back a
             // FileWebRequest for a file address, and the cast to
@@ -914,7 +945,7 @@ namespace Homer
                 if (System.Windows.Forms.Clipboard.ContainsText())
                     return "{\"value\":" + Quote(
                         System.Windows.Forms.Clipboard.GetText()) + "}";
-                return "{\"error\":\"The clipboard is empty.\"}";
+                return "{\"error\":\"Clipboard empty\"}";
             }
             catch (Exception oError)
             {
@@ -927,7 +958,7 @@ namespace Homer
             try
             {
                 System.Windows.Forms.Clipboard.Clear();
-                return "{\"value\":\"The clipboard is empty.\"}";
+                return "{\"value\":\"Clipboard empty\"}";
             }
             catch (Exception oError)
             {
@@ -944,11 +975,11 @@ namespace Homer
             bool bAppend = sArgument.StartsWith("+");
             string sPath = bAppend ? sArgument.Substring(1) : sArgument;
             if (string.IsNullOrEmpty(sPath))
-                return "{\"error\":\"No file was named.\"}";
+                return "{\"error\":\"No file named\"}";
             try
             {
                 if (!System.Windows.Forms.Clipboard.ContainsText())
-                    return "{\"error\":\"There is no text on the clipboard to save.\"}";
+                    return "{\"error\":\"No text on the clipboard\"}";
                 string sText = System.Windows.Forms.Clipboard.GetText();
                 string sFolder = Path.GetDirectoryName(sPath);
                 if (!string.IsNullOrEmpty(sFolder))
@@ -986,7 +1017,7 @@ namespace Homer
         private static string ClipboardAdd(string sText)
         {
             if (string.IsNullOrEmpty(sText))
-                return "{\"error\":\"There was nothing to add.\"}";
+                return "{\"error\":\"Nothing to add\"}";
             try
             {
                 string sExisting = System.Windows.Forms.Clipboard.ContainsText()
@@ -1005,43 +1036,33 @@ namespace Homer
         }
 
         /// <summary>
-        /// A folder under Downloads named after the page, emptied first.
-        ///
-        /// HIS RULE, and it is a better one than numbering files: an analysis
-        /// produces several files that belong together, so they go in a folder
-        /// of their own named for the page, and running it again REPLACES that
-        /// folder entirely. Numbered duplicates in one flat Downloads folder
-        /// leave you guessing which run a file came from.
-        ///
-        /// The name is sanitised the same way exportReport.py does it on the
-        /// NVDA side -- the characters Windows forbids removed, runs of white
-        /// space collapsed, seventy characters kept -- so the two halves of one
-        /// program name a folder identically.
-        /// </summary>
-        /// <summary>
         /// A page title turned into a name Windows will actually accept.
         ///
         /// PORTED FROM urlFido's folderNameFromTitle, which follows urlCheck's
-        /// rules, because MY VERSION HAD TWO LATENT FAULTS and both are the
-        /// kind that fire on one page in a hundred and look like nothing else:
+        /// rules, because my own version had two latent faults, both the kind
+        /// that fire on one page in a hundred: a TRAILING DOT OR SPACE is
+        /// illegal at the end of a Windows name, and a RESERVED DEVICE NAME --
+        /// CON, PRN, AUX, NUL, COM1 to COM9, LPT1 to LPT9 -- cannot be a file
+        /// or folder at all, so an underscore goes in front to defang it.
         ///
-        ///   - A TRAILING DOT OR SPACE is illegal at the end of a Windows name.
-        ///     A page titled "Contact us." would have produced a path the
-        ///     system refuses, and the failure would have arrived as an
-        ///     exception message about an unrelated-looking path.
-        ///   - A RESERVED DEVICE NAME cannot be a file or folder at all. A page
-        ///     titled "Aux" or "Con" is uncreatable, so an underscore is put in
-        ///     front to defang it.
-        ///
-        /// The other decisions are urlCheck's and worth keeping: original
-        /// capitalisation and the spaces between words are PRESERVED rather
-        /// than flattened into dashes, because the name is read by a person
-        /// browsing Downloads. "Home | American Foundation for the Blind"
-        /// reads better than "home-american-foundation".
+        /// His other decisions are kept: original capitalisation and the spaces
+        /// between words are PRESERVED rather than flattened into dashes,
+        /// because the name is read by a person browsing Downloads.
         /// </summary>
         private static string SafeStem(string sPageTitle)
         {
             string sName = (sPageTitle ?? "").Trim();
+            // A percent escape is read aloud one "percent two zero" at a time,
+            // so the web's escaping is undone before anything else. Three
+            // passes, because a doubly-escaped name (%2520) is common enough on
+            // real sites to be worth it.
+            for (int i = 0; i < 3 && sName.IndexOf('%') >= 0; i++)
+            {
+                string sBefore = sName;
+                try { sName = Uri.UnescapeDataString(sName); }
+                catch (Exception) { break; }
+                if (sName == sBefore) break;
+            }
             if (sName.Length == 0) sName = "report";
             sName = Regex.Replace(sName, "[<>:\"/\\\\|?*\\x00-\\x1f]", "");
             sName = Regex.Replace(sName, "\\s+", " ").Trim();
@@ -1063,6 +1084,9 @@ namespace Homer
             return sName;
         }
 
+        /// <summary>
+        /// The real Downloads folder, read from the shell rather than assumed.
+        /// </summary>
         private static string DownloadsFolder()
         {
             string sDownloads = null;
@@ -1080,31 +1104,27 @@ namespace Homer
             return sDownloads;
         }
 
-        private static string ExportFolder(string sPageTitle)
+        /// <summary>
+        /// THE ONE FOLDER FOR THIS PAGE, shared by every command that writes.
+        ///
+        /// His revised convention, and it is a better one. Everything a page
+        /// produces belongs together: the downloads, both accessibility
+        /// reports, the extracted article. So there is one folder named after
+        /// the page, and each tool names its own files -- IBM.htm, Axe.htm,
+        /// Main.htm -- rather than each tool having a folder of its own.
+        ///
+        /// IT IS NO LONGER EMPTIED. Deleting and recreating it was defensible
+        /// when the accessibility results were alone in it, and became data
+        /// loss the moment downloads landed there too: seventeen files fetched
+        /// at 20:03 were deleted by an accessibility run at 20:04. Each tool
+        /// now replaces ITS OWN files by name, which is what "replaced with the
+        /// new content" has to mean once the folder is shared.
+        /// </summary>
+        private static string PageFolder(string sPageTitle)
         {
-            // A SUFFIX, BECAUSE THIS FOLDER IS EMPTIED AND THE DOWNLOAD FOLDER
-            // IS NOT.
-            //
-            // Both were named Downloads\<page title>, and this one deletes
-            // whatever is there before writing. On 14 August seventeen files,
-            // 3.8 megabytes, were downloaded from an FCC page and then DELETED
-            // sixty seconds later by an accessibility run on the same page.
-            // Two features that write to one place, one of which clears it,
-            // was a data-loss fault waiting for the day somebody used both.
-            string sFolder = Path.Combine(DownloadsFolder(),
-                SafeStem(sPageTitle) + " - accessibility");
-            // Replaced, not added to: a folder half from this run and half from
-            // the last is worse than either.
-            if (Directory.Exists(sFolder))
-            {
-                try { Directory.Delete(sFolder, true); }
-                catch (Exception oError)
-                {
-                    Log("  the old folder could not be removed: " + oError.Message);
-                }
-            }
+            string sFolder = Path.Combine(DownloadsFolder(), SafeStem(sPageTitle));
             Directory.CreateDirectory(sFolder);
-            Log("  results folder: " + sFolder);
+            Log("  page folder: " + sFolder);
             return sFolder;
         }
 
@@ -1124,7 +1144,7 @@ namespace Homer
         private static string OpenPage(string sTarget)
         {
             if (string.IsNullOrEmpty(sTarget))
-                return "{\"error\":\"Nothing was named to open.\"}";
+                return "{\"error\":\"Nothing named\"}";
             string sUrl = sTarget;
             if (!sUrl.Contains("://"))
             {
@@ -1133,11 +1153,15 @@ namespace Homer
                 sUrl = new Uri(Path.GetFullPath(sUrl)).AbsoluteUri;
             }
             if (!ReadPort())
-                return "{\"error\":\"HomerView's browser is not running. Press the launch key first.\"}";
+                return "{\"error\":\"Not running. Press the launch key.\"}";
             string sOutcome = OpenInTab(sUrl);
             if (sOutcome.StartsWith("but"))
-                return "{\"error\":\"The page could not be opened in HomerView's browser.\"}";
-            return "{\"value\":" + Quote("Opened in HomerView: " + sUrl) + "}";
+                return "{\"error\":\"It could not be opened in HomerView.\"}";
+            // THE PATH, NOT THE ADDRESS. A file address escapes every space as
+            // %20, and a screen reader reads each one as "percent two zero", so
+            // a name with four spaces in it arrives as a mouthful of numbers.
+            // The path is what a person recognises.
+            return "{\"value\":" + Quote("Opened " + Path.GetFileName(sTarget)) + "}";
         }
 
         /// <summary>
@@ -1437,7 +1461,7 @@ namespace Homer
             if (!InjectEngine(sAceCacheName, lAceUrls,
                 "(() => (typeof ace !== \"undefined\" && !!ace.Checker) ? \"yes\" : \"no\")()",
                 100000))
-                return "{\"error\":\"The IBM Equal Access engine could not be loaded. Check the internet connection.\"}";
+                return "{\"error\":\"IBM Equal Access could not be loaded\"}";
 
             string sTitle = Tidy(EvaluateText("(() => document.title)()"));
             string sUrl = Tidy(EvaluateText("(() => location.href)()"));
@@ -1499,7 +1523,7 @@ namespace Homer
 
             string[] lHead = sReport.Split('\u0002');
             if (lHead.Length < 3)
-                return "{\"error\":\"The IBM engine's answer was not in the expected shape.\"}";
+                return "{\"error\":\"IBM answered unexpectedly\"}";
             int iPassed = 0;
             int.TryParse(lHead[0], out iPassed);
 
@@ -1559,9 +1583,10 @@ namespace Homer
                 lSheets.Add(new KeyValuePair<string, List<string[]>>(sSheetName, lSheetRows));
             }
 
-            string sFolder = ExportFolder(sTitle);
+            string sFolder = PageFolder(sTitle);
+            string sCaptured = CapturePage(sFolder);
             var lWritten = new List<string>();
-            string sHtmlPath = Path.Combine(sFolder, "Report.htm");
+            string sHtmlPath = Path.Combine(sFolder, "IBM.htm");
             try
             {
                 // BUILT FROM THE ROWS, not from the engine's own output.
@@ -1594,31 +1619,31 @@ namespace Homer
                         + ",\"snippet\":" + Quote(lRows[i][4]) + "}");
                 }
                 oJson.Append("]}");
-                File.WriteAllText(Path.Combine(sFolder, "Report.json"),
+                File.WriteAllText(Path.Combine(sFolder, "IBM.json"),
                     oJson.ToString(), new UTF8Encoding(true));
-                lWritten.Add("Report.json");
+                lWritten.Add("IBM.json");
             }
             catch (Exception oError) { Log("  json failed: " + oError.Message); }
             try
             {
-                WriteCsv(Path.Combine(sFolder, "Report.csv"), lRows);
-                lWritten.Add("Report.csv");
-                Log("  wrote Report.csv");
+                WriteCsv(Path.Combine(sFolder, "IBM.csv"), lRows);
+                lWritten.Add("IBM.csv");
+                Log("  wrote IBM.csv");
             }
             catch (Exception oError) { Log("  csv failed: " + oError.Message); }
             try
             {
-                WriteXlsx(Path.Combine(sFolder, "Report.xlsx"), lSheets);
-                lWritten.Add("Report.xlsx");
-                Log("  wrote Report.xlsx");
+                WriteXlsx(Path.Combine(sFolder, "IBM.xlsx"), lSheets);
+                lWritten.Add("IBM.xlsx");
+                Log("  wrote IBM.xlsx");
             }
             catch (Exception oError) { Log("  xlsx failed: " + oError.Message); }
             try
             {
                 File.WriteAllText(sHtmlPath,
                     AceHtml(sTitle, sUrl, sRuleset, dCounts, dBuckets), new UTF8Encoding(true));
-                lWritten.Add("Report.htm");
-                Log("  wrote Report.htm");
+                lWritten.Add("IBM.htm");
+                Log("  wrote IBM.htm");
             }
             catch (Exception oError) { Log("  html failed: " + oError.Message); }
 
@@ -1639,7 +1664,8 @@ namespace Homer
             oAnswer.Append(dCounts["needs review"].ToString() + " to review, ");
             oAnswer.Append(dCounts["recommendation"].ToString() + " recommendations, ");
             oAnswer.Append(dCounts["pass"].ToString() + " passed. ");
-            oAnswer.Append(lWritten.Count.ToString() + " files in Downloads, ");
+            oAnswer.Append((lWritten.Count + (sCaptured == "" ? 0
+                : sCaptured.Split(',').Length)).ToString() + " files in Downloads, ");
             oAnswer.Append(Path.GetFileName(sFolder) + ". ");
             oAnswer.Append(sOpened == "" ? "The report was not opened."
                 : "The report is " + sOpened);
@@ -1837,7 +1863,7 @@ namespace Homer
         private static string AxeReport()
         {
             if (!InjectEngine(sAxeCacheName, lAxeUrls, sAxePresent, 200000))
-                return "{\"error\":\"The axe engine could not be loaded. Check the internet connection.\"}";
+                return "{\"error\":\"axe could not be loaded\"}";
 
             string sTitle = Tidy(EvaluateText("(() => document.title)()"));
             string sUrl = Tidy(EvaluateText("(() => location.href)()"));
@@ -1850,14 +1876,14 @@ namespace Homer
                 + " return JSON.stringify({violations: d.violations, incomplete: d.incomplete,"
                 + " passes: d.passes.length, inapplicable: d.inapplicable.length}); })()");
             if (sJson == null || sJson == "" || sJson.StartsWith("ERROR:"))
-                return "{\"error\":\"The axe engine returned no results.\"}";
+                return "{\"error\":\"axe returned nothing\"}";
 
             string sXml = JsonToXml(sJson);
             if (sXml == null)
-                return "{\"error\":\"The axe results could not be read.\"}";
+                return "{\"error\":\"axe results unreadable\"}";
             var oDocument = new XmlDocument();
             try { oDocument.LoadXml(sXml); }
-            catch { return "{\"error\":\"The axe results could not be read.\"}"; }
+            catch { return "{\"error\":\"axe results unreadable\"}"; }
 
             var dWcag = WcagTable();
             var oBody = new StringBuilder();
@@ -2040,12 +2066,20 @@ namespace Homer
             oText.Append(oBody.ToString());
             oText.Append("</body>\r\n</html>\r\n");
 
-            // One file, so no folder: Downloads, named for the page.
-            string sName2 = "Axe-" + SafeStem(sTitle) + ".htm";
-            string sPath = Path.Combine(DownloadsFolder(), sName2);
+            // The same folder as everything else this page produced, with a
+            // name that says which engine wrote it.
+            string sFolder = PageFolder(sTitle);
+            string sCaptured = CapturePage(sFolder);
+            string sName2 = "Axe.htm";
+            string sPath = Path.Combine(sFolder, sName2);
             try
             {
                 File.WriteAllText(sPath, oText.ToString(), new UTF8Encoding(true));
+                // The engine's own findings beside the report, for anyone who
+                // wants to do something else with them.
+                File.WriteAllText(Path.Combine(sFolder, "Axe.json"), sJson,
+                    new UTF8Encoding(true));
+                Log("  wrote Axe.htm and Axe.json");
             }
             catch (Exception oError)
             {
@@ -2056,7 +2090,9 @@ namespace Homer
             string sOpened = OpenInTab(new Uri(sPath).AbsoluteUri);
             return "{\"value\":" + Quote(iViolations.ToString()
                 + " kinds of problem in " + iPlaces.ToString() + " places. Saved as "
-                + sName2 + " in Downloads. The report is " + sOpened) + "}";
+                + sName2 + (sCaptured == "" ? "" : " with " + sCaptured)
+                + " in " + Path.GetFileName(sFolder)
+                + ". The report is " + sOpened) + "}";
         }
 
         // --- File dialogs and converters -------------------------------------
@@ -2170,20 +2206,60 @@ namespace Homer
             return "";
         }
 
-        private static int RunAndWait(string sProgram, string sArguments)
+        /// <summary>
+        /// Runs a converter and comes back, whatever it does.
+        ///
+        /// THIS DEADLOCKED, AND IT IS THE CLASSIC ONE. It read the whole of the
+        /// child's standard output, then the whole of its error output, and
+        /// only then waited for it to exit. A pipe holds a few kilobytes; once
+        /// the child fills the ERROR pipe it blocks waiting for somebody to
+        /// drain it, and we are blocked reading OUTPUT that will never end
+        /// because the child cannot proceed. Neither side moves. The
+        /// WaitForExit with its two minute timeout is never reached, so the
+        /// timeout cannot save anything -- which is exactly what happened to
+        /// 2htm on a large PDF: "converting with 2htm.exe" and then silence
+        /// with the process still alive.
+        ///
+        /// Both streams are now drained by the runtime as they arrive, so
+        /// neither pipe can fill. And if the child still has not finished
+        /// inside the budget it is KILLED rather than waited on for ever,
+        /// because the scripts wait for this process and a process that never
+        /// exits is a screen reader that never comes back.
+        /// </summary>
+        private static int RunAndWait(string sProgram, string sArguments,
+            int iBudgetSeconds)
         {
             var oStart = new ProcessStartInfo(sProgram, sArguments);
             oStart.UseShellExecute = false;
             oStart.CreateNoWindow = true;
             oStart.RedirectStandardOutput = true;
             oStart.RedirectStandardError = true;
-            using (var oProcess = Process.Start(oStart))
+            var oOut = new StringBuilder();
+            var oErr = new StringBuilder();
+            using (var oProcess = new Process())
             {
-                string sOut = oProcess.StandardOutput.ReadToEnd();
-                string sErr = oProcess.StandardError.ReadToEnd();
-                oProcess.WaitForExit(120000);
-                if (sOut.Trim() != "") Log("    " + Abbreviate(sOut.Trim(), 300));
-                if (sErr.Trim() != "") Log("    " + Abbreviate(sErr.Trim(), 300));
+                oProcess.StartInfo = oStart;
+                oProcess.OutputDataReceived += delegate (object oSender,
+                    DataReceivedEventArgs oLine)
+                { if (oLine.Data != null) oOut.AppendLine(oLine.Data); };
+                oProcess.ErrorDataReceived += delegate (object oSender,
+                    DataReceivedEventArgs oLine)
+                { if (oLine.Data != null) oErr.AppendLine(oLine.Data); };
+                oProcess.Start();
+                oProcess.BeginOutputReadLine();
+                oProcess.BeginErrorReadLine();
+                if (!oProcess.WaitForExit(iBudgetSeconds * 1000))
+                {
+                    Log("    it did not finish in " + iBudgetSeconds.ToString()
+                        + " seconds, so it was stopped");
+                    try { oProcess.Kill(); } catch (Exception) { }
+                    try { oProcess.WaitForExit(5000); } catch (Exception) { }
+                    if (oOut.Length > 0) Log("    " + Abbreviate(oOut.ToString().Trim(), 300));
+                    if (oErr.Length > 0) Log("    " + Abbreviate(oErr.ToString().Trim(), 300));
+                    return -1;
+                }
+                if (oOut.Length > 0) Log("    " + Abbreviate(oOut.ToString().Trim(), 300));
+                if (oErr.Length > 0) Log("    " + Abbreviate(oErr.ToString().Trim(), 300));
                 return oProcess.ExitCode;
             }
         }
@@ -2230,8 +2306,13 @@ namespace Homer
             string sFolder = Path.Combine(
                 Directory.GetParent(ProfileFolder()).FullName, "temp");
             Directory.CreateDirectory(sFolder);
+            // THE ROOT NAME IS KEPT, EXACTLY. "WCAG in a Book.epub" becomes
+            // "WCAG in a Book.htm" and nothing else changes: the name came off
+            // a file that already exists, so Windows has already accepted it,
+            // and putting it through the page-title sanitiser could only
+            // shorten or alter a name the reader chose.
             string sTarget = Path.Combine(sFolder,
-                SafeStem(Path.GetFileNameWithoutExtension(sPath)) + ".htm");
+                Path.GetFileNameWithoutExtension(sPath) + ".htm");
             try { if (File.Exists(sTarget)) File.Delete(sTarget); }
             catch (Exception) { }
 
@@ -2242,11 +2323,26 @@ namespace Homer
                 if (sProgram == "") { lTried.Add(sConverter + " is not installed"); continue; }
                 try
                 {
+                    // THE TWO PROGRAMS TAKE THEIR OUTPUT DIFFERENTLY, and I had
+                    // assumed they were alike.
+                    //
+                    // pandoc takes -o with a FILE. 2htm takes -o with a
+                    // DIRECTORY and names the file itself, <basename>.htm.
+                    // Passing 2htm the target path as a second positional
+                    // argument made it read that path as ANOTHER SOURCE FILE,
+                    // which is why it answered "File not found:
+                    // ...\temp\WCAG 2.2 Manual Checks.htm" -- a file it was
+                    // being asked to convert rather than to write.
+                    //
+                    // -f because 2htm SKIPS an input whose .htm already exists
+                    // in the output folder. Without it, a second run on the
+                    // same document silently leaves the first conversion in
+                    // place, which looks like success and is not.
                     string sArguments = sConverter == "pandoc.exe"
                         ? "\"" + sPath + "\" -s -o \"" + sTarget + "\""
-                        : "\"" + sPath + "\" \"" + sTarget + "\"";
+                        : "\"" + sPath + "\" -o \"" + sFolder + "\" -f";
                     Log("  converting with " + sProgram);
-                    int iExit = RunAndWait(sProgram, sArguments);
+                    int iExit = RunAndWait(sProgram, sArguments, ConvertBudget(sPath));
                     if (File.Exists(sTarget) && new FileInfo(sTarget).Length > 0)
                     {
                         Log("  wrote " + sTarget + ", "
@@ -2262,7 +2358,8 @@ namespace Homer
                 }
             }
             return "{\"error\":" + Quote("This " + sExtension.TrimStart('.')
-                + " file could not be converted. " + string.Join("; ", lTried.ToArray())
+                + " file could not be converted in " + ConvertBudget(sPath).ToString()
+                + " seconds. " + string.Join("; ", lTried.ToArray())
                 + ". Converters are found rather than bundled, so installing pandoc "
                 + "or 2htm makes this work.") + "}";
         }
@@ -2277,7 +2374,7 @@ namespace Homer
                 return sConverted;
             string sPage = XmlTextFromJson(sConverted);
             if (sPage == "")
-                return "{\"error\":\"Nothing came back from the conversion.\"}";
+                return "{\"error\":\"Conversion gave nothing\"}";
             return OpenPage(sPage);
         }
 
@@ -2296,11 +2393,11 @@ namespace Homer
         private static string SavePage(string sPath)
         {
             if (string.IsNullOrEmpty(sPath))
-                return "{\"error\":\"No file was named.\"}";
+                return "{\"error\":\"No file named\"}";
             string sHtml = EvaluateText(
                 "(() => document.documentElement.outerHTML)()");
             if (sHtml == null || sHtml == "" || sHtml.StartsWith("ERROR:"))
-                return "{\"error\":\"The page's own source could not be read.\"}";
+                return "{\"error\":\"Could not read the page\"}";
             string sExtension = Path.GetExtension(sPath).ToLowerInvariant();
             try
             {
@@ -2317,14 +2414,15 @@ namespace Homer
                 // the page as read rather than as fetched again.
                 string sPandoc = FindConverter("pandoc.exe");
                 if (sPandoc == "")
-                    return "{\"error\":\"Saving in that format needs pandoc, which is not installed. A .htm name always works.\"}";
+                    return "{\"error\":\"That format needs pandoc. Name it .htm instead.\"}";
                 string sTemp = Path.Combine(
                     Path.Combine(Directory.GetParent(ProfileFolder()).FullName, "temp"),
                     "SavePage.htm");
                 Directory.CreateDirectory(Path.GetDirectoryName(sTemp));
                 File.WriteAllText(sTemp, sHtml, new UTF8Encoding(true));
                 int iExit = RunAndWait(sPandoc,
-                    "\"" + sTemp + "\" -s -o \"" + sPath + "\"");
+                    "\"" + sTemp + "\" -s -o \"" + sPath + "\"",
+                    ConvertBudget(sTemp));
                 if (File.Exists(sPath) && new FileInfo(sPath).Length > 0)
                     return "{\"value\":" + Quote("Saved " + sPath + ", "
                         + new FileInfo(sPath).Length.ToString() + " bytes.") + "}";
@@ -2489,7 +2587,7 @@ namespace Homer
         {
             var lLinks = DownloadLinks();
             if (lLinks.Count == 0)
-                return "{\"error\":\"No files are linked from this page.\"}";
+                return "{\"error\":\"No files linked\"}";
             var dCounts = new Dictionary<string, int>();
             foreach (string[] lLink in lLinks)
             {
@@ -2563,19 +2661,20 @@ namespace Homer
             return sClean;
         }
 
-        private static string UniqueIn(string sFolder, string sName)
+        /// <summary>
+        /// The path a download is written to. It REPLACES what is there.
+        ///
+        /// The other Homer tools number duplicates -- name-001, name-002 -- and
+        /// HomerView deliberately does not. HIS REASONING, and it is right for
+        /// this program: the folder is named after the page, so a second run on
+        /// the same page is a re-fetch of the same things, and a folder filling
+        /// up with numbered copies of one report is worse than a folder holding
+        /// the current one. It also means the folder name stays the same across
+        /// sessions, so a path you learned once keeps working.
+        /// </summary>
+        private static string TargetIn(string sFolder, string sName)
         {
-            string sPath = Path.Combine(sFolder, sName);
-            if (!File.Exists(sPath)) return sPath;
-            string sStem = Path.GetFileNameWithoutExtension(sName);
-            string sExtension = Path.GetExtension(sName);
-            for (int i = 2; i < 500; i++)
-            {
-                sPath = Path.Combine(sFolder,
-                    sStem + " (" + i.ToString() + ")" + sExtension);
-                if (!File.Exists(sPath)) return sPath;
-            }
-            return sPath;
+            return Path.Combine(sFolder, sName);
         }
 
         /// <summary>
@@ -2613,13 +2712,13 @@ namespace Homer
                 if (sKind != "") lWanted.Add(sKind);
             }
             if (lWanted.Count == 0)
-                return "{\"error\":\"No kinds of file were named, so nothing was fetched.\"}";
+                return "{\"error\":\"No kinds named\"}";
 
             var lChosen = new List<string[]>();
             foreach (string[] lLink in DownloadLinks())
                 if (InList(lWanted.ToArray(), lLink[0])) lChosen.Add(lLink);
             if (lChosen.Count == 0)
-                return "{\"error\":\"No files of those kinds are linked from this page.\"}";
+                return "{\"error\":\"None of those kinds here\"}";
 
             string sPageUrl = Tidy(EvaluateText("(() => location.href)()"));
             string sTitle = Tidy(EvaluateText("(() => document.title)()"));
@@ -2661,7 +2760,7 @@ namespace Homer
             if (iWhich < 1) return "{\"error\":\"Which file?\"}";
             string[] lSession;
             try { lSession = File.ReadAllText(SessionPath()).Split('\n'); }
-            catch (Exception) { return "{\"error\":\"The download list has gone.\"}"; }
+            catch (Exception) { return "{\"error\":\"Download list gone\"}"; }
             if (lSession.Length < 4 + iWhich)
                 return "{\"error\":\"There is no file number " + iWhich.ToString() + ".\"}";
             string sPageUrl = lSession[0];
@@ -2734,7 +2833,7 @@ namespace Homer
                         try { sName = Path.GetFileName(new Uri(sUrl).LocalPath); }
                         catch (Exception) { sName = ""; }
                     }
-                    string sTarget = UniqueIn(sFolder, CleanFileName(sName, sExtension));
+                    string sTarget = TargetIn(sFolder, CleanFileName(sName, sExtension));
                     using (var oIn = oResponse.GetResponseStream())
                     using (var oOut = new FileStream(sTarget, FileMode.Create, FileAccess.Write))
                     {
@@ -2791,7 +2890,7 @@ namespace Homer
         {
             string[] lParts = (sArgument ?? "").Split(new char[] { '\t' }, 2);
             if (lParts.Length < 2 || lParts[1] == "")
-                return "{\"error\":\"Nothing to look for.\"}";
+                return "{\"error\":\"Nothing to look for\"}";
             bool bPattern = lParts[0] == "pattern";
             string sNeedle = lParts[1];
 
@@ -2854,7 +2953,7 @@ namespace Homer
 
             string sAnswer = EvaluateText(sScript);
             if (sAnswer == null || sAnswer.StartsWith("ERROR:"))
-                return "{\"error\":\"The page could not be searched.\"}";
+                return "{\"error\":\"Could not search\"}";
             if (sAnswer.StartsWith("BAD: "))
                 return "{\"error\":" + Quote("That regular expression is not valid. "
                     + sAnswer.Substring(5)) + "}";
@@ -2872,7 +2971,7 @@ namespace Homer
         private static string ExtractPattern(string sNeedle)
         {
             if (string.IsNullOrEmpty(sNeedle))
-                return "{\"error\":\"No pattern was given.\"}";
+                return "{\"error\":\"No pattern\"}";
             string sScript =
                 "(() => {"
                 + " let oRe;"
@@ -2890,12 +2989,12 @@ namespace Homer
                 + "})()";
             string sAnswer = EvaluateText(sScript);
             if (sAnswer == null || sAnswer.StartsWith("ERROR:"))
-                return "{\"error\":\"The page could not be searched.\"}";
+                return "{\"error\":\"Could not search\"}";
             if (sAnswer.StartsWith("BAD: "))
                 return "{\"error\":" + Quote("That regular expression is not valid. "
                     + sAnswer.Substring(5)) + "}";
             if (sAnswer == "")
-                return "{\"error\":\"Nothing on this page matches that.\"}";
+                return "{\"error\":\"No matches\"}";
             string[] lHits = sAnswer.Split('\u0001');
             // \r\n\f\r\n between matches, as he specified.
             string sJoined = string.Join("\r\n\f\r\n", lHits);
@@ -2905,10 +3004,485 @@ namespace Homer
                 + (lHits.Length == 1 ? " match." : " matches.") + "\r\n\r\n" + sJoined) + "}";
         }
 
+        // --- Who to tell ------------------------------------------------------
+
+        /// <summary>
+        /// Finds whatever way there is to contact the people behind a site.
+        ///
+        /// PORTED FROM AccReporter's buildContactSummary and
+        /// extractContactSignals. It was a section inside that extension's
+        /// accessibility report; here it is a command of its own, because the
+        /// question "who do I tell" is asked at other times than "what is wrong
+        /// with this page", and pinning it to one of the checkers would hide it
+        /// from anyone who has not just run one.
+        ///
+        /// Three sources, as AccReporter uses: the page in front of you, the
+        /// site's home page (a contact link lives in a footer that an article
+        /// may not carry), and a short list of addresses worth trying directly.
+        /// The last is why an accessibility statement is usually found at all:
+        /// most sites that have one never link to it from an article.
+        /// </summary>
+        private static readonly string[] lContactPaths = new string[] {
+            "/accessibility", "/accessibility-statement",
+            "/accessibility-statement.html", "/.well-known/accessibility-statement",
+            "/contact", "/contact-us", "/contact.html" };
+
+        private static readonly string[] lSocialHosts = new string[] {
+            "bsky.app", "facebook.com", "linkedin.com", "mastodon.social",
+            "threads.net", "x.com", "youtube.com", "instagram.com" };
+
+        private static void GatherContacts(string sHtml, string sOrigin,
+            List<string> lEmail, List<string> lAccess, List<string> lContact,
+            List<string> lSocial)
+        {
+            if (string.IsNullOrEmpty(sHtml)) return;
+            foreach (Match match in Regex.Matches(sHtml,
+                "<a\\s[^>]*href=[\"']([^\"']+)[\"'][^>]*>([\\s\\S]*?)</a>",
+                RegexOptions.IgnoreCase))
+            {
+                string sHref = match.Groups[1].Value.Trim();
+                string sText = Regex.Replace(match.Groups[2].Value, "<[^>]+>", "")
+                    .Trim().ToLowerInvariant();
+
+                if (sHref.StartsWith("mailto:", StringComparison.OrdinalIgnoreCase))
+                {
+                    string sAddress = sHref.Substring(7).Split('?')[0].Trim();
+                    if (sAddress != "" && !lEmail.Contains(sAddress)) lEmail.Add(sAddress);
+                    continue;
+                }
+                if (sHref.StartsWith("tel:", StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                string sAbsolute = sHref;
+                if (sHref.StartsWith("/")) sAbsolute = sOrigin + sHref;
+                if (!sAbsolute.StartsWith("http")) continue;
+                string sLower = sAbsolute.ToLowerInvariant();
+
+                bool bAccess = sText.Contains("accessibility") || sText.Contains("a11y")
+                    || sLower.Contains("/accessibility");
+                bool bContact = sText.Contains("contact") || sText.Contains("feedback")
+                    || sText.Contains("support") || sText.Contains("help desk")
+                    || sText.Contains("report a problem");
+
+                if (bAccess)
+                {
+                    if (!lAccess.Contains(sAbsolute)) lAccess.Add(sAbsolute);
+                }
+                else if (bContact)
+                {
+                    if (!lContact.Contains(sAbsolute)) lContact.Add(sAbsolute);
+                }
+                foreach (string sHost in lSocialHosts)
+                {
+                    if (sLower.Contains(sHost) && !lSocial.Contains(sAbsolute))
+                    {
+                        lSocial.Add(sAbsolute);
+                        break;
+                    }
+                }
+            }
+            // An address written as text rather than linked, which is common on
+            // a contact page and invisible to the anchor scan above.
+            foreach (Match match in Regex.Matches(sHtml,
+                "[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}"))
+            {
+                string sAddress = match.Value;
+                if (sAddress.EndsWith(".png") || sAddress.EndsWith(".jpg")) continue;
+                if (!lEmail.Contains(sAddress)) lEmail.Add(sAddress);
+            }
+        }
+
+        private static string FetchText(string sUrl, int iTimeout)
+        {
+            try
+            {
+                ServicePointManager.SecurityProtocol =
+                    SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
+                var oRequest = (HttpWebRequest) WebRequest.Create(sUrl);
+                oRequest.Timeout = iTimeout;
+                oRequest.ReadWriteTimeout = iTimeout;
+                oRequest.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) HomerView";
+                using (var oResponse = (HttpWebResponse) oRequest.GetResponse())
+                using (var oReader = new StreamReader(oResponse.GetResponseStream()))
+                    return oReader.ReadToEnd();
+            }
+            catch (Exception)
+            {
+                return "";
+            }
+        }
+
+        private static bool PathResolves(string sUrl)
+        {
+            try
+            {
+                ServicePointManager.SecurityProtocol =
+                    SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
+                var oRequest = (HttpWebRequest) WebRequest.Create(sUrl);
+                oRequest.Method = "HEAD";
+                oRequest.Timeout = 5000;
+                oRequest.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) HomerView";
+                using (var oResponse = (HttpWebResponse) oRequest.GetResponse())
+                    return (int) oResponse.StatusCode < 400;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        private static string ContactSummary()
+        {
+            string sPageUrl = Tidy(EvaluateText("(() => location.href)()"));
+            if (sPageUrl == "" || sPageUrl.StartsWith("ERROR:"))
+                return "{\"error\":\"No page\"}";
+            string sOrigin;
+            try
+            {
+                var oUri = new Uri(sPageUrl);
+                sOrigin = oUri.Scheme + "://" + oUri.Authority;
+            }
+            catch (Exception)
+            {
+                return "{\"error\":\"This page has no address to work from.\"}";
+            }
+
+            var lEmail = new List<string>();
+            var lAccess = new List<string>();
+            var lContact = new List<string>();
+            var lSocial = new List<string>();
+
+            // The page in front of you, from the browser, so links that scripts
+            // built are included.
+            string sThisPage = EvaluateText(
+                "(() => document.documentElement.outerHTML)()");
+            GatherContacts(sThisPage, sOrigin, lEmail, lAccess, lContact, lSocial);
+            Log("  the page itself gave " + lEmail.Count.ToString() + " addresses");
+
+            // The home page, because a contact link lives in a footer that an
+            // article may not carry.
+            if (!sPageUrl.TrimEnd('/').Equals(sOrigin, StringComparison.OrdinalIgnoreCase))
+                GatherContacts(FetchText(sOrigin + "/", 8000), sOrigin,
+                    lEmail, lAccess, lContact, lSocial);
+
+            // And the addresses worth trying directly, which is how an
+            // accessibility statement is usually found at all.
+            string sStatement = "";
+            foreach (string sPath in lContactPaths)
+            {
+                if (PathResolves(sOrigin + sPath))
+                {
+                    sStatement = sOrigin + sPath;
+                    Log("  a statement answers at " + sStatement);
+                    break;
+                }
+            }
+
+            var oText = new StringBuilder();
+            oText.Append("Who to tell about " + sOrigin + "\r\n");
+            if (sStatement != "")
+                oText.Append("\r\nAccessibility statement\r\n" + sStatement + "\r\n");
+            if (lEmail.Count > 0)
+            {
+                oText.Append("\r\nEmail\r\n");
+                for (int i = 0; i < lEmail.Count && i < 12; i++)
+                    oText.Append(lEmail[i] + "\r\n");
+            }
+            if (lAccess.Count > 0)
+            {
+                oText.Append("\r\nAccessibility pages\r\n");
+                for (int i = 0; i < lAccess.Count && i < 8; i++)
+                    oText.Append(lAccess[i] + "\r\n");
+            }
+            if (lContact.Count > 0)
+            {
+                oText.Append("\r\nContact pages\r\n");
+                for (int i = 0; i < lContact.Count && i < 8; i++)
+                    oText.Append(lContact[i] + "\r\n");
+            }
+            if (lSocial.Count > 0)
+            {
+                oText.Append("\r\nSocial media\r\n");
+                for (int i = 0; i < lSocial.Count && i < 8; i++)
+                    oText.Append(lSocial[i] + "\r\n");
+            }
+            if (sStatement == "" && lEmail.Count == 0 && lAccess.Count == 0
+                && lContact.Count == 0 && lSocial.Count == 0)
+                return "{\"error\":" + Quote("No way to contact " + sOrigin
+                    + " could be found on this page or its home page.") + "}";
+            Log("  " + lEmail.Count.ToString() + " addresses, " + lAccess.Count.ToString()
+                + " accessibility pages, " + lContact.Count.ToString() + " contact pages, "
+                + lSocial.Count.ToString() + " social");
+            return "{\"value\":" + Quote(oText.ToString().TrimEnd()) + "}";
+        }
+
+        // --- What a page is about: people, places, dates ---------------------
+
+        private const string sNlpCacheName = "compromise.min.js";
+        private static readonly string[] lNlpUrls = new string[] {
+            // jsdelivr first: unpkg answered 404 for this exact path on 15
+            // August while jsdelivr served it, so the order reflects what was
+            // observed rather than habit.
+            "https://cdn.jsdelivr.net/npm/compromise@14/builds/compromise.min.js",
+            "https://unpkg.com/compromise@latest/builds/compromise.min.js",
+            "https://unpkg.com/compromise@14/builds/compromise.min.js" };
+        private const string sNlpPresent =
+            "(() => (typeof nlp !== \"undefined\") ? \"yes\" : \"no\")()";
+
+        /// <summary>
+        /// Every name, place, organisation and date the page mentions.
+        ///
+        /// The engine is COMPROMISE, a rule-based English parser that carries no
+        /// model and makes no network call once it is cached, which is why it
+        /// fits the same injection route as axe and the IBM engine.
+        ///
+        /// IT GUESSES, AND THE REPORT SAYS SO. A rule-based tagger will call a
+        /// company a person and miss a name it has never seen. Presented as
+        /// fact that would be worse than useless; presented as "what it thinks
+        /// it found", it is a way of reading a page that no screen reader
+        /// offers -- every name on a long report, every date on a page of
+        /// deadlines, in a list you can move through.
+        ///
+        /// Tags rather than methods (#Person+ rather than .people()) because
+        /// the tag names have been stable across compromise's major versions
+        /// and the method set has not.
+        /// </summary>
+        private static string PageNames()
+        {
+            if (!InjectEngine(sNlpCacheName, lNlpUrls, sNlpPresent, 100000))
+                return "{\"error\":\"The language engine could not be loaded\"}";
+
+            string sTitle = Tidy(EvaluateText("(() => document.title)()"));
+            string sUrl = Tidy(EvaluateText("(() => location.href)()"));
+            if (sTitle == "" || sTitle.StartsWith("ERROR:")) sTitle = sUrl;
+
+            // The page's own text, capped: this is a parser running in the page
+            // and a very long document would hold the browser for seconds.
+            string sFound = EvaluateText(
+                "(() => {"
+                + " const sText = (document.body ? document.body.innerText : '').slice(0, 200000);"
+                + " if (!sText.trim()) return '';"
+                + " const oDoc = nlp(sText);"
+                + " const gather = (sTag) => {"
+                + "   const lSeen = [];"
+                + "   for (const sOne of oDoc.match(sTag).out('array')) {"
+                + "     const sClean = String(sOne).replace(/\\s+/g, ' ').trim()"
+                + "       .replace(/^[^\\w(]+|[^\\w)]+$/g, '');"
+                + "     if (sClean.length < 2 || sClean.length > 80) continue;"
+                + "     if (lSeen.indexOf(sClean) < 0) lSeen.push(sClean);"
+                + "     if (lSeen.length > 300) break;"
+                + "   }"
+                + "   return lSeen.join('\\u0001');"
+                + " };"
+                + " return [gather('#Person+'), gather('#Place+'),"
+                + "   gather('#Organization+'), gather('#Date+'),"
+                + "   gather('#Money+'), gather('#Percent+')].join('\\u0002');"
+                + "})()");
+            if (sFound == null || sFound == "" || sFound.StartsWith("ERROR:"))
+                return "{\"error\":\"No text\"}";
+
+            string[] lGroups = sFound.Split('\u0002');
+            string[] lHeadings = new string[] {
+                "People", "Places", "Organisations", "Dates",
+                "Amounts of money", "Percentages" };
+            var oText = new StringBuilder();
+            var oSpoken = new StringBuilder();
+            int iTotal = 0;
+            oText.Append("<!DOCTYPE html>\r\n<html lang=\"en\">\r\n<head>\r\n");
+            oText.Append("<meta charset=\"utf-8\">\r\n<title>Names on ");
+            oText.Append(EscapeHtml(sTitle));
+            oText.Append("</title>\r\n</head>\r\n<body>\r\n<h1>What this page mentions</h1>\r\n");
+            oText.Append("<ul>\r\n<li>Page: " + EscapeHtml(sTitle) + "</li>\r\n");
+            oText.Append("<li>Address: <a href=\"" + EscapeHtml(sUrl) + "\">"
+                + EscapeHtml(sUrl) + "</a></li>\r\n");
+            oText.Append("<li>Read: " + DateTime.Now.ToString("yyyy-MM-dd HH:mm") + "</li>\r\n");
+            oText.Append("</ul>\r\n<p>These were found by a rule-based language "
+                + "engine reading the page's text. It guesses. Expect a company "
+                + "called a person now and then, and expect it to miss a name it "
+                + "has not seen before. It is a starting point rather than an "
+                + "index.</p>\r\n");
+            for (int i = 0; i < lHeadings.Length; i++)
+            {
+                string[] lItems = i < lGroups.Length && lGroups[i] != ""
+                    ? lGroups[i].Split('\u0001') : new string[0];
+                if (lItems.Length == 0) continue;
+                iTotal += lItems.Length;
+                if (oSpoken.Length > 0) oSpoken.Append(", ");
+                oSpoken.Append(lItems.Length.ToString() + " "
+                    + lHeadings[i].ToLowerInvariant());
+                oText.Append("<h2>" + lHeadings[i] + " ("
+                    + lItems.Length.ToString() + ")</h2>\r\n<ul>\r\n");
+                foreach (string sItem in lItems)
+                    oText.Append("<li>" + EscapeHtml(sItem) + "</li>\r\n");
+                oText.Append("</ul>\r\n");
+            }
+            if (iTotal == 0)
+                return "{\"error\":\"No names found\"}";
+            oText.Append("</body>\r\n</html>\r\n");
+
+            string sFolder = PageFolder(sTitle);
+            string sPath = Path.Combine(sFolder, "Names.htm");
+            try
+            {
+                File.WriteAllText(sPath, oText.ToString(), new UTF8Encoding(true));
+            }
+            catch (Exception oError)
+            {
+                return "{\"error\":" + Quote("It could not be saved: " + oError.Message) + "}";
+            }
+            Log("  wrote Names.htm, " + iTotal.ToString() + " items");
+            string sOpened = OpenInTab(new Uri(sPath).AbsoluteUri);
+            return "{\"value\":" + Quote(oSpoken.ToString()
+                + ". Saved as Names.htm in " + Path.GetFileName(sFolder)
+                + ". The list is " + sOpened) + "}";
+        }
+
+        // --- What the page was, when it was tested ---------------------------
+
+        /// <summary>
+        /// Saves the page itself beside whatever report was just written.
+        ///
+        /// THESE USED TO BE THINGS YOU ASKED FOR ONE AT A TIME, from Save Page.
+        /// That was the wrong shape. Nobody wants a screenshot of a page for its
+        /// own sake; they want it when a report says something is wrong, so
+        /// somebody sighted can be shown what was meant. The evidence belongs
+        /// with the finding, and it belongs there without being asked for,
+        /// because at the moment you are reading the report is the moment it is
+        /// too late to go back and capture the page as it then was.
+        ///
+        /// Four files, four different questions:
+        ///
+        ///   Page.htm   the markup AFTER script has run, which is what the
+        ///              engines actually tested and is not what the server sent
+        ///   Page.png   the whole page as a sighted person sees it, for showing
+        ///              somebody what a finding refers to
+        ///   Page.pdf   the page as it would print, fixed layout, one file to
+        ///              attach to a complaint
+        ///   Tree.json  the accessibility tree, every node with its role, its
+        ///              name, and WHEN IT WAS LEFT OUT, THE REASONS WHY. Nothing
+        ///              else here answers why something on screen is absent from
+        ///              the reading order.
+        ///
+        /// Each is written in its own try block. A page that will not print is
+        /// no reason to withhold the other three, and printToPDF in particular
+        /// is refused by some builds of the browser.
+        /// </summary>
+        private static string CapturePage(string sFolder)
+        {
+            var lWritten = new List<string>();
+            string sSocket = FindActivePageSocket();
+            if (sSocket == null)
+            {
+                Log("  no page to capture");
+                return "";
+            }
+
+            try
+            {
+                string sHtml = EvaluateText("(() => document.documentElement.outerHTML)()");
+                if (sHtml != null && sHtml != "" && !sHtml.StartsWith("ERROR:"))
+                {
+                    if (!sHtml.TrimStart().ToLowerInvariant().StartsWith("<!doctype"))
+                        sHtml = "<!doctype html>\r\n" + sHtml;
+                    File.WriteAllText(Path.Combine(sFolder, "Page.htm"), sHtml,
+                        new UTF8Encoding(true));
+                    lWritten.Add("Page.htm");
+                    Log("  wrote Page.htm, " + sHtml.Length.ToString() + " characters");
+                }
+            }
+            catch (Exception oError) { Log("  Page.htm failed: " + oError.Message); }
+
+            // The whole page rather than the visible part: a screenshot of
+            // whatever happens to be scrolled into view answers a narrower
+            // question than the one being asked.
+            SaveEncoded(sSocket, "Page.captureScreenshot",
+                "{\"format\":\"png\",\"captureBeyondViewport\":true}",
+                Path.Combine(sFolder, "Page.png"), lWritten);
+
+            SaveEncoded(sSocket, "Page.printToPDF",
+                "{\"printBackground\":true,\"preferCSSPageSize\":true}",
+                Path.Combine(sFolder, "Page.pdf"), lWritten);
+
+            try
+            {
+                // The domain has to be enabled before the tree can be asked
+                // for; asking twice is cheaper than never asking.
+                SendAndWait(sSocket, "{\"id\":1,\"method\":\"Accessibility.enable\"}");
+                string sReply = SendAndWait(sSocket,
+                    "{\"id\":1,\"method\":\"Accessibility.getFullAXTree\"}");
+                if (sReply != null && sReply.Contains("\"nodes\""))
+                {
+                    int iStart = sReply.IndexOf("\"result\"");
+                    string sTree = iStart < 0 ? sReply : sReply.Substring(iStart + 9).TrimStart(':', ' ');
+                    if (sTree.EndsWith("}")) sTree = sTree.Substring(0, sTree.Length - 1);
+                    File.WriteAllText(Path.Combine(sFolder, "Tree.json"), sTree,
+                        new UTF8Encoding(true));
+                    lWritten.Add("Tree.json");
+                    // How many nodes were IGNORED is the interesting number, and
+                    // it is worth in the log even though the file holds it too.
+                    int iNodes = Regex.Matches(sTree, "\"nodeId\"").Count;
+                    int iIgnored = Regex.Matches(sTree, "\"ignored\"\\s*:\\s*true").Count;
+                    Log("  wrote Tree.json, " + iNodes.ToString() + " nodes, "
+                        + iIgnored.ToString() + " of them ignored");
+                }
+                else
+                {
+                    Log("  Tree.json failed: the browser returned no tree");
+                }
+            }
+            catch (Exception oError) { Log("  Tree.json failed: " + oError.Message); }
+
+            return string.Join(", ", lWritten.ToArray());
+        }
+
+        /// <summary>
+        /// Asks the browser for something encoded and writes the bytes out.
+        /// Both the image and the PDF arrive as text over the protocol, so a
+        /// failure to decode is reported rather than written out as a broken
+        /// file.
+        /// </summary>
+        private static void SaveEncoded(string sSocket, string sMethod,
+            string sParams, string sPath, List<string> lWritten)
+        {
+            int iWas = iCallBudgetSeconds;
+            try
+            {
+                // A full-page image of a long page takes longer than a call
+                // that only asks a question.
+                iCallBudgetSeconds = 60;
+                string sReply = SendAndWait(sSocket,
+                    "{\"id\":1,\"method\":\"" + sMethod + "\",\"params\":" + sParams + "}");
+                if (sReply == null)
+                {
+                    Log("  " + Path.GetFileName(sPath) + " failed: no answer");
+                    return;
+                }
+                Match match = Regex.Match(sReply, "\"data\"\\s*:\\s*\"([^\"]*)\"");
+                if (!match.Success || match.Groups[1].Value == "")
+                {
+                    Log("  " + Path.GetFileName(sPath) + " failed: "
+                        + Abbreviate(sReply, 200));
+                    return;
+                }
+                File.WriteAllBytes(sPath, Convert.FromBase64String(match.Groups[1].Value));
+                lWritten.Add(Path.GetFileName(sPath));
+                Log("  wrote " + Path.GetFileName(sPath) + ", "
+                    + new FileInfo(sPath).Length.ToString() + " bytes");
+            }
+            catch (Exception oError)
+            {
+                Log("  " + Path.GetFileName(sPath) + " failed: " + oError.Message);
+            }
+            finally
+            {
+                iCallBudgetSeconds = iWas;
+            }
+        }
+
         private static string ClipboardFile(string sPath)
         {
             if (string.IsNullOrEmpty(sPath))
-                return "{\"error\":\"No file was named.\"}";
+                return "{\"error\":\"No file named\"}";
             if (!File.Exists(sPath))
                 return "{\"error\":" + Quote("There is no file at " + sPath) + "}";
             try
@@ -2945,7 +3519,7 @@ namespace Homer
                 // the formats in the log, so the next report of "the clipboard
                 // is wrong" arrives with evidence instead of a symptom.
                 Log("  clipboard now holds: " + ClipboardFormats());
-                return "{\"value\":\"The file is on the clipboard.\"}";
+                return "{\"value\":\"File on the clipboard\"}";
             }
             catch (Exception exception)
             {
@@ -2966,7 +3540,7 @@ namespace Homer
                 else
                     System.Windows.Forms.Clipboard.SetText(sText);
                 Log("  clipboard now holds: " + ClipboardFormats());
-                return "{\"value\":\"The text is on the clipboard.\"}";
+                return "{\"value\":\"Text on the clipboard\"}";
             }
             catch (Exception exception)
             {
@@ -3038,6 +3612,22 @@ namespace Homer
                 " --no-default-browser-check" +
                 " --no-first-run" +
                 " --no-service-autorun" +
+                // A PAGE FROM A PREVIOUS SESSION REOPENING ON ITS OWN.
+                //
+                // HomerView keeps its own browser profile, and a profile
+                // remembers what was open. So a page read days ago came
+                // back beside the start page, with nothing to explain it
+                // and nothing the reader did to ask for it.
+                //
+                // --no-restore-session-state stops the restore.
+                // The other two stop the "restore pages?" bubble that
+                // appears when the browser was not closed cleanly, which
+                // is its own small trap: it is a dialog over the page
+                // that a reader has to find and dismiss before anything
+                // works.
+                " --no-restore-session-state" +
+                " --disable-session-crashed-bubble" +
+                " --hide-crash-restore-bubble" +
                 " --edge-skip-compat-layer-relaunch" +
                 // --test-type SILENCES THE INFOBAR, and that is all it is here for.
                 //
@@ -3341,11 +3931,11 @@ namespace Homer
             if (sAnswer.StartsWith("ERROR:"))
                 return "{\"error\":" + Quote(sAnswer) + "}";
             if (sAnswer.Trim() == "")
-                return "{\"error\":\"No main content could be identified on this page.\"}";
+                return "{\"error\":\"No main content found\"}";
 
             string[] lFields = sAnswer.Split(new[] { sFieldMark }, StringSplitOptions.None);
             if (lFields.Length < 6)
-                return "{\"error\":\"The extraction came back in a shape this did not expect.\"}";
+                return "{\"error\":\"Extraction answered unexpectedly\"}";
             string sTitle = lFields[0];
             string sByline = lFields[1];
             string sSite = lFields[2];
@@ -3373,12 +3963,13 @@ namespace Homer
             builder.Append(sContent);
             builder.Append("\r\n</main>\r\n</body>\r\n</html>\r\n");
 
-            string sFolder = Path.Combine(
-                Directory.GetParent(ProfileFolder()).FullName, "temp");
-            string sDocument = Path.Combine(sFolder, "MainContent.htm");
+            // Main.htm in the page's own folder, not a temporary directory. An
+            // extracted article is something a reader may well keep, and it
+            // belongs beside the other things this page produced.
+            string sFolder = PageFolder(sTitle);
+            string sDocument = Path.Combine(sFolder, "Main.htm");
             try
             {
-                Directory.CreateDirectory(sFolder);
                 File.WriteAllText(sDocument, builder.ToString(), new UTF8Encoding(true));
             }
             catch (Exception exception)
@@ -3432,7 +4023,7 @@ namespace Homer
                         ? Unescape(matchUrl.Groups[1].Value) : ""));
             }
             if (iCount == 0)
-                return "{\"error\":\"No tabs are open.\"}";
+                return "{\"error\":\"No tabs\"}";
             return "{\"value\":" + Quote(string.Join("\a", lLines.ToArray())) + "}";
         }
 

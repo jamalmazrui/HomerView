@@ -206,7 +206,7 @@ EndFunction
 ;
 ; HIS POINT, and it is about what a result costs to receive. A virtual view is
 ; the right home for a report you want to read by line and character. It is the
-; wrong home for "No links were found on this page.": that arrives as a buffer
+; wrong home for "No links": that arrives as a buffer
 ; you must escape from, after which the line you were on has to be read again
 ; to find out where you are. A sentence with nothing in it to examine should
 ; simply be spoken.
@@ -289,7 +289,7 @@ Var
     object oFile, object oFileSystem, object oNull,
     string sAnswer, string sArgumentPath, string sCommandLine, string sPassed
 If SubString (c_sBridgePath, 1, 1) == "@" Then
-    SayMessage (OT_ERROR, "The HomerView scripts were compiled without being installed, so the bridge cannot be found. Run the HomerView installer again.")
+    SayMessage (OT_ERROR, "HomerView is not installed. Run its installer.")
     Return ""
 EndIf
 ; THE ARGUMENT NEVER TRAVELS ON THE COMMAND LINE.
@@ -338,7 +338,7 @@ If oFileSystem.FileExists (c_sAnswerPath) Then
     Let oFile = oFileSystem.OpenTextFile (c_sAnswerPath, 1, False, -1)
     Let sAnswer = oFile.ReadAll ()
 Else
-    SayMessage (OT_ERROR, "HomerView did not answer. Its browser may not be running: launch it and try again.")
+    SayMessage (OT_ERROR, "HomerView did not answer. Launch it and try again.")
     Return ""
 EndIf
 logLine ("callBridge " + sCommand + " read " + IntToString (StringLength (sAnswer)) + " characters")
@@ -480,7 +480,7 @@ EndIf
 ; when nothing else is working.
 logLine ("openOwnDocument: falling back to the default browser")
 Let iExit = shellRun ("cmd.exe /c start \"\" " + stringQuote (c_sAppFolder + "\\" + sFile), 0, False)
-SayMessage (OT_STATUS, "HomerView is not running, so " + sWhat + " is opening in your usual browser.")
+SayMessage (OT_STATUS, "Opening outside HomerView")
 EndFunction
 
 
@@ -507,7 +507,7 @@ If xmlValue (sAnswer, "/root/error") != "" Then
 EndIf
 Let sCount = xmlValue (sAnswer, "/root/value")
 If sCount == "0" Then
-    SayMessage (OT_ERROR, "Not found.")
+    SayMessage (OT_ERROR, "Not found")
     Return
 EndIf
 Let gsLastFind = sNeedle
@@ -521,7 +521,7 @@ If iMoved Then
     SayMessage (OT_MESSAGE, sCount + " found")
     SayLine ()
 Else
-    SayMessage (OT_MESSAGE, sCount + " found, but the cursor could not be moved to one.")
+    SayMessage (OT_MESSAGE, sCount + " found, cursor not moved")
 EndIf
 EndFunction
 
@@ -530,7 +530,7 @@ EndFunction
 Void Function findAgain (int bBackwards)
 Var int iMoved
 If gsLastFind == "" Then
-    SayMessage (OT_ERROR, "Nothing has been searched for yet.")
+    SayMessage (OT_ERROR, "Nothing searched for yet")
     Return
 EndIf
 If bBackwards Then
@@ -541,7 +541,7 @@ EndIf
 If iMoved Then
     SayLine ()
 Else
-    SayMessage (OT_MESSAGE, "No more.")
+    SayMessage (OT_MESSAGE, "No more")
 EndIf
 EndFunction
 
@@ -604,7 +604,7 @@ If sText == "" Then
     Let sText = GetLine ()
 EndIf
 If sText == "" Then
-    SayMessage (OT_ERROR, "There is nothing here to copy.")
+    SayMessage (OT_ERROR, "Nothing to copy")
     Return
 EndIf
 Let sAnswer = callBridge ("clipboardAdd", sText)
@@ -625,7 +625,7 @@ EndScript
 Script copyAll ()
 Var string sAnswer
 logLine ("copyAll started")
-SayMessage (OT_STATUS, "Copying the page")
+SayMessage (OT_STATUS, "Copying")
 Let sAnswer = callBridge ("copyAll", "")
 If xmlValue (sAnswer, "/root/error") != "" Then
     SayMessage (OT_ERROR, xmlValue (sAnswer, "/root/error"))
@@ -648,7 +648,7 @@ EndScript
 Script checkAccessibilityIbm ()
 Var string sAnswer, string sResult
 logLine ("checkAccessibilityIbm started")
-SayMessage (OT_STATUS, "Running the IBM checker. On a large page this can take a minute or two, and JAWS will wait.")
+SayMessage (OT_STATUS, "Checking with IBM")
 Let sAnswer = callBridge ("ace", "IBM_Accessibility")
 If xmlValue (sAnswer, "/root/error") != "" Then
     SayMessage (OT_ERROR, xmlValue (sAnswer, "/root/error"))
@@ -679,11 +679,11 @@ Let sText = GetSelectedText ()
 If sText == "" Then
     Let sText = GetLine ()
     If sText == "" Then
-        SayMessage (OT_ERROR, "There is nothing here to copy.")
+        SayMessage (OT_ERROR, "Nothing to copy")
         Return
     EndIf
     CopyToClipboard (sText)
-    SayMessage (OT_MESSAGE, "Line copied.")
+    SayMessage (OT_MESSAGE, "Line copied")
     Return
 EndIf
 CopyToClipboard (sText)
@@ -708,7 +708,7 @@ Let sText = GetSelectedText ()
 ; anything.
 logLine ("completeSelection: " + IntToString (StringLength (sText)) + " characters are selected")
 If sText == "" Then
-    SayMessage (OT_ERROR, "Nothing was selected. Press F8 first, where the passage begins.")
+    SayMessage (OT_ERROR, "Nothing selected")
     Return
 EndIf
 SayMessage (OT_MESSAGE, "Complete Selection")
@@ -730,7 +730,7 @@ EndScript
 Script checkAccessibility ()
 Var string sAnswer, string sResult
 logLine ("checkAccessibility started")
-SayMessage (OT_STATUS, "Checking the page. This takes a moment.")
+SayMessage (OT_STATUS, "Checking")
 ; THE WHOLE REPORT, SAVED AND OPENED.
 ;
 ; It used to build its summary in JavaScript and show it in the Virtual Viewer,
@@ -775,15 +775,15 @@ Var
 logLine ("copyLogToClipboard started")
 Let sAnswer = callBridge ("clipboardFile", logPath ())
 If xmlValue (sAnswer, "/root/value") != "" Then
-    SayMessage (OT_MESSAGE, "The log is on the clipboard, as a file and as its path. Control+V attaches it in a message, or pastes the path anywhere else.")
+    SayMessage (OT_MESSAGE, "Log on the clipboard, as a file and as a path")
     Return
 EndIf
 logLine ("copyLogToClipboard: the file drop was refused: " + xmlValue (sAnswer, "/root/error"))
 Let sAnswer = callBridge ("clipboardText", logPath ())
 If xmlValue (sAnswer, "/root/value") != "" Then
-    SayMessage (OT_MESSAGE, "The file itself could not be copied, so its path is on the clipboard as text.")
+    SayMessage (OT_MESSAGE, "Log path on the clipboard")
 Else
-    SayMessage (OT_ERROR, "Nothing could be put on the clipboard. The log is at " + logPath ())
+    SayMessage (OT_ERROR, "Clipboard refused. Log at " + logPath ())
 EndIf
 EndScript
 
@@ -824,7 +824,7 @@ Let sStripped = StringReplaceSubstrings (sXml, "<Link ", "")
 Let iJaws = (iLength - StringLength (sStripped)) / 6
 logLine ("  the off screen model has " + IntToString (iJaws) + " links in "
     + IntToString (iLength) + " characters of document XML")
-SayMessage (OT_STATUS, "Collecting the links")
+SayMessage (OT_STATUS, "Collecting links")
 Let sResult = runScript (
     "(() => {"
     + "const l = [];"
@@ -836,7 +836,7 @@ Let sResult = runScript (
     + "return l.length + ' links.\\n\\n' + l.join('\\n');"
     + "})()")
 If sResult == "" Then
-    SayMessage (OT_ERROR, "No links were found on this page.")
+    SayMessage (OT_ERROR, "No links")
     Return
 EndIf
 ; The browser's own count is the first word of what it sent back. It stays a
@@ -848,9 +848,9 @@ logLine ("  PARITY on this page: off screen model " + IntToString (iJaws)
     + " links, browser " + StringSegment (sResult, " ", 1) + " links")
 Let sAnswer = callBridge ("clipboardText", sResult)
 If xmlValue (sAnswer, "/root/value") != "" Then
-    SayMessage (OT_MESSAGE, "The links are on the clipboard.")
+    SayMessage (OT_MESSAGE, "Links on the clipboard")
 Else
-    SayMessage (OT_ERROR, "The links could not be put on the clipboard.")
+    SayMessage (OT_ERROR, "Clipboard refused")
 EndIf
 EndScript
 
@@ -873,11 +873,11 @@ If sUrl == "" Then
     If gsLastTag == "" Then
         SayMessage (OT_ERROR, "No link here")
     Else
-        SayMessage (OT_ERROR, "No link here. The cursor is on a " + gsLastTag + ".")
+        SayMessage (OT_ERROR, "No link here, a " + gsLastTag)
     EndIf
     Return
 EndIf
-SayMessage (OT_STATUS, "Asking where that goes")
+SayMessage (OT_STATUS, "Asking")
 Let sAnswer = callBridge ("probe", sUrl + "\t" + gsLastText)
 If sAnswer == "" Then
     Return
@@ -900,7 +900,7 @@ Let sResult = xmlValue (sAnswer, "/root/value")
 ; last, where it can be read a character at a time.
 If sResult == "" Then
     logLine ("describeLinkTarget: nothing came back about the target, showing the address alone")
-    sayOrShow ("The link could not be reached, so this is only its address."
+    sayOrShow ("Link not reached. Its address:"
         + "\r\n\r\n" + sUrl)
 Else
     sayOrShow (sResult)
@@ -962,7 +962,7 @@ EndScript
 Script extractMainContent ()
 Var string sAnswer, string sResult
 logLine ("extractMainContent started")
-SayMessage (OT_STATUS, "Extracting the main content")
+SayMessage (OT_STATUS, "Extracting")
 Let sAnswer = callBridge ("extract", "")
 If sAnswer == "" Then
     Return
@@ -988,7 +988,7 @@ EndScript
 ; see the guide, since default.jkm is never touched.
 Script launchHomerView ()
 Var string sAnswer
-SayMessage (OT_STATUS, "Starting HomerView")
+SayMessage (OT_STATUS, "Starting")
 Let sAnswer = callBridge ("launch", "")
 If sAnswer == "" Then
     Return
@@ -1022,7 +1022,7 @@ If xmlValue (sAnswer, "/root/error") != "" Then
 EndIf
 Let sResult = xmlValue (sAnswer, "/root/value")
 If sResult == "" Then
-    SayMessage (OT_ERROR, "No tabs are open.")
+    SayMessage (OT_ERROR, "No tabs")
     Return
 EndIf
 ; EACH TITLE IS A LINK, AND ENTER OPENS THAT TAB.
@@ -1108,7 +1108,7 @@ Let sResult = runScript (
     + "return elBest.innerText.replace(/\\s+/g, ' ').trim().slice(0, 90);"
     + "})()")
 If sResult == "" Then
-    SayMessage (OT_ERROR, "The main content could not be worked out.")
+    SayMessage (OT_ERROR, "No main content found")
     Return
 EndIf
 ; The attribute is the bridge between the browser and the virtual cursor. The
@@ -1131,15 +1131,15 @@ If iMoved Then
     ; content, only more certainly -- so it is marked and moved to like any
     ; other, and the wording says which it was.
     If sResult == "declared" Then
-        SayMessage (OT_MESSAGE, "Main content, as the page declares it")
+        SayMessage (OT_MESSAGE, "Main content, declared")
     Else
-        SayMessage (OT_MESSAGE, "Main content, by weighing the page")
+        SayMessage (OT_MESSAGE, "Main content, inferred")
     EndIf
     SayLine ()
 Else
     ; The mark was set but the buffer does not show it. Saying what was found is
     ; worth more than silence, and silence is what the old version gave.
-    SayMessage (OT_MESSAGE, "The main content looks like this, but the cursor could not be moved to it. " + sResult)
+    SayMessage (OT_MESSAGE, "Found, cursor not moved. " + sResult)
 EndIf
 EndScript
 
@@ -1162,12 +1162,12 @@ logLine ("openUserGuide started")
 ; and the guide is exactly what somebody reaches for when nothing else works.
 Let sAnswer = callBridge ("openPage", c_sAppFolder + "\\HomerView.htm")
 If xmlValue (sAnswer, "/root/value") != "" Then
-    SayMessage (OT_STATUS, "Opening the HomerView guide")
+    SayMessage (OT_STATUS, "Opening the guide")
     Return
 EndIf
 logLine ("openUserGuide: falling back to the default browser")
 Let iExit = shellRun ("cmd.exe /c start \"\" " + stringQuote (c_sAppFolder + "\\HomerView.htm"), 0, False)
-SayMessage (OT_STATUS, "HomerView is not running, so the guide is opening in your usual browser.")
+SayMessage (OT_STATUS, "Opening outside HomerView")
 EndScript
 
 
@@ -1184,7 +1184,7 @@ EndScript
 Script sayMetadata ()
 Var string sResult
 logLine ("sayMetadata started")
-SayMessage (OT_STATUS, "Reading what the page says about itself")
+SayMessage (OT_STATUS, "Reading metadata")
 Let sResult = runScript (
     "(() => {"
     + "const meta = {};"
@@ -1296,7 +1296,7 @@ If xmlValue (sAnswer, "/root/error") != "" Then
 EndIf
 Let sText = xmlValue (sAnswer, "/root/value")
 If sText == "" Then
-    SayMessage (OT_ERROR, "The page has no text to read.")
+    SayMessage (OT_ERROR, "No text")
     Return
 EndIf
 logLine ("readAll speaking " + IntToString (StringLength (sText)) + " characters")
@@ -1325,7 +1325,7 @@ If sPath == "" Then
     logLine ("openDocument: no file was chosen")
     Return
 EndIf
-SayMessage (OT_STATUS, "Opening it. A document that needs converting takes a moment.")
+SayMessage (OT_STATUS, "Converting")
 Let sAnswer = callBridge ("openDocument", sPath)
 If xmlValue (sAnswer, "/root/error") != "" Then
     sayOrShow (xmlValue (sAnswer, "/root/error"))
@@ -1351,7 +1351,7 @@ If sPath == "" Then
     logLine ("savePage: no file was chosen")
     Return
 EndIf
-SayMessage (OT_STATUS, "Saving the page.")
+SayMessage (OT_STATUS, "Saving")
 Let sAnswer = callBridge ("savePage", sPath)
 If xmlValue (sAnswer, "/root/error") != "" Then
     sayOrShow (xmlValue (sAnswer, "/root/error"))
@@ -1380,7 +1380,7 @@ Var
     string sAnswer, string sFolder, string sKinds, string sName,
     string sNames, string sSummary, string sTrouble
 logLine ("downloadFiles started")
-SayMessage (OT_STATUS, "Looking at what this page links to")
+SayMessage (OT_STATUS, "Scanning links")
 Let sAnswer = callBridge ("downloadScan", "")
 If xmlValue (sAnswer, "/root/error") != "" Then
     SayMessage (OT_ERROR, xmlValue (sAnswer, "/root/error"))
@@ -1398,7 +1398,7 @@ If iOk == 0 Then
     Return
 EndIf
 If sKinds == "" Then
-    SayMessage (OT_ERROR, "No kinds were named, so nothing was fetched.")
+    SayMessage (OT_ERROR, "Nothing chosen")
     Return
 EndIf
 Let sAnswer = callBridge ("downloadList", sKinds)
@@ -1530,7 +1530,7 @@ If iOk == 0 Then
     Return
 EndIf
 If sNeedle == "" Then
-    SayMessage (OT_ERROR, "No pattern was given.")
+    SayMessage (OT_ERROR, "No pattern")
     Return
 EndIf
 Let gsLastFind = sNeedle
@@ -1587,11 +1587,11 @@ Var
 logLine ("openSessionLog started")
 Let sAnswer = callBridge ("openPage", c_sLogFile)
 If xmlValue (sAnswer, "/root/value") != "" Then
-    SayMessage (OT_STATUS, "Opening the session log")
+    SayMessage (OT_STATUS, "Opening the log")
     Return
 EndIf
 Let iExit = shellRun ("cmd.exe /c start \"\" " + stringQuote (c_sLogFile), 0, False)
-SayMessage (OT_STATUS, "Opening the session log outside HomerView.")
+SayMessage (OT_STATUS, "Opening outside HomerView")
 EndScript
 
 
@@ -1606,6 +1606,68 @@ sayVirtual ("HomerView " + c_sVersion + " for JAWS"
     + "\r\n\r\n" + "Program: " + c_sAppFolder
     + "\r\n" + "Log: " + c_sLogFile
     + "\r\n\r\n" + "Alt+JAWSKey+F10 opens the menu. Alt+Shift+H lists every key.")
+EndScript
+
+
+; Finds whoever can be told about this site. Alt+JAWSKey+C.
+;
+; A COMMAND OF ITS OWN, not a section inside an accessibility report. "Who do I
+; tell" is asked at other times than "what is wrong with this page", and
+; attaching it to a checker would hide it from anyone who has not just run one.
+;
+; Three places are looked at, as AccReporter does: the page in front of you,
+; the site's home page -- because a contact link lives in a footer an article
+; may not carry -- and a short list of addresses worth trying directly, which
+; is how an accessibility statement is usually found at all, since most sites
+; never link to theirs.
+Script findContacts ()
+Var string sAnswer, string sResult
+logLine ("findContacts started")
+SayMessage (OT_STATUS, "Finding contacts")
+Let sAnswer = callBridge ("contacts", "")
+If xmlValue (sAnswer, "/root/error") != "" Then
+    sayOrShow (xmlValue (sAnswer, "/root/error"))
+    Return
+EndIf
+Let sResult = xmlValue (sAnswer, "/root/value")
+If sResult == "" Then
+    logLine ("findContacts: nothing came back")
+    Return
+EndIf
+sayVirtual (sResult)
+EndScript
+
+
+; Lists every name, place, organisation and date the page mentions. Alt+N.
+;
+; A DIFFERENT WAY OF READING A PAGE. Headings tell you how a page is arranged
+; and links tell you where it goes; neither tells you WHO AND WHAT it is about.
+; On a long report this answers that in one keystroke, and on a page of
+; deadlines the list of dates is the thing you came for.
+;
+; The engine is compromise, a rule-based English parser that carries no model
+; and makes no network call once cached. IT GUESSES, and the report says so on
+; its own first page: expect a company called a person now and then, and expect
+; it to miss a name it has not seen. Presented as fact that would be worse than
+; useless; presented as a starting point it is something no screen reader
+; offers.
+Script listNames ()
+Var string sAnswer, string sResult
+logLine ("listNames started")
+SayMessage (OT_STATUS, "Reading names")
+Let sAnswer = callBridge ("pageNames", "")
+If xmlValue (sAnswer, "/root/error") != "" Then
+    sayOrShow (xmlValue (sAnswer, "/root/error"))
+    Return
+EndIf
+Let sResult = xmlValue (sAnswer, "/root/value")
+If sResult == "" Then
+    logLine ("listNames: nothing came back")
+    Return
+EndIf
+; Spoken, not shown: the list has just been opened in a tab, and a buffer in
+; front of it would take the focus away from the thing itself.
+SayMessage (OT_MESSAGE, sResult)
 EndScript
 
 
@@ -1627,7 +1689,7 @@ If xmlValue (sAnswer, "/root/error") != "" Then
 EndIf
 Let sNames = xmlValue (sAnswer, "/root/value")
 If sNames == "" Then
-    SayMessage (OT_ERROR, "No tabs are open.")
+    SayMessage (OT_ERROR, "No tabs")
     Return
 EndIf
 Let iWhich = 1
@@ -1759,6 +1821,8 @@ Let iAdded = UserBufferAddLink ("  Control+C       Copy the selection, or this l
 Let iAdded = UserBufferAddLink ("  Alt+C           Add it to what is on the clipboard", "homerViewLink (\"copyAppend\")", "Copy Append")
 Let iAdded = UserBufferAddLink ("  Control+F8      Put the whole page on the clipboard", "homerViewLink (\"copyAll\")", "Copy All")
 Let iAdded = UserBufferAddLink ("  Alt+F8          Speak the whole page, cursor unmoved", "homerViewLink (\"readAll\")", "Read All")
+Let iAdded = UserBufferAddLink ("  Alt+N           List the names, places and dates", "homerViewLink (\"listNames\")", "List Names")
+Let iAdded = UserBufferAddLink ("  Alt+JAWSKey+C   Find who to tell about this site", "homerViewLink (\"findContacts\")", "Find Contacts")
 Let iAdded = UserBufferAddLink ("  Alt+JAWSKey+I   Check the page with IBM Equal Access", "homerViewLink (\"checkAccessibilityIbm\")", "Check Accessibility with IBM")
 Let iAdded = UserBufferAddText ("")
 Let iAdded = UserBufferAddText ("On the Alternate Menu only:")
@@ -1826,6 +1890,8 @@ Let sTable = "Launch HomerView, Launches or reconnects HomerView's copy of Micro
     + "\7" + "Copy Append, Adds the selection or the line to what is on the clipboard. (Alt+C)\tcopyAppend"
     + "\7" + "Copy All, Puts the whole page on the clipboard. (Control+F8)\tcopyAll"
     + "\7" + "Read All, Speaks the whole page from the top without moving the cursor. (Alt+F8)\treadAll"
+    + "\7" + "List Names, Lists the people, places, organisations and dates a page mentions. (Alt+N)\tlistNames"
+    + "\7" + "Find Contacts, Finds who to tell about this site: email, accessibility statement, contact pages. (Alt+JAWSKey+C)\tfindContacts"
     + "\7" + "Check Accessibility with IBM, Runs IBM Equal Access and saves every format to Downloads. (Alt+JAWSKey+I)\tcheckAccessibilityIbm"
     + "\7" + "Tab List, Lists the open tabs by name and address.\tlistTabs"
     + "\7" + "Tab Names, Says the names of the open tabs without moving anywhere. (Shift+F4)\tsayTabNames"
@@ -1893,7 +1959,7 @@ If xmlValue (sAnswer, "/root/error") != "" Then
     SayMessage (OT_ERROR, xmlValue (sAnswer, "/root/error"))
     Return
 EndIf
-SayMessage (OT_MESSAGE, "Going to that tab.")
+SayMessage (OT_MESSAGE, "Going there")
 EndFunction
 
 

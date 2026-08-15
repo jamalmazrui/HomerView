@@ -128,13 +128,52 @@ def saveArchive(cdpSession, sSessionId, pathTarget):
     return pathTarget
 
 
+# WHAT SAVE PAGE STILL OFFERS.
+#
+# The markup, the image, the PDF and the accessibility tree came off this list.
+# They were things a reader had to ask for one at a time, and nobody wants a
+# screenshot of a page for its own sake -- they want it when a report says
+# something is wrong and somebody sighted has to be shown what was meant. So
+# they are now written automatically beside whatever report was just produced,
+# by captureForReport below. By the time you are reading a report it is too late
+# to go back and capture the page as it then was.
+#
+# The archive stays, because it is what Edge's own Save Page As produces and
+# taking Control+S is only honest while the format a user already relied on is
+# still there.
 dCaptures = {
     "mhtml": (saveArchive, "The page and everything it uses, in one file, as Edge saves it"),
-    "png": (saveImage, "Image of the whole page, as a sighted reader sees it"),
-    "pdf": (savePdf, "The page as it would print, fixed layout, one file"),
-    "json": (saveAccessibilityTree, "The accessibility tree, with the reasons any node was ignored"),
-    "dom.htm": (saveMarkup, "The markup after script has run, not what the server sent"),
 }
+
+
+def captureForReport(cdpSession, sSessionId, pathFolder):
+    """Save the page itself beside whatever report was just written.
+
+    Four files, four different questions. Page.htm is the markup AFTER script
+    has run, which is what the engines actually tested and is not what the
+    server sent. Page.png is the whole page as a sighted person sees it, for
+    showing somebody what a finding refers to. Page.pdf is the page as it would
+    print, one file to attach to a complaint. Tree.json is the accessibility
+    tree, and it is the only one of the four that answers why something on
+    screen is absent from the reading order.
+
+    Each is attempted separately. A page that will not print is no reason to
+    withhold the other three.
+    """
+    lWritten = []
+    for sName, functionSave in (
+        ("Page.htm", saveMarkup),
+        ("Page.png", saveImage),
+        ("Page.pdf", savePdf),
+        ("Tree.json", saveAccessibilityTree),
+    ):
+        try:
+            functionSave(cdpSession, sSessionId, pathFolder / sName)
+            lWritten.append(sName)
+        except Exception as exception:
+            homerLog.warning(f"{sName} could not be captured: {exception}")
+    homerLog.info(f"Captured with the report: {', '.join(lWritten) or 'nothing'}")
+    return lWritten
 
 
 def capture(cdpSession, sFormat, pathTarget):

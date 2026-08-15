@@ -140,10 +140,7 @@ def writeHtml(pathTarget, sHtml):
     return pathTarget
 
 
-def safeStem(sTitle, sFallback="report"):
-    sStem = "".join(c for c in str(sTitle or "") if c not in '\\/*?:"<>|').strip()
-    sStem = " ".join(sStem.split())[:70]
-    return sStem or sFallback
+safeStem = paths.safeStem
 
 
 def exportAll(sPrefix, sPageTitle, vJson, lRows, sHtml, lSheets=None):
@@ -152,12 +149,17 @@ def exportAll(sPrefix, sPageTitle, vJson, lRows, sHtml, lSheets=None):
     One failure does not stop the others. A spreadsheet that cannot be written
     is no reason to withhold the CSV.
     """
-    pathFolder = paths.getDownloadsFolder()
-    sStamp = datetime.now().strftime("%Y-%m-%d %H%M")
-    sStem = f"{sPrefix} {safeStem(sPageTitle)} {sStamp}"
+    # ONE FOLDER PER PAGE, and the tool names its own files: IBM.htm, Axe.htm.
+    #
+    # This used to write "Axe <page title> 2026-08-14 2033.json" into Downloads
+    # itself, which put a new set of four files there on every run and left the
+    # reader to work out which run was which. The folder is named for the page,
+    # the file is named for the tool, and a second run replaces the first --
+    # which is what "run it again after fixing something" should mean.
+    pathFolder = paths.pageFolder(sPageTitle)
     dWritten = {}
     for sFormat in lExportFormats:
-        pathTarget = paths.uniquePath(pathFolder, f"{sStem}.{sFormat}")
+        pathTarget = pathFolder / f"{sPrefix}.{sFormat}"
         try:
             if sFormat == "json":
                 writeJson(pathTarget, vJson)

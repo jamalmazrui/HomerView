@@ -221,6 +221,10 @@ def analyseLinks(cdpSession):
     logSection("Command: analyse links for download")
     dTarget, sSessionId = cdpSession.findActivePageSession()
     sPageUrl = dTarget.get("url", "")
+    # The title too, because the folder these files go into is named after the
+    # page. The target carries it; asking the page again would be a round trip
+    # for something already in hand.
+    sPageTitle = dTarget.get("title", "") or sPageUrl
     lLinks = cdpSession.evaluate(sSessionId, linkScript) or []
     homerLog.info(f"Found {len(lLinks)} links with a file extension on {abbreviate(sPageUrl, 200)}")
 
@@ -251,6 +255,7 @@ def analyseLinks(cdpSession):
         "default": lDefault,
         "extensions": lExtensions,
         "links": lUnique,
+        "pageTitle": sPageTitle,
         "pageUrl": sPageUrl,
         "sessionId": sSessionId,
     }
@@ -452,7 +457,11 @@ def downloadLinks(cdpSession, dAnalysis, lExtensions, functionAnnounce=None):
     sSessionId = dAnalysis["sessionId"]
     sPageUrl = dAnalysis["pageUrl"]
     sUserAgent = getBrowserUserAgent(cdpSession, sSessionId)
-    pathFolder = paths.getDownloadsFolder()
+    # THE PAGE'S OWN FOLDER, shared with the reports and the extracted
+    # article, so everything one page produced is in one place. Names
+    # replace rather than being numbered: the folder is named for the page,
+    # so a second run re-fetches the same things.
+    pathFolder = paths.pageFolder(dAnalysis.get("pageTitle") or sPageUrl)
     homerLog.info(f"Saving to {pathFolder}")
 
     dCookieCache = {}

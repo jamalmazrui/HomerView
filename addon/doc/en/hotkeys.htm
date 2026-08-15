@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="Jamal Mazrui" />
-  <title>HomerView</title>
+  <title>HomerView Hotkeys</title>
   <style>
     html {
       color: #1a1a1a;
@@ -167,283 +167,934 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">HomerView</h1>
-<p class="subtitle">Every command, its key, and why that key</p>
+<h1 class="title">HomerView Hotkeys</h1>
+<p class="subtitle">Every command, both screen readers, and why that
+key</p>
 <p class="author">Jamal Mazrui</p>
 </header>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#about-this-list" id="toc-about-this-list">About this
+list</a></li>
+<li><a href="#how-to-read-a-key" id="toc-how-to-read-a-key">How to read
+a key</a></li>
+<li><a href="#starting-homerview" id="toc-starting-homerview">Starting
+HomerView</a></li>
+<li><a href="#reading-the-documentation"
+id="toc-reading-the-documentation">Reading the documentation</a></li>
+<li><a href="#moving-through-a-page"
+id="toc-moving-through-a-page">Moving through a page</a></li>
+<li><a href="#finding-text" id="toc-finding-text">Finding text</a></li>
+<li><a href="#listing-what-is-on-the-page"
+id="toc-listing-what-is-on-the-page">Listing what is on the
+page</a></li>
+<li><a href="#asking-about-the-page"
+id="toc-asking-about-the-page">Asking about the page</a></li>
+<li><a href="#reading-aloud" id="toc-reading-aloud">Reading
+aloud</a></li>
+<li><a href="#selecting-and-the-clipboard"
+id="toc-selecting-and-the-clipboard">Selecting and the
+clipboard</a></li>
+<li><a href="#acting-on-the-page" id="toc-acting-on-the-page">Acting on
+the page</a></li>
+<li><a href="#the-window-and-its-tabs"
+id="toc-the-window-and-its-tabs">The window and its tabs</a></li>
+<li><a href="#adjusting-the-voice"
+id="toc-adjusting-the-voice">Adjusting the voice</a></li>
+<li><a href="#now-and-then" id="toc-now-and-then">Now and then</a></li>
+<li><a href="#analysis-consistency-gaps-and-trade-offs"
+id="toc-analysis-consistency-gaps-and-trade-offs">Analysis: consistency,
+gaps and trade-offs</a>
+<ul>
+<li><a href="#the-headline-numbers" id="toc-the-headline-numbers">The
+headline numbers</a></li>
+<li><a href="#where-the-keys-differ-and-whether-the-reason-holds"
+id="toc-where-the-keys-differ-and-whether-the-reason-holds">Where the
+keys differ, and whether the reason holds</a></li>
+<li><a href="#the-single-letter-rule"
+id="toc-the-single-letter-rule">The single-letter rule</a></li>
+<li><a href="#a-structural-difference-worth-deciding-on"
+id="toc-a-structural-difference-worth-deciding-on">A structural
+difference worth deciding on</a></li>
+<li><a href="#the-gaps-and-which-ones-matter"
+id="toc-the-gaps-and-which-ones-matter">The gaps, and which ones
+matter</a></li>
+<li><a href="#trade-offs-already-made-worth-restating"
+id="toc-trade-offs-already-made-worth-restating">Trade-offs already
+made, worth restating</a></li>
+<li><a href="#what-i-would-change" id="toc-what-i-would-change">What I
+would change</a></li>
+</ul></li>
+</ul>
+</nav>
 <h1 id="about-this-list">About this list</h1>
 <p>Every HomerView command, grouped by what you are trying to do and
-sorted by name inside each group. Where the key is not obvious, the
-description says why it is that key.</p>
+sorted by name inside each group. Each entry gives the NVDA key, the
+JAWS key, and, where the key is not obvious, why it is that key.</p>
+<p>The two implementations are kept at parity deliberately. Neither is
+the reference one. Where a key differs between them, it differs for a
+reason, and the reason is given below.</p>
 <p>The same list is in the guide, HomerView.md, as one of its sections.
 This file is here so you can keep it open beside your work.</p>
-<p>Press Alt+Shift+H in HomerView and the program builds this list for
-itself, from the same source, so it is never out of date.</p>
+<p>Press Alt+Shift+H in HomerView and the program builds its own list,
+from its own key map, so what it tells you is never out of date. This
+document is generated from the same two sources — the NVDA command table
+and the JAWS key map — so it cannot drift from them either.</p>
+<p>An analysis of the consistency, the gaps and the trade-offs is at the
+end.</p>
 <h1 id="how-to-read-a-key">How to read a key</h1>
-<p>Modifiers come in alphabetical order: Alt, Control, NVDA, Shift. So
-Alt+NVDA+H, never NVDA+Alt+H. Key names are the ones JAWS uses, because
-most blind Windows users have read those for years, so Accent rather
-than Grave and SemiColon rather than semicolon.</p>
+<p>Modifiers come in alphabetical order: Alt, Control, JAWSKey, NVDA,
+Shift. So Alt+NVDA+H, never NVDA+Alt+H. Key names are the ones JAWS
+uses, because most blind Windows users have read those for years, so
+Accent rather than Grave and SemiColon rather than semicolon.</p>
+<p><strong>JAWSKey</strong> is Insert, or Caps Lock if you have set JAWS
+that way. <strong>NVDA</strong> is whichever key you have set as the
+NVDA modifier. The two play the same part, so a command on Alt+NVDA+H is
+on Alt+JAWSKey+H, and this document writes each in its own vocabulary
+rather than pretending they are one key.</p>
 <p>Where a command has two keys, the short one works inside a HomerView
 page and the long one works anywhere.</p>
 <p>A command with no key still runs, from the Alternate Menu on
-Alt+NVDA+F10. You can give it a key in NVDA’s Input Gestures dialog,
-under the HomerView category, where every command here can be
-changed.</p>
+Alt+NVDA+F10 or Alt+JAWSKey+F10. On NVDA you can give it a key in the
+Input Gestures dialog, under the HomerView category. On JAWS you can add
+it to your own default.jkm.</p>
+<p><strong>Not yet on JAWS</strong> means the command exists on NVDA and
+has not been written for JAWS. <strong>Not yet on NVDA</strong> means
+the reverse. Both are listed rather than hidden, because a gap you can
+see is one that can be closed.</p>
 <h1 id="starting-homerview">Starting HomerView</h1>
 <ul>
-<li><strong>Alternate Menu</strong>, Alt+NVDA+F10. Present all commands
-in a single, alphabetized list. F10 opens a menu bar in Windows, and
-this is the menu HomerView has instead.</li>
-<li><strong>Hotkey Summary</strong>, Alt+Shift+H. Display this list of
-command names, hot keys, and descriptions in a new window, as EdSharp
-does on the same key.</li>
-<li><strong>Launch HomerView</strong>, Alt+NVDA+H. Launches or
-reconnects the HomerView copy of Microsoft Edge. H for HomerView, and it
-works anywhere because nothing is running yet.</li>
+<li><strong>Alternate Menu</strong>
+<ul>
+<li>NVDA: Alt+NVDA+F10</li>
+<li>JAWS: Alt+JAWSKey+F10</li>
+<li>Present all commands in a single, alphabetized list. F10 opens a
+menu bar in Windows, and this is the menu HomerView has instead.</li>
+</ul></li>
+<li><strong>Hotkey Summary</strong>
+<ul>
+<li>NVDA: Alt+Shift+H</li>
+<li>JAWS: Alt+Shift+H</li>
+<li>Display this list of command names, hot keys, and descriptions in a
+new window, as EdSharp does on the same key.</li>
+</ul></li>
+<li><strong>Launch HomerView</strong>
+<ul>
+<li>NVDA: Alt+NVDA+H</li>
+<li>JAWS: Alt+JAWSKey+H</li>
+<li>Launches or reconnects the HomerView copy of Microsoft Edge. H for
+HomerView, and it works anywhere because nothing is running yet.</li>
+</ul></li>
 </ul>
 <h1 id="reading-the-documentation">Reading the documentation</h1>
 <ul>
-<li><strong>About HomerView</strong>, Alt+F1. Display version and
-release date, and where HomerView keeps its files.</li>
-<li><strong>Developer Notes</strong>, Control+Shift+F1. Open the notes
-on how HomerView is built and why.</li>
-<li><strong>History of Changes</strong>, Shift+F1. Display list of fixes
-and improvements.</li>
-<li><strong>Hotkey Document</strong>, no key. Open the shipped list of
-every command, key and description. Hotkey Summary on Alt+Shift+H builds
-the same list from the program itself; this opens the copy that came
-with it.</li>
-<li><strong>Log to Clipboard</strong>, Control+Shift+L. Copy the
-HomerView log to the clipboard as a file, so Control+V attaches it to an
-email rather than typing its name into one. L for Log, beside the other
-Control+Shift keys that put something somewhere.</li>
-<li><strong>Project Announcement</strong>, no key. Open the short
-description of HomerView, for passing on to somebody who has not met
+<li><strong>About HomerView</strong>
+<ul>
+<li>NVDA: Alt+F1</li>
+<li>JAWS: Alt+F1</li>
+<li>Display version and release date, and where HomerView keeps its
+files.</li>
+</ul></li>
+<li><strong>Developer Notes</strong>
+<ul>
+<li>NVDA: Control+Shift+F1</li>
+<li>JAWS: Control+Shift+F1</li>
+<li>Open the notes on how HomerView is built and why.</li>
+</ul></li>
+<li><strong>History of Changes</strong>
+<ul>
+<li>NVDA: Shift+F1</li>
+<li>JAWS: Shift+F1</li>
+<li>Display list of fixes and improvements.</li>
+</ul></li>
+<li><strong>Hotkey Document</strong>
+<ul>
+<li>NVDA: no key</li>
+<li>JAWS: no key, on the Alternate Menu</li>
+<li>Open the shipped list of every command, key and description. Hotkey
+Summary on Alt+Shift+H builds the same list from the program itself;
+this opens the copy that came with it.</li>
+</ul></li>
+<li><strong>Log to Clipboard</strong>
+<ul>
+<li>NVDA: Control+Shift+L</li>
+<li>JAWS: Alt+JAWSKey+L</li>
+<li>Copy the HomerView log to the clipboard as a file, so Control+V
+attaches it to an email rather than typing its name into one. L for Log,
+beside the other Control+Shift keys that put something somewhere.</li>
+</ul></li>
+<li><strong>Project Announcement</strong>
+<ul>
+<li>NVDA: no key</li>
+<li>JAWS: no key, on the Alternate Menu</li>
+<li>Open the short description of HomerView, for passing on to somebody
+who has not met it.</li>
+</ul></li>
+<li><strong>Quick Start</strong>
+<ul>
+<li>NVDA: Alt+Shift+F1</li>
+<li>JAWS: Alt+Shift+F1</li>
+<li>Open the first ten minutes of HomerView, for somebody new to
 it.</li>
-<li><strong>Quick Start</strong>, Alt+Shift+F1. Open the first ten
-minutes of HomerView, for somebody new to it.</li>
-<li><strong>Session Log</strong>, Alt+Control+F1. Open a copy of this
-session’s log, for working out what went wrong.</li>
-<li><strong>User Guide</strong>, Control+F1. Open Documentation in the
-HomerView window. F1 is help everywhere, but plain F1 opens Edge’s own
-help and stays Edge’s, so the family here takes F1 with a modifier.</li>
+</ul></li>
+<li><strong>Session Log</strong>
+<ul>
+<li>NVDA: Alt+Control+F1</li>
+<li>JAWS: Alt+Control+F1</li>
+<li>Open a copy of this session’s log, for working out what went
+wrong.</li>
+</ul></li>
+<li><strong>User Guide</strong>
+<ul>
+<li>NVDA: Control+F1</li>
+<li>JAWS: Control+F1</li>
+<li>Open Documentation in the HomerView window. F1 is help everywhere,
+but plain F1 opens Edge’s own help and stays Edge’s, so the family here
+takes F1 with a modifier.</li>
+</ul></li>
 </ul>
 <h1 id="moving-through-a-page">Moving through a page</h1>
 <ul>
-<li><strong>Go to Percent</strong>, Control+G. Go to percentage point in
-document, as EdSharp does on the same key.</li>
-<li><strong>Go to Percent Again</strong>, Alt+G. Repeat Go command, or
-move a step further with plus or minus.</li>
-<li><strong>Jump to Main</strong>, J, or Alt+NVDA+J. Jumps to the main
-content the page declares. J for Jump, and it is one of only three
-letters NVDA leaves free in a page.</li>
-<li><strong>Jump to Probable Main</strong>, Shift+J. Finds the main
-content of a page that declares none, by weighing every part of it, and
-says that it inferred rather than was told.</li>
-<li><strong>Next Different Kind</strong>, Alt+Z. Moves to the next thing
-of a different kind, which JAWS does with D.</li>
-<li><strong>Next Paragraph</strong>, Control+DownArrow. Moves to the
-next paragraph and reads it. Control with an arrow moves by paragraph in
-Word and in most editors.</li>
-<li><strong>Next Same Kind</strong>, Z. Moves to the next thing of the
-same kind as the one you are on, whatever that is. Z because NVDA leaves
-it free, and JAWS does this with S.</li>
-<li><strong>Next Sentence</strong>, Alt+DownArrow. Moves to the next
-sentence and reads it. Alt with an arrow moves by something larger than
-a line and smaller than a paragraph.</li>
-<li><strong>Prior Different Kind</strong>, Alt+Shift+Z. Moves to the
-previous thing of a different kind.</li>
-<li><strong>Prior Paragraph</strong>, Control+UpArrow. Moves to the
-previous paragraph and reads it.</li>
-<li><strong>Prior Same Kind</strong>, Shift+Z. Moves to the previous
-thing of the same kind as the one you are on.</li>
-<li><strong>Prior Sentence</strong>, Alt+UpArrow. Moves to the previous
-sentence and reads it.</li>
+<li><strong>Go to Percent</strong>
+<ul>
+<li>NVDA: Control+G</li>
+<li>JAWS: <strong>not yet on JAWS</strong></li>
+<li>Go to percentage point in document, as EdSharp does on the same
+key.</li>
+</ul></li>
+<li><strong>Go to Percent Again</strong>
+<ul>
+<li>NVDA: Alt+G</li>
+<li>JAWS: <strong>not yet on JAWS</strong></li>
+<li>Repeat Go command, or move a step further with plus or minus.</li>
+</ul></li>
+<li><strong>Jump to Main</strong>
+<ul>
+<li>NVDA: J, or Alt+NVDA+J</li>
+<li>JAWS: <strong>not yet on JAWS</strong></li>
+<li>Jumps to the main content the page declares. J for Jump, and it is
+one of only three letters NVDA leaves free in a page.</li>
+</ul></li>
+<li><strong>Jump to Probable Main</strong>
+<ul>
+<li>NVDA: Shift+J</li>
+<li>JAWS: Shift+Q</li>
+<li>Finds the main content of a page that declares none, by weighing
+every part of it, and says that it inferred rather than was told.</li>
+</ul></li>
+<li><strong>Next Different Kind</strong>
+<ul>
+<li>NVDA: Alt+Z</li>
+<li>JAWS: <strong>not yet on JAWS</strong></li>
+<li>Moves to the next thing of a different kind, which JAWS does with
+D.</li>
+</ul></li>
+<li><strong>Next Paragraph</strong>
+<ul>
+<li>NVDA: Control+DownArrow</li>
+<li>JAWS: <strong>not yet on JAWS</strong></li>
+<li>Moves to the next paragraph and reads it. Control with an arrow
+moves by paragraph in Word and in most editors.</li>
+</ul></li>
+<li><strong>Next Same Kind</strong>
+<ul>
+<li>NVDA: Z</li>
+<li>JAWS: <strong>not yet on JAWS</strong></li>
+<li>Moves to the next thing of the same kind as the one you are on,
+whatever that is. Z because NVDA leaves it free, and JAWS does this with
+S.</li>
+</ul></li>
+<li><strong>Next Sentence</strong>
+<ul>
+<li>NVDA: Alt+DownArrow</li>
+<li>JAWS: <strong>not yet on JAWS</strong></li>
+<li>Moves to the next sentence and reads it. Alt with an arrow moves by
+something larger than a line and smaller than a paragraph.</li>
+</ul></li>
+<li><strong>Prior Different Kind</strong>
+<ul>
+<li>NVDA: Alt+Shift+Z</li>
+<li>JAWS: <strong>not yet on JAWS</strong></li>
+<li>Moves to the previous thing of a different kind.</li>
+</ul></li>
+<li><strong>Prior Paragraph</strong>
+<ul>
+<li>NVDA: Control+UpArrow</li>
+<li>JAWS: <strong>not yet on JAWS</strong></li>
+<li>Moves to the previous paragraph and reads it.</li>
+</ul></li>
+<li><strong>Prior Same Kind</strong>
+<ul>
+<li>NVDA: Shift+Z</li>
+<li>JAWS: <strong>not yet on JAWS</strong></li>
+<li>Moves to the previous thing of the same kind as the one you are
+on.</li>
+</ul></li>
+<li><strong>Prior Sentence</strong>
+<ul>
+<li>NVDA: Alt+UpArrow</li>
+<li>JAWS: <strong>not yet on JAWS</strong></li>
+<li>Moves to the previous sentence and reads it.</li>
+</ul></li>
 </ul>
 <h1 id="finding-text">Finding text</h1>
 <ul>
-<li><strong>Forward Find</strong>, Control+F. Search forward for string,
-using NVDA’s own find so the dialog and its behaviour are the ones you
-already know.</li>
-<li><strong>Forward Find Again</strong>, F3. Search forward for next
-match, of whichever kind of find was used last.</li>
-<li><strong>Forward Find at Cursor</strong>, Alt+F3. Search forward for
-chunk or selected text, on the key EdSharp uses for it.</li>
-<li><strong>Forward Find with Regular Expression</strong>, Control+F3.
-Search forward for regular expression, which NVDA’s own find cannot
+<li><strong>Extract with Regular Expression</strong>
+<ul>
+<li>NVDA: Control+Shift+E</li>
+<li>JAWS: Control+Shift+E</li>
+<li>Gathers every match of a pattern for reading, each separated by a
+form feed between blank lines.</li>
+</ul></li>
+<li><strong>Forward Find</strong>
+<ul>
+<li>NVDA: Control+F</li>
+<li>JAWS: <strong>not yet on JAWS</strong></li>
+<li>Search forward for string, using NVDA’s own find so the dialog and
+its behaviour are the ones you already know.</li>
+</ul></li>
+<li><strong>Forward Find Again</strong>
+<ul>
+<li>NVDA: F3</li>
+<li>JAWS: F3</li>
+<li>Search forward for next match, of whichever kind of find was used
+last.</li>
+</ul></li>
+<li><strong>Forward Find at Cursor</strong>
+<ul>
+<li>NVDA: Alt+F3</li>
+<li>JAWS: <strong>not yet on JAWS</strong></li>
+<li>Search forward for chunk or selected text, on the key EdSharp uses
+for it.</li>
+</ul></li>
+<li><strong>Forward Find with Regular Expression</strong>
+<ul>
+<li>NVDA: Control+F3</li>
+<li>JAWS: Control+F3</li>
+<li>Search forward for regular expression, which NVDA’s own find cannot
 do.</li>
-<li><strong>Reverse Find</strong>, Control+Shift+F. Search backward for
-string.</li>
-<li><strong>Reverse Find Again</strong>, Shift+F3. Search backward for
-previous match.</li>
-<li><strong>Reverse Find at Cursor</strong>, Alt+Shift+F3. Search
-backward for chunk or selected text.</li>
-<li><strong>Reverse Find with Regular Expression</strong>,
-Control+Shift+F3. Search backward for regular expression.</li>
+</ul></li>
+<li><strong>Reverse Find</strong>
+<ul>
+<li>NVDA: Control+Shift+F</li>
+<li>JAWS: Control+Shift+F (named “Reverse Find for Text” there)</li>
+<li>Search backward for string.</li>
+</ul></li>
+<li><strong>Reverse Find Again</strong>
+<ul>
+<li>NVDA: Shift+F3</li>
+<li>JAWS: Shift+F3</li>
+<li>Search backward for previous match.</li>
+</ul></li>
+<li><strong>Reverse Find at Cursor</strong>
+<ul>
+<li>NVDA: Alt+Shift+F3</li>
+<li>JAWS: <strong>not yet on JAWS</strong></li>
+<li>Search backward for chunk or selected text.</li>
+</ul></li>
+<li><strong>Reverse Find with Regular Expression</strong>
+<ul>
+<li>NVDA: Control+Shift+F3</li>
+<li>JAWS: Control+Shift+F3</li>
+<li>Search backward for regular expression.</li>
+</ul></li>
 </ul>
 <h1 id="listing-what-is-on-the-page">Listing what is on the page</h1>
 <ul>
-<li><strong>Explore Page</strong>, Y, or Alt+NVDA+E. Describes how the
-page is laid out, including what a sighted person can see that your
-reading order never mentions. E for Explore; Y is a second key because
-NVDA leaves it free.</li>
-<li><strong>List Elements</strong>, Alt+NVDA+L. Lists any kind of
-element, including kinds NVDA’s own Elements List does not offer. L for
-List.</li>
-<li><strong>List Form Fields</strong>, NVDA+F5. List the form fields on
-the page, on the key JAWS uses for its form field list.</li>
-<li><strong>List Headings</strong>, NVDA+F6. List the headings on the
-page, on the key JAWS uses for its heading list.</li>
-<li><strong>List Links</strong>, NVDA+Shift+F7. List the links on the
-page, beside the key JAWS uses for its link list.</li>
+<li><strong>Explore Page</strong>
+<ul>
+<li>NVDA: Alt+NVDA+E</li>
+<li>JAWS: <strong>not yet on JAWS</strong></li>
+<li>Describes how the page is laid out, including what a sighted person
+can see that your reading order never mentions. E for Explore. It gave
+up its bare Y: a single letter in browse mode reads as a navigation key,
+and this command does not move anywhere.</li>
+</ul></li>
+<li><strong>List Elements</strong>
+<ul>
+<li>NVDA: Alt+NVDA+L</li>
+<li>JAWS: <strong>not yet on JAWS</strong></li>
+<li>Lists any kind of element, including kinds NVDA’s own Elements List
+does not offer. L for List.</li>
+</ul></li>
+<li><strong>List Form Fields</strong>
+<ul>
+<li>NVDA: NVDA+F5</li>
+<li>JAWS: <strong>not yet on JAWS</strong></li>
+<li>List the form fields on the page, on the key JAWS uses for its form
+field list.</li>
+</ul></li>
+<li><strong>List Headings</strong>
+<ul>
+<li>NVDA: NVDA+F6</li>
+<li>JAWS: <strong>not yet on JAWS</strong></li>
+<li>List the headings on the page, on the key JAWS uses for its heading
+list.</li>
+</ul></li>
+<li><strong>List Links</strong>
+<ul>
+<li>NVDA: NVDA+Shift+F7</li>
+<li>JAWS: <strong>not yet on JAWS</strong></li>
+<li>List the links on the page, beside the key JAWS uses for its link
+list.</li>
+</ul></li>
 </ul>
 <h1 id="asking-about-the-page">Asking about the page</h1>
 <ul>
-<li><strong>Link Target</strong>, Alt+L. Ask what is actually at that
-link without going there: what kind of thing, how big, and whether it
-ends up where it claims. L for Link.</li>
-<li><strong>Page Links to Clipboard</strong>, Alt+Shift+P. Copy every
-link address on the page to the clipboard, as EdSharp copies a path on
-the same key.</li>
-<li><strong>Say Address</strong>, Alt+A. Says the web address of this
-page. Twice spells it, three times copies it. A for Address.</li>
-<li><strong>Say Address Anywhere</strong>, Alt+NVDA+U. Says the web
-address from anywhere in the window, including the address bar.</li>
-<li><strong>Say Metadata</strong>, Alt+M. Says what the page claims
-about itself: author, publisher, date and licence. M for Metadata.</li>
-<li><strong>Say Position</strong>, Alt+Delete, or Alt+NumPadDelete. Says
-the line, column and percentage position of the cursor. Delete sits
-among the navigation keys, which is where a position question
+<li><strong>Link Target</strong>
+<ul>
+<li>NVDA: Alt+L</li>
+<li>JAWS: Alt+L</li>
+<li>Ask what is actually at that link without going there: what kind of
+thing, how big, and whether it ends up where it claims. L for Link.</li>
+</ul></li>
+<li><strong>List Names</strong>
+<ul>
+<li>NVDA: Alt+N</li>
+<li>JAWS: Alt+N</li>
+<li>Lists the people, places, organisations and dates a page mentions. A
+rule-based engine reads the text, so it guesses; the report says
+so.</li>
+</ul></li>
+<li><strong>Page Links to Clipboard</strong>
+<ul>
+<li>NVDA: Alt+Shift+P</li>
+<li>JAWS: Alt+Shift+P</li>
+<li>Copy every link address on the page to the clipboard, as EdSharp
+copies a path on the same key.</li>
+</ul></li>
+<li><strong>Say Address</strong>
+<ul>
+<li>NVDA: Alt+A</li>
+<li>JAWS: <strong>not yet on JAWS</strong></li>
+<li>Says the web address of this page. Twice spells it, three times
+copies it. A for Address.</li>
+</ul></li>
+<li><strong>Say Address Anywhere</strong>
+<ul>
+<li>NVDA: Alt+NVDA+U</li>
+<li>JAWS: <strong>not yet on JAWS</strong></li>
+<li>Says the web address from anywhere in the window, including the
+address bar.</li>
+</ul></li>
+<li><strong>Say Metadata</strong>
+<ul>
+<li>NVDA: Alt+M</li>
+<li>JAWS: Alt+M</li>
+<li>Says what the page claims about itself: author, publisher, date and
+licence. M for Metadata.</li>
+</ul></li>
+<li><strong>Say Position</strong>
+<ul>
+<li>NVDA: Alt+Delete, or Alt+NumPadDelete</li>
+<li>JAWS: <strong>not yet on JAWS</strong></li>
+<li>Says the line, column and percentage position of the cursor. Delete
+sits among the navigation keys, which is where a position question
 belongs.</li>
-<li><strong>Say Time</strong>, Alt+SemiColon. Say current time and
-date.</li>
-<li><strong>Say Url</strong>, Alt+U. Say where the link at the cursor
-would go. U for url.</li>
-<li><strong>Say Yield</strong>, Alt+Y. Say number of characters, words,
-and lines in all or selected text.</li>
-<li><strong>Say Yield Structure</strong>, Alt+Shift+Y. Says how the page
-is built: how many headings, links, forms and the rest.</li>
-<li><strong>Yield with Regular Expression</strong>, Control+Shift+Y.
-Count parts of text matching a regular expression, which answers how
+</ul></li>
+<li><strong>Say Time</strong>
+<ul>
+<li>NVDA: Alt+SemiColon</li>
+<li>JAWS: <strong>not yet on JAWS</strong></li>
+<li>Say current time and date.</li>
+</ul></li>
+<li><strong>Say Url</strong>
+<ul>
+<li>NVDA: Alt+U</li>
+<li>JAWS: <strong>not yet on JAWS</strong></li>
+<li>Say where the link at the cursor would go. U for url.</li>
+</ul></li>
+<li><strong>Say Yield</strong>
+<ul>
+<li>NVDA: Alt+Y</li>
+<li>JAWS: <strong>not yet on JAWS</strong></li>
+<li>Say number of characters, words, and lines in all or selected
+text.</li>
+</ul></li>
+<li><strong>Say Yield Structure</strong>
+<ul>
+<li>NVDA: Alt+Shift+Y</li>
+<li>JAWS: <strong>not yet on JAWS</strong></li>
+<li>Says how the page is built: how many headings, links, forms and the
+rest.</li>
+</ul></li>
+<li><strong>Yield with Regular Expression</strong>
+<ul>
+<li>NVDA: Control+Shift+Y</li>
+<li>JAWS: <strong>not yet on JAWS</strong></li>
+<li>Count parts of text matching a regular expression, which answers how
 many rather than where.</li>
+</ul></li>
 </ul>
 <h1 id="reading-aloud">Reading aloud</h1>
 <ul>
-<li><strong>Read All</strong>, Alt+F8. Say all text, without moving the
-cursor.</li>
-<li><strong>Say Chunk</strong>, Shift+Backspace. Say chunk at cursor, or
-spell if repeated.</li>
-<li><strong>Say Selected</strong>, Shift+Space. Say selected text, or
-spell if repeated.</li>
-<li><strong>Toggle Reading</strong>, ScrollLock. Starts reading
-continuously, or stops if it is already reading. Scroll Lock because
-nothing else in Edge, NVDA or Windows wants it.</li>
+<li><strong>Read All</strong>
+<ul>
+<li>NVDA: Alt+F8</li>
+<li>JAWS: Alt+F8</li>
+<li>Say all text, without moving the cursor.</li>
+</ul></li>
+<li><strong>Say Chunk</strong>
+<ul>
+<li>NVDA: Shift+Backspace</li>
+<li>JAWS: <strong>not yet on JAWS</strong></li>
+<li>Say chunk at cursor, or spell if repeated.</li>
+</ul></li>
+<li><strong>Say Selected</strong>
+<ul>
+<li>NVDA: Shift+Space</li>
+<li>JAWS: <strong>not yet on JAWS</strong></li>
+<li>Say selected text, or spell if repeated.</li>
+</ul></li>
+<li><strong>Toggle Reading</strong>
+<ul>
+<li>NVDA: ScrollLock</li>
+<li>JAWS: <strong>not yet on JAWS</strong></li>
+<li>Starts reading continuously, or stops if it is already reading.
+Scroll Lock because nothing else in Edge, NVDA or Windows wants it.</li>
+</ul></li>
 </ul>
 <h1 id="selecting-and-the-clipboard">Selecting and the clipboard</h1>
 <ul>
-<li><strong>Append Clipboard</strong>, Control+Shift+Apostrophe. Adds
-the clipboard to the end of a text file rather than replacing it.</li>
-<li><strong>Clear Clipboard</strong>, Alt+Shift+Apostrophe. Empties the
-clipboard, so an append starts afresh.</li>
-<li><strong>Complete Selection</strong>, Shift+F8. Select text from
-starting point to cursor.</li>
-<li><strong>Copy All</strong>, Control+F8. Copy all text to
-clipboard.</li>
-<li><strong>Copy Append</strong>, Alt+C. Append selected text to
-clipboard, or append current line if no selection.</li>
-<li><strong>Copy Line</strong>, Control+C. Copy selected text to
-clipboard, or copy current line if no selection.</li>
-<li><strong>Go to Start of Selection</strong>, Alt+Shift+F8. Return to
-start position of selection.</li>
-<li><strong>Save Clipboard</strong>, Control+Apostrophe. Saves the
-clipboard to a text file, proposing a name.</li>
-<li><strong>Say Clipboard</strong>, Alt+Apostrophe. Say clipboard text,
-or spell if repeated. The apostrophe is a quotation mark, and a
-clipboard holds a quotation.</li>
-<li><strong>Select Chunk</strong>, Control+Space. Select contiguous
-sequence of non-blank characters at cursor, or select the next chunk if
-a selection already exists.</li>
-<li><strong>Start Selection</strong>, F8. Mark starting point of text to
-be selected, so Shift need not be held while you move.</li>
+<li><strong>Append Clipboard</strong>
+<ul>
+<li>NVDA: Control+Shift+Apostrophe</li>
+<li>JAWS: Control+Shift+Apostrophe</li>
+<li>Adds the clipboard to the end of a text file rather than replacing
+it.</li>
+</ul></li>
+<li><strong>Clear Clipboard</strong>
+<ul>
+<li>NVDA: Alt+Shift+Apostrophe</li>
+<li>JAWS: Alt+Shift+Apostrophe</li>
+<li>Empties the clipboard, so an append starts afresh.</li>
+</ul></li>
+<li><strong>Complete Selection</strong>
+<ul>
+<li>NVDA: Shift+F8</li>
+<li>JAWS: Shift+F8</li>
+<li>Select text from starting point to cursor.</li>
+</ul></li>
+<li><strong>Copy All</strong>
+<ul>
+<li>NVDA: Control+F8</li>
+<li>JAWS: Control+F8</li>
+<li>Copy all text to clipboard.</li>
+</ul></li>
+<li><strong>Copy Append</strong>
+<ul>
+<li>NVDA: Alt+C</li>
+<li>JAWS: Alt+C</li>
+<li>Append selected text to clipboard, or append current line if no
+selection.</li>
+</ul></li>
+<li><strong>Copy Line</strong>
+<ul>
+<li>NVDA: Control+C</li>
+<li>JAWS: Control+C (named “Copy Selection” there)</li>
+<li>Copy selected text to clipboard, or copy current line if no
+selection.</li>
+</ul></li>
+<li><strong>Go to Start of Selection</strong>
+<ul>
+<li>NVDA: Alt+Shift+F8</li>
+<li>JAWS: <strong>not yet on JAWS</strong></li>
+<li>Return to start position of selection.</li>
+</ul></li>
+<li><strong>Save Clipboard</strong>
+<ul>
+<li>NVDA: Control+Apostrophe</li>
+<li>JAWS: Control+Apostrophe</li>
+<li>Saves the clipboard to a text file, proposing a name.</li>
+</ul></li>
+<li><strong>Say Clipboard</strong>
+<ul>
+<li>NVDA: Alt+Apostrophe</li>
+<li>JAWS: Alt+Apostrophe</li>
+<li>Say clipboard text, or spell if repeated. The apostrophe is a
+quotation mark, and a clipboard holds a quotation.</li>
+</ul></li>
+<li><strong>Select Chunk</strong>
+<ul>
+<li>NVDA: Control+Space</li>
+<li>JAWS: <strong>not yet on JAWS</strong></li>
+<li>Select contiguous sequence of non-blank characters at cursor, or
+select the next chunk if a selection already exists.</li>
+</ul></li>
+<li><strong>Start Selection</strong>
+<ul>
+<li>NVDA: F8</li>
+<li>JAWS: F8</li>
+<li>Mark starting point of text to be selected, so Shift need not be
+held while you move.</li>
+</ul></li>
 </ul>
 <h1 id="acting-on-the-page">Acting on the page</h1>
 <ul>
-<li><strong>Check Accessibility</strong>, Alt+NVDA+A. Tests the page for
-accessibility problems, asking which engine to use, and offers to report
-what it finds to whoever publishes the site. A for Accessibility.</li>
-<li><strong>Check with Axe</strong>, no key. Tests the page with Deque’s
-axe-core engine. Offered by Check Accessibility.</li>
-<li><strong>Check with Equal Access</strong>, no key. Tests the page
-with IBM’s Equal Access engine. Offered by Check Accessibility.</li>
-<li><strong>Consult Copilot</strong>, Alt+NVDA+C. Copies the page text
-and opens Edge’s Copilot sidebar, ready for a question. C for
-Copilot.</li>
-<li><strong>Dismiss Dialog</strong>, Alt+NVDA+D. Closes a browser dialog
-that is blocking the window. D for Dismiss, and it works anywhere
-because a dialog is what has the focus.</li>
-<li><strong>Extract Main Content</strong>, Shift+F9. Extracts the
-readable part of the page into a page of its own that you can search,
-save or send. F9 is Edge’s own reading view, and Shift+F9 is
-HomerView’s, which works on pages Edge will not.</li>
-<li><strong>Invoke Script</strong>, Alt+I. Carries out instructions
-written in ordinary words, such as click sign in. I for Invoke.</li>
-<li><strong>Open Document</strong>, Control+O. Opens a Word file,
-spreadsheet, slide deck, PDF or ebook, converting it to a page so every
-command here works on it. Control+O opens in every program; this one
-opens more.</li>
-<li><strong>Query Web</strong>, Alt+Q, or Alt+NVDA+Q. Looks something up
-using free services that need no account: a definition, a place, the
-weather, a book. Q for Query.</li>
-<li><strong>Report Accessibility</strong>, no key. Tests the page and
-writes a report addressed to whoever publishes the site. Reached by
-Check Accessibility once an engine is chosen.</li>
-<li><strong>Save Page</strong>, Control+S, or Alt+Control+S. Saves the
-page in any of nine formats. Control+S saves in every program; this one
-saves more ways.</li>
-<li><strong>Submit Form</strong>, Control+Enter. Submits the form you
-are filling in, from any field in it, so you need not find the
-button.</li>
-<li><strong>Web Download</strong>, Alt+Shift+W. Pick files to download
-from a web page, on the key EdSharp uses for it.</li>
+<li><strong>Check Accessibility</strong>
+<ul>
+<li>NVDA: Alt+NVDA+A</li>
+<li>JAWS: Alt+JAWSKey+A</li>
+<li>Tests the page for accessibility problems, asking which engine to
+use, and offers to report what it finds to whoever publishes the site. A
+for Accessibility.</li>
+</ul></li>
+<li><strong>Check with Axe</strong>
+<ul>
+<li>NVDA: no key</li>
+<li>JAWS: <strong>not yet on JAWS</strong></li>
+<li>Tests the page with Deque’s axe-core engine. Offered by Check
+Accessibility.</li>
+</ul></li>
+<li><strong>Check with Equal Access</strong>
+<ul>
+<li>NVDA: no key</li>
+<li>JAWS: Alt+JAWSKey+I (named “Check Accessibility with IBM”
+there)</li>
+<li>Tests the page with IBM’s Equal Access engine. Offered by Check
+Accessibility.</li>
+</ul></li>
+<li><strong>Consult Copilot</strong>
+<ul>
+<li>NVDA: Alt+NVDA+C</li>
+<li>JAWS: <strong>not yet on JAWS</strong></li>
+<li>Copies the page text and opens Edge’s Copilot sidebar, ready for a
+question. C for Copilot.</li>
+</ul></li>
+<li><strong>Dismiss Dialog</strong>
+<ul>
+<li>NVDA: Alt+NVDA+D</li>
+<li>JAWS: Alt+JAWSKey+D</li>
+<li>Closes a browser dialog that is blocking the window. D for Dismiss,
+and it works anywhere because a dialog is what has the focus.</li>
+</ul></li>
+<li><strong>Extract Main Content</strong>
+<ul>
+<li>NVDA: Shift+F9</li>
+<li>JAWS: Shift+F9</li>
+<li>Extracts the readable part of the page into a page of its own that
+you can search, save or send. F9 is Edge’s own reading view, and
+Shift+F9 is HomerView’s, which works on pages Edge will not.</li>
+</ul></li>
+<li><strong>Find Contacts</strong>
+<ul>
+<li>NVDA: Alt+NVDA+C</li>
+<li>JAWS: Alt+JAWSKey+C</li>
+<li>Finds who to tell about this site: email addresses, the
+accessibility statement, contact pages and social media.</li>
+</ul></li>
+<li><strong>Invoke Script</strong>
+<ul>
+<li>NVDA: Alt+I</li>
+<li>JAWS: <strong>not yet on JAWS</strong></li>
+<li>Carries out instructions written in ordinary words, such as click
+sign in. I for Invoke.</li>
+</ul></li>
+<li><strong>Open Document</strong>
+<ul>
+<li>NVDA: Control+O</li>
+<li>JAWS: Control+O</li>
+<li>Opens a Word file, spreadsheet, slide deck, PDF or ebook, converting
+it to a page so every command here works on it. Control+O opens in every
+program; this one opens more.</li>
+</ul></li>
+<li><strong>Query Web</strong>
+<ul>
+<li>NVDA: Alt+Q, or Alt+NVDA+Q</li>
+<li>JAWS: <strong>not yet on JAWS</strong></li>
+<li>Looks something up using free services that need no account: a
+definition, a place, the weather, a book. Q for Query.</li>
+</ul></li>
+<li><strong>Report Accessibility</strong>
+<ul>
+<li>NVDA: no key</li>
+<li>JAWS: <strong>not yet on JAWS</strong></li>
+<li>Tests the page and writes a report addressed to whoever publishes
+the site. Reached by Check Accessibility once an engine is chosen.</li>
+</ul></li>
+<li><strong>Save Page</strong>
+<ul>
+<li>NVDA: Control+S, or Alt+Control+S</li>
+<li>JAWS: Control+S</li>
+<li>Saves the page in any of nine formats. Control+S saves in every
+program; this one saves more ways.</li>
+</ul></li>
+<li><strong>Submit Form</strong>
+<ul>
+<li>NVDA: Control+Enter</li>
+<li>JAWS: <strong>not yet on JAWS</strong></li>
+<li>Submits the form you are filling in, from any field in it, so you
+need not find the button.</li>
+</ul></li>
+<li><strong>Web Download</strong>
+<ul>
+<li>NVDA: Alt+Shift+W</li>
+<li>JAWS: Alt+Shift+W</li>
+<li>Pick files to download from a web page, on the key EdSharp uses for
+it.</li>
+</ul></li>
 </ul>
 <h1 id="the-window-and-its-tabs">The window and its tabs</h1>
 <ul>
-<li><strong>Tab Close Others</strong>, Control+Shift+F4. Closes every
-tab but the one you are reading. Control+F4 closes one tab, so
-Control+Shift+F4 closes the rest.</li>
-<li><strong>Tab List</strong>, F4. Lists the HomerView tabs and switches
-to the one you choose. F4 is the Homer window list, and Edge has two
-other keys for what F4 does there.</li>
-<li><strong>Tab Names</strong>, Shift+F4. Says the names of the open
-tabs without moving the keyboard anywhere.</li>
+<li><strong>Tab Close Others</strong>
+<ul>
+<li>NVDA: Control+Shift+F4</li>
+<li>JAWS: <strong>not yet on JAWS</strong></li>
+<li>Closes every tab but the one you are reading. Control+F4 closes one
+tab, so Control+Shift+F4 closes the rest.</li>
+</ul></li>
+<li><strong>Tab List</strong>
+<ul>
+<li>NVDA: F4</li>
+<li>JAWS: no key, on the Alternate Menu</li>
+<li>Lists the HomerView tabs and switches to the one you choose. F4 is
+the Homer window list, and Edge has two other keys for what F4 does
+there.</li>
+</ul></li>
+<li><strong>Tab Names</strong>
+<ul>
+<li>NVDA: Shift+F4</li>
+<li>JAWS: Shift+F4</li>
+<li>Says the names of the open tabs without moving the keyboard
+anywhere.</li>
+</ul></li>
 </ul>
 <h1 id="adjusting-the-voice">Adjusting the voice</h1>
 <ul>
-<li><strong>Speech Settings</strong>, Shift+Accent. Reports the
-punctuation level, the rate and the volume.</li>
-<li><strong>Toggle Punctuation</strong>, Alt+Control+Accent. Toggle the
-voice between all and no punctuation.</li>
-<li><strong>Voice Faster</strong>, Control+Accent. Increase the voice
-rate. The accent key carries the whole speech family, as it does in
-EdSharp.</li>
-<li><strong>Voice Louder</strong>, Alt+Accent. Increase the voice
-volume.</li>
-<li><strong>Voice Slower</strong>, Control+Shift+Accent. Decrease the
-voice rate.</li>
-<li><strong>Voice Softer</strong>, Alt+Shift+Accent. Decrease the voice
-volume.</li>
+<li><strong>Speech Settings</strong>
+<ul>
+<li>NVDA: Shift+Accent</li>
+<li>JAWS: <strong>not yet on JAWS</strong></li>
+<li>Reports the punctuation level, the rate and the volume.</li>
+</ul></li>
+<li><strong>Toggle Punctuation</strong>
+<ul>
+<li>NVDA: Alt+Control+Accent</li>
+<li>JAWS: <strong>not yet on JAWS</strong></li>
+<li>Toggle the voice between all and no punctuation.</li>
+</ul></li>
+<li><strong>Voice Faster</strong>
+<ul>
+<li>NVDA: Control+Accent</li>
+<li>JAWS: <strong>not yet on JAWS</strong></li>
+<li>Increase the voice rate. The accent key carries the whole speech
+family, as it does in EdSharp.</li>
+</ul></li>
+<li><strong>Voice Louder</strong>
+<ul>
+<li>NVDA: Alt+Accent</li>
+<li>JAWS: <strong>not yet on JAWS</strong></li>
+<li>Increase the voice volume.</li>
+</ul></li>
+<li><strong>Voice Slower</strong>
+<ul>
+<li>NVDA: Control+Shift+Accent</li>
+<li>JAWS: <strong>not yet on JAWS</strong></li>
+<li>Decrease the voice rate.</li>
+</ul></li>
+<li><strong>Voice Softer</strong>
+<ul>
+<li>NVDA: Alt+Shift+Accent</li>
+<li>JAWS: <strong>not yet on JAWS</strong></li>
+<li>Decrease the voice volume.</li>
+</ul></li>
 </ul>
 <h1 id="now-and-then">Now and then</h1>
 <ul>
-<li><strong>Elevate Version</strong>, Control+F11, or Alt+NVDA+F11.
-Checks whether a newer HomerView exists and installs it.</li>
-<li><strong>Recent Pages</strong>, Alt+R. Open a page from the list of
-those recently used, on the key EdSharp uses for its recent files.</li>
-<li><strong>Report Connection</strong>, no key. Says whether HomerView
-is connected to the browser, and how.</li>
-<li><strong>Self Test</strong>, no key. Checks that all three ways of
-reaching the browser are working.</li>
+<li><strong>Elevate Version</strong>
+<ul>
+<li>NVDA: Control+F11, or Alt+NVDA+F11</li>
+<li>JAWS: <strong>not yet on JAWS</strong></li>
+<li>Checks whether a newer HomerView exists and installs it.</li>
+</ul></li>
+<li><strong>Recent Pages</strong>
+<ul>
+<li>NVDA: Alt+R</li>
+<li>JAWS: <strong>not yet on JAWS</strong></li>
+<li>Open a page from the list of those recently used, on the key EdSharp
+uses for its recent files.</li>
+</ul></li>
+<li><strong>Report Connection</strong>
+<ul>
+<li>NVDA: no key</li>
+<li>JAWS: <strong>not yet on JAWS</strong></li>
+<li>Says whether HomerView is connected to the browser, and how.</li>
+</ul></li>
+<li><strong>Self Test</strong>
+<ul>
+<li>NVDA: no key</li>
+<li>JAWS: <strong>not yet on JAWS</strong></li>
+<li>Checks that all three ways of reaching the browser are working.</li>
+</ul></li>
 </ul>
+<h1 id="analysis-consistency-gaps-and-trade-offs">Analysis: consistency,
+gaps and trade-offs</h1>
+<p>This section is my own reading of the two key maps side by side,
+written after generating the list above from both sources.</p>
+<h2 id="the-headline-numbers">The headline numbers</h2>
+<ul>
+<li><strong>92 commands on NVDA, 43 on JAWS.</strong> All 43 exist on
+both.</li>
+<li><strong>Of those 43, 38 have identical keys</strong> once NVDA and
+JAWSKey are understood as the same modifier. On almost everything the
+two implementations share, what you learn on one you already know on the
+other.</li>
+<li><strong>Nothing is JAWS-only any more.</strong> Extract with Regular
+Expression, Find Contacts and List Names were written for JAWS first and
+have since been ported, so the gap runs one way: <strong>49 commands
+exist only on NVDA.</strong></li>
+</ul>
+<h2 id="where-the-keys-differ-and-whether-the-reason-holds">Where the
+keys differ, and whether the reason holds</h2>
+<p>Only three paired commands differ, and each is worth judging
+separately.</p>
+<p><strong>Jump to Probable Main — NVDA Shift+J, JAWS Shift+Q.</strong>
+The reason is sound and should stay. Each screen reader has its own
+letter for the main region: NVDA uses J for Jump, JAWS uses Q for the
+main region, and each implementation sits the shifted key beside its
+host’s own. Forcing one letter on both would break the association that
+makes the key memorable in the first place.</p>
+<p><strong>Log to Clipboard — NVDA Control+Shift+L, JAWS
+Alt+JAWSKey+L.</strong> This one is not principled, and I should say so.
+The JAWS key was moved to Alt+JAWSKey+L only because plain JAWSKey+L was
+written into the key map, read back correctly, and never fired —
+something else on the system holds it, and I gave up finding out what.
+Control+Shift+L would work on JAWS and would match NVDA exactly.
+<strong>This is the one difference I would close</strong>, and the only
+reason not to is that JAWS commands which must work before a browser has
+loaded conventionally carry the screen-reader modifier. That convention
+is worth less than the parity here.</p>
+<p><strong>Check with Equal Access — NVDA no key, JAWS
+Alt+JAWSKey+I.</strong> Not really a disagreement about keys but about
+structure, dealt with below.</p>
+<h2 id="the-single-letter-rule">The single-letter rule</h2>
+<p>In browse mode a bare letter is a navigation key by convention: press
+it and you expect to land somewhere. So a bare letter should only ever
+belong to a command that MOVES.</p>
+<p>Five NVDA commands used one. Four of them move — Jump to Main on J,
+Jump to Probable Main on Shift+J, Next Same Kind on Z, Prior Same Kind
+on Shift+Z — and those are right. <strong>Explore Page had Y and does
+not move anywhere</strong>, so it has given the letter back and keeps
+Alt+NVDA+E, which it already had.</p>
+<p>The obvious alternative was NVDA+F1, by analogy with JAWS+F1 for
+screen sensitive help. It is taken: NVDA+F1 opens the log viewer and
+shows developer information about the current navigator object.
+Shift+NVDA+F1 appears free if a key in that family is wanted later, but
+Alt+NVDA+E already works and a second key for one command is
+clutter.</p>
+<p>JAWS has no equivalent problem, because every HomerView key there
+carries a modifier except the F8 selection pair and the F3 find pair,
+none of which is a letter.</p>
+<h2 id="a-structural-difference-worth-deciding-on">A structural
+difference worth deciding on</h2>
+<p>On NVDA, <strong>Check Accessibility</strong> (Alt+NVDA+A) is a
+chooser: it asks which engine you want, and Check with Axe and Check
+with Equal Access sit behind it with no keys of their own. On JAWS, the
+two engines have direct keys — Alt+JAWSKey+A for axe and Alt+JAWSKey+I
+for IBM — and there is no chooser at all.</p>
+<p>Both are defensible. The chooser is tidier and keeps the key map
+smaller; the direct keys are faster and mean the two engines are equally
+discoverable rather than one being the default. My own view is that the
+<strong>JAWS arrangement is better</strong>, because in practice you run
+the same engine repeatedly and a chooser you answer identically every
+time is a keystroke tax. But the NVDA naming should then follow: “Check
+Accessibility” on JAWS should be renamed “Check with Axe”, so the two
+sides use one name for one thing.</p>
+<p>There is a second, smaller instance: <strong>Tab List</strong> has F4
+on NVDA and no key on JAWS, because F4 in JAWS puts the cursor in Edge’s
+address bar. That difference is forced by the host and cannot be closed.
+Tab Names has Shift+F4 on both.</p>
+<h2 id="the-gaps-and-which-ones-matter">The gaps, and which ones
+matter</h2>
+<p><strong>On JAWS only</strong> — none. The three commands that were
+JAWS-only in the last edition of this document (Extract with Regular
+Expression, Find Contacts, List Names) have all been ported.</p>
+<p><strong>On NVDA only</strong> — 49 commands. They are not all equal,
+and it is worth separating them:</p>
+<p><em>Deliberately absent from JAWS, and should stay absent.</em> List
+Headings, List Form Fields, List Links, List Elements, Explore Page, Say
+Address, Say Time, Forward Find, Say Position, Toggle Reading, and the
+whole speech family — Voice Faster, Voice Slower, Voice Louder, Voice
+Softer, Toggle Punctuation, Speech Settings. JAWS does every one of
+these already, and a second way of doing them is one more thing to
+remember for no gain. <strong>On reflection, several of these are
+questionable on the NVDA side too</strong>: NVDA also has heading and
+link lists, and its own find. That HomerView reimplements them there but
+not here suggests the scoping rule was applied more strictly to JAWS
+than to NVDA, and the NVDA list could be trimmed.</p>
+<p><em>Genuinely missing from JAWS and worth building</em>, in the order
+I would do them:</p>
+<ol type="1">
+<li><strong>Next Same Kind, Prior Same Kind, Next Different Kind, Prior
+Different Kind</strong> (Z, Shift+Z, Alt+Z, Alt+Shift+Z). Nothing in
+JAWS does this, and it is the most original navigation idea in
+HomerView.</li>
+<li><strong>Say Yield, Say Yield Structure, Yield with Regular
+Expression.</strong> Answers “how much” rather than “where”, which no
+screen reader offers.</li>
+<li><strong>The rest of the selection family</strong> — Say Selected,
+Say Chunk, Select Chunk, Go to Start of Selection. JAWS has the F8 pair
+already; these complete it.</li>
+<li><strong>Recent Pages, Tab Close Others, Go to Percent and Go to
+Percent Again.</strong> Small, self-contained, no JAWS equivalent.</li>
+<li><strong>Say Url</strong> — but see the trade-off below.</li>
+<li><strong>Next Sentence, Prior Sentence, Next Paragraph, Prior
+Paragraph.</strong> Lower value: JAWS has sentence and paragraph
+navigation of its own.</li>
+</ol>
+<p><em>Judgement calls rather than gaps</em>: Invoke Script, Consult
+Copilot, Query Web, Report Accessibility, Elevate Version, Report
+Connection, Self Test. Each brings a dependency or a decision, not just
+work.</p>
+<p><em>Impossible on JAWS</em>: <strong>Submit Form</strong>
+(Control+Enter). JAWS Script has no Lbc primitives and Control+Enter
+belongs to those dialogs, so this command cannot be written for JAWS at
+all. It should be marked as such rather than left looking like an
+oversight.</p>
+<h2 id="trade-offs-already-made-worth-restating">Trade-offs already
+made, worth restating</h2>
+<p><strong>Say Url was merged into Link Target on JAWS.</strong> NVDA
+has both — Alt+U says where the link goes, Alt+L describes what is
+there. On JAWS they are one command on Alt+L, which always shows the
+address and adds the description when it can be fetched. The merge was
+right: two keys for one question, and worse, when the fetch failed the
+describing one showed nothing while the address, already in hand and
+needing no network, was the thing you lost. <strong>NVDA should
+follow</strong>, and Alt+U should be freed.</p>
+<p><strong>F8 and Shift+F8 shadow JAWS’s own F8.</strong> JAWS binds F8
+to Select Entire Element. HomerView takes it inside a web page only,
+which was your decision and is the right one — the EdSharp selection
+pair is used constantly and Select Entire Element rarely — but it is a
+real cost and should be recorded as one.</p>
+<p><strong>Control+C and Control+O and Control+S are taken from the
+browser.</strong> Each is justified by the same test: HomerView does
+everything the browser did with that key and more. Control+C also copies
+the line when there is no selection; Control+O also opens Word files and
+PDFs; Control+S also saves formats Edge cannot. If any of those three
+ever stops doing the browser’s job as well as its own, the key should go
+back.</p>
+<p><strong>Shift+Q was taken against a standing rule.</strong> Shift
+plus a navigation quick key means the previous element of that kind, and
+every letter is a quick key. Q was taken because a page has one main
+region, so the native meaning has nowhere to go. That reasoning is
+specific to Q and should not be used to justify taking another shifted
+letter.</p>
+<h2 id="what-i-would-change">What I would change</h2>
+<ol type="1">
+<li><strong>Move Log to Clipboard to Control+Shift+L on JAWS</strong>,
+matching NVDA. The one unprincipled difference in the whole map.</li>
+<li><strong>Rename “Check Accessibility” to “Check with Axe” on
+JAWS</strong>, so one thing has one name, and drop the NVDA chooser in
+favour of two direct keys.</li>
+<li><strong>Done.</strong> Extract with Regular Expression, Find
+Contacts and List Names are now on both.</li>
+<li><strong>Merge Say Url into Link Target on NVDA</strong>, as on JAWS,
+and free Alt+U.</li>
+<li><strong>Build the four Same Kind and Different Kind commands for
+JAWS</strong>, the largest genuine gap.</li>
+<li><strong>Reconsider the NVDA commands that duplicate NVDA’s own
+features</strong>, applying the scoping rule as strictly there as it has
+been applied here.</li>
+</ol>
 </body>
 </html>

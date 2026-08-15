@@ -33,6 +33,7 @@
 
 [Common Keys]
 Alt+JAWSKey+A=checkAccessibility
+Alt+JAWSKey+C=findContacts
 Alt+JAWSKey+D=dismissDialog
 Alt+JAWSKey+F10=showHomerViewMenu
 Alt+JAWSKey+H=launchHomerView
@@ -48,6 +49,7 @@ Alt+F1=showAbout
 Alt+F8=readAll
 Alt+L=describeLinkTarget
 Alt+M=sayMetadata
+Alt+N=listNames
 Alt+Shift+Apostrophe=clearClipboard
 Alt+Shift+F1=openQuickStart
 Alt+Shift+P=copyPageLinks

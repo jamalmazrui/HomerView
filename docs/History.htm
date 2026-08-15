@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
 <head>
   <meta charset="utf-8" />
@@ -172,6 +172,31 @@
 </header>
 <nav id="TOC" role="doc-toc">
 <ul>
+<li><a href="#version-1.48.5-15-august-2026"
+id="toc-version-1.48.5-15-august-2026">Version 1.48.5 — 15 August
+2026</a>
+<ul>
+<li><a href="#list-names" id="toc-list-names">List Names</a></li>
+<li><a href="#find-contacts-became-a-command-of-its-own"
+id="toc-find-contacts-became-a-command-of-its-own">Find Contacts became
+a command of its own</a></li>
+<li><a href="#one-folder-for-each-page"
+id="toc-one-folder-for-each-page">One folder for each page</a></li>
+<li><a href="#removal-takes-everything-with-it"
+id="toc-removal-takes-everything-with-it">Removal takes everything with
+it</a></li>
+<li><a href="#explore-page-gave-back-its-single-letter"
+id="toc-explore-page-gave-back-its-single-letter">Explore Page gave back
+its single letter</a></li>
+<li><a href="#the-page-is-kept-as-evidence"
+id="toc-the-page-is-kept-as-evidence">The page is kept as
+evidence</a></li>
+<li><a
+href="#nvda-uses-a-browseable-message-where-jaws-uses-a-user-buffer"
+id="toc-nvda-uses-a-browseable-message-where-jaws-uses-a-user-buffer">NVDA
+uses a browseable message where JAWS uses a user buffer</a></li>
+<li><a href="#fixes" id="toc-fixes">Fixes</a></li>
+</ul></li>
 <li><a href="#version-1.48.4-14-august-2026"
 id="toc-version-1.48.4-14-august-2026">Version 1.48.4 — 14 August
 2026</a>
@@ -202,6 +227,79 @@ versions</a></li>
 <p>What changed, newest first, written the way you would tell somebody
 rather than as a list of commit messages. The reasoning behind each
 change is in the code, where it belongs. This is the short version.</p>
+<h2 id="version-1.48.5-15-august-2026">Version 1.48.5 — 15 August
+2026</h2>
+<h3 id="list-names">List Names</h3>
+<p>A new command on <strong>Alt+N</strong>, on both screen readers. It
+reads the page with a rule-based English parser and lists the people,
+places, organisations, dates, amounts and percentages it finds, saved as
+<code>Names.htm</code> beside the page’s other files. It answers a
+question headings and links cannot: not how a page is arranged or where
+it goes, but who and what it is about. It guesses, and the report says
+so.</p>
+<h3 id="find-contacts-became-a-command-of-its-own">Find Contacts became
+a command of its own</h3>
+<p>It had been buried inside Report Accessibility on the NVDA side, so a
+reader who simply wanted an address had to run a whole accessibility
+scan to get one. It is now <strong>Alt+NVDA+C</strong> and
+<strong>Alt+JAWSKey+C</strong>.</p>
+<h3 id="one-folder-for-each-page">One folder for each page</h3>
+<p>Everything a page produces now goes to one folder under Downloads
+named after the page: the files you download, <code>Axe.htm</code> and
+<code>Axe.json</code>, the four <code>IBM</code> files,
+<code>Main.htm</code> and <code>Names.htm</code>. Each tool replaces its
+own files, and the folder is kept between sessions, so running a check
+no longer deletes what you downloaded a minute earlier. Downloads
+replace by name rather than being numbered, and no name uses
+<code>%20</code>.</p>
+<h3 id="removal-takes-everything-with-it">Removal takes everything with
+it</h3>
+<p>JAWS has no add-on manager, so the uninstaller is the only way back
+and it now behaves like it. It removes the compiled scripts from every
+JAWS version, the key bindings from your <code>default.jkm</code>, the
+<code>MyExtensions</code> hook, the NVDA add-on through NVDA’s own
+mechanism, and the whole of <code>%LOCALAPPDATA%\HomerView</code>. It
+leaves your Downloads folder alone, because the reports and fetched
+files are yours.</p>
+<p>JAWS is asked to reload at the end, so the removed keys stop
+responding immediately rather than at the next restart. The removal
+writes its log to <code>%TEMP%\HomerViewUninstall.log</code>, which
+survives the folder it used to live in.</p>
+<p>The uninstaller is in the installation folder and in Windows Apps and
+Features.</p>
+<h3 id="explore-page-gave-back-its-single-letter">Explore Page gave back
+its single letter</h3>
+<p>In browse mode a bare letter is a navigation key: press it and you
+expect to land somewhere. Explore Page had <strong>Y</strong> and does
+not move anywhere, so it now has only <strong>Alt+NVDA+E</strong>, which
+it already had. The four commands that keep a bare letter — Jump to
+Main, Jump to Probable Main, Next Same Kind and Prior Same Kind — all
+move, which is what the convention is for.</p>
+<h3 id="the-page-is-kept-as-evidence">The page is kept as evidence</h3>
+<p>Running either accessibility check now also saves the page itself
+beside the report: <code>Page.htm</code> (the markup after script has
+run), <code>Page.png</code>, <code>Page.pdf</code>, and
+<code>Tree.json</code> (the accessibility tree, with the reasons any
+node was left out of it). These used to be things you asked Save Page
+for one at a time, which was the wrong shape — by the time a report
+tells you something is wrong, it is too late to go back and capture the
+page as it then was.</p>
+<p>Save Page still offers the complete archive Edge itself produces,
+alongside the document formats.</p>
+<h3
+id="nvda-uses-a-browseable-message-where-jaws-uses-a-user-buffer">NVDA
+uses a browseable message where JAWS uses a user buffer</h3>
+<p>The same commands now have the same character on both: a sentence is
+spoken, a short set of facts goes in a box you can copy whole, and
+anything you want to move through line by line opens in a window you can
+search and leave with Escape.</p>
+<h3 id="fixes">Fixes</h3>
+<p>A page from a previous session was reopening on its own, because
+HomerView’s browser profile remembered what had been open. It does not
+restore any more.</p>
+<p>Both accessibility reports now answer in a single spoken line, so the
+report opened in a tab keeps the focus instead of sitting behind a
+summary of itself.</p>
 <h2 id="version-1.48.4-14-august-2026">Version 1.48.4 — 14 August
 2026</h2>
 <p>The release that brought the JAWS side level with the NVDA side.

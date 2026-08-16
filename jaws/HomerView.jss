@@ -89,6 +89,7 @@ Const
     c_sAppFolder = "@appFolder@",
     c_sBridgePath = "@bridgePath@",
     c_sFileSystemProgId = "Scripting.FileSystemObject",
+    c_sXmlProgId = "msxml2.DOMDocument.6.0",
     c_sShellProgId = "WScript.Shell"
 
 Globals
@@ -362,90 +363,54 @@ EndFunction
 ; asked for here is a path the helper always writes.
 string Function xmlValue (string sXml, string sPath)
 Var
-    int iClose,
-    int iEnd,
-    int iOpen,
-    string sName,
-    string sText
-; NO XML DOM HERE ANY MORE, AND THIS IS WHY.
+    object oDoc, object oNode
+; A REAL XML PARSER, AND NOT ONE WRITTEN HERE.
 ;
-; This used CreateXMLDomDoc, LoadAndParseXML and GetXMLDomNodeText -- Freedom
-; Scientific's own, documented from JAWS 18, and they compiled here every time.
-; ON A TESTER'S MACHINE THEY DID NOT: scompile answered
+; This first used CreateXMLDomDoc, LoadAndParseXML and GetXMLDomNodeText --
+; Freedom Scientific's own, documented from JAWS 18. They compile on one
+; machine and NOT on another: a tester's scompile answered
 ;
 ;   line 378: Expected oDoc to be a variable of type int not object
 ;
-; on JAWS 2024, 2025 AND 2026 -- the same versions and the same scompile.exe
-; that succeed here. That is the compiler failing to resolve the function's
-; declaration and assuming int, which is what JSL does for a name it does not
-; know. Whatever supplies that declaration is present on one machine and absent
-; on another, and A SCRIPT SET THAT ONLY COMPILES ON SOME MACHINES IS NOT ONE
-; THAT CAN BE RELEASED.
+; on JAWS 2024, 2025 AND 2026, which is JSL assuming int for a function whose
+; declaration it cannot resolve. Whatever supplies those declarations is
+; present on some installations and absent on others, and a script set that
+; only compiles on some machines cannot be released.
 ;
-; So the field is taken out by hand, which needs nothing but string functions.
+; MSXML THROUGH CreateObjectEx HAS NO SUCH PROBLEM, because a COM object's
+; methods are resolved at RUN time -- there is no declaration for the compiler
+; to look for. This file already reaches Scripting.FileSystemObject and
+; Shell.Application exactly this way, on both machines, so the mechanism is
+; proven here rather than hoped for.
 ;
-; THAT IS SAFE HERE FOR A REASON WORTH STATING. The old hand-rolled version
-; parsed JSON, where a quote inside a value is escaped and finding the end of a
-; field means tracking escapes. THIS IS XML, where the parser that wrote it
-; escaped every < as &lt;, SO A RAW < CANNOT APPEAR INSIDE A VALUE. Finding
-; "</name>" therefore cannot land in the middle of one. The ambiguity that made
-; the old approach wrong is not present in this format.
+; AND IT IS FREEDOM SCIENTIFIC'S OWN ADVICE. Their scripting notes for JAWS 14
+; demonstrate parsing XML from a script with precisely this: create
+; msxml2.DOMDocument, set async and resolveExternals to false, call loadXML,
+; then query it. Their sample uses CreateObject; CreateObjectEx is the same
+; call with the apartment argument this file already passes everywhere else.
 ;
-; The path is the helper's own and always flat -- "/root/error", "/root/value"
-; -- so only the last segment is needed.
+; So the parsing is still done by a parser, and the entities are still its
+; business rather than ours.
 If sXml == "" Then
     Return ""
 EndIf
-Let sName = StringSegment (sPath, "/", -1)
-If sName == "" Then
+; NO TEST THAT THE OBJECT EXISTS. Rule 2 at the top of this file: THERE IS NO
+; NULL IN JSL, and an object is not compared with anything. If MSXML cannot be
+; created the next line fails, and callBridge's caller reports the error the
+; same way it reports any other -- which is how every other COM object in this
+; file is already handled.
+Let oDoc = CreateObjectEx (c_sXmlProgId, False)
+; Written the way Freedom Scientific write it in their own sample: no Let,
+; which JAWS 11 Update 1 made optional, and a property set on a COM object
+; rather than a variable.
+oDoc.async = False
+oDoc.resolveExternals = False
+If oDoc.loadXML (sXml) == False Then
+    logLine ("xmlValue: the answer was not well formed XML, asking for " + sPath)
     Return ""
 EndIf
-; The opening tag, in the three forms it can take: <error>, <error/> and
-; <error type="string">. MATCHED WHOLE, not by prefix -- searching for "<value"
-; alone would also find "<valueOther>" and return the wrong field. The earliest
-; match wins, since only one of the three can be this element.
-Let iOpen = StringContains (sXml, "<" + sName + ">")
-Let iEnd = StringContains (sXml, "<" + sName + " ")
-If iOpen == 0 Then
-    Let iOpen = iEnd
-EndIf
-If iEnd > 0 && iEnd < iOpen Then
-    Let iOpen = iEnd
-EndIf
-Let iEnd = StringContains (sXml, "<" + sName + "/")
-If iOpen == 0 Then
-    Let iOpen = iEnd
-EndIf
-If iEnd > 0 && iEnd < iOpen Then
-    Let iOpen = iEnd
-EndIf
-If iOpen == 0 Then
-    Return ""
-EndIf
-Let sText = SubString (sXml, iOpen, StringLength (sXml) - iOpen + 1)
-Let iClose = StringContains (sText, ">")
-If iClose == 0 Then
-    Return ""
-EndIf
-; An empty element, <error/>, carries no text at all.
-If SubString (sText, iClose - 1, 1) == "/" Then
-    Return ""
-EndIf
-Let sText = SubString (sText, iClose + 1, StringLength (sText) - iClose)
-Let iEnd = StringContains (sText, "</" + sName + ">")
-If iEnd == 0 Then
-    Return ""
-EndIf
-Let sText = SubString (sText, 1, iEnd - 1)
-; The five entities XML defines, and the numeric form of the apostrophe that
-; some writers prefer. AMPERSAND LAST, or "&amp;lt;" would become "<".
-Let sText = StringReplaceSubstrings (sText, "&lt;", "<")
-Let sText = StringReplaceSubstrings (sText, "&gt;", ">")
-Let sText = StringReplaceSubstrings (sText, "&quot;", "\"")
-Let sText = StringReplaceSubstrings (sText, "&apos;", "'")
-Let sText = StringReplaceSubstrings (sText, "&#39;", "'")
-Let sText = StringReplaceSubstrings (sText, "&amp;", "&")
-Return sText
+Let oNode = oDoc.selectSingleNode (sPath)
+Return oNode.text
 EndFunction
 
 

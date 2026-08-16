@@ -99,6 +99,7 @@ setBrowserScopedScripts = frozenset({
     "script_openHotkeyDocument",
     "script_openLog",
     "script_openOtherFormat",
+    "script_openPageFolder",
     "script_openQuickStart",
     "script_reportAddressAnywhere",
     "script_saveAs",
@@ -139,6 +140,8 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
              _("Open the readable part of the page as a plain document"), "extractMainContent"),
             (_("Download files"), "Alt+NVDA+W",
              _("List the file types linked from the page and download the ones you choose"), "downloadFiles"),
+            (_("Page folder"), "Alt+Shift+F",
+             _("Open this page's folder in File Explorer, to browse what was saved"), "openPageFolder"),
             (_("Dismiss browser dialog"), "Alt+NVDA+D",
              _("Close a Microsoft Edge dialog that is blocking the window"), "dismissDialog"),
             (_("Connection status"), "",
@@ -787,6 +790,23 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             self._reportMainContent,
             self._reportError,
         )
+
+    @script(
+        # Translators: Input help mode message for Page Folder.
+        description=_(
+            "Open this page's folder in File Explorer, to browse what was saved from "
+            "it. Nothing is created: if nothing has been saved from this page, it says "
+            "so. Alt+Shift+F, beside Alt+Shift+W which fills the folder."
+        ),
+        category="HomerView",
+        gesture="kb:alt+shift+f",
+    )
+    def script_openPageFolder(self, gesture):
+        homerLog.info("Command: open the page folder")
+        from . import homerCommands
+
+        lbc.afterScript(lambda: homerCommands.openPageFolder(
+            getattr(api.getFocusObject(), "treeInterceptor", None)))
 
     @script(
         # Translators: Input help mode message for Web Download.

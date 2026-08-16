@@ -407,7 +407,7 @@ class HomerViewService:
         # The page itself, beside the report: what was tested, as it then was.
         capture.captureForReport(self.cdpSession, dScan["sessionId"], pathFolder)
         pathHtml, pathText = report.writeReports(
-            dResults, dContacts, sPageTitle, sPageUrl, pathFolder
+            dResults, sPageTitle, sPageUrl, pathFolder
         )
         dSummary = {
             "contacts": {

@@ -409,6 +409,13 @@ namespace Homer
                     case "downloadone":
                         sResult = DownloadOne(sArgument);
                         break;
+                    // NOT "pagefolder": THAT NAME WAS ALREADY TAKEN, by the
+                    // command that RETURNS a page's folder path and creates it.
+                    // This one OPENS the folder and creates nothing. Two verbs,
+                    // two names.
+                    case "openpagefolder":
+                        sResult = OpenPageFolder();
+                        break;
                     case "savedialog":
                         sResult = FileDialog(sArgument, true);
                         break;
@@ -1905,7 +1912,7 @@ namespace Homer
                 XmlNodeList lItems = oDocument.SelectNodes("/root/" + sGroup + "/item");
                 if (lItems.Count == 0) continue;
                 oBody.Append("<h2 id=\"" + sGroup + "\">"
-                    + (sGroup == "violations" ? "Problems" : "Worth reviewing by hand")
+                    + (sGroup == "violations" ? "Violations" : "Needing human review")
                     + " (" + lItems.Count.ToString() + ")</h2>\r\n");
                 foreach (XmlNode oItem in lItems)
                 {
@@ -2005,7 +2012,7 @@ namespace Homer
             oText.Append("<meta charset=\"utf-8\">\r\n<title>Accessibility report: ");
             oText.Append(EscapeHtml(sTitle));
             oText.Append("</title>\r\n</head>\r\n<body>\r\n<h1>Accessibility report</h1>\r\n");
-            oText.Append("<p><a href=\"#violations\">Skip to the problems</a></p>\r\n");
+            oText.Append("<p><a href=\"#violations\">Skip to the violations</a></p>\r\n");
             oText.Append("<h2>In plain words</h2>\r\n<p>");
             if (iViolations == 0)
                 oText.Append("Nothing failed automatically. That is not the same as "
@@ -2013,7 +2020,7 @@ namespace Homer
                     + "what a person would.");
             else
                 oText.Append("This page has " + iViolations.ToString()
-                    + " kinds of confirmed problem in " + iPlaces.ToString()
+                    + " rules failed, in " + iPlaces.ToString()
                     + " places. An automated engine finds perhaps a third of what a "
                     + "person testing by hand would, so this is a floor rather than a "
                     + "verdict.");
@@ -2048,7 +2055,7 @@ namespace Homer
             oText.Append("</ul>\r\n");
             if (lTopRules.Count > 0)
             {
-                oText.Append("<h2>The most common problems</h2>\r\n<ul>\r\n");
+                oText.Append("<h2>The most common violations</h2>\r\n<ul>\r\n");
                 foreach (string sTop in lTopRules)
                     oText.Append("<li>" + sTop + "</li>\r\n");
                 oText.Append("</ul>\r\n");
@@ -2056,11 +2063,11 @@ namespace Homer
             if (iViolations > 0)
             {
                 oText.Append("<h2>Recommended next steps</h2>\r\n<ol>\r\n");
-                oText.Append("<li>Start with the critical and serious problems. They have the most effect on people using assistive technology.</li>\r\n");
+                oText.Append("<li>Start with the critical and serious violations. They have the most effect on people using assistive technology.</li>\r\n");
                 oText.Append("<li>Use the selector and element shown with each place to find the exact thing in your code.</li>\r\n");
                 oText.Append("<li>Follow the how-to-fix link for each rule, then run this again to confirm the fix.</li>\r\n");
-                oText.Append("<li>After the automatic problems are fixed, test by hand with a screen reader and with the keyboard alone.</li>\r\n");
-                oText.Append("<li>An automated tool finds roughly thirty to forty per cent of accessibility problems. Manual testing and feedback from people who use assistive technology are needed for the rest.</li>\r\n");
+                oText.Append("<li>After the reported violations are fixed, test by hand with a screen reader and with the keyboard alone.</li>\r\n");
+                oText.Append("<li>An automated tool finds roughly thirty to forty per cent of accessibility failures. Manual testing and feedback from people who use assistive technology are needed for the rest.</li>\r\n");
                 oText.Append("</ol>\r\n");
             }
             oText.Append(oBody.ToString());
@@ -2089,7 +2096,7 @@ namespace Homer
             Log("  wrote " + sPath + ", " + new FileInfo(sPath).Length.ToString() + " bytes");
             string sOpened = OpenInTab(new Uri(sPath).AbsoluteUri);
             return "{\"value\":" + Quote(iViolations.ToString()
-                + " kinds of problem in " + iPlaces.ToString() + " places. Saved as "
+                + " rules failed, in " + iPlaces.ToString() + " places. Saved as "
                 + sName2 + (sCaptured == "" ? "" : " with " + sCaptured)
                 + " in " + Path.GetFileName(sFolder)
                 + ". The report is " + sOpened) + "}";
@@ -3840,6 +3847,43 @@ namespace Homer
                 return false;
             }
             return ActivateWindow(hBest);
+        }
+
+        /// <summary>
+        /// Opens this page's folder in File Explorer, if it has one.
+        ///
+        /// PageFolder CREATES the folder, which is right for a tool about to
+        /// write into it and wrong here: a command for browsing what was saved
+        /// should not conjure an empty folder for a page nothing was ever
+        /// saved from. So the path is composed the same way and only opened if
+        /// it is already there.
+        ///
+        /// Explorer needs no special launcher. A directory path handed to the
+        /// shell opens in Explorer exactly as it does from the Run dialog, so
+        /// UseShellExecute does the whole job and the quoting is the only part
+        /// that needs care.
+        /// </summary>
+        private static string OpenPageFolder()
+        {
+            string sTitle = Tidy(EvaluateText("(() => document.title)()"));
+            if (sTitle == "" || sTitle.StartsWith("ERROR:"))
+                return "{\"error\":" + Quote("There is no page to find a folder for.") + "}";
+            string sFolder = Path.Combine(DownloadsFolder(), SafeStem(sTitle));
+            Log("  page folder: " + sFolder);
+            if (!Directory.Exists(sFolder))
+                return "{\"value\":" + Quote("Nothing has been saved from this page yet.") + "}";
+            try
+            {
+                var oStart = new ProcessStartInfo(sFolder);
+                oStart.UseShellExecute = true;
+                Process.Start(oStart);
+                return "{\"value\":" + Quote("Opened the folder for " + SafeStem(sTitle)) + "}";
+            }
+            catch (Exception oError)
+            {
+                Log("  the folder could not be opened: " + oError.Message);
+                return "{\"error\":" + Quote("That folder could not be opened.") + "}";
+            }
         }
 
         private static string ClipboardFile(string sPath)

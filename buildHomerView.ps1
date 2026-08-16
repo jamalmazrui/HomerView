@@ -205,6 +205,11 @@ function buildBridge {
     # System.IO.Compression for ZipArchive, which is how the .xlsx is
     # written. A spreadsheet is a zip of XML parts, so writing one needs no
     # library -- the same approach exportReport.py takes on the NVDA side.
+    # See the note at the installer step: 2>&1 with ErrorActionPreference
+    # "Stop" turns a native program's first stderr line into a TERMINATING
+    # error, killing the script before it can log why. csc writes its errors
+    # to stdout so this has not bitten here, but the trap is identical.
+    $ErrorActionPreference = "Continue"
     $sOutput = & $pathCompiler /nologo /target:exe /platform:x64 `
         /reference:System.Windows.Forms.dll `
         /reference:System.Runtime.Serialization.dll `
@@ -212,6 +217,7 @@ function buildBridge {
         /reference:System.IO.Compression.dll `
         "/out:$pathBridge" $pathSource 2>&1 | Out-String
     $iExit = $LASTEXITCODE
+    $ErrorActionPreference = "Stop"
     foreach ($sLine in ($sOutput -split "`n")) {
         if ($sLine.Trim()) { writeLog "    $($sLine.Trim())" }
     }
@@ -389,8 +395,10 @@ if (-not (Test-Path $pathCheck)) {
     # A child process, and its output captured into this log. The one log a
     # person is asked for has to hold the reason, not a note that the reason
     # is in another file.
+    $ErrorActionPreference = "Continue"
     $sOutput = & powershell -NoProfile -ExecutionPolicy Bypass -File $pathCheck 2>&1 | Out-String
     $iCheck = $LASTEXITCODE
+    $ErrorActionPreference = "Stop"
     foreach ($sLine in ($sOutput -split "`n")) {
         $sTrimmed = $sLine.Trim()
         if (-not $sTrimmed) { continue }
@@ -405,6 +413,31 @@ if (-not (Test-Path $pathCheck)) {
         $sTrimmed = ($sTrimmed -replace '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\s*', '').Trim()
         if (-not $sTrimmed) { continue }
         writeLog "    $sTrimmed"
+    }
+    # THE CHILD'S OWN LOG FILE, FOLDED IN TOO -- OR ACCOUNTED FOR.
+    #
+    # He asked for ONE file to upload after a build. Its console output is
+    # already above, and comparing the two files line for line showed every
+    # line of checkJawsScripts.log ALREADY PRESENT HERE. So there is nothing to
+    # copy, and copying it anyway would double a 200-line log for no gain.
+    #
+    # What was missing is SAYING SO. A second log file sitting beside this one
+    # invites the question of what is in it, and the answer belongs in the file
+    # he actually sends.
+    $pathCheckLog = Join-Path $pathRoot "checkJawsScripts.log"
+    if (Test-Path $pathCheckLog) {
+        $lCheckLog = @(Get-Content $pathCheckLog | Where-Object { $_.Trim() })
+        $lHere = @(Get-Content $pathLog | Where-Object { $_.Trim() }) |
+            ForEach-Object { ($_ -replace '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\s*', '').Trim() }
+        $lExtra = @($lCheckLog | ForEach-Object {
+                ($_ -replace '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\s*', '').Trim()
+            } | Where-Object { $_ -and ($lHere -notcontains $_) })
+        if ($lExtra.Count -eq 0) {
+            writeLog "    checkJawsScripts.log holds nothing that is not already above."
+        } else {
+            writeLog "    checkJawsScripts.log also held $($lExtra.Count) line(s), folded in here:"
+            foreach ($sLine in $lExtra) { writeLog "      $sLine" }
+        }
     }
     if ($iCheck -ne 0) {
         writeLog "ERROR: the JAWS scripts did not compile. The build carries on, because the"
@@ -454,8 +487,26 @@ writeLog "Step 5 of 5: compiling the installer"
 # and logged four words when it failed, so the one log a person uploads said
 # that something went wrong and nothing about what. Inno Setup names the line
 # and the reason; that belongs in the log.
-$sOutput = & $pathCompiler (Join-Path $pathRoot "HomerView_setup.iss") 2>&1 | Out-String
-$iExit = $LASTEXITCODE
+# 2>&1 IS A TRAP WHEN ErrorActionPreference IS "Stop", AND IT COST A BUILD.
+#
+# Redirecting a native program's stderr into the pipeline turns each of its
+# error lines into a PowerShell ErrorRecord. With Stop in force, the FIRST such
+# line TERMINATES THE SCRIPT -- so when Inno Setup reported a fault, this line
+# threw before the next line could log anything, and the log simply STOPPED
+# after "Step 5 of 5" with no reason given. The capture written to explain a
+# failure was itself the reason nothing was explained.
+#
+# Stopping for the duration of the call is enough: the exit code is checked
+# immediately below, so a failure is still a failure -- it is now a REPORTED
+# one.
+$sOutput = ""
+try {
+    $ErrorActionPreference = "Continue"
+    $sOutput = & $pathCompiler (Join-Path $pathRoot "HomerView_setup.iss") 2>&1 | Out-String
+    $iExit = $LASTEXITCODE
+} finally {
+    $ErrorActionPreference = "Stop"
+}
 if ($iExit -ne 0) {
     writeLog "ERROR: the installer did not compile, exit code $iExit."
     writeLog "Inno Setup said:"

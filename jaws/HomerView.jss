@@ -1427,6 +1427,31 @@ EndScript
 ; fills in the ones worth having, the second fetches. Page addresses and script
 ; assets are listed but not filled in, since they are numerous and rarely
 ; wanted -- typing html gets them anyway.
+; Opens this page's folder in File Explorer. Alt+Shift+F.
+;
+; The Alt+Shift family is the one that ACTS ON THE WHOLE PAGE and leaves
+; something behind: W fetches its files, P copies its links, and F now opens
+; the folder where W put them. F for Folder, and it sits beside the command
+; whose output it exists to show.
+;
+; NOTHING IS CREATED HERE. If nothing has been saved from this page there is
+; no folder, and the answer says so rather than opening an empty one.
+Script openPageFolder ()
+Var
+    string sAnswer
+logLine ("openPageFolder started")
+Let sAnswer = callBridge ("openPageFolder", "")
+If sAnswer == "" Then
+    Return
+EndIf
+If xmlValue (sAnswer, "/root/error") != "" Then
+    sayOrShow (xmlValue (sAnswer, "/root/error"))
+    Return
+EndIf
+SayMessage (OT_MESSAGE, xmlValue (sAnswer, "/root/value"))
+EndScript
+
+
 Script downloadFiles ()
 Var
     int iFailed, int iGot, int iOk, int iWhich,
@@ -1849,6 +1874,7 @@ Let iAdded = UserBufferAddLink ("  Alt+L           Where this link goes, and its
 Let iAdded = UserBufferAddLink ("  Alt+M           What the page says about itself", "homerViewLink (\"sayMetadata\")", "Say Metadata")
 Let iAdded = UserBufferAddLink ("  Alt+Shift+P     Copy every link on the page to the clipboard", "homerViewLink (\"copyPageLinks\")", "Page Links to Clipboard")
 Let iAdded = UserBufferAddLink ("  Alt+Shift+W     Fetch the files this page links to", "homerViewLink (\"downloadFiles\")", "Web Download")
+Let iAdded = UserBufferAddLink ("  Alt+Shift+F     Open this page's folder", "homerViewLink (\"openPageFolder\")", "Page Folder")
 Let iAdded = UserBufferAddLink ("  Control+O       Open a document as a page", "homerViewLink (\"openDocument\")", "Open Document")
 Let iAdded = UserBufferAddLink ("  Control+S       Save this page in any format", "homerViewLink (\"savePage\")", "Save Page")
 Let iAdded = UserBufferAddLink ("  Control+F1      The HomerView guide", "homerViewLink (\"openUserGuide\")", "User Guide")
@@ -1950,6 +1976,7 @@ Let sTable = "Launch HomerView, Launches or reconnects HomerView's copy of Micro
     + "\7" + "Tab Names, Says the names of the open tabs without moving anywhere. (Shift+F4)\tsayTabNames"
     + "\7" + "Hotkey Summary, Lists every HomerView command and its key. (Alt+Shift+H)\tshowHotkeySummary"
     + "\7" + "Web Download, Fetches the files this page links to, with the browser's own cookies. (Alt+Shift+W)\tdownloadFiles"
+    + "\7" + "Page Folder, Opens this page's folder in File Explorer, to browse what was saved from it. (Alt+Shift+F)\topenPageFolder"
     + "\7" + "Open Document, Opens a Word file, PDF, ebook or spreadsheet as a page. (Control+O)\topenDocument"
     + "\7" + "Save Page, Saves this page as html, Word, Markdown or an ebook. (Control+S)\tsavePage"
     + "\7" + "User Guide, Opens the HomerView guide. (Control+F1)\topenUserGuide"

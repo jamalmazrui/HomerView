@@ -45,6 +45,7 @@ Alt+N=listNames
 Alt+Shift+Apostrophe=clearClipboard
 Alt+Shift+F1=openQuickStart
 Alt+Shift+P=copyPageLinks
+Alt+Shift+F=openPageFolder
 Alt+Shift+W=downloadFiles
 Control+Apostrophe=saveClipboard
 Control+C=copySelection

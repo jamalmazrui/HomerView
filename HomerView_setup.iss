@@ -241,11 +241,23 @@ Filename: "{app}\build\{#AddonFile}"; Description: "Install the HomerView add-on
 ; The version is handed over rather than looked up. Nothing that reaches the
 ; installation folder carries it, and a log that does not say which build wrote
 ; it has to be dated by guesswork.
+; NO CONSOLE WINDOW, AND NO KEY TO PRESS.
+;
+; This used to leave a console open on "Press any key to close this window",
+; on the reasoning that nothing should scroll away unread. But the person
+; installing cannot read it either way: it is a wall of console output at the
+; end of an installation, and it stops the installer dead until a key is
+; pressed. Everything it said is in the log, and what MATTERS is now summarised
+; in one message box at the end, which a screen reader reads properly.
+;
+; -bQuiet was already there for the silent case; runhidden keeps the window
+; from appearing at all. waituntilterminated stays, so the summary can report
+; what happened rather than guess.
 Filename: "{app}\installJawsScripts.cmd"; \
-  Parameters: "-sVersion {#AppVersion}"; \
+  Parameters: "-sVersion {#AppVersion} -bQuiet"; \
   WorkingDir: "{app}"; \
   Description: "Install the HomerView scripts for JAWS (recommended)"; \
-  Flags: postinstall skipifsilent runasoriginaluser waituntilterminated; \
+  Flags: postinstall skipifsilent runasoriginaluser waituntilterminated runhidden; \
   Check: HaveJaws
 
 ; THE SAME STEP AGAIN, FOR A SILENT INSTALLATION.
@@ -319,6 +331,7 @@ Filename: "{code:GetNvdaPath}"; \
 ; Downloads folder has badly overstepped.
 Type: filesandordirs; Name: "{localappdata}\HomerView"
 Type: files; Name: "{app}\HomerView.log"
+Type: files; Name: "{app}\installJawsScripts.result"
 Type: files; Name: "{app}\HomerView.previous.log"
 Type: files; Name: "{app}\Axe.json"
 Type: files; Name: "{app}\Ace.json"
@@ -426,6 +439,29 @@ var
   findRec: TFindRec;
 begin
   Result := False;
+
+  // A MACHINE-WIDE CHECK FIRST, AND THIS IS NOT BELT AND BRACES.
+  //
+  // The user application data constant resolves to the profile of whoever the
+  // installer is RUNNING AS. When a standard user starts it and types an
+  // administrator's password, that is a DIFFERENT ACCOUNT, whose profile has
+  // no JAWS settings -- so JAWS went undetected, the checkbox was never
+  // offered, no scripts were installed, and the key did nothing afterwards.
+  // A tester lost an evening to exactly this. The program folder belongs to
+  // the machine and cannot be fooled by elevation.
+  //
+  // WRITTEN WITH // RATHER THAN BRACES ON PURPOSE. A brace comment ends at the
+  // FIRST closing brace, so naming a constant like the one above inside one
+  // terminates the comment early and the rest of the sentence is compiled as
+  // code. That is exactly what happened here: "Unknown identifier 'resolves'".
+  if DirExists(ExpandConstant('{commonpf}\Freedom Scientific\JAWS'))
+     or DirExists(ExpandConstant('{commonpf32}\Freedom Scientific\JAWS')) then
+  begin
+    Result := True;
+    Log('HomerView: JAWS found in the program folder');
+    Exit;
+  end;
+
   sPath := ExpandConstant('{userappdata}\Freedom Scientific\JAWS');
   if not DirExists(sPath) then
     Exit;
@@ -502,4 +538,132 @@ end;
 function InitializeSetup(): Boolean;
 begin
   Result := True;
+end;
+
+{ ---------------------------------------------------------------------------
+  WHAT THE INSTALLER ACTUALLY DID.
+
+  The JAWS step used to end at a console prompt: a wall of output and a key to
+  press before Setup could finish. A sighted reader skims that; a screen reader
+  user has to hunt through it, and it stops the installer dead either way.
+
+  So the window is gone and this takes its place -- ONE message box, read
+  properly by a screen reader, saying where things went, which optional steps
+  ran, and how they turned out.
+
+  EVERY LINE IS AN OBSERVED FACT, not a checkbox that was ticked. A ticked box
+  says what was ASKED FOR; the folder on disk and the result file say what
+  HAPPENED, and those differ often enough to matter -- most of all for the NVDA
+  add-on, which silently does nothing when NVDA is not running.
+  --------------------------------------------------------------------------- }
+
+var
+  bInstalled: Boolean;
+
+procedure CurStepChanged(iCurStep: TSetupStep);
+begin
+  { DeinitializeSetup runs whenever Setup exits, INCLUDING WHEN THE USER
+    CANCELS. Announcing "HomerView is installed" to somebody who has just
+    backed out would be a plain lie, so the summary is shown only if the files
+    were actually copied. }
+  if iCurStep = ssPostInstall then
+    bInstalled := True;
+end;
+
+function NvdaIsRunning(): Boolean;
+var
+  iResult: Integer;
+begin
+  Result := False;
+  if Exec(ExpandConstant('{cmd}'),
+          '/c tasklist /fi "imagename eq nvda.exe" | find /i "nvda.exe"',
+          '', SW_HIDE, ewWaitUntilTerminated, iResult) then
+    Result := (iResult = 0);
+end;
+
+function AddonIsInstalled(): Boolean;
+var
+  sAddons: String;
+begin
+  { NVDA copies an add-on in as <name>.pendingInstall until it restarts, so
+    both spellings count as installed. }
+  sAddons := ExpandConstant('{userappdata}\nvda\addons\');
+  Result := DirExists(sAddons + 'homerView')
+         or DirExists(sAddons + 'homerView.pendingInstall');
+end;
+
+function JawsResult(): Integer;
+var
+  sText: AnsiString;
+  sValue: String;
+begin
+  { -1 means the step did not run at all. }
+  Result := -1;
+  if LoadStringFromFile(ExpandConstant('{app}\installJawsScripts.result'), sText) then
+  begin
+    { ASSIGNED, NOT CAST. LoadStringFromFile wants an AnsiString, and Pascal
+      Script converts one to a String on assignment; writing String(sText) as a
+      cast is not something it accepts. }
+    sValue := Trim(sText);
+    Result := StrToIntDef(sValue, 0);
+  end;
+end;
+
+procedure DeinitializeSetup();
+var
+  sMessage: String;
+  iJaws: Integer;
+begin
+  { Nothing to report if nothing was installed, and nobody to read it in a
+    silent installation -- where a message box would sit there forever
+    waiting for a click that a script cannot give. }
+  if (not bInstalled) or WizardSilent() then
+    Exit;
+  sMessage := 'HomerView is installed.' + #13#10 + #13#10
+    + 'Program files:' + #13#10 + '  ' + ExpandConstant('{app}') + #13#10 + #13#10
+    + 'Results' + #13#10;
+
+  iJaws := JawsResult();
+  if iJaws = 0 then
+    sMessage := sMessage + '  JAWS scripts: installed.' + #13#10
+  else if iJaws > 0 then
+    sMessage := sMessage + '  JAWS scripts: FAILED. Send the logs named below.' + #13#10
+  else
+    { REPORTED EVEN WHEN JAWS WAS NEVER DETECTED, which is the case that cost a
+      tester an evening: no result file AND no checkbox means the step was never
+      offered, and a summary that stays silent about it looks like success. }
+    sMessage := sMessage + '  JAWS scripts: NOT installed (the step did not run).' + #13#10;
+
+  if AddonIsInstalled() then
+    sMessage := sMessage + '  NVDA add-on: installed. Restart NVDA to use it.' + #13#10
+  else if not NvdaIsRunning() then
+    sMessage := sMessage + '  NVDA add-on: NOT installed, because NVDA was not running.' + #13#10
+      + '    Start NVDA, then open:' + #13#10
+      + '    ' + ExpandConstant('{app}\build\{#AddonFile}') + #13#10
+  else
+    sMessage := sMessage + '  NVDA add-on: not installed. Open the file in the program folder''s build folder.' + #13#10;
+
+  if FileExists(ExpandConstant('{app}\pandoc.exe')) then
+    sMessage := sMessage + '  pandoc: present. Ebooks and Markdown will open.' + #13#10
+  else
+    sMessage := sMessage + '  pandoc: not present. Ebooks and Markdown will not open until it is.' + #13#10;
+
+  { THE LOGS, NAMED IN THE BOX SO THEY CAN BE ASKED FOR OVER THE PHONE.
+    Copied to one fixed path each: Inno's own log otherwise sits in the
+    temporary folder under a dated name nobody can dictate, and the JAWS log
+    under a timestamped one among several. }
+  ForceDirectories('C:\temp');
+  if FileCopy(ExpandConstant('{log}'), 'C:\temp\HomerView_setup.log', False) then
+    sMessage := sMessage + #13#10 + 'If anything above went wrong, send:' + #13#10
+      + '  C:\temp\HomerView_setup.log' + #13#10
+  else
+    sMessage := sMessage + #13#10 + 'If anything above went wrong, send:' + #13#10;
+  if FileExists('C:\temp\HomerView_jaws.log') then
+    sMessage := sMessage + '  C:\temp\HomerView_jaws.log' + #13#10;
+
+  { LAST, BECAUSE IT IS THE ONE THING THEY NEED NEXT. }
+  sMessage := sMessage + #13#10
+    + 'To start HomerView, press Alt+Insert+H in JAWS, or Alt+NVDA+H in NVDA.';
+
+  MsgBox(sMessage, mbInformation, MB_OK);
 end;

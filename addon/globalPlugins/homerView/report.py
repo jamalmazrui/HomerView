@@ -54,25 +54,25 @@ dImpactMeaning = {
     "critical": "Blocks some people completely. Fix first.",
     "serious": "Very hard to work around. High priority.",
     "moderate": "Causes real difficulty. Fix when you can.",
-    "minor": "A small problem. There is usually a workaround.",
+    "minor": "A small impact. There is usually a workaround.",
 }
 
 dOutcomeMeaning = {
-    "violations": "Confirmed problems that need fixing.",
-    "incomplete": "Possible problems that a person has to judge.",
+    "violations": "Rules that failed. Axe calls these violations.",
+    "incomplete": "Rules axe could not decide. A person has to judge these.",
     "passes": "Rules this page passed automatically.",
     "inapplicable": "Rules that had nothing to test on this page.",
 }
 
 lGlossary = [
     ("axe-core", "The testing engine, made by Deque Systems, that ran the rules against this page."),
-    ("impact", "How badly a problem affects people, from critical down to minor."),
+    ("impact", "Axe's severity for a violation, from critical down to minor."),
     ("inapplicable", "A rule that had nothing to test on this page."),
     ("needs review", "A result the engine could not decide, so a person has to look."),
     ("instance", "One element on the page that failed a rule. A single rule can fail many times."),
     ("rule", "One automated test, such as image-alt or color-contrast."),
     ("selector", "The address of an element within the page, used to find it in the code."),
-    ("violation", "A confirmed problem found automatically."),
+    ("violation", "A rule that failed. Axe's own term for a confirmed failure."),
     ("best practice", "Advice that improves accessibility but is not itself a WCAG requirement."),
     ("WCAG", "Web Content Accessibility Guidelines, the standard most accessibility law refers to."),
     ("Level A and Level AA", "Conformance levels. Level A is the minimum; Level AA is what most laws require."),
@@ -86,7 +86,7 @@ lResources = [
 ]
 
 lNextSteps = [
-    "Start with the critical and serious problems. They affect the most people, the most severely.",
+    "Start with the critical and serious violations. They affect the most people, the most severely.",
     "Use the selector and the HTML shown for each instance to find the exact element in the code.",
     "Where a fix is listed under Fix any one of these, only one of the listed changes is needed.",
     "Send the report to the publisher using one of the channels below, and keep a copy.",
@@ -217,7 +217,7 @@ def narrativeLines(lViolations, sPageTitle):
     if not iInstances:
         return [
             f"No accessibility violations were found automatically on {sPageTitle}.",
-            "That is a good sign, but an automated scan finds only some kinds of problem. "
+            "That is a good sign, but an automated scan finds only some kinds of failure. "
             "Roughly a third of accessibility barriers can be caught this way. The rest need "
             "a person using a screen reader, or a keyboard alone, to notice them.",
         ]
@@ -227,17 +227,17 @@ def narrativeLines(lViolations, sPageTitle):
         dByImpact[sImpact] = dByImpact.get(sImpact, 0) + len(dViolation.get("nodes") or [])
     lLines = []
     if iInstances == 1:
-        lLines.append(f"One accessibility problem was found on {sPageTitle}.")
+        lLines.append(f"One violation was found on {sPageTitle}.")
     else:
         lLines.append(
-            f"{iInstances} accessibility problems were found on {sPageTitle}, "
+            f"{iInstances} failing instances were found on {sPageTitle}, "
             f"across {len(lViolations)} rule{'' if len(lViolations) == 1 else 's'}."
         )
     lSeverity = [f"{dByImpact[s]} {s}" for s in lImpactNames if dByImpact.get(s)]
     if lSeverity:
         lLines.append(
             "By severity: " + ", ".join(lSeverity) + ". "
-            "Critical and serious problems block or badly hinder people who rely on a screen "
+            "Critical and serious violations block or badly hinder people who rely on a screen "
             "reader, a keyboard alone, or voice control. Those come first."
         )
     dLevels = {}
@@ -260,55 +260,6 @@ def narrativeLines(lViolations, sPageTitle):
             "policies require."
         )
     return lLines
-
-
-def buildEmailBody(sPageTitle, sPageUrl, lViolations, sReportPath):
-    iInstances = countInstances(lViolations)
-    lLines = [
-        "Dear Web Accessibility Team,",
-        "",
-        "I am writing to report accessibility problems I found on this page:",
-        f"  {sPageUrl}",
-        "",
-        f"An automated scan with axe-core found {len(lViolations)} rule failure(s) "
-        f"affecting {iInstances} element(s).",
-        "",
-    ]
-    for dViolation in lViolations[:maximumEmailViolations]:
-        sImpact = (dViolation.get("impact") or "unknown").upper()
-        lLines.append(f"- [{sImpact}] {dViolation.get('help', '')}")
-        lParts, bAdvisory = wcagLineParts(dViolation)
-        if lParts:
-            lLines.append(
-                ("  Related to WCAG " if bAdvisory else "  WCAG ")
-                + "; ".join(sText for sRef, sText in lParts)
-            )
-        if wcag.isBestPractice(dViolation):
-            lLines.append("  This one is a best practice rather than a WCAG requirement.")
-        lLines.append(f"  Affects {len(dViolation.get('nodes') or [])} element(s).")
-        lLines.append(f"  Guidance: {dViolation.get('helpUrl', '')}")
-        lLines.append("")
-    if len(lViolations) > maximumEmailViolations:
-        lLines.append(
-            f"... and {len(lViolations) - maximumEmailViolations} further rule failure(s). "
-            "The full report has the detail, including the exact elements affected."
-        )
-        lLines.append("")
-    lLines.append(f"A full report is saved at {sReportPath} and can be attached to this message.")
-    lLines.append(
-        "Please note that an automated scan finds only some kinds of barrier, so this is a "
-        "starting point rather than a complete picture."
-    )
-    lLines.append("")
-    lLines.append("Thank you for your attention to this.")
-    return "\n".join(lLines)
-
-
-def buildMailtoUrl(sAddress, sPageTitle, sBody):
-    sTarget = sAddress[7:] if sAddress.lower().startswith("mailto:") else sAddress
-    sTarget = sTarget.split("?", 1)[0]
-    sSubject = quote(f"Accessibility problems on {sPageTitle}")
-    return f"mailto:{sTarget}?subject={sSubject}&body={quote(sBody)}"
 
 
 def renderLinkList(lLinks, sEmptyMessage):
@@ -418,41 +369,6 @@ def renderSocialNote(sPageUrl):
     )
 
 
-def renderContacts(dContacts, sPageTitle, sPageUrl, lViolations, sReportPath):
-    sBody = buildEmailBody(sPageTitle, sPageUrl, lViolations, sReportPath)
-    lMailtoItems = []
-    for sMailto in dContacts.get("mailto") or []:
-        sUrl = buildMailtoUrl(sMailto, sPageTitle, sBody)
-        sShown = sMailto[7:] if sMailto.lower().startswith("mailto:") else sMailto
-        lMailtoItems.append(f'<li><a href="{escape(sUrl)}">Write to {escape(sShown)}</a></li>')
-    sMailtoHtml = (
-        "<ul>\n" + "\n".join(lMailtoItems) + "\n</ul>"
-        if lMailtoItems
-        else "<p>No email address was found on this site.</p>"
-    )
-    sStatement = dContacts.get("statement") or ""
-    sStatementHtml = (
-        f'<p><a href="{escape(sStatement)}">{escape(sStatement)}</a></p>'
-        if sStatement
-        else "<p>No accessibility statement was found.</p>"
-    )
-    return f"""<section aria-labelledby="headingContact">
-<h2 id="headingContact">Reporting this to the publisher</h2>
-<h3>Email</h3>
-<p>Each link below opens a message already written, naming the page and the worst problems found. Review it, add anything you want to say in your own words, and send it.</p>
-{sMailtoHtml}
-<h3>Accessibility statement</h3>
-{sStatementHtml}
-<h3>Accessibility pages</h3>
-{renderLinkList(dContacts.get("accessibility"), "No accessibility page was found.")}
-<h3>Contact and support pages</h3>
-{renderLinkList(dContacts.get("contact"), "No contact page was found.")}
-<h3>Social channels</h3>
-{renderLinkList(dContacts.get("social"), "No social channel was found.")}
-{renderSocialNote(sPageUrl)}
-</section>"""
-
-
 def buildContents(lViolations, lIncomplete):
     lContents = [
         '<li><a href="#headingSummary">Summary and next steps</a></li>',
@@ -471,7 +387,6 @@ def buildContents(lViolations, lIncomplete):
     lContents.append("</li>")
     lContents.extend([
         f'<li><a href="#headingIncomplete">Needing human review ({len(lIncomplete)})</a></li>',
-        '<li><a href="#headingContact">Reporting this to the publisher</a></li>',
         '<li><a href="#headingFiles">Saved files</a></li>',
         '<li><a href="#headingGlossary">Glossary</a></li>',
         '<li><a href="#headingResources">Where to learn more</a></li>',
@@ -479,7 +394,22 @@ def buildContents(lViolations, lIncomplete):
     return "\n".join(lContents)
 
 
-def buildReportHtml(dAxeResult, dContacts, sPageTitle, sPageUrl, sReportPath, sPlainText, sTextPath):
+# THE PUBLISHER SECTION IS GONE, ON PURPOSE.
+#
+# The report used to end with contacts for the site and a ready-written email.
+# Finding contacts is now its own command, so keeping a second copy here meant
+# two places to maintain and a report that wandered from its subject.
+#
+# THE REPORT IS STILL FOR SENDING. That is the point of it: a blind reader who
+# tells a publisher "your site does not work" is usually ignored, and one who
+# sends specifics that a manager can hand to a developer is not. So the report
+# is written for TWO AUDIENCES at once -- heading-driven for the person reading
+# it with a screen reader, and complete enough for a sighted developer who
+# receives it cold: rule identifier, impact, the CSS selector, the element
+# markup, axe's own failure summary, and a link to the Deque page for the rule.
+
+
+def buildReportHtml(dAxeResult, sPageTitle, sPageUrl, sReportPath, sPlainText, sTextPath):
     lViolations = sortViolations(dAxeResult.get("violations") or [])
     lIncomplete = dAxeResult.get("incomplete") or []
     lPasses = dAxeResult.get("passes") or []
@@ -630,7 +560,6 @@ def buildReportHtml(dAxeResult, dContacts, sPageTitle, sPageUrl, sReportPath, sP
 <p>axe-core could not decide these automatically. They are not necessarily faults.</p>
 {sIncompleteHtml}
 </section>
-{renderContacts(dContacts, sPageTitle, sPageUrl, lViolations, sReportPath)}
 <section aria-labelledby="headingFiles">
 <h2 id="headingFiles">Saved files</h2>
 <ul>
@@ -659,7 +588,7 @@ def buildReportHtml(dAxeResult, dContacts, sPageTitle, sPageUrl, sReportPath, sP
 """
 
 
-def buildPlainTextReport(dAxeResult, dContacts, sPageTitle, sPageUrl, sReportPath):
+def buildPlainTextReport(dAxeResult, sPageTitle, sPageUrl, sReportPath):
     lViolations = sortViolations(dAxeResult.get("violations") or [])
     lIncomplete = dAxeResult.get("incomplete") or []
     dEngine = dAxeResult.get("testEngine") or {}
@@ -729,19 +658,6 @@ def buildPlainTextReport(dAxeResult, dContacts, sPageTitle, sPageUrl, sReportPat
     if any((d.get("id") or "") == "frame-tested" for d in lIncomplete):
         lLines.append("  Note: this page contains frames. Only the top document was tested.")
     lLines.append("")
-    lLines.append("REPORTING THIS TO THE PUBLISHER")
-    lLines.append("-------------------------------")
-    for sTitle, sBucket, sEmpty in (
-        ("Email", "mailto", "No email address was found."),
-        ("Accessibility pages", "accessibility", "No accessibility page was found."),
-        ("Contact and support pages", "contact", "No contact page was found."),
-        ("Social channels", "social", "No social channel was found."),
-    ):
-        lLines.append(f"{sTitle}:")
-        lLinks = dContacts.get(sBucket) or []
-        lLines.extend([f"  {s}" for s in lLinks] or [f"  {sEmpty}"])
-    lLines.append(f"Accessibility statement: {dContacts.get('statement') or 'not found'}")
-    lLines.append("")
     lLines.append("GLOSSARY")
     lLines.append("--------")
     lLines.extend(f"{sTerm}: {sMeaning}" for sTerm, sMeaning in lGlossary)
@@ -750,14 +666,14 @@ def buildPlainTextReport(dAxeResult, dContacts, sPageTitle, sPageUrl, sReportPat
     return "\n".join(lLines)
 
 
-def writeReports(dAxeResult, dContacts, sPageTitle, sPageUrl, pathFolder):
+def writeReports(dAxeResult, sPageTitle, sPageUrl, pathFolder):
     """Write both report files and return where they went."""
     pathHtml = pathFolder / reportHtmlFileName
     pathText = pathFolder / reportTextFileName
-    sPlainText = buildPlainTextReport(dAxeResult, dContacts, sPageTitle, sPageUrl, str(pathHtml))
+    sPlainText = buildPlainTextReport(dAxeResult, sPageTitle, sPageUrl, str(pathHtml))
     pathText.write_text(sPlainText, encoding="utf-8")
     sHtml = buildReportHtml(
-        dAxeResult, dContacts, sPageTitle, sPageUrl, str(pathHtml), sPlainText, str(pathText)
+        dAxeResult, sPageTitle, sPageUrl, str(pathHtml), sPlainText, str(pathText)
     )
     pathHtml.write_text(sHtml, encoding="utf-8")
     homerLog.info(f"Wrote {pathHtml}, {pathHtml.stat().st_size} bytes")

@@ -420,6 +420,7 @@ $lVirtualKeys = @(
     "Alt+Shift+F1=openQuickStart",
     "Alt+Shift+P=copyPageLinks",
     "Alt+Shift+W=downloadFiles",
+    "Alt+Shift+F=openPageFolder",
     "Control+F1=openUserGuide",
     "Control+F8=copyAll",
     "Control+O=openDocument",

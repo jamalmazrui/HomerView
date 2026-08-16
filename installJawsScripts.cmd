@@ -45,4 +45,28 @@ if not defined bQuiet (
     pause >nul
     echo.
 )
+rem A ONE-LINE RESULT, FOR THE INSTALLER'S SUMMARY.
+rem
+rem The installer now reports what it did in a message box rather than leaving
+rem a console open, and it must not have to GUESS what happened here. This file
+rem says so in one line, written where the installer can read it and overwritten
+rem on every run so it never describes an older attempt.
+> "%~dp0installJawsScripts.result" echo %exitCode%
+
+rem A COPY OF THE LOG WHERE SOMEBODY CAN BE TOLD TO FIND IT ON THE PHONE.
+rem
+rem The log already lands in %LOCALAPPDATA%\HomerView\logs under a timestamped
+rem name, which is right for HomerView itself and useless for a tester being
+rem talked through a failure: it cannot be dictated, and the newest of several
+rem files has to be picked out. This copy has ONE fixed path.
+rem
+rem C:\temp rather than the user profile, because the profile is exactly what
+rem goes wrong here -- an installer running elevated can resolve a DIFFERENT
+rem user's application data than the person sitting at the machine.
+if not exist "C:\temp" mkdir "C:\temp" 2>nul
+for /f "delims=" %%F in ('dir /b /o-d "%logDir%\HomerViewJAWS*.log" 2^>nul') do (
+    copy /y "%logDir%\%%F" "C:\temp\HomerView_jaws.log" >nul 2>&1
+    goto :copiedLog
+)
+:copiedLog
 endlocal & exit /b %exitCode%

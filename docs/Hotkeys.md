@@ -405,6 +405,10 @@ hidden, because a gap you can see is one that can be closed.
 
 # The window and its tabs
 
+- **Page Folder**
+    - NVDA: Alt+Shift+F
+    - JAWS: Alt+Shift+F
+    - Opens this page's folder in File Explorer, to browse what was saved from it. Nothing is created: if nothing has been saved from this page, it says so. Beside Alt+Shift+W, which fills the folder.
 - **Tab Close Others**
     - NVDA: Control+Shift+F4
     - JAWS: **not yet on JAWS**

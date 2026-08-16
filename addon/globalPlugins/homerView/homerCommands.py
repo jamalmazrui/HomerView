@@ -1715,6 +1715,53 @@ def _pickTab(lTabs):
             return
 
 
+def openPageFolder(treeInterceptor):
+    """Open this page's folder in File Explorer, if it has one.
+
+    paths.pageFolder CREATES the folder, which is right for a tool about to
+    write into it and wrong here: a command for browsing what was saved should
+    not conjure an empty folder for a page nothing was ever saved from. So the
+    path is composed the same way and only opened if it is already there.
+
+    THE TITLE MUST COME FROM THE SAME PLACE THE FOLDER WAS NAMED FROM. Every
+    tool that writes here -- the reports, the extracted article, the downloads
+    -- takes the title from the CDP target, so taking it from NVDA's object
+    tree instead would spell the folder differently and find nothing.
+
+    Explorer needs no special launcher: a directory path handed to the shell
+    opens in Explorer exactly as it does from the Run dialog.
+    """
+    import os
+
+    from . import paths
+    from .service import service
+
+    try:
+        if not service.isConnected():
+            # Translators: Reported when HomerView has no connection.
+            ui.message(_("HomerView is not connected"))
+            return
+        dTarget, sSessionId = service.cdpSession.findActivePageSession()
+        sTitle = (dTarget.get("title", "") or dTarget.get("url", "")).strip()
+        if not sTitle:
+            # Translators: Reported when there is no page to find a folder for.
+            ui.message(_("There is no page to find a folder for"))
+            return
+        pathFolder = paths.getDownloadsFolder() / paths.safeStem(sTitle)
+        homerLog.info(f"Page folder: {pathFolder}")
+        if not pathFolder.is_dir():
+            # Translators: Reported when nothing has been saved from this page.
+            ui.message(_("Nothing has been saved from this page yet"))
+            return
+        os.startfile(str(pathFolder))
+        # Translators: Reported when the page's folder has been opened.
+        ui.message(_("Opened the folder for {name}").format(name=pathFolder.name))
+    except Exception:
+        logError("The page folder could not be opened")
+        # Translators: Reported when the folder could not be opened.
+        ui.message(_("That folder could not be opened"))
+
+
 def sayTabs():
     """Say the names of the open tabs, without opening anything."""
     from .service import service

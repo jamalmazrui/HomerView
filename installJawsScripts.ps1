@@ -170,6 +170,43 @@ function installPrebuiltJsb {
     }
 }
 
+function holdEdgeScripts {
+    param([string] $pathSettings)
+
+    # AN EDGE SCRIPT SET SHADOWS HOMERVIEW'S COMMANDS, SO IT IS MOVED ASIDE.
+    #
+    # A tester had msedge.jsb and msedge.JKM in his settings folder -- with no
+    # msedge.jss beside them, so not something he wrote. On his machine
+    # HomerView launched and its menu opened, and then NO COMMAND DID ANYTHING
+    # AND NOTHING WAS LOGGED, on a build that works everywhere else.
+    #
+    # TWO DOCUMENTED RULES EXPLAIN THAT EXACTLY. Freedom Scientific's keystroke
+    # algorithm searches the APPLICATION key map FIRST while that application is
+    # focused, and looks for the script it names in the APPLICATION script file.
+    # And Vispero's own guidance says scripts in MyExtensions WITH THE SAME NAME
+    # as ones in an application script file WILL NEVER RUN. HomerView lives in
+    # MyExtensions, so inside Edge his copies won and ours never fired.
+    #
+    # RENAMED, NEVER DELETED, AND RECORDED. If they turn out to be wanted, the
+    # names are one rename away and -bUndo puts them back. A .jsb without its
+    # .jss cannot be rebuilt, so deleting one would be unrecoverable.
+    foreach ($sName in @("msedge.jsb", "msedge.jkm", "msedge.jss", "msedge.jsd")) {
+        $pathFound = Join-Path $pathSettings $sName
+        if (-not (Test-Path $pathFound)) { continue }
+        $pathHeld = "$pathFound.homerViewHeld"
+        try {
+            if (Test-Path $pathHeld) { Remove-Item $pathHeld -Force }
+            Rename-Item -Path $pathFound -NewName "$sName.homerViewHeld" -Force
+            writeLog "    moved $sName aside to $sName.homerViewHeld"
+            writeLog "      An Edge script set here shadows HomerView's commands inside Edge."
+            writeLog "      Rename it back, or run this with -bUninstall, to restore it."
+        } catch {
+            writeLog "    $sName could not be moved aside: $($_.Exception.Message)"
+            writeLog "      HomerView's commands may do nothing while Edge is focused."
+        }
+    }
+}
+
 function addGlobalBinding {
     param([string] $pathSettings)
 
@@ -336,6 +373,20 @@ foreach ($folderVersion in $lVersions) {
                     writeLog "    removed $sName"
                 }
             }
+            # Anything moved aside on the way in is put back on the way out.
+            # A tool that hides a file and then forgets it has taken something
+            # that was not its to keep.
+            foreach ($oHeld in @(Get-ChildItem -Path $pathTarget -Filter "*.homerViewHeld" -File -ErrorAction SilentlyContinue)) {
+                $sBack = $oHeld.Name -replace "\.homerViewHeld$", ""
+                try {
+                    $pathBack = Join-Path $pathTarget $sBack
+                    if (Test-Path $pathBack) { Remove-Item $pathBack -Force }
+                    Rename-Item -Path $oHeld.FullName -NewName $sBack -Force
+                    writeLog "    put $sBack back"
+                } catch {
+                    writeLog "    $sBack could not be put back: $($_.Exception.Message)"
+                }
+            }
             removeGlobalBinding $pathTarget
             $iDone += 1
             continue
@@ -381,6 +432,7 @@ foreach ($folderVersion in $lVersions) {
         }
         if (-not $bCopied) { $iFailed += 1; continue }
 
+        holdEdgeScripts $pathTarget
         addGlobalBinding $pathTarget
         $vCompiled = compileScript $sVersion $pathTarget
         if ($vCompiled -eq "skipped") {

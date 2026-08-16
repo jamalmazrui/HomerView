@@ -168,6 +168,9 @@ Source: "C:\HomerView\installJawsScripts.ps1"; DestDir: "{app}"; Flags: ignoreve
 ; installed cannot produce one, and that must not stop the installer being
 ; compiled.
 Source: "C:\HomerView\jaws\HomerView.jsb"; DestDir: "{app}\jaws"; Flags: ignoreversion skipifsourcedoesntexist
+; The start page, built once by the build from the add-on's own generator so
+; both screen readers show the same page and neither composes its own.
+Source: "C:\HomerView\Start.htm"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "C:\HomerView\installJawsScripts.cmd"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 ; Run by installJawsScripts.ps1, not by hand. It writes the MyExtensions file
 ; that makes JAWS load our scripts at all, and puts the keys into the user's own

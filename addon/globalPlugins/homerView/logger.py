@@ -238,7 +238,20 @@ def dataFolder():
     So the folder is named directly rather than inferred from where a file
     happens to sit.
     """
-    return pathDataFolder or (pathLogFile.parent if pathLogFile else None)
+    # THE FALLBACK IS THE LOGS FOLDER'S PARENT, NOT THE LOGS FOLDER.
+    #
+    # It used to be pathLogFile.parent, which IS the logs folder now that logs
+    # live in a subfolder -- the very mistake the paragraph above describes,
+    # left in the one line that still made it. A tester finished with
+    # Start.htm, Announce.htm, Hotkeys.htm and the rest sitting in
+    # HomerView\logs, and the JAWS bridge, which looks in HomerView\, found no
+    # start page and opened about:blank instead.
+    if pathDataFolder:
+        return pathDataFolder
+    if pathLogFile:
+        pathParent = pathLogFile.parent
+        return pathParent.parent if pathParent.name.lower() == "logs" else pathParent
+    return None
 
 
 def sessionLogName():

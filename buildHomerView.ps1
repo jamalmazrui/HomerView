@@ -304,6 +304,36 @@ function buildAddon {
     Set-Content -Path (Join-Path $pathRoot "version.txt") -Value $sVersion -Encoding ASCII -NoNewline
     writeLog "Wrote version.txt"
 
+    # THE START PAGE, BUILT ONCE AS AN ASSET.
+    #
+    # It used to be written at run time by the NVDA add-on only, so a JAWS-only
+    # machine never had one and the browser opened about:blank. Composing a
+    # second copy in C# would have meant two pages drifting apart, so it is
+    # generated HERE from the add-on's own generator and installed beside the
+    # program. One source, one file, both screen readers.
+    try {
+        $pathStartPage = Join-Path $pathRoot "Start.htm"
+        $pathGenerator = Join-Path $pathAddon "globalPlugins\homerView\startPage.py"
+        if (Test-Path $pathGenerator) {
+            $sPython = (Get-Command python -ErrorAction SilentlyContinue).Source
+            if ($sPython) {
+                $ErrorActionPreference = "Continue"
+                $sPage = & $sPython -c "import sys; sys.path.insert(0, r'$pathAddon\globalPlugins\homerView'); import startPage; sys.stdout.write(startPage.getStartPageText())" 2>&1 | Out-String
+                $ErrorActionPreference = "Stop"
+                if ($sPage -and $sPage.Contains("<")) {
+                    Set-Content -Path $pathStartPage -Value $sPage -Encoding UTF8
+                    writeLog "Wrote Start.htm from the add-on's generator, $($sPage.Length) characters"
+                } else {
+                    writeLog "WARNING: the start page generator produced nothing usable, so Start.htm was left alone."
+                }
+            } else {
+                writeLog "WARNING: python is not on the path, so Start.htm was not regenerated."
+            }
+        }
+    } catch {
+        writeLog "WARNING: Start.htm could not be generated: $($_.Exception.Message)"
+    }
+
     if (-not (Test-Path $pathBuild)) {
         New-Item -ItemType Directory -Path $pathBuild | Out-Null
         writeLog "Created $pathBuild"

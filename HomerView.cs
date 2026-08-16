@@ -111,12 +111,94 @@ namespace Homer
         // rather than whatever the profile had queued from last time, which is
         // how a launch came to open a tab for every extension that had been
         // installed.
+        /// <summary>
+        /// The page a fresh HomerView window opens on.
+        ///
+        /// Deliberately plain: it exists so the window has something of its own
+        /// to show and something for the reading commands to act on, not to be
+        /// a home page. Headings, because that is how it will be read.
+        /// </summary>
+        private static string StartPageText()
+        {
+            return "<!DOCTYPE html>\r\n"
+                + "<html lang=\"en\">\r\n<head>\r\n<meta charset=\"utf-8\">\r\n"
+                + "<title>HomerView</title>\r\n</head>\r\n<body>\r\n"
+                + "<h1>HomerView</h1>\r\n"
+                + "<p>This window is ready. Open something, or press the menu key "
+                + "for every command.</p>\r\n"
+                + "<h2>To begin</h2>\r\n<ul>\r\n"
+                + "<li>Control+O opens a document: Word, PDF, ebook, spreadsheet "
+                + "and more.</li>\r\n"
+                + "<li>Alt+Insert+F10 opens the HomerView menu.</li>\r\n"
+                + "<li>Alt+Shift+H lists every key.</li>\r\n"
+                + "</ul>\r\n</body>\r\n</html>\r\n";
+        }
+
         private static string StartPageUrl()
         {
             try
             {
-                string sStart = Path.Combine(
-                    Directory.GetParent(ProfileFolder()).FullName, "Start.htm");
+                string sFolder = Directory.GetParent(ProfileFolder()).FullName;
+                string sStart = Path.Combine(sFolder, "Start.htm");
+
+                // A MACHINE WITH ONLY JAWS ON IT MUST STILL GET A START PAGE.
+                //
+                // Nothing on this side ever WROTE Start.htm: the NVDA add-on
+                // writes it and this only read it, so on a JAWS-only machine
+                // the file was never there and the launch fell through to
+                // about:blank. A tester saw a blank browser, concluded
+                // HomerView had not started, and every page command then had
+                // no page to act on.
+                //
+                // A copy may also be sitting in the logs subfolder, put there
+                // by a version whose data folder fell back to the log's parent.
+                // It is moved rather than ignored, because it is the page the
+                // add-on wrote and it belongs one level up.
+                if (!File.Exists(sStart))
+                {
+                    string sStray = Path.Combine(sFolder, "logs", "Start.htm");
+                    try
+                    {
+                        if (File.Exists(sStray))
+                        {
+                            File.Copy(sStray, sStart, true);
+                            Log("  moved Start.htm out of the logs folder");
+                        }
+                        else
+                        {
+                            // THE SHIPPED COPY FIRST, BECAUSE IT IS THE REAL ONE.
+                            //
+                            // The start page is a DISTRIBUTED ASSET, built once
+                            // from the add-on's own generator and installed
+                            // beside this program. Copying it beats composing
+                            // one here: a page written in two languages drifts
+                            // apart, and the copy carries whatever the add-on
+                            // has been taught to put on it.
+                            //
+                            // The text below stays only as a last resort, for a
+                            // machine where the shipped file is missing. Nobody
+                            // should ever see it, and if they do, the log says
+                            // so.
+                            Directory.CreateDirectory(sFolder);
+                            string sShipped = Path.Combine(
+                                Path.GetDirectoryName(
+                                    System.Reflection.Assembly.GetExecutingAssembly().Location),
+                                "Start.htm");
+                            if (File.Exists(sShipped))
+                            {
+                                File.Copy(sShipped, sStart, true);
+                                Log("  copied the start page that was installed with the program");
+                            }
+                            else
+                            {
+                                File.WriteAllText(sStart, StartPageText(), new UTF8Encoding(true));
+                                Log("  no Start.htm was installed, so a plain one was written");
+                            }
+                        }
+                    }
+                    catch (Exception oError)
+                    { Log("  the start page could not be written: " + oError.Message); }
+                }
                 if (File.Exists(sStart))
                     return new Uri(sStart).AbsoluteUri;
             }

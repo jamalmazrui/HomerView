@@ -90,6 +90,7 @@ Const
     c_sBridgePath = "@bridgePath@",
     c_sFileSystemProgId = "Scripting.FileSystemObject",
     c_sXmlProgId = "msxml2.DOMDocument.6.0",
+    c_sXmlProgIdAny = "Msxml2.DOMDocument",
     c_sShellProgId = "WScript.Shell"
 
 Globals
@@ -399,7 +400,22 @@ EndIf
 ; created the next line fails, and callBridge's caller reports the error the
 ; same way it reports any other -- which is how every other COM object in this
 ; file is already handled.
+; THE VERSION INDEPENDENT PROGID IS TRIED TOO, AND THE RESULT IS LOGGED.
+;
+; A tester saw EVERY command do nothing while the launch still opened a
+; browser. That is exactly the shape of this function failing: the bridge
+; launches Edge before any answer is read, so launching looks fine, and every
+; command that READS an answer silently returns "". Alt+Apostrophe is in that
+; set too -- it goes through callBridge like the rest.
+;
+; If msxml2.DOMDocument.6.0 is not registered on a machine, CreateObjectEx
+; hands back nothing and there is no error to hear. So the unversioned ProgID
+; is tried after it, and the log SAYS which one answered, or that neither did.
 Let oDoc = CreateObjectEx (c_sXmlProgId, False)
+If oDoc.loadXML ("<root/>") == False Then
+    logLine ("xmlValue: " + c_sXmlProgId + " did not answer, trying " + c_sXmlProgIdAny)
+    Let oDoc = CreateObjectEx (c_sXmlProgIdAny, False)
+EndIf
 ; Written the way Freedom Scientific write it in their own sample: no Let,
 ; which JAWS 11 Update 1 made optional, and a property set on a COM object
 ; rather than a variable.

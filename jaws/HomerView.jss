@@ -350,38 +350,102 @@ EndFunction
 ; Reads one value out of the helper's answer, which is XML.
 ;
 ; JSL HAS NO JSON FUNCTIONS -- not one in the seventeen hundred odd names the
-; reference documents. What sat here instead was a hand written JSON reader:
+; reference documents. What sat here originally was a hand written JSON reader:
 ; find the name, walk forward a character at a time looking for the closing
 ; quote, then undo six escape sequences in a fixed order. It worked for a flat
 ; answer with a single string in it and would have been wrong the first time
 ; the helper returned anything nested, silently, because there is nothing in
 ; that method that can notice it has gone wrong.
 ;
-; So the helper answers in XML instead, and this asks XPath for the field.
-; Neither side parses anything by hand: .NET turns the browser's JSON into XML
-; with its own reader, and these three functions are Freedom Scientific's own,
-; documented from JAWS 18. There is no unescaping to do, because entities are
-; the parser's business rather than ours.
-;
-; CreateXMLDomDoc takes no parameters and hands back the object.
-; LoadAndParseXML (object, string) returns True when the XML was well formed.
-; GetXMLDomNodeText (node) returns the node's text.
-;
-; The answer's shape is the helper's own, so a path asked for here is a path
-; the helper always writes.
+; So the helper answers in XML instead: .NET turns the browser's JSON into XML
+; with its own reader, and the answer's shape is the helper's own, so a path
+; asked for here is a path the helper always writes.
 string Function xmlValue (string sXml, string sPath)
 Var
-    object oDoc, object oNode
+    int iClose,
+    int iEnd,
+    int iOpen,
+    string sName,
+    string sText
+; NO XML DOM HERE ANY MORE, AND THIS IS WHY.
+;
+; This used CreateXMLDomDoc, LoadAndParseXML and GetXMLDomNodeText -- Freedom
+; Scientific's own, documented from JAWS 18, and they compiled here every time.
+; ON A TESTER'S MACHINE THEY DID NOT: scompile answered
+;
+;   line 378: Expected oDoc to be a variable of type int not object
+;
+; on JAWS 2024, 2025 AND 2026 -- the same versions and the same scompile.exe
+; that succeed here. That is the compiler failing to resolve the function's
+; declaration and assuming int, which is what JSL does for a name it does not
+; know. Whatever supplies that declaration is present on one machine and absent
+; on another, and A SCRIPT SET THAT ONLY COMPILES ON SOME MACHINES IS NOT ONE
+; THAT CAN BE RELEASED.
+;
+; So the field is taken out by hand, which needs nothing but string functions.
+;
+; THAT IS SAFE HERE FOR A REASON WORTH STATING. The old hand-rolled version
+; parsed JSON, where a quote inside a value is escaped and finding the end of a
+; field means tracking escapes. THIS IS XML, where the parser that wrote it
+; escaped every < as &lt;, SO A RAW < CANNOT APPEAR INSIDE A VALUE. Finding
+; "</name>" therefore cannot land in the middle of one. The ambiguity that made
+; the old approach wrong is not present in this format.
+;
+; The path is the helper's own and always flat -- "/root/error", "/root/value"
+; -- so only the last segment is needed.
 If sXml == "" Then
     Return ""
 EndIf
-Let oDoc = CreateXMLDomDoc ()
-If LoadAndParseXML (oDoc, sXml) == False Then
-    logLine ("xmlValue: the answer was not well formed XML, asking for " + sPath)
+Let sName = StringSegment (sPath, "/", -1)
+If sName == "" Then
     Return ""
 EndIf
-Let oNode = oDoc.selectSingleNode (sPath)
-Return GetXMLDomNodeText (oNode)
+; The opening tag, in the three forms it can take: <error>, <error/> and
+; <error type="string">. MATCHED WHOLE, not by prefix -- searching for "<value"
+; alone would also find "<valueOther>" and return the wrong field. The earliest
+; match wins, since only one of the three can be this element.
+Let iOpen = StringContains (sXml, "<" + sName + ">")
+Let iEnd = StringContains (sXml, "<" + sName + " ")
+If iOpen == 0 Then
+    Let iOpen = iEnd
+EndIf
+If iEnd > 0 && iEnd < iOpen Then
+    Let iOpen = iEnd
+EndIf
+Let iEnd = StringContains (sXml, "<" + sName + "/")
+If iOpen == 0 Then
+    Let iOpen = iEnd
+EndIf
+If iEnd > 0 && iEnd < iOpen Then
+    Let iOpen = iEnd
+EndIf
+If iOpen == 0 Then
+    Return ""
+EndIf
+Let sText = SubString (sXml, iOpen, StringLength (sXml) - iOpen + 1)
+Let iClose = StringContains (sText, ">")
+If iClose == 0 Then
+    Return ""
+EndIf
+; An empty element, <error/>, carries no text at all.
+If SubString (sText, iClose - 1, 1) == "/" Then
+    Return ""
+EndIf
+Let sText = SubString (sText, iClose + 1, StringLength (sText) - iClose)
+Let iEnd = StringContains (sText, "</" + sName + ">")
+If iEnd == 0 Then
+    Return ""
+EndIf
+Let sText = SubString (sText, 1, iEnd - 1)
+; The five entities XML defines, and the numeric form of the apostrophe that
+; some writers prefer. AMPERSAND LAST, or "&amp;lt;" would become "<".
+Let sText = StringReplaceSubstrings (sText, "&lt;", "<")
+Let sText = StringReplaceSubstrings (sText, "&gt;", ">")
+Let sText = StringReplaceSubstrings (sText, "&quot;", "\"")
+Let sText = StringReplaceSubstrings (sText, "&apos;", "'")
+Let sText = StringReplaceSubstrings (sText, "&#39;", "'")
+Let sText = StringReplaceSubstrings (sText, "&amp;", "&")
+Return sText
 EndFunction
 
 

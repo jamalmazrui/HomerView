@@ -617,7 +617,7 @@ begin
   { Nothing to report if nothing was installed, and nobody to read it in a
     silent installation -- where a message box would sit there forever
     waiting for a click that a script cannot give. }
-  if (not bInstalled) or WizardSilent() then
+  if (not bInstalled) or WizardSilent then
     Exit;
   sMessage := 'HomerView is installed.' + #13#10 + #13#10
     + 'Program files:' + #13#10 + '  ' + ExpandConstant('{app}') + #13#10 + #13#10
@@ -653,7 +653,11 @@ begin
     temporary folder under a dated name nobody can dictate, and the JAWS log
     under a timestamped one among several. }
   ForceDirectories('C:\temp');
-  if FileCopy(ExpandConstant('{log}'), 'C:\temp\HomerView_setup.log', False) then
+  // CopyFile, not FileCopy. The documented name is CopyFile(Existing, New,
+  // FailIfExists) -- there is no FileCopy in Pascal Script at all, and the
+  // compile aborted before it reached this line, so the wrong name would have
+  // failed the NEXT build rather than this one.
+  if CopyFile(ExpandConstant('{log}'), 'C:\temp\HomerView_setup.log', False) then
     sMessage := sMessage + #13#10 + 'If anything above went wrong, send:' + #13#10
       + '  C:\temp\HomerView_setup.log' + #13#10
   else

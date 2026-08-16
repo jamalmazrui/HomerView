@@ -259,12 +259,35 @@ function buildAddon {
     # What went in, gathered rather than announced line by line.
     $script:lIncluded = New-Object System.Collections.ArrayList
 
+    # THE PATCH NUMBER IS RAISED HERE, AND THIS CLOSES A REAL GAP.
+    #
+    # tagRelease tells the reader "BuildHomerView.cmd takes a NEW version every
+    # time it runs, and skips any number that is already released." THAT WAS
+    # NOT TRUE: the build only ever READ the version from manifest.ini, so a
+    # whole day's work could be built at a number already published, and
+    # tagRelease would rightly refuse to publish it -- looking like a failure
+    # when it was doing its job.
+    #
+    # A build that produces a distinct artefact should carry a distinct number.
+    # Only the LAST component moves, so setting 1.49.0 by hand in manifest.ini
+    # still works and is still the way to mark anything bigger than a fix.
     $pathManifest = Join-Path $pathAddon "manifest.ini"
     $sVersion = ""
     foreach ($sLine in Get-Content $pathManifest) {
         if ($sLine -match '^\s*version\s*=\s*"([^"]+)"') {
             $sVersion = $Matches[1]
         }
+    }
+    if ($sVersion -match '^(.*)\.(\d+)$') {
+        $sWas = $sVersion
+        $sVersion = "$($Matches[1]).$([int]$Matches[2] + 1)"
+        $lManifestLines = Get-Content $pathManifest | ForEach-Object {
+            if ($_ -match '^\s*version\s*=') { "version = `"$sVersion`"" } else { $_ }
+        }
+        Set-Content -Path $pathManifest -Value $lManifestLines -Encoding UTF8
+        writeLog "Version raised from $sWas to $sVersion in manifest.ini"
+    } else {
+        writeLog "WARNING: the version '$sVersion' does not end in a number, so it was left alone."
     }
     if (-not $sVersion) {
         writeLog "ERROR: no version was found in manifest.ini"

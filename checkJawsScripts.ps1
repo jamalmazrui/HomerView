@@ -174,6 +174,9 @@ writeLog "JAWS versions found: $(($lVersions | ForEach-Object { $_.Name }) -join
 writeLog ""
 
 $iGood = 0
+$lJsbHashes = @()
+$pathKeptJsb = ""
+$sKeptFrom = ""
 $iBad = 0
 
 foreach ($folderVersion in $lVersions) {
@@ -238,6 +241,29 @@ foreach ($folderVersion in $lVersions) {
                         $bGood = $false
                     } else {
                         writeLog "    compiled cleanly, $iSize bytes"
+                        # A COPY KEPT, AND ITS FINGERPRINT RECORDED.
+                        #
+                        # A tester's machine rejects this source where every
+                        # version here accepts it, so the installer needs a
+                        # PREBUILT .jsb to fall back on. This is where one comes
+                        # from: whatever the OLDEST JAWS present compiled, since
+                        # Freedom Scientific's own note on JAWS 13 says scripts
+                        # compiled by a newer JAWS are not backwardly compatible
+                        # -- which means older-built ones run on newer JAWS, and
+                        # the oldest build is therefore the most portable.
+                        #
+                        # The hash answers his question directly: if every
+                        # version's .jsb is identical, the format is not version
+                        # dependent and shipping one is safe.
+                        $sHash = (Get-FileHash $pathCheckJsb -Algorithm SHA256).Hash
+                        writeLog "    fingerprint $($sHash.Substring(0, 16))"
+                        $script:lJsbHashes += $sHash
+                        if (-not $script:pathKeptJsb) {
+                            $script:pathKeptJsb = Join-Path $pathRoot "jaws\HomerView.jsb"
+                            Copy-Item $pathCheckJsb $script:pathKeptJsb -Force
+                            writeLog "    kept as the fallback build, from JAWS $($folderVersion.Name)"
+                            $script:sKeptFrom = $folderVersion.Name
+                        }
                     }
                 } else {
                     writeLog "    ERROR: nothing was compiled, exit code $iExit"
@@ -262,6 +288,19 @@ foreach ($folderVersion in $lVersions) {
 }
 
 writeLog "Finished. $iGood compiled, $iBad with a problem, quality checks $(if ($iQuality -eq 0) { 'clean' } else { 'FAILED' })."
+$iUnique = @($lJsbHashes | Sort-Object -Unique).Count
+if ($lJsbHashes.Count -gt 1) {
+    if ($iUnique -eq 1) {
+        writeLog "Every version compiled a BYTE IDENTICAL HomerView.jsb, so the format"
+        writeLog "does not appear to be version dependent and one build serves all."
+    } else {
+        writeLog "The versions compiled $iUnique DIFFERENT HomerView.jsb files, so the"
+        writeLog "format IS version dependent; a fallback build is a fallback only."
+    }
+}
+if ($pathKeptJsb) {
+    writeLog "Fallback build kept at $pathKeptJsb, compiled by JAWS $sKeptFrom."
+}
 if ($iQuality -ne 0) {
     writeLog "The source compiles or not on its own account, but the quality checks"
     writeLog "failed, so this is not a build to hand over. Their findings are above."

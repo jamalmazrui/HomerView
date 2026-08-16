@@ -80,10 +80,21 @@ function compileScript {
     )
     $sCompiler = $lCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1
     if (-not $sCompiler) {
-        writeLog "    scompile.exe for JAWS $sVersion was not found; looked in:"
-        foreach ($s in $lCandidates) { writeLog "      $s" }
-        writeLog "    The scripts are in place; JAWS will use them once compiled."
-        return $false
+        # NOT A FAILURE. A SETTINGS FOLDER OUTLIVES THE JAWS THAT MADE IT.
+        #
+        # A tester had folders for JAWS 2019 through 2023 left behind by
+        # upgrades, with no scompile.exe because those versions are long gone.
+        # Every one was counted as a problem, so the installer exited 1 and the
+        # summary box said "JAWS scripts: FAILED" -- while all three INSTALLED
+        # versions had compiled cleanly and all 41 keys had bound. A report that
+        # calls a success a failure is worse than no report, and it cost that
+        # tester an evening.
+        #
+        # chainJawsScripts had this right all along: it SKIPS such folders and
+        # says "3 folders done, 6 skipped, 0 with a problem".
+        writeLog "    JAWS $sVersion is not installed here (no scompile.exe), so it is skipped."
+        writeLog "      The files are in place if that version is ever reinstalled."
+        return "skipped"
     }
 
     $pathJss = Join-Path $pathSettings "HomerView.jss"
@@ -117,6 +128,46 @@ function compileScript {
     }
     writeLog "    ERROR: no HomerView.jsb was produced, exit code $iExit"
     return $false
+}
+
+function installPrebuiltJsb {
+    param([string] $pathSettings)
+
+    # WHEN THE COMPILER REFUSES, USE THE BUILD WE ALREADY HAVE.
+    #
+    # This is not the preferred path and it is here because of a real one: a
+    # tester's scompile rejects this source on JAWS 2024, 2025 AND 2026 where
+    # every version on the developer's machine accepts it. Whatever differs is
+    # in his JAWS installation, and chasing it has already cost him more of that
+    # tester's time than the feature is worth.
+    #
+    # IT IS NOT RECKLESS. Freedom Scientific's own note on JAWS 13 says scripts
+    # compiled with JAWS 13 "will not be backwardly compatible with earlier
+    # versions" -- which says plainly that a .jsb runs on the version that built
+    # it and on LATER ones. The shipped build comes from the OLDEST JAWS present
+    # when the installer was made, so it is the most portable one available, and
+    # checkJawsScripts reports in the build log whether every version produced a
+    # byte identical file.
+    #
+    # IT IS ALSO SAID OUT LOUD. A script set that came from someone else's
+    # compiler is a thing the reader should know about, not a silent substitute.
+    $pathPrebuilt = Join-Path $PSScriptRoot "jaws\HomerView.jsb"
+    if (-not (Test-Path $pathPrebuilt)) {
+        writeLog "    no prebuilt HomerView.jsb is available, so this version has none"
+        return $false
+    }
+    try {
+        $pathJsb = Join-Path $pathSettings "HomerView.jsb"
+        Copy-Item $pathPrebuilt $pathJsb -Force
+        $iSize = (Get-Item $pathJsb).Length
+        writeLog "    the compiler refused, so the PREBUILT HomerView.jsb was installed"
+        writeLog "      ($iSize bytes, built when this installer was made)"
+        writeLog "      The scripts will work; only this machine's compiler is unhappy."
+        return $true
+    } catch {
+        writeLog "    the prebuilt HomerView.jsb could not be copied: $($_.Exception.Message)"
+        return $false
+    }
 }
 
 function addGlobalBinding {
@@ -252,6 +303,7 @@ writeLog ""
 $lScripts = @("HomerView.jss", "HomerView.jkm", "HomerView.jsd")
 $iDone = 0
 $iFailed = 0
+$iSkipped = 0
 
 foreach ($folderVersion in $lVersions) {
     $sVersion = $folderVersion.Name
@@ -330,12 +382,21 @@ foreach ($folderVersion in $lVersions) {
         if (-not $bCopied) { $iFailed += 1; continue }
 
         addGlobalBinding $pathTarget
-        if (compileScript $sVersion $pathTarget) { $iDone += 1 } else { $iFailed += 1 }
+        $vCompiled = compileScript $sVersion $pathTarget
+        if ($vCompiled -eq "skipped") {
+            $iSkipped += 1
+        } elseif ($vCompiled) {
+            $iDone += 1
+        } elseif (installPrebuiltJsb $pathTarget) {
+            $iDone += 1
+        } else {
+            $iFailed += 1
+        }
     }
     writeLog ""
 }
 
-writeLog "Finished. $iDone settings folders done, $iFailed with a problem."
+writeLog "Finished. $iDone settings folders done, $iSkipped skipped, $iFailed with a problem."
 if ($iFailed -gt 0) {
     writeLog "HomerView still works with NVDA. The JAWS scripts are the part that failed."
 }

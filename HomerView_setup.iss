@@ -163,6 +163,11 @@ Source: "C:\HomerView\HomerView.exe"; DestDir: "{app}"; Flags: ignoreversion ski
 Source: "C:\HomerView\HomerView.cs"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "C:\HomerView\jaws\*"; DestDir: "{app}\jaws"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "C:\HomerView\installJawsScripts.ps1"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
+; THE PREBUILT SCRIPTS, used only when a machine's own scompile refuses the
+; source. skipifsourcedoesntexist because a build made where no JAWS is
+; installed cannot produce one, and that must not stop the installer being
+; compiled.
+Source: "C:\HomerView\jaws\HomerView.jsb"; DestDir: "{app}\jaws"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "C:\HomerView\installJawsScripts.cmd"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 ; Run by installJawsScripts.ps1, not by hand. It writes the MyExtensions file
 ; that makes JAWS load our scripts at all, and puts the keys into the user's own

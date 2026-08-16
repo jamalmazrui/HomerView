@@ -445,7 +445,7 @@ $lVirtualKeys = @(
     "Control+Shift+F=findBackwards",
     "Control+Shift+F3=findByPatternBackwards",
     "F3=findNext",
-    "Shift+F3=findPrevious",
+    "Shift+F3=findPrevious"
 )
 
 $iDone = 0

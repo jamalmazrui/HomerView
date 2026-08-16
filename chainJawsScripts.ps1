@@ -700,52 +700,65 @@ foreach ($folderVersion in $lVersions) {
                     $iFailed += 1
                 }
             }
-            # --- the browser's own key map ---------------------------------
+            # SKIPPED ENTIRELY WHILE THERE ARE NO BROWSER KEYS, and there are
+            # none: the application key map cannot resolve HomerView's commands
+            # until the scripts are chained into Edge's own set, so the list is
+            # deliberately empty.
             #
-            # Same discipline as default.jkm: back up before changing, take our
-            # old block out before putting a new one in, and if there is no user
-            # copy yet, COPY THE FACTORY FILE FIRST rather than writing a file
-            # that holds only our keys.
-            #
-            # If Edge has no factory msedge.jkm at all, one is created holding
-            # just [Common Keys] and our line. That is safe here in a way it
-            # would not be for default.jkm: an application key map that does not
-            # exist takes nothing away, because JAWS falls through to the
-            # default map for everything it does not name.
-            $sEdgeBase = browserConfigName $pathUser $pathShared
-            writeLog "    the browser's settings are called '$sEdgeBase'"
-            $pathUserEdgeJkm = Join-Path $pathUser "$sEdgeBase.jkm"
-            $pathSharedEdgeJkm = if ($pathShared) { Join-Path $pathShared "$sEdgeBase.jkm" } else { "" }
-            if (Test-Path $pathUserEdgeJkm) {
-                if (-not (Test-Path "$pathUserEdgeJkm.homerViewBackup")) {
-                    Copy-Item $pathUserEdgeJkm "$pathUserEdgeJkm.homerViewBackup" -Force
-                    writeLog "    backed up $sEdgeBase.jkm before changing it"
+            # It used to run anyway -- discovering a settings name, backing up,
+            # creating a key map -- to write NOTHING into it. Work with no
+            # purpose is still work that can fail, and if it threw, this whole
+            # script died and the installer reported only "the keys could not be
+            # bound" with nothing above it to say why.
+            if ($lBrowserKeys.Count -gt 0) {
+                # --- the browser's own key map ---------------------------------
+                #
+                # Same discipline as default.jkm: back up before changing, take our
+                # old block out before putting a new one in, and if there is no user
+                # copy yet, COPY THE FACTORY FILE FIRST rather than writing a file
+                # that holds only our keys.
+                #
+                # If Edge has no factory msedge.jkm at all, one is created holding
+                # just [Common Keys] and our line. That is safe here in a way it
+                # would not be for default.jkm: an application key map that does not
+                # exist takes nothing away, because JAWS falls through to the
+                # default map for everything it does not name.
+                $sEdgeBase = browserConfigName $pathUser $pathShared
+                writeLog "    the browser's settings are called '$sEdgeBase'"
+                $pathUserEdgeJkm = Join-Path $pathUser "$sEdgeBase.jkm"
+                $pathSharedEdgeJkm = if ($pathShared) { Join-Path $pathShared "$sEdgeBase.jkm" } else { "" }
+                if (Test-Path $pathUserEdgeJkm) {
+                    if (-not (Test-Path "$pathUserEdgeJkm.homerViewBackup")) {
+                        Copy-Item $pathUserEdgeJkm "$pathUserEdgeJkm.homerViewBackup" -Force
+                        writeLog "    backed up $sEdgeBase.jkm before changing it"
+                    }
+                    $iOldEdge = removeOurBlock $pathUserEdgeJkm
+                    if ($iOldEdge -gt 0) {
+                        writeLog "    removed $iOldEdge line(s) from $sEdgeBase.jkm written by an earlier release"
+                    }
+                } elseif ($pathSharedEdgeJkm -and (Test-Path $pathSharedEdgeJkm)) {
+                    Copy-Item $pathSharedEdgeJkm $pathUserEdgeJkm -Force
+                    writeLog "    copied the factory $sEdgeBase.jkm into the user folder, so nothing is lost"
+                    $lManifest += "created|$sEdgeBase.jkm"
+                } else {
+                    Set-Content -Path $pathUserEdgeJkm -Value @("[Common Keys]") -Encoding UTF8
+                    writeLog "    no factory $sEdgeBase.jkm exists, so a new one was written with only our key"
+                    $lManifest += "created|$sEdgeBase.jkm"
                 }
-                $iOldEdge = removeOurBlock $pathUserEdgeJkm
-                if ($iOldEdge -gt 0) {
-                    writeLog "    removed $iOldEdge line(s) from $sEdgeBase.jkm written by an earlier release"
+                addToSection $pathUserEdgeJkm "[Common Keys]" $lBrowserKeys
+                writeLog "    added $($lBrowserKeys.Count) key(s) to [Common Keys] in $sEdgeBase.jkm"
+                writeLog "      these work whenever Edge is in front, in any cursor mode, and nowhere else"
+                if ($lManifest -notcontains "created|$sEdgeBase.jkm") {
+                    $lManifest += "edited|$sEdgeBase.jkm"
                 }
-            } elseif ($pathSharedEdgeJkm -and (Test-Path $pathSharedEdgeJkm)) {
-                Copy-Item $pathSharedEdgeJkm $pathUserEdgeJkm -Force
-                writeLog "    copied the factory $sEdgeBase.jkm into the user folder, so nothing is lost"
-                $lManifest += "created|$sEdgeBase.jkm"
-            } else {
-                Set-Content -Path $pathUserEdgeJkm -Value @("[Common Keys]") -Encoding UTF8
-                writeLog "    no factory $sEdgeBase.jkm exists, so a new one was written with only our key"
-                $lManifest += "created|$sEdgeBase.jkm"
-            }
-            addToSection $pathUserEdgeJkm "[Common Keys]" $lBrowserKeys
-            writeLog "    added $($lBrowserKeys.Count) key(s) to [Common Keys] in $sEdgeBase.jkm"
-            writeLog "      these work whenever Edge is in front, in any cursor mode, and nowhere else"
-            if ($lManifest -notcontains "created|$sEdgeBase.jkm") {
-                $lManifest += "edited|$sEdgeBase.jkm"
-            }
-            $sEdgeFinal = Get-Content $pathUserEdgeJkm -Raw
-            foreach ($sKey in $lBrowserKeys) {
-                if (-not $sEdgeFinal.Contains($sKey)) {
-                    writeLog "    ERROR: $sKey is not in $sEdgeBase.jkm after writing it"
-                    $iFailed += 1
+                $sEdgeFinal = Get-Content $pathUserEdgeJkm -Raw
+                foreach ($sKey in $lBrowserKeys) {
+                    if (-not $sEdgeFinal.Contains($sKey)) {
+                        writeLog "    ERROR: $sKey is not in $sEdgeBase.jkm after writing it"
+                        $iFailed += 1
+                    }
                 }
+
             }
 
             # What is in the file now, not what was written to it.

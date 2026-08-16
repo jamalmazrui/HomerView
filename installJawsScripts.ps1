@@ -360,12 +360,39 @@ if (-not (Test-Path $pathChain)) {
     }
     $lChainArguments = @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $pathChain, "-pathLogFile", $pathLog)
     if ($bUninstall) { $lChainArguments += "-bUndo" }
-    # Its output is NOT folded in here: it writes to this same file itself, and
-    # folding would print every line of it twice.
-    $null = & powershell @lChainArguments 2>&1 | Out-String
+    # Its output is normally NOT folded in: it writes to this same file itself,
+    # and folding would print every line of it twice.
+    #
+    # BUT THE OUTPUT IS KEPT NOW RATHER THAN DISCARDED, because "$null = &" threw
+    # away the one thing worth having. When the child failed BEFORE it could
+    # open the log -- a missing file, a parse error in its own source -- this
+    # log said "the keys could not be bound. The lines above say why" WITH
+    # NOTHING ABOVE IT. The sentence pointed at an empty space.
+    #
+    # So it is captured, and folded in ONLY when the child failed and wrote
+    # nothing of its own.
+    $iBefore = 0
+    if (Test-Path $pathLog) { $iBefore = (Get-Content $pathLog).Count }
+    $ErrorActionPreference = "Continue"
+    $sChainOutput = & powershell @lChainArguments 2>&1 | Out-String
     $iChain = $LASTEXITCODE
+    $ErrorActionPreference = "Stop"
     if ($iChain -ne 0) {
-        writeLog "ERROR: the keys could not be bound. The lines above say why."
+        $iAfter = 0
+        if (Test-Path $pathLog) { $iAfter = (Get-Content $pathLog).Count }
+        if ($iAfter -gt $iBefore) {
+            writeLog "ERROR: the keys could not be bound. The lines above say why."
+        } else {
+            writeLog "ERROR: the keys could not be bound, and chainJawsScripts wrote"
+            writeLog "       nothing of its own, so it failed before it could start."
+            writeLog "       It said:"
+            foreach ($sLine in ($sChainOutput -split "`n")) {
+                if ($sLine.Trim()) { writeLog "         $($sLine.Trim())" }
+            }
+            if (-not $sChainOutput.Trim()) {
+                writeLog "         (nothing at all -- check that $pathChain exists)"
+            }
+        }
         $iFailed += 1
     }
 }

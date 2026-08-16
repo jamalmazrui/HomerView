@@ -331,7 +331,6 @@ Filename: "{code:GetNvdaPath}"; \
 ; Downloads folder has badly overstepped.
 Type: filesandordirs; Name: "{localappdata}\HomerView"
 Type: files; Name: "{app}\HomerView.log"
-Type: files; Name: "{app}\installJawsScripts.result"
 Type: files; Name: "{app}\HomerView.previous.log"
 Type: files; Name: "{app}\Axe.json"
 Type: files; Name: "{app}\Ace.json"
@@ -599,7 +598,7 @@ var
 begin
   { -1 means the step did not run at all. }
   Result := -1;
-  if LoadStringFromFile(ExpandConstant('{app}\installJawsScripts.result'), sText) then
+  if LoadStringFromFile('C:\temp\HomerView_jaws.result', sText) then
   begin
     { ASSIGNED, NOT CAST. LoadStringFromFile wants an AnsiString, and Pascal
       Script converts one to a String on assignment; writing String(sText) as a

@@ -51,7 +51,19 @@ rem The installer now reports what it did in a message box rather than leaving
 rem a console open, and it must not have to GUESS what happened here. This file
 rem says so in one line, written where the installer can read it and overwritten
 rem on every run so it never describes an older attempt.
-> "%~dp0installJawsScripts.result" echo %exitCode%
+rem WRITTEN TO C:\temp, NOT BESIDE THIS SCRIPT.
+rem
+rem This script lives in the installation folder, under Program Files, and it
+rem runs as the ORIGINAL USER rather than the elevated one -- which is right,
+rem because JAWS settings belong to that user. But a standard user CANNOT WRITE
+rem TO PROGRAM FILES, so the result file was never created, and the installer
+rem read its absence as "the step did not run" while the scripts had in fact
+rem compiled. A summary that reports a success as a failure is worse than none.
+rem
+rem C:\temp is writable by the user and readable by the elevated installer,
+rem which is exactly what a message passed between the two of them needs.
+if not exist "C:\temp" mkdir "C:\temp" 2>nul
+> "C:\temp\HomerView_jaws.result" echo %exitCode%
 
 rem A COPY OF THE LOG WHERE SOMEBODY CAN BE TOLD TO FIND IT ON THE PHONE.
 rem

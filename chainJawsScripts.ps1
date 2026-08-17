@@ -272,7 +272,8 @@ $lCommonKeys = @(
     "Alt+JAWSKey+H=launchHomerView",
     "Alt+JAWSKey+I=checkAccessibilityIbm",
     "Alt+Shift+H=showHotkeySummary",
-    "Alt+JAWSKey+L=copyLogToClipboard"
+    "Alt+JAWSKey+L=copyLogToClipboard",
+    "Alt+JAWSKey+Q=sayDiagnostics"
 )
 
 # WHAT EDGE'S SETTINGS ARE ACTUALLY CALLED, discovered rather than assumed.

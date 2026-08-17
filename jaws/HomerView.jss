@@ -144,8 +144,26 @@ EndFunction
 ; worse than no log at all. Append mode is 8, and True creates the file.
 Void Function logLine (string sText)
 Var
-    object oFile, object oFileSystem
+    object oFile, object oFileSystem,
+    string sFolder
+; LOGGING MUST NOT BE ABLE TO KILL A COMMAND, AND IT COULD.
+;
+; JSL has no way to catch a fault, so a line that throws ENDS THE SCRIPT THERE.
+; Every command in this file begins with logLine, so if OpenTextFile failed --
+; a folder that does not exist, a path that cannot be written -- THE COMMAND
+; DIED AT ITS FIRST LINE WITH NO SPEECH AND NO LOG ENTRY. That is exactly what
+; a tester saw: menu items that did nothing at all, and a log with no session
+; in it. A diagnostic that disappears when things go wrong is worse than none.
+;
+; So the folder is made first if it is missing. OpenTextFile creates a FILE
+; that is not there; it does NOT create the FOLDER above it.
 Let oFileSystem = CreateObjectEx (c_sFileSystemProgId, False)
+Let sFolder = oFileSystem.GetParentFolderName (logPath ())
+If sFolder != "" Then
+    If oFileSystem.FolderExists (sFolder) == False Then
+        oFileSystem.CreateFolder (sFolder)
+    EndIf
+EndIf
 Let oFile = oFileSystem.OpenTextFile (logPath (), 8, True)
 ; Stamped like the bridge's lines, so the two interleave into one account
 ; rather than one column of times and one without.
@@ -169,8 +187,25 @@ Var int iChoice
 ; left. A list that always opens at the top makes the second use of a command
 ; as long as the first, and the commands people use are the ones they used
 ; last. Cancelling does not move it: changing your mind is not a choice.
+; NEVER 0. THE FOURTH ARGUMENT IS A ONE BASED INDEX.
+;
+; FSDN: "the index of the item which should have the focus when the dialog is
+; invoked", and the return is "the one based index of the selected item".
+; giLastPick starts at 0, WHICH IS NOT A VALID INDEX -- and the fault it caused
+; kept itself alive: the dialog answered 0, so the line below that sets
+; giLastPick was never reached, so it stayed 0, so the next menu did the same.
+;
+; A tester saw exactly that and reported both halves of it without either of us
+; joining them up: EVERY Alternate Menu command did nothing, said nothing and
+; logged nothing, AND the menu never remembered the last item. Those were one
+; fault. Commands on KEYS worked throughout, which is why his log showed
+; copySelection running normally in the same session.
+If giLastPick < 1 Then
+    Let giLastPick = 1
+EndIf
 Let iChoice = DlgSelectItemInList (sItems, sTitle, False, giLastPick)
 Pause ()
+logLine ("dialogPick: " + sTitle + " answered " + IntToString (iChoice))
 If iChoice == 0 Then
     Return 0
 EndIf
@@ -537,6 +572,10 @@ logLine ("bridgePoll: " + sWaitFor + " answered with "
     + IntToString (giWaitTicks) + " looks")
 If xmlValue (sAnswer, "/root/error") != "" Then
     sayOrShow (xmlValue (sAnswer, "/root/error"))
+    Return True
+EndIf
+If sWaitFor == "extractMainContent" Then
+    SayMessage (OT_MESSAGE, "Extracted. It is open in HomerView.")
     Return True
 EndIf
 If sWaitFor == "openDocument" Then
@@ -1147,27 +1186,20 @@ EndScript
 ; plain text throws every one of them away. That was the fault in the version
 ; before this: it showed the words and lost everything they pointed at.
 Script extractMainContent ()
-Var string sAnswer, string sResult
+Var int iStarted
 logLine ("extractMainContent started")
 SayMessage (OT_STATUS, "Extracting")
-Let sAnswer = callBridge ("extract", "")
-If sAnswer == "" Then
+; STARTED, NOT WAITED FOR, LIKE THE TWO SCANS.
+;
+; Tracing the menu commands by hand caught this one: extracting an article
+; from a long page reads and rewrites the whole document, which takes as long
+; as a scan does -- and this still WAITED, holding JAWS'S OWN THREAD for all of
+; it. A reader would have lost speech everywhere, exactly as happened with Axe.
+; The three slow commands were converted; this is the fourth and it was missed.
+Let iStarted = startBridge ("extractMainContent", "extract", "")
+If iStarted == False Then
     Return
 EndIf
-If xmlValue (sAnswer, "/root/error") != "" Then
-    SayMessage (OT_ERROR, xmlValue (sAnswer, "/root/error"))
-    Return
-EndIf
-Let sResult = xmlValue (sAnswer, "/root/value")
-If sResult == "" Then
-    logLine ("extractMainContent: the helper answered with nothing")
-    Return
-EndIf
-; SHOWN, NOT SPOKEN. This command opens a tab, and a tab opening is a focus
-; change: the sentence was spoken into it and heard by nobody. The log said the
-; helper had answered and the screen said nothing, which is the shape of every
-; fault this project has spent an afternoon on.
-sayOrShow (sResult)
 EndScript
 
 
@@ -1951,7 +1983,15 @@ If xmlValue (sAnswer, "/root/error") != "" Then
 EndIf
 Let sResult = xmlValue (sAnswer, "/root/value")
 If sResult == "" Then
-    logLine ("sayClipboard: nothing came back")
+    ; SILENCE IS NOT AN ANSWER, AND HERE IT LOOKED LIKE A BROKEN KEY.
+    ;
+    ; This wrote a log line and returned without speaking, so an EMPTY
+    ; CLIPBOARD was indistinguishable from a command that never ran -- and a
+    ; tester reported Alt+Apostrophe "not working" on a machine where the key
+    ; map was demonstrably fine. A command that has nothing to report must SAY
+    ; that it has nothing to report.
+    logLine ("sayClipboard: the clipboard held nothing")
+    SayMessage (OT_MESSAGE, "The clipboard is empty")
     Return
 EndIf
 sayOrShow (sResult)
@@ -2002,6 +2042,61 @@ EndScript
 ;
 ; This is also the one place that says which build is loaded, now that the
 ; version has left the Alternate Menu title.
+; Says what HomerView knows about itself, out loud, touching nothing.
+;
+; THIS EXISTS BECAUSE THE LOG WAS NOT ENOUGH. A tester's commands did nothing,
+; said nothing, and left NO LOG ENTRY, so every round of debugging began by
+; asking him to find files and read them over the phone -- and each round cost
+; him an evening and told us almost nothing.
+;
+; So this reports the four things that decide whether anything can work, IN
+; SPEECH, WITHOUT WRITING A LOG AND WITHOUT CALLING THE BRIDGE. If the scripts
+; are loaded at all, this SPEAKS -- which is itself the first fact worth having.
+Script sayDiagnostics ()
+Var
+    object oFileSystem,
+    string sText
+SayMessage (OT_MESSAGE, "HomerView diagnostics")
+Let sText = "Version " + c_sVersion + ". "
+Let oFileSystem = CreateObjectEx (c_sFileSystemProgId, False)
+If oFileSystem.FileExists (c_sBridgePath) Then
+    Let sText = sText + "The helper program is there. "
+Else
+    Let sText = sText + "THE HELPER PROGRAM IS MISSING at " + c_sBridgePath + ". "
+EndIf
+If oFileSystem.FolderExists (oFileSystem.GetParentFolderName (c_sLogFile)) Then
+    Let sText = sText + "The log folder is there. "
+Else
+    Let sText = sText + "THE LOG FOLDER IS MISSING at " + c_sLogFile + ". "
+EndIf
+If oFileSystem.FileExists (c_sAppFolder + "\\Start.htm") Then
+    Let sText = sText + "The start page is installed. "
+Else
+    Let sText = sText + "The start page is NOT installed in " + c_sAppFolder + ". "
+EndIf
+; THE ONE FACT THAT DIFFERS BETWEEN THE TWO MACHINES WE HAVE COMPARED.
+;
+; A user copy of default.jss replaces the one JAWS ships. HomerView is chained
+; through MyExtensions, which the FACTORY default file chains -- so a
+; replacement decides whether these scripts load at all, whether a name of
+; theirs is shadowed, and whether the set is loaded twice and therefore keeps
+; TWO SETS OF GLOBALS. That last one shows up as a menu that never remembers
+; the last item chosen, which is exactly what one machine reported and the
+; other never did.
+; GetJAWSSettingsDirectory: "the JAWS drive and settings directory without a
+; trailing backslash", no parameters. Read in FSDN rather than assumed, and
+; it is the folder the installer writes these scripts into.
+If oFileSystem.FileExists (GetJAWSSettingsDirectory () + "\\default.jss") Then
+    Let sText = sText + "THIS MACHINE HAS ITS OWN default.jss, which replaces the one JAWS ships. "
+Else
+    Let sText = sText + "No custom default.jss, so JAWS uses its own. "
+EndIf
+Let sText = sText + "Answers go to " + c_sAnswerPath + "."
+sayOrShow (sText)
+logLine ("sayDiagnostics: " + sText)
+EndScript
+
+
 Script showHotkeySummary ()
 Var
     int iActivated, int iAdded
@@ -2017,6 +2112,7 @@ Let iAdded = UserBufferAddLink ("  Alt+JAWSKey+D   Close a cookie banner or cons
 Let iAdded = UserBufferAddLink ("  Alt+Shift+H     This summary", "homerViewLink (\"showHotkeySummary\")", "Hotkey Summary")
 Let iAdded = UserBufferAddLink ("  Shift+F4        Say the names of the open tabs", "homerViewLink (\"sayTabNames\")", "Tab Names")
 Let iAdded = UserBufferAddLink ("  Alt+JAWSKey+L   Copy the log file to the clipboard", "homerViewLink (\"copyLogToClipboard\")", "Log to Clipboard")
+Let iAdded = UserBufferAddLink ("  Alt+JAWSKey+Q   Say what HomerView knows about itself", "homerViewLink (\"sayDiagnostics\")", "Diagnostics")
 Let iAdded = UserBufferAddText ("")
 Let iAdded = UserBufferAddText ("On a web page:")
 Let iAdded = UserBufferAddLink ("  Shift+Q         Move to the main content, declared or not", "homerViewLink (\"moveToProbableMain\")", "Jump to Probable Main")
@@ -2144,6 +2240,7 @@ Let sTable = "Launch HomerView, Launches or reconnects HomerView's copy of Micro
     + "\7" + "Reverse Find Again, The previous match of whichever find was done last. (Shift+F3)\tfindPrevious"
     + "\7" + "Extract with Regular Expression, Gathers every match for reading. (Control+Shift+E)\textractByPattern"
     + "\7" + "Log to Clipboard, Puts the HomerView log on the clipboard, ready to attach to a message. (Alt+JAWSKey+L)\tcopyLogToClipboard"
+    + "\7" + "Diagnostics, Says whether the helper, the log folder and the start page are where they should be. (Alt+JAWSKey+Q)\tsayDiagnostics"
 ; The list the dialog shows is the first field of every row.
 Let iRecord = 1
 Let sRecord = StringSegment (sTable, "\7", iRecord)
@@ -2156,6 +2253,7 @@ While sRecord != ""
     Let iRecord = iRecord + 1
     Let sRecord = StringSegment (sTable, "\7", iRecord)
 EndWhile
+logLine ("showHomerViewMenu: offering the menu")
 Let iChoice = dialogPick ("HomerView", sItems)
 If iChoice == 0 Then
     Return

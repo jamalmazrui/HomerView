@@ -31,6 +31,7 @@ Alt+JAWSKey+F10=showHomerViewMenu
 Alt+JAWSKey+H=launchHomerView
 Alt+JAWSKey+I=checkAccessibilityIbm
 Alt+JAWSKey+L=copyLogToClipboard
+Alt+JAWSKey+Q=sayDiagnostics
 Alt+Shift+H=showHotkeySummary
 
 [Virtual Keys]

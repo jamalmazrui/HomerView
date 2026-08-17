@@ -170,6 +170,242 @@ function installPrebuiltJsb {
     }
 }
 
+function compileOne {
+    param([string] $sVersion, [string] $pathFile)
+
+    # ONE FILE, WITH THAT VERSION'S COMPILER. compileScript below compiles
+    # HomerView's own source and reports on the whole folder; this compiles
+    # whatever file it is given, which the chaining work needs for default.jss
+    # and for a file it has moved aside.
+    $lCandidates = @(
+        (Join-Path ${env:ProgramFiles} "Freedom Scientific\JAWS\$sVersion\scompile.exe"),
+        (Join-Path ${env:ProgramFiles(x86)} "Freedom Scientific\JAWS\$sVersion\scompile.exe")
+    )
+    $sCompiler = $lCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1
+    if (-not $sCompiler) {
+        writeLog "      no compiler for JAWS $sVersion, so $(Split-Path $pathFile -Leaf) was not compiled"
+        return $false
+    }
+    try {
+        $ErrorActionPreference = "Continue"
+        $sOutput = & $sCompiler $pathFile 2>&1 | Out-String
+        $iExit = $LASTEXITCODE
+        $ErrorActionPreference = "Stop"
+        $pathJsb = [System.IO.Path]::ChangeExtension($pathFile, ".jsb")
+        if ((Test-Path $pathJsb) -and (Get-Item $pathJsb).Length -gt 0) {
+            writeLog "      compiled $(Split-Path $pathJsb -Leaf), $((Get-Item $pathJsb).Length) bytes"
+            return $true
+        }
+        writeLog "      $(Split-Path $pathFile -Leaf) did not compile, exit code $iExit. It said:"
+        foreach ($sLine in ($sOutput -split "`n")) {
+            if ($sLine.Trim()) { writeLog "        $($sLine.Trim())" }
+        }
+        return $false
+    } catch {
+        $ErrorActionPreference = "Stop"
+        writeLog "      $(Split-Path $pathFile -Leaf) could not be compiled: $($_.Exception.Message)"
+        return $false
+    }
+}
+
+function chainThroughUserDefault {
+    param([string] $pathSettings, [string] $sVersion)
+
+    # MAKE HOMERVIEW LOAD EVEN WHERE THE USER HAS THEIR OWN default.jss.
+    #
+    # HomerView is chained from MyExtensions, which the FACTORY default.jss
+    # chains. A machine with its OWN default.jss replaces that file -- so
+    # MyExtensions may be chained differently, twice, or not at all. On one
+    # tester's machine that meant every Alternate Menu command did nothing and
+    # the menu never remembered its last item (a set loaded twice keeps two
+    # sets of globals), while the same build worked perfectly elsewhere.
+    #
+    # THIS FOLLOWS DOUG LEE'S DOCUMENTED .chain PROCEDURE, including its safety
+    # checks, because he has maintained script chaining since 2009 and his
+    # rules exist for failures he has actually seen.
+    $pathJss = Join-Path $pathSettings "default.jss"
+    $pathJsb = Join-Path $pathSettings "default.jsb"
+
+    if (-not (Test-Path $pathJss) -and -not (Test-Path $pathJsb)) {
+        writeLog "    no user default script set here, so the factory one chains MyExtensions"
+        return $true
+    }
+
+    # DOUG'S FIRST RULE, AND IT IS A STOP: "If there is a .jsb file for this
+    # anchor base but no .jss file, stop! This generally means that a set of
+    # scripts is installed that already chained through this file but without
+    # allowing other script sets to do so."
+    if ((Test-Path $pathJsb) -and -not (Test-Path $pathJss)) {
+        writeLog "    STOP: this folder has default.jsb but NO default.jss."
+        writeLog "      Another script set has chained through it without leaving source,"
+        writeLog "      so nothing here can safely be added. HomerView's commands may not"
+        writeLog "      work in this JAWS version. The author of those scripts would have"
+        writeLog "      to help. Nothing has been changed."
+        return $false
+    }
+
+    # WHAT ACTUALLY HAS TO BE TRUE: THE CHAIN MUST REACH THE FACTORY DEFAULT.
+    #
+    # HomerView is chained from MyExtensions, and the FACTORY default.jsb chains
+    # MyExtensions. So a user default.jss that uses default.jsb ALREADY loads
+    # HomerView, and naming HomerView.jsb here as well would load it TWICE --
+    # two sets of globals, which is the exact fault being cured. Naming any of
+    # the three is enough; the file needs nothing added.
+    $sText = Get-Content $pathJss -Raw
+
+    # The backup comes BEFORE any branch that could rewrite the file --
+    # every path below is reversible only because this ran first.
+    if (-not (Test-Path "$pathJss.homerViewBackup")) {
+        Copy-Item $pathJss "$pathJss.homerViewBackup" -Force
+        writeLog "    backed up default.jss before changing it"
+    }
+
+    $bAnchor = $sText -match '(?im)^\s*use\s+"default\.jsb"'
+    $bExtra = $sText -match '(?im)^\s*use\s+"(MyExtensions|HomerView)\.jsb"'
+
+    # LOADED TWICE IS WORSE THAN NOT LOADED, AND IT IS THE HARDER FAULT TO SEE.
+    #
+    # A tester's log PROVED HomerView was reachable: copySelection ran from a
+    # key and logged normally. So his chain was not broken. What failed was
+    # everything that REMEMBERS -- the menu forgot the item chosen a moment
+    # earlier. THAT IS THE SIGNATURE OF A SET LOADED TWICE: each copy keeps its
+    # own globals, so the copy that stores a value is not the copy that reads
+    # it back.
+    #
+    # The factory default.jsb already chains MyExtensions, which uses
+    # HomerView.jsb. A user default.jss that names default.jsb AND either of
+    # those brings HomerView in twice. The extra lines come out.
+    if ($bAnchor -and $bExtra) {
+        $lOut = @()
+        $iDropped = 0
+        foreach ($sLine in (Get-Content $pathJss)) {
+            if ($sLine -match '(?im)^\s*use\s+"(MyExtensions|HomerView)\.jsb"') {
+                writeLog "    removed a duplicate $($sLine.Trim()) from default.jss"
+                $iDropped += 1
+                continue
+            }
+            $lOut += $sLine
+        }
+        Set-Content -Path $pathJss -Value $lOut -Encoding UTF8
+        writeLog "    default.jss loaded HomerView TWICE, once through default.jsb and once"
+        writeLog "      directly. $iDropped line(s) removed, so it now loads once and its"
+        writeLog "      commands can remember what they store."
+        return (compileOne $sVersion $pathJss)
+    }
+    if ($bAnchor -or $bExtra) {
+        writeLog "    the user default.jss reaches HomerView once, through $(if ($bAnchor) { 'default.jsb' } else { 'MyExtensions or HomerView directly' })"
+        return $true
+    }
+
+
+    # WHAT KIND OF FILE IS IT? Doug distinguishes three, and the right action
+    # differs for each.
+    $bChainManager = $true
+    foreach ($sLine in (Get-Content $pathJss)) {
+        $sTrim = $sLine.Trim()
+        if ($sTrim -eq "" -or $sTrim.StartsWith(";")) { continue }
+        if ($sTrim -match '(?i)^use\s+"') { continue }
+        if ($sTrim -match '(?i)^(void\s+)?function\s+_?filler' -or $sTrim -match '(?i)^(endfunction|return)$') { continue }
+        $bChainManager = $false
+        break
+    }
+
+    if ($bChainManager) {
+        # The easy case: add one line above the filler function.
+        $lOut = @()
+        $bAdded = $false
+        foreach ($sLine in (Get-Content $pathJss)) {
+            if (-not $bAdded -and $sLine.Trim() -match '(?i)^(void\s+)?function\s') {
+                $lOut += 'Use "default.jsb" ; 1'
+                $lOut += ""
+                $bAdded = $true
+            }
+            $lOut += $sLine
+        }
+        if (-not $bAdded) { $lOut += 'Use "default.jsb" ; 1' }
+        Set-Content -Path $pathJss -Value $lOut -Encoding UTF8
+        # PRIORITY 1, WHICH DOUG RESERVES FOR A SET THAT MUST COME LAST in the
+        # search order, just under the shared anchor -- exactly right for the
+        # factory scripts, which everything else should be able to override.
+        writeLog "    this chain never reached the factory default, so it does now"
+        writeLog "      (HomerView loads through it, via MyExtensions, rather than twice)"
+    } else {
+        # A COPY OF THE SHARED FILE, OR SOMEBODY'S OWN WORK. Either way it is
+        # moved aside and loaded back through a Use line, which is exactly what
+        # Doug's procedure does -- it keeps whatever is in it while letting
+        # other script sets chain too.
+        $sHeld = "homerViewUserDefault"
+        $pathHeld = Join-Path $pathSettings "$sHeld.jss"
+        Move-Item $pathJss $pathHeld -Force
+        writeLog "    moved the existing default.jss aside as $sHeld.jss and kept it in the chain"
+        $lNew = @(
+            "; Written by the HomerView installer.",
+            ";",
+            "; The factory default scripts first, then whatever was in this folder's own",
+            "; default.jss, which is now $sHeld.jss. Every script set that was here",
+            "; still loads; this file only lets them share.",
+            ";",
+            "; HOMERVIEW IS DELIBERATELY NOT NAMED HERE. The factory default.jsb chains",
+            "; MyExtensions.jsb, and MyExtensions already uses HomerView.jsb -- so adding",
+            "; a Use line for it as well would load HomerView TWICE, and a script set",
+            "; loaded twice keeps TWO SETS OF GLOBALS. That is the very fault this file",
+            "; exists to cure: a menu that forgets the item chosen a moment ago, because",
+            "; the copy that stored it is not the copy that reads it back.",
+            ";",
+            "; To undo by hand: delete this file and $sHeld.jss, rename",
+            "; default.jss.homerViewBackup back to default.jss, and recompile it.",
+            'Use "default.jsb"',
+            "Use `"$sHeld.jsb`" ; 4",
+            "",
+            "; A function is required, or the file will not compile.",
+            "void function homerViewChainFiller ()",
+            "return",
+            "EndFunction"
+        )
+        Set-Content -Path $pathJss -Value $lNew -Encoding UTF8
+        # The moved file must be compiled before anything can use it.
+        compileOne $sVersion $pathHeld | Out-Null
+    }
+    return (compileOne $sVersion $pathJss)
+}
+
+function reportUserDefault {
+    param([string] $pathSettings)
+
+    # A USER COPY OF default.jss SHADOWS THE ONE JAWS SHIPS, AND THAT CHANGES
+    # EVERYTHING ABOUT HOW HOMERVIEW LOADS.
+    #
+    # HomerView lives in MyExtensions, which the FACTORY default.jss chains. A
+    # user default.jss REPLACES that file -- so if it is an older copy, or one
+    # from another script package, it may chain MyExtensions differently, twice,
+    # or not at all.
+    #
+    # Vispero's own guidance: scripts and functions in MyExtensions WITH THE
+    # SAME NAME as ones in default scripts WILL NEVER RUN. And a script set
+    # loaded twice has TWO SETS OF GLOBALS, so a value stored by one invocation
+    # is not there for the next -- which is exactly the symptom reported: a menu
+    # that never remembers the last item chosen, on a machine where the
+    # developer's own remembers it perfectly.
+    #
+    # NOT MOVED ASIDE. msedge.jsb is safe to hold because Edge falls back to the
+    # default set; default.jss IS that fallback, and it may carry the user's own
+    # work. This SAYS SO, loudly, and leaves the decision to a person.
+    foreach ($sName in @("default.jss", "default.jsb")) {
+        $pathFound = Join-Path $pathSettings $sName
+        if (-not (Test-Path $pathFound)) { continue }
+        $script:bUserDefault = $true
+        writeLog "    NOTE: this folder has its own $sName."
+        writeLog "      JAWS loads that INSTEAD of the one it ships, and HomerView's"
+        writeLog "      scripts are reached through it. If HomerView's commands do"
+        writeLog "      nothing, or the menu forgets the last item chosen, this file is"
+        writeLog "      the first thing to look at -- a script set loaded twice has two"
+        writeLog "      sets of globals, and one that shadows a name by mistake silently"
+        writeLog "      replaces it."
+        $oFound = Get-Item $pathFound
+        writeLog "      $sName is $($oFound.Length) bytes, last written $($oFound.LastWriteTime)."
+    }
+}
+
 function holdEdgeScripts {
     param([string] $pathSettings)
 
@@ -341,6 +577,7 @@ $lScripts = @("HomerView.jss", "HomerView.jkm", "HomerView.jsd")
 $iDone = 0
 $iFailed = 0
 $iSkipped = 0
+$bUserDefault = $false
 
 foreach ($folderVersion in $lVersions) {
     $sVersion = $folderVersion.Name
@@ -371,6 +608,26 @@ foreach ($folderVersion in $lVersions) {
                 if (Test-Path $pathFile) {
                     Remove-Item $pathFile -Force -ErrorAction SilentlyContinue
                     writeLog "    removed $sName"
+                }
+            }
+            # THE DEFAULT SCRIPT SET IS PUT BACK FIRST, because it is the file
+            # that governs all of JAWS and the one whose loss would be felt
+            # everywhere. The backup is authoritative: it is what was there
+            # before this installer touched anything.
+            $pathBackup = Join-Path $pathTarget "default.jss.homerViewBackup"
+            if (Test-Path $pathBackup) {
+                try {
+                    Copy-Item $pathBackup (Join-Path $pathTarget "default.jss") -Force
+                    Remove-Item $pathBackup -Force
+                    foreach ($sSpare in @("homerViewUserDefault.jss", "homerViewUserDefault.jsb")) {
+                        $pathSpare = Join-Path $pathTarget $sSpare
+                        if (Test-Path $pathSpare) { Remove-Item $pathSpare -Force }
+                    }
+                    compileOne $sVersion (Join-Path $pathTarget "default.jss") | Out-Null
+                    writeLog "    put default.jss back as it was and recompiled it"
+                } catch {
+                    writeLog "    default.jss could NOT be put back: $($_.Exception.Message)"
+                    writeLog "      The original is still at $pathBackup. Rename it and recompile."
                 }
             }
             # Anything moved aside on the way in is put back on the way out.
@@ -432,7 +689,9 @@ foreach ($folderVersion in $lVersions) {
         }
         if (-not $bCopied) { $iFailed += 1; continue }
 
+        reportUserDefault $pathTarget
         holdEdgeScripts $pathTarget
+        chainThroughUserDefault $pathTarget $sVersion | Out-Null
         addGlobalBinding $pathTarget
         $vCompiled = compileScript $sVersion $pathTarget
         if ($vCompiled -eq "skipped") {
@@ -449,6 +708,14 @@ foreach ($folderVersion in $lVersions) {
 }
 
 writeLog "Finished. $iDone settings folders done, $iSkipped skipped, $iFailed with a problem."
+if ($bUserDefault) {
+    writeLog ""
+    writeLog "IMPORTANT: this machine has its own default.jss or default.jsb, which JAWS"
+    writeLog "loads instead of the one it ships. HomerView's scripts are chained through"
+    writeLog "MyExtensions, which the FACTORY default file chains -- so a replacement can"
+    writeLog "change or break how they load, and a set loaded twice keeps two sets of"
+    writeLog "globals. If commands do nothing, or the menu forgets its last item, start here."
+}
 if ($iFailed -gt 0) {
     writeLog "HomerView still works with NVDA. The JAWS scripts are the part that failed."
 }

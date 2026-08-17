@@ -3099,7 +3099,9 @@ namespace Homer
             //
             // Vertical bar instead: legal in XML, absent from Windows file
             // names, and split the same way on the other side.
-                if (oList.Length > 0) oList.Append("|");
+                // Newline here too, for the same reason: a link's text can
+                // hold a vertical bar even when a file name cannot.
+                if (oList.Length > 0) oList.Append("\n");
                 oList.Append(Uri.UnescapeDataString(sName));
             }
             File.WriteAllText(SessionPath(), oSession.ToString(), new UTF8Encoding(false));
@@ -4820,7 +4822,19 @@ namespace Homer
                 return "{\"error\":\"No tabs\"}";
             // Vertical bar, not BEL: see the note above -- XML carries no
             // control characters and this answer is turned into XML.
-            return "{\"value\":" + Quote(string.Join("|", lLines.ToArray())) + "}";
+            // A NEWLINE, NOT A VERTICAL BAR. TITLES CONTAIN BARS.
+            //
+            // These records were separated by BEL until XML rejected it, and I
+            // replaced it with "|" -- which is fine for Windows file names,
+            // where the character is illegal, and WRONG FOR PAGE TITLES, where
+            // it is everywhere: "Downloads | Microsoft Edge". The first record
+            // then ended in the middle of the first title and every later tab
+            // vanished, so a reader heard one tab named "Downloads" and nothing
+            // else.
+            //
+            // A newline cannot appear in a title or a URL, and XML carries it
+            // happily -- it is one of the three control characters XML allows.
+            return "{\"value\":" + Quote(string.Join("\n", lLines.ToArray())) + "}";
         }
 
         private static string EscapeHtml(string sText)

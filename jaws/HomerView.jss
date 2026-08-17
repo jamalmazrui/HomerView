@@ -1758,12 +1758,16 @@ SayMessage (OT_MESSAGE, hVXmlValue (sAnswer, "/root/value"))
 EndScript
 
 
-; THE HELPER'S LISTS ARE SEPARATED BY A VERTICAL BAR, NOT BY \7.
+; THE HELPER'S LISTS ARE SEPARATED BY A NEWLINE, NOT BY \7.
 ;
 ; \7 is what JAWS uses in its own menu strings, and copying it here broke Web
 ; Download completely: the helper's answer is turned into XML, XML FORBIDS
 ; CONTROL CHARACTERS, MSXML rejected the document, and every field came back
 ; empty -- "0 fetched, 0 failed" on a page with 17 files ready to download.
+; A vertical bar was tried first and was wrong: PAGE TITLES ARE FULL OF
+; THEM ("Downloads | Microsoft Edge"), so the tab list ended at the first
+; one and reported a single tab. A newline cannot appear in a title, a
+; URL or a file name, and XML allows it.
 ; The menu below still uses \7, because that string never leaves this file.
 
 Script hVDownloadFiles ()
@@ -1815,7 +1819,7 @@ Let iWhich = 1
 Let iGot = 0
 Let iFailed = 0
 Let sTrouble = ""
-Let sName = Builtin::StringSegment (sNames, "|", iWhich)
+Let sName = Builtin::StringSegment (sNames, "\n", iWhich)
 While sName != ""
     SayMessage (OT_MESSAGE, sName)
     Let sAnswer = hVCallBridge ("downloadOne", Builtin::IntToString (iWhich))
@@ -1827,7 +1831,7 @@ While sName != ""
         Let iGot = iGot + 1
     EndIf
     Let iWhich = iWhich + 1
-    Let sName = Builtin::StringSegment (sNames, "|", iWhich)
+    Let sName = Builtin::StringSegment (sNames, "\n", iWhich)
 EndWhile
 ; A MESSAGE BOX AT THE END, because a spoken summary after twenty spoken names
 ; is one more thing said and gone, and this is the part worth reading twice.
@@ -2091,7 +2095,7 @@ If sNames == "" Then
     Return
 EndIf
 Let iWhich = 1
-Let sRecord = Builtin::StringSegment (sNames, "|", iWhich)
+Let sRecord = Builtin::StringSegment (sNames, "\n", iWhich)
 While sRecord != ""
     If sSpoken == "" Then
         Let sSpoken = Builtin::StringSegment (sRecord, "\t", 2)
@@ -2099,9 +2103,19 @@ While sRecord != ""
         Let sSpoken = sSpoken + ". " + Builtin::StringSegment (sRecord, "\t", 2)
     EndIf
     Let iWhich = iWhich + 1
-    Let sRecord = Builtin::StringSegment (sNames, "|", iWhich)
+    Let sRecord = Builtin::StringSegment (sNames, "\n", iWhich)
 EndWhile
-SayMessage (OT_MESSAGE, sSpoken)
+; THE COUNT FIRST, so a wrong list is obvious at once.
+;
+; A reader who hears one title cannot tell whether the browser has one tab or
+; whether the list broke on its way here -- and it HAD broken: the records were
+; separated by a vertical bar, which page titles are full of. Saying "one tab"
+; would have made that visible immediately.
+If iWhich <= 2 Then
+    SayMessage (OT_MESSAGE, "1 tab. " + sSpoken)
+Else
+    SayMessage (OT_MESSAGE, Builtin::IntToString (iWhich - 1) + " tabs. " + sSpoken)
+EndIf
 EndScript
 
 

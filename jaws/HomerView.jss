@@ -171,11 +171,22 @@ Globals
 string Function hVLogPath ()
 Var
     object oFile, object oFileSystem
+; THE HEADER IS WRITTEN WHEN THE FILE LACKS ONE, NOT ONCE PER SESSION.
+;
+; Two of a tester's logs came back with NO VERSION ANYWHERE IN THEM, so there
+; was no way to tell which build they described, and a round of reasoning went
+; into the wrong file. The old test was "have I written a header THIS SESSION",
+; which says nothing about whether THIS FILE has one -- a fresh log named by a
+; new install gets none if the session already wrote to the previous name.
+;
+; The test is now the file itself: no file, or an empty one, gets a header.
+Let oFileSystem = Builtin::CreateObjectEx (c_sFileSystemProgId, False)
 If gsLogPath != "" Then
-    Return gsLogPath
+    If oFileSystem.FileExists (gsLogPath) Then
+        Return gsLogPath
+    EndIf
 EndIf
 Let gsLogPath = c_sLogFile
-Let oFileSystem = Builtin::CreateObjectEx (c_sFileSystemProgId, False)
 Let oFile = oFileSystem.OpenTextFile (gsLogPath, 8, True)
 oFile.WriteLine ("")
 oFile.WriteLine ("==========================================================")
@@ -1170,7 +1181,12 @@ hVLogLine ("  PARITY on this page: off screen model " + Builtin::IntToString (iJ
     + " links, browser " + Builtin::StringSegment (sResult, " ", 1) + " links")
 Let sAnswer = hVCallBridge ("clipboardText", sResult)
 If hVXmlValue (sAnswer, "/root/value") != "" Then
-    SayMessage (OT_MESSAGE, "Links on the clipboard")
+    ; A COUNT, BECAUSE IT IS THE ONE THING THE READER CANNOT SEE.
+    ; "Links on the clipboard" says the command finished; the NUMBER says
+    ; what it got, and tells them at once whether it found the whole page
+    ; or three stragglers. The browser already returns the count first.
+    SayMessage (OT_MESSAGE, Builtin::StringSegment (sResult, " ", 1)
+        + " links on the clipboard")
 Else
     SayMessage (OT_ERROR, "Clipboard refused")
 EndIf
@@ -1737,6 +1753,14 @@ SayMessage (OT_MESSAGE, hVXmlValue (sAnswer, "/root/value"))
 EndScript
 
 
+; THE HELPER'S LISTS ARE SEPARATED BY A VERTICAL BAR, NOT BY \7.
+;
+; \7 is what JAWS uses in its own menu strings, and copying it here broke Web
+; Download completely: the helper's answer is turned into XML, XML FORBIDS
+; CONTROL CHARACTERS, MSXML rejected the document, and every field came back
+; empty -- "0 fetched, 0 failed" on a page with 17 files ready to download.
+; The menu below still uses \7, because that string never leaves this file.
+
 Script hVDownloadFiles ()
 Var
     int iFailed, int iGot, int iOk, int iWhich,
@@ -1786,7 +1810,7 @@ Let iWhich = 1
 Let iGot = 0
 Let iFailed = 0
 Let sTrouble = ""
-Let sName = Builtin::StringSegment (sNames, "\7", iWhich)
+Let sName = Builtin::StringSegment (sNames, "|", iWhich)
 While sName != ""
     SayMessage (OT_MESSAGE, sName)
     Let sAnswer = hVCallBridge ("downloadOne", Builtin::IntToString (iWhich))
@@ -1798,7 +1822,7 @@ While sName != ""
         Let iGot = iGot + 1
     EndIf
     Let iWhich = iWhich + 1
-    Let sName = Builtin::StringSegment (sNames, "\7", iWhich)
+    Let sName = Builtin::StringSegment (sNames, "|", iWhich)
 EndWhile
 ; A MESSAGE BOX AT THE END, because a spoken summary after twenty spoken names
 ; is one more thing said and gone, and this is the part worth reading twice.
@@ -1929,13 +1953,6 @@ hVOpenOwnDocument ("Developer.htm", "the developer notes")
 EndScript
 
 
-; Every key in one document, which is the printable companion to the Hotkey
-; Summary. No key of its own; it is on the menu.
-Script hVOpenHotkeyDocument ()
-hVOpenOwnDocument ("Hotkeys.htm", "the hotkey document")
-EndScript
-
-
 ; What HomerView is for, in its own words. No key; on the menu.
 Script hVOpenAnnouncement ()
 hVOpenOwnDocument ("Announce.htm", "the project announcement")
@@ -2025,7 +2042,12 @@ If hVXmlValue (sAnswer, "/root/error") != "" Then
 EndIf
 Let sResult = hVXmlValue (sAnswer, "/root/value")
 If sResult == "" Then
+    ; A COMMAND WITH NOTHING TO REPORT MUST SAY SO. Silence here was
+    ; indistinguishable from a command that never ran -- and this one has a
+    ; real way to fail: it needs a language engine, which on one machine
+    ; could not be loaded at all.
     hVLogLine ("hVListNames: nothing came back")
+    SayMessage (OT_MESSAGE, "No names were found on this page")
     Return
 EndIf
 ; Spoken, not shown: the list has just been opened in a tab, and a buffer in
@@ -2056,7 +2078,7 @@ If sNames == "" Then
     Return
 EndIf
 Let iWhich = 1
-Let sRecord = Builtin::StringSegment (sNames, "\7", iWhich)
+Let sRecord = Builtin::StringSegment (sNames, "|", iWhich)
 While sRecord != ""
     If sSpoken == "" Then
         Let sSpoken = Builtin::StringSegment (sRecord, "\t", 2)
@@ -2064,7 +2086,7 @@ While sRecord != ""
         Let sSpoken = sSpoken + ". " + Builtin::StringSegment (sRecord, "\t", 2)
     EndIf
     Let iWhich = iWhich + 1
-    Let sRecord = Builtin::StringSegment (sNames, "\7", iWhich)
+    Let sRecord = Builtin::StringSegment (sNames, "|", iWhich)
 EndWhile
 SayMessage (OT_MESSAGE, sSpoken)
 EndScript
@@ -2093,8 +2115,20 @@ If sResult == "" Then
     ; tester reported Alt+Apostrophe "not working" on a machine where the key
     ; map was demonstrably fine. A command that has nothing to report must SAY
     ; that it has nothing to report.
-    hVLogLine ("hVSayClipboard: the clipboard held nothing")
-    SayMessage (OT_MESSAGE, "The clipboard is empty")
+    ; "BLANK" IS THE JAWS CONVENTION for nothing to read, so this says that
+    ; rather than a sentence of its own.
+    ;
+    ; AND THE RAW ANSWER IS LOGGED, because this case is not yet understood.
+    ; The helper handles a file drop list explicitly: it answers "Path drop
+    ; list" and the path, which is what JAWS itself says in a folder window. So
+    ; after the log command there SHOULD have been something to read, and a
+    ; tester heard nothing. Either the answer never arrived or it did not
+    ; survive parsing, and the length and opening characters say which WITHOUT
+    ; another round trip to him.
+    hVLogLine ("hVSayClipboard: no value; the answer was "
+        + Builtin::IntToString (Builtin::StringLength (sAnswer))
+        + " characters: " + Builtin::SubString (sAnswer, 1, 120))
+    SayMessage (OT_MESSAGE, "Blank")
     Return
 EndIf
 hVSayOrShow (sResult)
@@ -2200,19 +2234,28 @@ hVLogLine ("hVSayDiagnostics: " + sText)
 EndScript
 
 
-Script hVShowHotkeySummary ()
+Script hVHotKeyHelp ()
 Var
     int iActivated, int iAdded
 Builtin::UserBufferDeactivate ()
 Builtin::UserBufferClear ()
 Let iAdded = Builtin::UserBufferAddText ("HomerView " + c_sVersion + " for JAWS, installed " + c_sInstalled)
 Let iAdded = Builtin::UserBufferAddText ("")
+; THE POINTER TO JAWS'S OWN HELP, BECAUSE THAT IS THE REAL INTEGRATION.
+;
+; Every one of these keys has a Synopsis and a Description in HomerView.jsd,
+; which is what JAWS Keyboard Help reads out. So a reader who presses one of
+; these keys in Keyboard Help hears HomerView describe it, in JAWS's own
+; voice and by JAWS's own mechanism -- no separate convention to learn.
+; Saying so here is what makes that discoverable.
+Let iAdded = Builtin::UserBufferAddText ("In JAWS Keyboard Help, JAWSKey+1, press any key below to hear what it does.")
+Let iAdded = Builtin::UserBufferAddText ("")
 Let iAdded = Builtin::UserBufferAddText ("Anywhere:")
 Let iAdded = UserBufferAddLink ("  Alt+JAWSKey+H   Launch or return to HomerView", "hVHomerViewLink (\"hVLaunchHomerView\")", "Launch HomerView")
 Let iAdded = UserBufferAddLink ("  Alt+JAWSKey+F10 Alternate Menu, every command in one list", "hVHomerViewLink (\"hVShowHomerViewMenu\")", "Alternate Menu")
 Let iAdded = UserBufferAddLink ("  Alt+JAWSKey+A   Check the page with axe and save a report", "hVHomerViewLink (\"hVCheckAccessibility\")", "Check Accessibility with axe")
 Let iAdded = UserBufferAddLink ("  Alt+JAWSKey+D   Close a cookie banner or consent wall", "hVHomerViewLink (\"hVDismissDialog\")", "Dismiss Dialog")
-Let iAdded = UserBufferAddLink ("  Alt+Shift+H     This summary", "hVHomerViewLink (\"hVShowHotkeySummary\")", "Hotkey Summary")
+Let iAdded = UserBufferAddLink ("  Alt+Shift+H     This summary", "hVHomerViewLink (\"hVHotKeyHelp\")", "Hotkey Summary")
 Let iAdded = UserBufferAddLink ("  Shift+F4        Say the names of the open tabs", "hVHomerViewLink (\"hVSayTabNames\")", "Tab Names")
 Let iAdded = UserBufferAddLink ("  Alt+JAWSKey+L   Copy the log file to the clipboard", "hVHomerViewLink (\"hVCopyLogToClipboard\")", "Log to Clipboard")
 Let iAdded = UserBufferAddLink ("  Alt+JAWSKey+Q   Say what HomerView knows about itself", "hVHomerViewLink (\"hVSayDiagnostics\")", "Diagnostics")
@@ -2262,7 +2305,7 @@ Let iAdded = Builtin::UserBufferAddText ("find on Control+F, and the page summar
 Let iActivated = Builtin::UserBufferActivate ()
 JAWSTopOfFile ()
 SayAll ()
-hVLogLine ("hVShowHotkeySummary: last add " + Builtin::IntToString (iAdded) + ", activated " + Builtin::IntToString (iActivated))
+hVLogLine ("hVHotKeyHelp: last add " + Builtin::IntToString (iAdded) + ", activated " + Builtin::IntToString (iActivated))
 EndScript
 
 
@@ -2283,8 +2326,8 @@ EndScript
 ; than what starts with A.
 Script hVShowHomerViewMenu ()
 Var
-    int iChoice, int iRecord,
-    string sItems, string sRecord, string sTable
+    int bOnPage, int iChoice, int iKept, int iRecord,
+    string sItems, string sKept, string sRecord, string sTable
 ; ONE TABLE, AND THE INDEX PICKS FROM IT.
 ;
 ; This used to build the list in one place and then decide what to run by
@@ -2300,68 +2343,92 @@ Var
 ;
 ; PerformScriptByName takes the name as a string, so no chain of branches is
 ; needed at all. FSDN documents it with a worked example.
-Let sTable = "About HomerView, Which build is loaded and where everything lives. (Alt+F1)\thVShowAbout"
-    + "\7" + "Append Clipboard, Adds the clipboard to the end of a text file. (Control+Shift+Apostrophe)\thVAppendClipboard"
-    + "\7" + "Check Accessibility with axe, Tests the page with Deque axe-core and saves a report. (Alt+JAWSKey+A)\thVCheckAccessibility"
-    + "\7" + "Check Accessibility with IBM, Runs IBM Equal Access and saves every format to Downloads. (Alt+JAWSKey+I)\thVCheckAccessibilityIbm"
-    + "\7" + "Clear Clipboard, Empties the clipboard so an append starts afresh. (Alt+Shift+Apostrophe)\thVClearClipboard"
-    + "\7" + "Complete Selection, Selects from where F8 was pressed to here. (Shift+F8)\thVCompleteSelection"
-    + "\7" + "Copy All, Puts the whole page on the clipboard. (Control+F8)\thVCopyAll"
-    + "\7" + "Copy Append, Adds the selection or the line to what is on the clipboard. (Alt+C)\thVCopyAppend"
-    + "\7" + "Copy Selection, Copies the selection, or the line under the cursor. (Control+C)\thVCopySelection"
-    + "\7" + "Developer Notes, Notes for anyone working on HomerView itself. (Control+Shift+F1)\thVOpenDeveloperNotes"
-    + "\7" + "Diagnostics, Says whether the helper, the log folder and the start page are where they should be. (Alt+JAWSKey+Q)\thVSayDiagnostics"
-    + "\7" + "Dismiss Dialog, Closes a cookie banner, newsletter offer or consent wall that Escape will not. (Alt+JAWSKey+D)\thVDismissDialog"
-    + "\7" + "Extract Main Content, Extracts the readable part of the page into a tab of its own. (Shift+F9)\thVExtractMainContent"
-    + "\7" + "Extract with Regular Expression, Gathers every match for reading. (Control+Shift+E)\thVExtractByPattern"
-    + "\7" + "Find Contacts, Finds who to tell about this site: email, accessibility statement, contact pages. (Alt+JAWSKey+C)\thVFindContacts"
-    + "\7" + "Forward Find Again, The next match of whichever find was done last. (F3)\thVFindNext"
-    + "\7" + "Forward Find with Regular Expression, Searches forward for a pattern. (Control+F3)\thVFindByPattern"
-    + "\7" + "History of Changes, What changed in each release. (Shift+F1)\thVShowHistory"
-    + "\7" + "Hotkey Document, Every key in one printable document.\thVOpenHotkeyDocument"
-    + "\7" + "Hotkey Summary, Lists every HomerView command and its key. (Alt+Shift+H)\thVShowHotkeySummary"
-    + "\7" + "Jump to Probable Main, Moves to the main content, whether the page declares it or not. (Shift+Q)\thVMoveToProbableMain"
-    + "\7" + "Launch HomerView, Launches or reconnects HomerView's copy of Microsoft Edge. (Alt+JAWSKey+H)\thVLaunchHomerView"
-    + "\7" + "Link Target, Says where the link under the cursor goes and shows its address. (Alt+L)\thVDescribeLinkTarget"
-    + "\7" + "List Names, Lists the people, places, organisations and dates a page mentions. (Alt+N)\thVListNames"
-    + "\7" + "Log to Clipboard, Puts the HomerView log on the clipboard, ready to attach to a message. (Alt+JAWSKey+L)\thVCopyLogToClipboard"
-    + "\7" + "Open Document, Opens a Word file, PDF, ebook or spreadsheet as a page. (Control+O)\thVOpenDocument"
-    + "\7" + "Page Folder, Opens this page's folder in File Explorer, to browse what was saved from it. (Alt+Shift+F)\thVOpenPageFolder"
-    + "\7" + "Page Links to Clipboard, Copies the text and address of every link on the page. (Alt+Shift+P)\thVCopyPageLinks"
-    + "\7" + "Project Announcement, What HomerView is for, in its own words.\thVOpenAnnouncement"
-    + "\7" + "Quick Start, The short introduction to HomerView. (Alt+Shift+F1)\thVOpenQuickStart"
-    + "\7" + "Read All, Speaks the whole page from the top without moving the cursor. (Alt+F8)\thVReadAll"
-    + "\7" + "Reverse Find Again, The previous match of whichever find was done last. (Shift+F3)\thVFindPrevious"
-    + "\7" + "Reverse Find for Text, Searches backwards for text, which JAWS has no key for. (Control+Shift+F)\thVFindBackwards"
-    + "\7" + "Reverse Find with Regular Expression, Searches backwards for a pattern. (Control+Shift+F3)\thVFindByPatternBackwards"
-    + "\7" + "Save Clipboard, Saves the clipboard to a text file. (Control+Apostrophe)\thVSaveClipboard"
-    + "\7" + "Save Page, Saves this page as html, Word, Markdown or an ebook. (Control+S)\thVSavePage"
-    + "\7" + "Say Clipboard, Says what is on the clipboard, paths or text. (Alt+Apostrophe)\thVSayClipboard"
-    + "\7" + "Say Metadata, Shows what the page says about itself. (Alt+M)\thVSayMetadata"
-    + "\7" + "Session Log, Opens this session's log to read. (Alt+Control+F1)\thVOpenSessionLog"
-    + "\7" + "Start Selection, Marks where a selection begins, to be finished with Shift+F8. (F8)\thVStartSelection"
-    + "\7" + "Tab List, Lists the open tabs by name and address.\thVListTabs"
-    + "\7" + "Tab Names, Says the names of the open tabs without moving anywhere. (Shift+F4)\thVSayTabNames"
-    + "\7" + "User Guide, Opens the HomerView guide. (Control+F1)\thVOpenUserGuide"
-    + "\7" + "Web Download, Fetches the files this page links to, with the browser's own cookies. (Alt+Shift+W)\thVDownloadFiles"
+Let sTable = "About HomerView, Which build is loaded and where everything lives. (Alt+F1)\thVShowAbout\tA"
+    + "\7" + "Append Clipboard, Adds the clipboard to the end of a text file. (Control+Shift+Apostrophe)\thVAppendClipboard\tA"
+    + "\7" + "Check Accessibility with axe, Tests the page with Deque axe-core and saves a report. (Alt+JAWSKey+A)\thVCheckAccessibility\tP"
+    + "\7" + "Check Accessibility with IBM, Runs IBM Equal Access and saves every format to Downloads. (Alt+JAWSKey+I)\thVCheckAccessibilityIbm\tP"
+    + "\7" + "Clear Clipboard, Empties the clipboard so an append starts afresh. (Alt+Shift+Apostrophe)\thVClearClipboard\tA"
+    + "\7" + "Complete Selection, Selects from where F8 was pressed to here. (Shift+F8)\thVCompleteSelection\tP"
+    + "\7" + "Copy All, Puts the whole page on the clipboard. (Control+F8)\thVCopyAll\tP"
+    + "\7" + "Copy Append, Adds the selection or the line to what is on the clipboard. (Alt+C)\thVCopyAppend\tA"
+    + "\7" + "Copy Selection, Copies the selection, or the line under the cursor. (Control+C)\thVCopySelection\tP"
+    + "\7" + "Developer Notes, Notes for anyone working on HomerView itself. (Control+Shift+F1)\thVOpenDeveloperNotes\tA"
+    + "\7" + "Diagnostics, Says whether the helper, the log folder and the start page are where they should be. (Alt+JAWSKey+Q)\thVSayDiagnostics\tA"
+    + "\7" + "Dismiss Dialog, Closes a cookie banner, newsletter offer or consent wall that Escape will not. (Alt+JAWSKey+D)\thVDismissDialog\tA"
+    + "\7" + "Extract Main Content, Extracts the readable part of the page into a tab of its own. (Shift+F9)\thVExtractMainContent\tP"
+    + "\7" + "Extract with Regular Expression, Gathers every match for reading. (Control+Shift+E)\thVExtractByPattern\tP"
+    + "\7" + "Find Contacts, Finds who to tell about this site: email, accessibility statement, contact pages. (Alt+JAWSKey+C)\thVFindContacts\tP"
+    + "\7" + "Forward Find Again, The next match of whichever find was done last. (F3)\thVFindNext\tP"
+    + "\7" + "Forward Find with Regular Expression, Searches forward for a pattern. (Control+F3)\thVFindByPattern\tP"
+    + "\7" + "History of Changes, What changed in each release. (Shift+F1)\thVShowHistory\tA"
+    + "\7" + "Hot Key Help, Lists every HomerView command and its key. (Alt+Shift+H)\thVHotKeyHelp\tA"
+    + "\7" + "Jump to Probable Main, Moves to the main content, whether the page declares it or not. (Shift+Q)\thVMoveToProbableMain\tP"
+    + "\7" + "Launch HomerView, Launches or reconnects HomerView's copy of Microsoft Edge. (Alt+JAWSKey+H)\thVLaunchHomerView\tA"
+    + "\7" + "Link Target, Says where the link under the cursor goes and shows its address. (Alt+L)\thVDescribeLinkTarget\tP"
+    + "\7" + "List Names, Lists the people, places, organisations and dates a page mentions. (Alt+N)\thVListNames\tP"
+    + "\7" + "Log to Clipboard, Puts the HomerView log on the clipboard, ready to attach to a message. (Alt+JAWSKey+L)\thVCopyLogToClipboard\tA"
+    + "\7" + "Open Document, Opens a Word file, PDF, ebook or spreadsheet as a page. (Control+O)\thVOpenDocument\tA"
+    + "\7" + "Page Folder, Opens this page's folder in File Explorer, to browse what was saved from it. (Alt+Shift+F)\thVOpenPageFolder\tP"
+    + "\7" + "Page Links to Clipboard, Copies the text and address of every link on the page. (Alt+Shift+P)\thVCopyPageLinks\tP"
+    + "\7" + "Project Announcement, What HomerView is for, in its own words.\thVOpenAnnouncement\tA"
+    + "\7" + "Quick Start, The short introduction to HomerView. (Alt+Shift+F1)\thVOpenQuickStart\tA"
+    + "\7" + "Read All, Speaks the whole page from the top without moving the cursor. (Alt+F8)\thVReadAll\tP"
+    + "\7" + "Reverse Find Again, The previous match of whichever find was done last. (Shift+F3)\thVFindPrevious\tP"
+    + "\7" + "Reverse Find for Text, Searches backwards for text, which JAWS has no key for. (Control+Shift+F)\thVFindBackwards\tP"
+    + "\7" + "Reverse Find with Regular Expression, Searches backwards for a pattern. (Control+Shift+F3)\thVFindByPatternBackwards\tP"
+    + "\7" + "Save Clipboard, Saves the clipboard to a text file. (Control+Apostrophe)\thVSaveClipboard\tA"
+    + "\7" + "Save Page, Saves this page as html, Word, Markdown or an ebook. (Control+S)\thVSavePage\tP"
+    + "\7" + "Say Clipboard, Says what is on the clipboard, paths or text. (Alt+Apostrophe)\thVSayClipboard\tA"
+    + "\7" + "Say Metadata, Shows what the page says about itself. (Alt+M)\thVSayMetadata\tP"
+    + "\7" + "Session Log, Opens this session's log to read. (Alt+Control+F1)\thVOpenSessionLog\tA"
+    + "\7" + "Start Selection, Marks where a selection begins, to be finished with Shift+F8. (F8)\thVStartSelection\tP"
+    + "\7" + "Tab List, Lists the open tabs by name and address.\thVListTabs\tA"
+    + "\7" + "Tab Names, Says the names of the open tabs without moving anywhere. (Shift+F4)\thVSayTabNames\tA"
+    + "\7" + "User Guide, Opens the HomerView guide. (Control+F1)\thVOpenUserGuide\tA"
+    + "\7" + "Web Download, Fetches the files this page links to, with the browser's own cookies. (Alt+Shift+W)\thVDownloadFiles\tP"
 ; The list the dialog shows is the first field of every row.
+; ONLY WHAT APPLIES RIGHT NOW.
+;
+; A menu of 44 items is a lot to hear, and most of them cannot do anything
+; unless a web page is in front of you: there is no point offering "Check
+; Accessibility" or "Copy Page Links" while the focus is in a folder window.
+; Each row carries a third field -- P for "needs a page", A for "always" --
+; and the P rows are left out when the virtual cursor is not in a document.
+;
+; IsVirtualPCCursor is the documented test: "Checks to see if the Virtual PC
+; cursor is being used to navigate within the window with focus", TRUE when it
+; is. That is exactly the condition under which a page command has a page.
+;
+; THE KEPT ROWS ARE COLLECTED INTO sKept AND THE CHOICE IS LOOKED UP THERE,
+; because the numbers must line up with what was offered -- dispatching from
+; the full table after showing a shorter list would run the wrong command.
+Let bOnPage = Builtin::IsVirtualPCCursor ()
 Let iRecord = 1
+Let iKept = 0
 Let sRecord = Builtin::StringSegment (sTable, "\7", iRecord)
 While sRecord != ""
-    If iRecord == 1 Then
-        Let sItems = Builtin::StringSegment (sRecord, "\t", 1)
-    Else
-        Let sItems = sItems + "\7" + Builtin::StringSegment (sRecord, "\t", 1)
+    If bOnPage || Builtin::StringSegment (sRecord, "\t", 3) != "P" Then
+        Let iKept = iKept + 1
+        If iKept == 1 Then
+            Let sItems = Builtin::StringSegment (sRecord, "\t", 1)
+            Let sKept = sRecord
+        Else
+            Let sItems = sItems + "\7" + Builtin::StringSegment (sRecord, "\t", 1)
+            Let sKept = sKept + "\7" + sRecord
+        EndIf
     EndIf
     Let iRecord = iRecord + 1
     Let sRecord = Builtin::StringSegment (sTable, "\7", iRecord)
 EndWhile
+hVLogLine ("hVShowHomerViewMenu: " + Builtin::IntToString (iKept) + " of "
+    + Builtin::IntToString (iRecord - 1) + " commands apply here; on a page = "
+    + Builtin::IntToString (bOnPage))
 hVLogLine ("hVShowHomerViewMenu: offering the menu")
 Let iChoice = hVDialogPick ("HomerView", sItems)
 If iChoice == 0 Then
     Return
 EndIf
-Let sRecord = Builtin::StringSegment (sTable, "\7", iChoice)
+Let sRecord = Builtin::StringSegment (sKept, "\7", iChoice)
 hVLogLine ("menu row " + Builtin::IntToString (iChoice) + " runs " + Builtin::StringSegment (sRecord, "\t", 2))
 PerformScriptByName (Builtin::StringSegment (sRecord, "\t", 2))
 EndScript

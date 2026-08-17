@@ -325,7 +325,18 @@ function buildAddon {
         @{ Name = "Ace.js"; Urls = @(
             "https://unpkg.com/accessibility-checker-engine@latest/ace.js",
             "https://cdn.jsdelivr.net/npm/accessibility-checker-engine@latest/ace.js",
-            "https://able.ibm.com/rules/archives/latest/js/ace.js") }
+            "https://able.ibm.com/rules/archives/latest/js/ace.js") },
+        # THE LANGUAGE ENGINE, WHICH WAS MISSED THE FIRST TIME.
+        #
+        # Names uses a THIRD engine, compromise, and only the two accessibility
+        # ones were shipped. A tester got "The language engine could not be
+        # loaded" on acb.org -- HomerView's own message, not a JAWS one -- which
+        # is what a blocked or slow CDN looks like from inside that command.
+        # jsdelivr first: unpkg answered 404 for this exact path on 15 August.
+        @{ Name = "Nlp.js"; Urls = @(
+            "https://cdn.jsdelivr.net/npm/compromise@14/builds/compromise.min.js",
+            "https://unpkg.com/compromise@latest/builds/compromise.min.js",
+            "https://unpkg.com/compromise@14/builds/compromise.min.js") }
     )) {
         $pathEngine = Join-Path $pathRoot $oEngine.Name
         $bGot = $false

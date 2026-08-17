@@ -271,7 +271,7 @@ $lCommonKeys = @(
     "Alt+JAWSKey+F10=hVShowHomerViewMenu",
     "Alt+JAWSKey+H=hVLaunchHomerView",
     "Alt+JAWSKey+I=hVCheckAccessibilityIbm",
-    "Alt+Shift+H=hVShowHotkeySummary",
+    "Alt+Shift+H=hVHotKeyHelp",
     "Alt+JAWSKey+L=hVCopyLogToClipboard",
     "Alt+JAWSKey+Q=hVSayDiagnostics"
 )

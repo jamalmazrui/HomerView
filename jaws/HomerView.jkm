@@ -32,7 +32,7 @@ Alt+JAWSKey+H=hVLaunchHomerView
 Alt+JAWSKey+I=hVCheckAccessibilityIbm
 Alt+JAWSKey+L=hVCopyLogToClipboard
 Alt+JAWSKey+Q=hVSayDiagnostics
-Alt+Shift+H=hVShowHotkeySummary
+Alt+Shift+H=hVHotKeyHelp
 
 [Virtual Keys]
 Alt+Apostrophe=hVSayClipboard

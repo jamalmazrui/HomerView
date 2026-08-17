@@ -71,20 +71,14 @@ rem up is the only way both logs end up in one place, which is what he asked
 rem for: one folder to zip, not two.
 >> "C:\temp\HomerView_jaws.result" echo %logDir%
 
-rem A COPY OF THE LOG WHERE SOMEBODY CAN BE TOLD TO FIND IT ON THE PHONE.
+rem NO LOG COPY IN C:\temp ANY MORE.
 rem
-rem The log already lands in %LOCALAPPDATA%\HomerView\logs under a timestamped
-rem name, which is right for HomerView itself and useless for a tester being
-rem talked through a failure: it cannot be dictated, and the newest of several
-rem files has to be picked out. This copy has ONE fixed path.
-rem
-rem C:\temp rather than the user profile, because the profile is exactly what
-rem goes wrong here -- an installer running elevated can resolve a DIFFERENT
-rem user's application data than the person sitting at the machine.
-if not exist "C:\temp" mkdir "C:\temp" 2>nul
-for /f "delims=" %%F in ('dir /b /o-d "%logDir%\HomerViewJAWS*.log" 2^>nul') do (
-    copy /y "%logDir%\%%F" "C:\temp\HomerView_jaws.log" >nul 2>&1
-    goto :copiedLog
+rem This used to copy the log there so it could be dictated over the phone.
+rem Every log now lives in one folder -- %LOCALAPPDATA%\HomerView\logs -- which
+rem is the one place he asks a tester to zip, and a second copy elsewhere only
+rem raises the question of which is current. The RESULT file below stays in
+rem C:\temp because it is not a log: it is a message to the ELEVATED installer,
+rem which cannot resolve this user's application data.
 )
 :copiedLog
 endlocal & exit /b %exitCode%

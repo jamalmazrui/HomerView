@@ -1351,7 +1351,8 @@ namespace Homer
                     string sShipped = Path.Combine(
                         Path.GetDirectoryName(
                             System.Reflection.Assembly.GetExecutingAssembly().Location),
-                        sCacheName == sAxeCacheName ? "Axe.js" : "Ace.js");
+                        sCacheName == sAxeCacheName ? "Axe.js"
+                            : sCacheName == sNlpCacheName ? "Nlp.js" : "Ace.js");
                     if (File.Exists(sShipped) && new FileInfo(sShipped).Length > iSmallest)
                     {
                         sSource = File.ReadAllText(sShipped);
@@ -2949,7 +2950,23 @@ namespace Homer
                 catch (Exception) { sName = ""; }
                 if (sName == "") sName = lLink[2];
                 if (sName == "") sName = "a file";
-                if (oList.Length > 0) oList.Append("\a");
+            // NOT A CONTROL CHARACTER. XML FORBIDS THEM AND THE ANSWER IS XML.
+            //
+            // This joined names with "\a" -- BEL, character 7 -- copying the
+            // separator JAWS uses in its own menu strings. But the answer goes
+            // through JsonToXml, and XML 1.0 ALLOWS NO CONTROL CHARACTER BELOW
+            // SPACE except tab, newline and return. MSXML rejected the whole
+            // document, xmlValue returned "" for every field, and Web Download
+            // reported "0 fetched, 0 failed" on a page with 17 files waiting.
+            //
+            // The JSON cleaner did not catch it either: it strips control
+            // characters from the JSON TEXT, where this was still the six
+            // characters backslash-u-0-0-0-7. It only becomes a real BEL when
+            // the JSON is PARSED, which is after that cleaning ran.
+            //
+            // Vertical bar instead: legal in XML, absent from Windows file
+            // names, and split the same way on the other side.
+                if (oList.Length > 0) oList.Append("|");
                 oList.Append(Uri.UnescapeDataString(sName));
             }
             File.WriteAllText(SessionPath(), oSession.ToString(), new UTF8Encoding(false));
@@ -4624,7 +4641,9 @@ namespace Homer
             }
             if (iCount == 0)
                 return "{\"error\":\"No tabs\"}";
-            return "{\"value\":" + Quote(string.Join("\a", lLines.ToArray())) + "}";
+            // Vertical bar, not BEL: see the note above -- XML carries no
+            // control characters and this answer is turned into XML.
+            return "{\"value\":" + Quote(string.Join("|", lLines.ToArray())) + "}";
         }
 
         private static string EscapeHtml(string sText)

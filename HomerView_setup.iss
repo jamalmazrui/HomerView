@@ -175,6 +175,7 @@ Source: "C:\HomerView\Start.htm"; DestDir: "{app}"; Flags: ignoreversion skipifs
 ; machine does not wait on a CDN while JAWS is blocked.
 Source: "C:\HomerView\Axe.js"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "C:\HomerView\Ace.js"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "C:\HomerView\Nlp.js"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "C:\HomerView\installJawsScripts.cmd"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 ; Run by installJawsScripts.ps1, not by hand. It writes the MyExtensions file
 ; that makes JAWS load our scripts at all, and puts the keys into the user's own
@@ -351,6 +352,7 @@ Type: files; Name: "{app}\HomerView.jsonl"
 Type: files; Name: "{app}\Start.htm"
 Type: files; Name: "{app}\Axe.js"
 Type: files; Name: "{app}\Ace.js"
+Type: files; Name: "{app}\Nlp.js"
 Type: filesandordirs; Name: "{app}\build"
 Type: filesandordirs; Name: "{app}\dist"
 
@@ -687,13 +689,12 @@ begin
     if CopyFile(ExpandConstant('{log}'), AddBackslash(sLogFolder) + 'HomerView_setup.log', False) then
       sMessage := sMessage + #13#10 + 'The logs are together in:' + #13#10
         + '  ' + sLogFolder + #13#10;
-  if CopyFile(ExpandConstant('{log}'), 'C:\temp\HomerView_setup.log', False) then
-    sMessage := sMessage + #13#10 + 'If anything above went wrong, send:' + #13#10
-      + '  C:\temp\HomerView_setup.log' + #13#10
-  else
-    sMessage := sMessage + #13#10 + 'If anything above went wrong, send:' + #13#10;
-  if FileExists('C:\temp\HomerView_jaws.log') then
-    sMessage := sMessage + '  C:\temp\HomerView_jaws.log' + #13#10;
+  // ONE FOLDER, NAMED ONCE. Every log lives with the others, so what he asks
+  // a tester for is a single folder rather than two places and a guess about
+  // which copy is current.
+  if sLogFolder = '' then
+    sMessage := sMessage + #13#10 + 'If anything above went wrong, the logs are in'
+      + #13#10 + '  your HomerView logs folder.' + #13#10;
 
   { LAST, BECAUSE IT IS THE ONE THING THEY NEED NEXT. }
   sMessage := sMessage + #13#10

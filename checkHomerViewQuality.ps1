@@ -661,8 +661,8 @@ function checkFourteen {
         reportNote ($iBrowser.ToString() + " command(s) are bound in the browser's own key map")
     }
     # And the summary the user reads, which is a third copy of the same list.
-    $aSummary = scriptBlock $aLines "hVShowHotkeySummary"
-    if ($aSummary.Count -eq 0) { reportFail "hVShowHotkeySummary was not found"; return }
+    $aSummary = scriptBlock $aLines "hVHotKeyHelp"
+    if ($aSummary.Count -eq 0) { reportFail "hVHotKeyHelp was not found"; return }
     $lShown = New-Object System.Collections.ArrayList
     foreach ($sLine in $aSummary) {
         foreach ($sLit in (literalsIn $sLine)) {

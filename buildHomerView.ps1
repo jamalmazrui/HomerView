@@ -304,6 +304,57 @@ function buildAddon {
     Set-Content -Path (Join-Path $pathRoot "version.txt") -Value $sVersion -Encoding ASCII -NoNewline
     writeLog "Wrote version.txt"
 
+    # THE TWO ACCESSIBILITY ENGINES, FETCHED ONCE AT BUILD TIME.
+    #
+    # They used to be pulled from a CDN on FIRST USE, on the user's machine.
+    # That put a network fetch inside a command the JAWS side waits on -- and a
+    # blocked JSL script blocks ALL of JAWS, so a tester lost speech entirely
+    # for minutes while a download stalled, and got no report at the end of it.
+    #
+    # Fetched here instead, and installed beside the program: the ordinary case
+    # never touches the network. THE BUILD IS THE RIGHT PLACE FOR A DOWNLOAD --
+    # it has a developer watching it, a log, and no screen reader waiting on it.
+    #
+    # A failure here is a WARNING, not an error: the runtime still falls back to
+    # the CDN, and a build should not stop because a CDN is briefly unwell.
+    foreach ($oEngine in @(
+        @{ Name = "Axe.js"; Urls = @(
+            "https://cdnjs.cloudflare.com/ajax/libs/axe-core/4.10.2/axe.min.js",
+            "https://cdn.jsdelivr.net/npm/axe-core@4.10.2/axe.min.js",
+            "https://unpkg.com/axe-core@4.10.2/axe.min.js") },
+        @{ Name = "Ace.js"; Urls = @(
+            "https://unpkg.com/accessibility-checker-engine@latest/ace.js",
+            "https://cdn.jsdelivr.net/npm/accessibility-checker-engine@latest/ace.js",
+            "https://able.ibm.com/rules/archives/latest/js/ace.js") }
+    )) {
+        $pathEngine = Join-Path $pathRoot $oEngine.Name
+        $bGot = $false
+        foreach ($sUrl in $oEngine.Urls) {
+            if ($bGot) { break }
+            try {
+                $ErrorActionPreference = "Continue"
+                Invoke-WebRequest -Uri $sUrl -OutFile $pathEngine -UseBasicParsing -TimeoutSec 30
+                $ErrorActionPreference = "Stop"
+                $iSize = (Get-Item $pathEngine).Length
+                # A CDN error page is a few hundred bytes; an engine is hundreds
+                # of thousands. Size is the cheapest way to tell them apart.
+                if ($iSize -gt 100000) {
+                    writeLog "Fetched $($oEngine.Name), $([int]($iSize / 1024)) KB, from $sUrl"
+                    $bGot = $true
+                } else {
+                    writeLog "  $sUrl answered with only $iSize bytes, so it was not the engine"
+                }
+            } catch {
+                $ErrorActionPreference = "Stop"
+                writeLog "  $sUrl did not answer: $($_.Exception.Message)"
+            }
+        }
+        if (-not $bGot) {
+            writeLog "WARNING: $($oEngine.Name) could not be fetched. The installer will ship"
+            writeLog "         whatever copy is already there, and the runtime still has the CDN."
+        }
+    }
+
     # THE START PAGE, BUILT ONCE AS AN ASSET.
     #
     # It used to be written at run time by the NVDA add-on only, so a JAWS-only

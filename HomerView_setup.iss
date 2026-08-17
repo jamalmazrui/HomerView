@@ -171,6 +171,10 @@ Source: "C:\HomerView\jaws\HomerView.jsb"; DestDir: "{app}\jaws"; Flags: ignorev
 ; The start page, built once by the build from the add-on's own generator so
 ; both screen readers show the same page and neither composes its own.
 Source: "C:\HomerView\Start.htm"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
+; The accessibility engines, fetched by the build so the first scan on a new
+; machine does not wait on a CDN while JAWS is blocked.
+Source: "C:\HomerView\Axe.js"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "C:\HomerView\Ace.js"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "C:\HomerView\installJawsScripts.cmd"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 ; Run by installJawsScripts.ps1, not by hand. It writes the MyExtensions file
 ; that makes JAWS load our scripts at all, and puts the keys into the user's own
@@ -345,6 +349,8 @@ Type: files; Name: "{app}\Ace.json"
 Type: files; Name: "{app}\HomerView.db"
 Type: files; Name: "{app}\HomerView.jsonl"
 Type: files; Name: "{app}\Start.htm"
+Type: files; Name: "{app}\Axe.js"
+Type: files; Name: "{app}\Ace.js"
 Type: filesandordirs; Name: "{app}\build"
 Type: filesandordirs; Name: "{app}\dist"
 

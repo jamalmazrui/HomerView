@@ -82,6 +82,7 @@
 Include "hjconst.jsh"
 
 Const
+    c_iWaitLimit = 120,
     c_sAnswerPath = "@answerPath@",
     c_sInstalled = "@installed@",
     c_sVersion = "@version@",
@@ -94,9 +95,10 @@ Const
     c_sShellProgId = "WScript.Shell"
 
 Globals
-    int giLastPick,
+    int giLastPick, int giWaitTicks,
     string gsClipboardFile, string gsLastFind,
-    string gsLastResult, string gsLastTag, string gsLastText, string gsLogPath
+    string gsLastResult, string gsLastTag, string gsLastText, string gsLogPath,
+    string gsWaitFor
 
 
 ; The one log, with a session header written the first time it is asked for.
@@ -285,6 +287,53 @@ EndFunction
 ;
 ; The whole command line is wrapped in double quotes, which is why nothing this
 ; file sends the bridge contains one: see jsQuote.
+; Starts the helper WITHOUT waiting for it, for the commands that take a while.
+;
+; A JSL SCRIPT RUNS ON JAWS'S OWN THREAD. callBridge below ends in
+; shellRun (..., True) -- WAIT -- so until the helper exits, JAWS CANNOT SPEAK
+; OR TAKE A KEY. That is right for a command that answers in a moment, and it
+; froze a whole screen reader when an accessibility scan did not: speech went
+; everywhere, not just in HomerView, and Alt+Tab produced silence.
+;
+; ScheduleFunction is a TIMER, not a thread -- JSL is single threaded and stays
+; so. But blocking was never the problem; NOT RETURNING was. This starts the
+; helper, returns at once so JAWS is responsive again, and asks JAWS to look
+; back in a moment. Each visit costs milliseconds, and Escape works throughout.
+int Function startBridge (string sWaitFor, string sCommand, string sArgument)
+Var
+    int iExit,
+    object oFile, object oFileSystem, object oNull,
+    string sArgumentPath, string sCommandLine, string sPassed
+If SubString (c_sBridgePath, 1, 1) == "@" Then
+    SayMessage (OT_ERROR, "HomerView is not installed. Run its installer.")
+    Return False
+EndIf
+Let oFileSystem = CreateObjectEx (c_sFileSystemProgId, False)
+Let sArgumentPath = c_sAnswerPath + ".arg"
+If sArgument == "" Then
+    Let sPassed = ""
+Else
+    Let oFile = oFileSystem.CreateTextFile (sArgumentPath, True, True)
+    oFile.Write (sArgument)
+    oFile.Close ()
+    Let oFile = oNull
+    Let sPassed = "@" + sArgumentPath
+EndIf
+Let sCommandLine = stringQuote (c_sBridgePath) + " " + sCommand
+    + " " + stringQuote (c_sAnswerPath) + " " + stringQuote (sPassed)
+logLine ("startBridge " + sCommand + " without waiting, for " + sWaitFor)
+If oFileSystem.FileExists (c_sAnswerPath) Then
+    oFileSystem.DeleteFile (c_sAnswerPath)
+EndIf
+; False is the whole point of this function: do not wait.
+Let iExit = shellRun (sCommandLine, 0, False)
+Let gsWaitFor = sWaitFor
+Let giWaitTicks = 0
+ScheduleFunction ("bridgePoll", 5)
+Return True
+EndFunction
+
+
 string Function callBridge (string sCommand, string sArgument)
 Var
     int iExit,
@@ -427,6 +476,75 @@ If oDoc.loadXML (sXml) == False Then
 EndIf
 Let oNode = oDoc.selectSingleNode (sPath)
 Return oNode.text
+EndFunction
+
+
+; Looks to see whether the helper has answered yet, and finishes if it has.
+;
+; Called by ScheduleFunction, so JAWS is between things when it runs. It either
+; finds an answer and hands it to whoever asked, re-schedules itself, or gives
+; up and SAYS SO -- a command that quietly never reports back is worse than one
+; that fails.
+;
+; c_iWaitLimit visits of a half second each: ONE MINUTE. Nobody waits longer
+; than that wondering whether a command is still going, and being told it is
+; still running beats silence. The work is not cancelled -- the helper keeps
+; going and its own log says how it ended.
+; Typed int, not void. Every function in this file carries a type and none
+; says void, so this uses the form the file has already proved compiles
+; everywhere. The result is not read by anybody -- ScheduleFunction calls
+; it by name -- so the type is a formality the compiler wants.
+int Function bridgePoll ()
+Var
+    object oFile, object oFileSystem,
+    string sAnswer, string sWaitFor
+If gsWaitFor == "" Then
+    Return False
+EndIf
+Let oFileSystem = CreateObjectEx (c_sFileSystemProgId, False)
+If oFileSystem.FileExists (c_sAnswerPath) == False Then
+    Let giWaitTicks = giWaitTicks + 1
+    If giWaitTicks > c_iWaitLimit Then
+        Let sWaitFor = gsWaitFor
+        Let gsWaitFor = ""
+        logLine ("bridgePoll: " + sWaitFor + " gave no answer in time")
+        SayMessage (OT_ERROR, "HomerView is still working on that. It has been left running.")
+        Return False
+    EndIf
+    ; A WORD EVERY TEN SECONDS, NOT ONE AT THE END.
+    ;
+    ; Silence is the thing that makes a wait feel broken: a reader who hears
+    ; nothing cannot tell a slow scan from a dead one, and starts pressing keys
+    ; or restarting JAWS. Saying so costs a moment of speech and is worth it
+    ; even if it makes the whole thing marginally slower.
+    ;
+    ; Twenty looks of half a second each is ten seconds. The division rather
+    ; than a remainder operator keeps to arithmetic this file already uses.
+    If giWaitTicks / 20 * 20 == giWaitTicks Then
+        SayMessage (OT_STATUS, "Still working, "
+            + IntToString (giWaitTicks / 2) + " seconds")
+    EndIf
+    ScheduleFunction ("bridgePoll", 5)
+    Return False
+EndIf
+Let oFile = oFileSystem.OpenTextFile (c_sAnswerPath, 1, False, -1)
+Let sAnswer = oFile.ReadAll ()
+Let gsLastResult = sAnswer
+Let sWaitFor = gsWaitFor
+Let gsWaitFor = ""
+logLine ("bridgePoll: " + sWaitFor + " answered with "
+    + IntToString (StringLength (sAnswer)) + " characters after "
+    + IntToString (giWaitTicks) + " looks")
+If xmlValue (sAnswer, "/root/error") != "" Then
+    sayOrShow (xmlValue (sAnswer, "/root/error"))
+    Return True
+EndIf
+If sWaitFor == "openDocument" Then
+    SayMessage (OT_MESSAGE, "Opened in HomerView.")
+    Return True
+EndIf
+; The two scans both answer with a sentence of their own.
+sayOrShow (xmlValue (sAnswer, "/root/value"))
 EndFunction
 
 
@@ -727,22 +845,16 @@ EndScript
 ; HomerView's own browser when it is done, so every other HomerView command
 ; works on it.
 Script checkAccessibilityIbm ()
-Var string sAnswer, string sResult
+Var int iStarted
 logLine ("checkAccessibilityIbm started")
 SayMessage (OT_STATUS, "Checking with IBM")
-Let sAnswer = callBridge ("ace", "IBM_Accessibility")
-If xmlValue (sAnswer, "/root/error") != "" Then
-    SayMessage (OT_ERROR, xmlValue (sAnswer, "/root/error"))
+; STARTED, NOT WAITED FOR. A scan takes many seconds, and waiting here would
+; hold JAWS'S OWN THREAD for all of them -- no speech anywhere, not just in
+; HomerView. bridgePoll speaks the answer when it arrives.
+Let iStarted = startBridge ("checkAccessibilityIbm", "ace", "IBM_Accessibility")
+If iStarted == False Then
     Return
 EndIf
-Let sResult = xmlValue (sAnswer, "/root/value")
-If sResult == "" Then
-    logLine ("checkAccessibilityIbm: nothing came back")
-    Return
-EndIf
-; SPOKEN, NOT SHOWN. The report has just been opened in a tab, and a virtual
-; view repeating its summary would sit in front of it and take the focus.
-SayMessage (OT_MESSAGE, sResult)
 EndScript
 
 
@@ -809,28 +921,22 @@ EndScript
 ; Up to five places per problem, with what each element is and why the engine
 ; objected. A count without a location is a complaint, not a finding.
 Script checkAccessibility ()
-Var string sAnswer, string sResult
+Var int iStarted
 logLine ("checkAccessibility started")
 SayMessage (OT_STATUS, "Checking")
-; THE WHOLE REPORT, SAVED AND OPENED.
+; THE WHOLE REPORT, SAVED AND OPENED -- and started rather than waited for.
 ;
-; It used to build its summary in JavaScript and show it in the Virtual Viewer,
-; which was fine for counts and poor for anything a publisher could act on: no
-; WCAG criterion names, no levels, nothing to send anybody. The helper now
-; builds the report report.py builds on the NVDA side -- plain language first,
-; then the severity breakdown, then each problem with its criterion NAMED and
-; its level given -- writes it to Downloads as one file, and opens it here.
-Let sAnswer = callBridge ("axeReport", "")
-If xmlValue (sAnswer, "/root/error") != "" Then
-    SayMessage (OT_ERROR, xmlValue (sAnswer, "/root/error"))
+; The helper builds the report report.py builds on the NVDA side: plain
+; language first, then the severity breakdown, then each violation with its
+; criterion NAMED and its level given. It writes it to Downloads as one file
+; and opens it in the browser.
+;
+; That takes seconds, sometimes tens of them, and this used to WAIT -- which
+; froze every part of JAWS until it finished. bridgePoll reports instead.
+Let iStarted = startBridge ("checkAccessibility", "axeReport", "")
+If iStarted == False Then
     Return
 EndIf
-Let sResult = xmlValue (sAnswer, "/root/value")
-If sResult == "" Then
-    logLine ("checkAccessibility: nothing came back")
-    Return
-EndIf
-sayOrShow (sResult)
 EndScript
 
 
@@ -1424,12 +1530,11 @@ EndIf
 If needsConverting (sPath) Then
     SayMessage (OT_STATUS, "Converting")
 EndIf
-Let sAnswer = callBridge ("openDocument", sPath)
-If xmlValue (sAnswer, "/root/error") != "" Then
-    sayOrShow (xmlValue (sAnswer, "/root/error"))
+; Converting a large PDF can take a minute, and waiting for it here held all
+; of JAWS. Started instead; bridgePoll says "Opened in HomerView" when it is.
+If startBridge ("openDocument", "openDocument", sPath) == False Then
     Return
 EndIf
-SayMessage (OT_MESSAGE, "Opened in HomerView.")
 EndScript
 
 

@@ -735,6 +735,7 @@ namespace Homer
                 request.MaximumAutomaticRedirections = 8;
                 request.Timeout = 15000;
                 request.ReadWriteTimeout = 15000;
+                request.ReadWriteTimeout = 15000;
                 request.Accept = "text/html,application/xhtml+xml,*/*;q=0.8";
                 request.UserAgent =
                     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
@@ -1330,6 +1331,37 @@ namespace Homer
                     sSource = File.ReadAllText(sCache);
             }
             catch (Exception) { }
+
+            // THE COPY INSTALLED WITH THE PROGRAM, BEFORE THE NETWORK.
+            //
+            // The engine used to come from a CDN on first use, with the cache
+            // filled afterwards. On a machine where that download stalls, the
+            // JAWS side sits in shellRun waiting -- and a blocked JSL script
+            // blocks ALL of JAWS, so a tester lost speech everywhere for
+            // minutes and never got a report.
+            //
+            // The build now downloads both engines and the installer ships
+            // them, so the ordinary case never touches the network at all:
+            // cache, then the installed asset, then a CDN only if neither is
+            // there. Axe.js and Ace.js sit beside the program.
+            if (sSource == "")
+            {
+                try
+                {
+                    string sShipped = Path.Combine(
+                        Path.GetDirectoryName(
+                            System.Reflection.Assembly.GetExecutingAssembly().Location),
+                        sCacheName == sAxeCacheName ? "Axe.js" : "Ace.js");
+                    if (File.Exists(sShipped) && new FileInfo(sShipped).Length > iSmallest)
+                    {
+                        sSource = File.ReadAllText(sShipped);
+                        Log("  using the engine installed with the program: "
+                            + Path.GetFileName(sShipped));
+                    }
+                }
+                catch (Exception oError)
+                { Log("  the installed engine could not be read: " + oError.Message); }
+            }
             if (sSource == "")
             {
                 foreach (string sUrl in lUrls)
@@ -1339,7 +1371,24 @@ namespace Homer
                         ServicePointManager.SecurityProtocol =
                             SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
                         var request = (HttpWebRequest)WebRequest.Create(sUrl);
-                        request.Timeout = 45000;
+                        // TIMEOUT IS NOT THE WHOLE STORY, AND THAT FROZE A
+                        // SCREEN READER.
+                        //
+                        // HttpWebRequest.Timeout covers only getting the first
+                        // response; READING THE BODY IS GOVERNED BY
+                        // ReadWriteTimeout, WHICH DEFAULTS TO FIVE MINUTES. A
+                        // stalled CDN could therefore hold this for minutes,
+                        // three sources in a row, while the JAWS side sat in
+                        // shellRun WAITING -- and a blocked JSL script blocks
+                        // ALL of JAWS, so a tester lost speech everywhere, not
+                        // just in HomerView. He heard it come back briefly
+                        // between attempts and go again, which is exactly this.
+                        //
+                        // Ten seconds each. Axe is cached after the first
+                        // success, so this cost is paid once on a working
+                        // network and never becomes a freeze on a broken one.
+                        request.Timeout = 10000;
+                        request.ReadWriteTimeout = 10000;
                         request.UserAgent = "HomerView";
                         using (var response = (HttpWebResponse)request.GetResponse())
                         using (var reader = new StreamReader(response.GetResponseStream(), Encoding.UTF8))
@@ -2929,6 +2978,7 @@ namespace Homer
                     SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
                 var oRequest = (HttpWebRequest) WebRequest.Create(sUrl);
                 oRequest.Timeout = 25000;
+                oRequest.ReadWriteTimeout = 25000;
                 oRequest.ReadWriteTimeout = 25000;
                 oRequest.AllowAutoRedirect = true;
                 oRequest.UserAgent = sAgent != "" ? sAgent

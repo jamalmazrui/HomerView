@@ -265,15 +265,15 @@ writeLog ""
 # is no browser window to be in. The rest are browser commands and are bound in
 # the browser's own key map.
 $lCommonKeys = @(
-    "Alt+JAWSKey+A=checkAccessibility",
-    "Alt+JAWSKey+C=findContacts",
-    "Alt+JAWSKey+D=dismissDialog",
-    "Alt+JAWSKey+F10=showHomerViewMenu",
-    "Alt+JAWSKey+H=launchHomerView",
-    "Alt+JAWSKey+I=checkAccessibilityIbm",
-    "Alt+Shift+H=showHotkeySummary",
-    "Alt+JAWSKey+L=copyLogToClipboard",
-    "Alt+JAWSKey+Q=sayDiagnostics"
+    "Alt+JAWSKey+A=hVCheckAccessibility",
+    "Alt+JAWSKey+C=hVFindContacts",
+    "Alt+JAWSKey+D=hVDismissDialog",
+    "Alt+JAWSKey+F10=hVShowHomerViewMenu",
+    "Alt+JAWSKey+H=hVLaunchHomerView",
+    "Alt+JAWSKey+I=hVCheckAccessibilityIbm",
+    "Alt+Shift+H=hVShowHotkeySummary",
+    "Alt+JAWSKey+L=hVCopyLogToClipboard",
+    "Alt+JAWSKey+Q=hVSayDiagnostics"
 )
 
 # WHAT EDGE'S SETTINGS ARE ACTUALLY CALLED, discovered rather than assumed.
@@ -398,7 +398,7 @@ $lBrowserKeys = @(
     # script set -- Doug Lee's .chain, or the Merge technique from his own
     # HomerKit: a user copy of Edge's script file with Use "HomerView.jsb"
     # added, recompiled. Then the application script file DOES contain
-    # openDocument and the application key map resolves. That is the next
+    # hVOpenDocument and the application key map resolves. That is the next
     # piece of work and it is worth doing carefully.
 )
 # Shift+Q IS taken, at his decision: a page has one main region, so the native
@@ -414,39 +414,39 @@ $lBrowserKeys = @(
 # it everywhere: Control+F1 collapses the ribbon in Office, and a guide is not
 # worth taking that. It is on the Alternate Menu, which works anywhere.
 $lVirtualKeys = @(
-    "Alt+Control+F1=openSessionLog",
-    "Alt+F1=showAbout",
-    "Alt+M=sayMetadata",
-    "Alt+N=listNames",
-    "Alt+Shift+F1=openQuickStart",
-    "Alt+Shift+P=copyPageLinks",
-    "Alt+Shift+W=downloadFiles",
-    "Alt+Shift+F=openPageFolder",
-    "Control+F1=openUserGuide",
-    "Control+F8=copyAll",
-    "Control+O=openDocument",
-    "Control+S=savePage",
-    "Control+Shift+E=extractByPattern",
-    "Control+Shift+F1=openDeveloperNotes",
-    "Shift+F1=showHistory",
-    "Shift+F4=sayTabNames",
-    "Shift+F9=extractMainContent",
-    "Alt+Apostrophe=sayClipboard",
-    "Alt+C=copyAppend",
-    "Alt+F8=readAll",
-    "Alt+L=describeLinkTarget",
-    "Alt+Shift+Apostrophe=clearClipboard",
-    "Control+Apostrophe=saveClipboard",
-    "Control+C=copySelection",
-    "F8=startSelection",
-    "Shift+F8=completeSelection",
-    "Control+Shift+Apostrophe=appendClipboard",
-    "Shift+Q=moveToProbableMain",
-    "Control+F3=findByPattern",
-    "Control+Shift+F=findBackwards",
-    "Control+Shift+F3=findByPatternBackwards",
-    "F3=findNext",
-    "Shift+F3=findPrevious"
+    "Alt+Control+F1=hVOpenSessionLog",
+    "Alt+F1=hVShowAbout",
+    "Alt+M=hVSayMetadata",
+    "Alt+N=hVListNames",
+    "Alt+Shift+F1=hVOpenQuickStart",
+    "Alt+Shift+P=hVCopyPageLinks",
+    "Alt+Shift+W=hVDownloadFiles",
+    "Alt+Shift+F=hVOpenPageFolder",
+    "Control+F1=hVOpenUserGuide",
+    "Control+F8=hVCopyAll",
+    "Control+O=hVOpenDocument",
+    "Control+S=hVSavePage",
+    "Control+Shift+E=hVExtractByPattern",
+    "Control+Shift+F1=hVOpenDeveloperNotes",
+    "Shift+F1=hVShowHistory",
+    "Shift+F4=hVSayTabNames",
+    "Shift+F9=hVExtractMainContent",
+    "Alt+Apostrophe=hVSayClipboard",
+    "Alt+C=hVCopyAppend",
+    "Alt+F8=hVReadAll",
+    "Alt+L=hVDescribeLinkTarget",
+    "Alt+Shift+Apostrophe=hVClearClipboard",
+    "Control+Apostrophe=hVSaveClipboard",
+    "Control+C=hVCopySelection",
+    "F8=hVStartSelection",
+    "Shift+F8=hVCompleteSelection",
+    "Control+Shift+Apostrophe=hVAppendClipboard",
+    "Shift+Q=hVMoveToProbableMain",
+    "Control+F3=hVFindByPattern",
+    "Control+Shift+F=hVFindBackwards",
+    "Control+Shift+F3=hVFindByPatternBackwards",
+    "F3=hVFindNext",
+    "Shift+F3=hVFindPrevious"
 )
 
 $iDone = 0

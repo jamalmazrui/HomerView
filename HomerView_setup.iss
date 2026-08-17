@@ -625,6 +625,8 @@ end;
 procedure DeinitializeSetup();
 var
   sMessage: String;
+  sLogFolder: String;
+  lResult: TArrayOfString;
   iJaws: Integer;
 begin
   { Nothing to report if nothing was installed, and nobody to read it in a
@@ -670,6 +672,21 @@ begin
   // FailIfExists) -- there is no FileCopy in Pascal Script at all, and the
   // compile aborted before it reached this line, so the wrong name would have
   // failed the NEXT build rather than this one.
+  // BOTH LOGS IN ONE FOLDER, WHICH IS THE ONE HE HAS TO ASK A TESTER TO ZIP.
+  //
+  // C:\temp was chosen because an elevated installer cannot resolve the
+  // ORIGINAL user's application data. installJawsScripts.cmd runs as that user
+  // and now writes its log folder as the second line of the result file, so
+  // this can follow it there. C:\temp keeps a copy as well, since the folder
+  // is only known when the JAWS step actually ran.
+  sLogFolder := '';
+  if LoadStringsFromFile('C:\temp\HomerView_jaws.result', lResult) then
+    if GetArrayLength(lResult) > 1 then
+      sLogFolder := Trim(lResult[1]);
+  if (sLogFolder <> '') and DirExists(sLogFolder) then
+    if CopyFile(ExpandConstant('{log}'), AddBackslash(sLogFolder) + 'HomerView_setup.log', False) then
+      sMessage := sMessage + #13#10 + 'The logs are together in:' + #13#10
+        + '  ' + sLogFolder + #13#10;
   if CopyFile(ExpandConstant('{log}'), 'C:\temp\HomerView_setup.log', False) then
     sMessage := sMessage + #13#10 + 'If anything above went wrong, send:' + #13#10
       + '  C:\temp\HomerView_setup.log' + #13#10

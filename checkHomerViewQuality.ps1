@@ -158,7 +158,7 @@ function bigVariables {
             $j = $j + 1
             $sTail = $sTail + $aLines[$j]
         }
-        if ($sTail -match '\b(runScript|GetDocumentXML|GetElementXML|FileToString|callBridge)\s*\(') {
+        if ($sTail -match '\b(runScript|GetDocumentXML|GetElementXML|FileToString|hVCallBridge)\s*\(') {
             if (-not $lBig.Contains($sName)) { [void] $lBig.Add($sName) }
         }
     }
@@ -304,7 +304,7 @@ function checkFour {
     $lOnMenu = @($oMenu.Pairs | ForEach-Object { $_.Script })
     foreach ($oEntry in $lKeys) {
         # The menu itself is the one command that does not list itself.
-        if ($oEntry.Script -eq "showHomerViewMenu") { continue }
+        if ($oEntry.Script -eq "hVShowHomerViewMenu") { continue }
         if ($lOnMenu -notcontains $oEntry.Script) {
             reportFail ($oEntry.Script + " is bound to " + $oEntry.Key + " but is not on the Alternate Menu")
         }
@@ -413,7 +413,7 @@ function checkTen {
     if ($null -eq $sCs) { reportFail "HomerView.cs could not be read"; return }
     $lAsked = New-Object System.Collections.ArrayList
     foreach ($sLine in $aLines) {
-        foreach ($oMatch in ([regex]'callBridge\s*\(\s*"([^"]+)"').Matches($sLine)) {
+        foreach ($oMatch in ([regex]'hVCallBridge\s*\(\s*"([^"]+)"').Matches($sLine)) {
             if (-not $lAsked.Contains($oMatch.Groups[1].Value)) { [void] $lAsked.Add($oMatch.Groups[1].Value) }
         }
     }
@@ -447,9 +447,9 @@ function checkEleven {
     param ([string[]] $aLines)
     writeLog "CHECK 11  no page-sized argument reaches a command line"
     reportNote "Windows takes about 32,000 characters; beyond that the program is never started at all"
-    # callBridge is the one door to the helper, so the protection belongs there
+    # hVCallBridge is the one door to the helper, so the protection belongs there
     # rather than at every call site. What this checks is that the door is still
-    # shut: that callBridge writes the argument to a file and passes @path. A
+    # shut: that hVCallBridge writes the argument to a file and passes @path. A
     # check that policed each caller instead would have to be argued with every
     # time a caller was added, and would pass the day someone bypassed it.
     $bRouted = $false
@@ -457,21 +457,21 @@ function checkEleven {
     $iStart = -1
     for ($i = 0; $i -lt $aLines.Count; $i++) {
         if ($iStart -lt 0) {
-            if ($aLines[$i] -match '^\s*\w+\s+Function\s+callBridge\s*\(') { $iStart = $i }
+            if ($aLines[$i] -match '^\s*\w+\s+Function\s+hVCallBridge\s*\(') { $iStart = $i }
             continue
         }
         if ($aLines[$i] -match '^\s*EndFunction') { $aBridge = $aLines[$iStart..$i]; break }
     }
     if ($aBridge.Count -eq 0) {
-        reportFail "callBridge was not found in the .jss"
+        reportFail "hVCallBridge was not found in the .jss"
     } else {
         foreach ($sLine in $aBridge) {
             if ($sLine -match 'CreateTextFile' -and -not ($sLine.Trim().StartsWith(";"))) { $bRouted = $true }
         }
         if ($bRouted) {
-            reportNote "callBridge writes the argument to a file and passes its path, so no caller can overflow"
+            reportNote "hVCallBridge writes the argument to a file and passes its path, so no caller can overflow"
         } else {
-            reportFail "callBridge passes its argument straight to the command line; it must write a file and pass @path"
+            reportFail "hVCallBridge passes its argument straight to the command line; it must write a file and pass @path"
         }
     }
     # shellRun goes to a command line directly, with no such door.
@@ -661,8 +661,8 @@ function checkFourteen {
         reportNote ($iBrowser.ToString() + " command(s) are bound in the browser's own key map")
     }
     # And the summary the user reads, which is a third copy of the same list.
-    $aSummary = scriptBlock $aLines "showHotkeySummary"
-    if ($aSummary.Count -eq 0) { reportFail "showHotkeySummary was not found"; return }
+    $aSummary = scriptBlock $aLines "hVShowHotkeySummary"
+    if ($aSummary.Count -eq 0) { reportFail "hVShowHotkeySummary was not found"; return }
     $lShown = New-Object System.Collections.ArrayList
     foreach ($sLine in $aSummary) {
         foreach ($sLit in (literalsIn $sLine)) {
@@ -817,11 +817,11 @@ $aJss     = textLines $sJss
 $lScripts = scriptNames $aJss
 $lFuncs   = functionNames $aJss
 $lKeys    = keyMapEntries (textLines $sJkm)
-$aMenuBlk = scriptBlock $aJss "showHomerViewMenu"
+$aMenuBlk = scriptBlock $aJss "hVShowHomerViewMenu"
 $oMenu    = menuEntries $aMenuBlk
 
 writeLog ("functions in the .jss (" + $lFuncs.Count + "): " + ($lFuncs -join ", "))
-if ($aMenuBlk.Count -eq 0) { reportFail "showHomerViewMenu was not found in the .jss, so checks 2, 3 and 4 have nothing to read" }
+if ($aMenuBlk.Count -eq 0) { reportFail "hVShowHomerViewMenu was not found in the .jss, so checks 2, 3 and 4 have nothing to read" }
 writeLog ""
 
 $lChecks = @(

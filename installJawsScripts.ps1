@@ -253,6 +253,22 @@ function chainThroughUserDefault {
     # the three is enough; the file needs nothing added.
     $sText = Get-Content $pathJss -Raw
 
+    # THE FILE'S OWN Use LINES, VERBATIM, BEFORE ANY DECISION IS MADE.
+    #
+    # Which branch below fires depends entirely on what this file chains, and
+    # that is the one thing about a tester's machine that cannot be guessed
+    # from here. Printing the lines means ONE install answers it -- rather than
+    # another round trip to somebody who has already given up several evenings.
+    writeLog "    this folder has its own default.jss. Its use lines are:"
+    $iUse = 0
+    foreach ($sLine in (Get-Content $pathJss)) {
+        if ($sLine -match '(?i)^\s*use\s+"') {
+            writeLog "      $($sLine.Trim())"
+            $iUse += 1
+        }
+    }
+    if ($iUse -eq 0) { writeLog "      (none at all)" }
+
     # The backup comes BEFORE any branch that could rewrite the file --
     # every path below is reversible only because this ran first.
     if (-not (Test-Path "$pathJss.homerViewBackup")) {

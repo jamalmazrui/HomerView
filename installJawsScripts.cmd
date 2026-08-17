@@ -64,6 +64,12 @@ rem C:\temp is writable by the user and readable by the elevated installer,
 rem which is exactly what a message passed between the two of them needs.
 if not exist "C:\temp" mkdir "C:\temp" 2>nul
 > "C:\temp\HomerView_jaws.result" echo %exitCode%
+rem THE SECOND LINE IS THE LOG FOLDER, so the installer can put its own log
+rem there too. The installer runs ELEVATED and cannot resolve this user's
+rem application data; THIS script runs as the user and can. Passing the path
+rem up is the only way both logs end up in one place, which is what he asked
+rem for: one folder to zip, not two.
+>> "C:\temp\HomerView_jaws.result" echo %logDir%
 
 rem A COPY OF THE LOG WHERE SOMEBODY CAN BE TOLD TO FIND IT ON THE PHONE.
 rem

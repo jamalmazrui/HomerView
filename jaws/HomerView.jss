@@ -94,6 +94,62 @@ Const
     c_sXmlProgIdAny = "Msxml2.DOMDocument",
     c_sShellProgId = "WScript.Shell"
 
+; EVERY FUNCTION HERE IS PREFIXED hv, AND THAT IS NOT A STYLE CHOICE.
+;
+; Vispero's own guidance: scripts and functions in MyExtensions WITH THE SAME
+; NAME as ones in default or application scripts WILL NEVER RUN -- the other
+; one runs instead, silently.
+;
+; A tester's machine has a chain of other script sets loaded through a
+; default.jss dating from 2021. His log showed hVShowHomerViewMenu running (a
+; name nobody else would use) and then dialogPick LOGGING NOTHING AT ALL --
+; because a DIFFERENT dialogPick was running. DlgSelectItemInList was never at
+; fault; it is a JAWS built-in that has worked for twenty years, and it was
+; never reached.
+;
+; Names like dialogPick, shellRun, runScript, logLine and stringQuote are the
+; sort of thing any script author writes. On a machine with only HomerView
+; installed they are safe; on a machine with a script chain they are a
+; collision waiting to happen, and the failure is SILENT.
+
+; THREE ARE DELIBERATELY NOT QUALIFIED, AND THE REASON IS THE PROPAGATION
+; WARNING ABOVE: ScheduleFunction, PerformScriptByName and UserBufferAddLink
+; ALL RESOLVE ONE OF OUR OWN NAMES LATER -- a function name, a script name, a
+; link target. Restricting their scope to Builtin would restrict THAT LOOKUP
+; too, and none of our names live there. Qualifying them would have broken the
+; menu and the poller outright. They stay unqualified and rely on the hV prefix.
+
+; WHY SOME CALLS SAY Builtin:: AND OTHERS DO NOT.
+;
+; FSDN: "In addition to specifying a qualification by script file name, you may
+; also specify that a built-in function be called... Builtin::SayLine ()
+; specifies that the built-in SayLine function be called, NOT AN OVERWRITTEN
+; SayLine function."
+;
+; That matters here because a machine may carry a large script suite -- Leasey,
+; for one -- that is always loaded and replaces functions by name. An overwritten
+; DlgSelectItemInList does not have to fail loudly; it can simply answer
+; differently, and this file would believe it.
+;
+; SO THE SPLIT IS DELIBERATE:
+;
+; QUALIFIED are the built-ins whose RETURN VALUE drives the logic -- the list
+; dialog, the input box, the string functions, the buffer, the dispatcher, COM.
+; If any of those answers differently, this code computes the wrong thing and
+; says nothing about it.
+;
+; NOT QUALIFIED are the SPEECH functions: SayMessage, SayLine, SayAll. A suite
+; like Leasey overrides those ON PURPOSE, to serve that user's voice, braille
+; and verbosity settings. Forcing the built-in would override the user's own
+; screen reader on their own machine, which is not ours to do. WE WANT OUR
+; LOGIC BACK, NOT THEIR SPEECH.
+;
+; One caution from the same page, which is why this is not applied wholesale:
+; restricting a call's scope also restricts every call made from inside it.
+; That is harmless for built-ins, which call no script code, and would not be
+; for our own functions -- those are kept unqualified and safe by their hV
+; prefix instead.
+
 Globals
     int giLastPick, int giWaitTicks,
     string gsClipboardFile, string gsLastFind,
@@ -112,20 +168,20 @@ Globals
 ; gsLogPath doubles as the mark that this session's header has been written.
 ; It lasts as long as JAWS keeps the scripts loaded, so each sitting adds one
 ; header and its own lines beneath it.
-string Function logPath ()
+string Function hVLogPath ()
 Var
     object oFile, object oFileSystem
 If gsLogPath != "" Then
     Return gsLogPath
 EndIf
 Let gsLogPath = c_sLogFile
-Let oFileSystem = CreateObjectEx (c_sFileSystemProgId, False)
+Let oFileSystem = Builtin::CreateObjectEx (c_sFileSystemProgId, False)
 Let oFile = oFileSystem.OpenTextFile (gsLogPath, 8, True)
 oFile.WriteLine ("")
 oFile.WriteLine ("==========================================================")
 oFile.WriteLine ("HomerView " + c_sVersion + " for " + GetJAWSVersionInfo ())
 oFile.WriteLine ("  scripts installed: " + c_sInstalled)
-oFile.WriteLine ("  session started:   " + SysGetDate ("yyyy-MM-dd") + " " + SysGetTime ("HH:mm:ss"))
+oFile.WriteLine ("  session started:   " + Builtin::SysGetDate ("yyyy-MM-dd") + " " + Builtin::SysGetTime ("HH:mm:ss"))
 oFile.WriteLine ("  bridge:            " + c_sBridgePath)
 oFile.WriteLine ("==========================================================")
 oFile.Close ()
@@ -142,7 +198,7 @@ EndFunction
 ;
 ; Nothing here can fail loudly: a log that throws while recording a fault is
 ; worse than no log at all. Append mode is 8, and True creates the file.
-Void Function logLine (string sText)
+Void Function hVLogLine (string sText)
 Var
     object oFile, object oFileSystem,
     string sFolder
@@ -157,17 +213,17 @@ Var
 ;
 ; So the folder is made first if it is missing. OpenTextFile creates a FILE
 ; that is not there; it does NOT create the FOLDER above it.
-Let oFileSystem = CreateObjectEx (c_sFileSystemProgId, False)
-Let sFolder = oFileSystem.GetParentFolderName (logPath ())
+Let oFileSystem = Builtin::CreateObjectEx (c_sFileSystemProgId, False)
+Let sFolder = oFileSystem.GetParentFolderName (hVLogPath ())
 If sFolder != "" Then
     If oFileSystem.FolderExists (sFolder) == False Then
         oFileSystem.CreateFolder (sFolder)
     EndIf
 EndIf
-Let oFile = oFileSystem.OpenTextFile (logPath (), 8, True)
+Let oFile = oFileSystem.OpenTextFile (hVLogPath (), 8, True)
 ; Stamped like the bridge's lines, so the two interleave into one account
 ; rather than one column of times and one without.
-oFile.WriteLine (SysGetDate ("yyyy-MM-dd") + " " + SysGetTime ("HH:mm:ss") + "  script: " + sText)
+oFile.WriteLine (Builtin::SysGetDate ("yyyy-MM-dd") + " " + Builtin::SysGetTime ("HH:mm:ss") + "  script: " + sText)
 oFile.Close ()
 EndFunction
 
@@ -181,8 +237,9 @@ EndFunction
 ; The pause matters more than it looks. The dialog is closing and focus is
 ; moving as this returns, and anything spoken into that is spoken into nothing.
 ; homer.jss pauses here for the same reason.
-int Function dialogPick (string sTitle, string sItems)
-Var int iChoice
+int Function hVDialogPick (string sTitle, string sItems)
+Var
+    int iChoice, int iOpenedAt
 ; The fourth argument is where the list opens, and giLastPick is where it was
 ; left. A list that always opens at the top makes the second use of a command
 ; as long as the first, and the commands people use are the ones they used
@@ -199,13 +256,38 @@ Var int iChoice
 ; joining them up: EVERY Alternate Menu command did nothing, said nothing and
 ; logged nothing, AND the menu never remembered the last item. Those were one
 ; fault. Commands on KEYS worked throughout, which is why his log showed
-; copySelection running normally in the same session.
+; hVCopySelection running normally in the same session.
+; BRACKETED BY LOGGING, BECAUSE THE SCRIPT STOPS SOMEWHERE IN HERE.
+;
+; On a tester's machine hVShowHomerViewMenu logged "offering the menu" FOUR
+; TIMES and dialogPick logged NOTHING AT ALL -- not a choice, not even a
+; cancellation. A JSL script that faults ENDS THERE, silently, so the missing
+; line is the evidence: execution reaches this function and does not leave it.
+;
+; The same build logs normally on the developer's machine, so the difference
+; is environmental and only his log can name it. These lines bracket every
+; statement that could be the one, and the LENGTH of the item string is
+; recorded because 44 rows is several thousand characters and a limit there
+; would look exactly like this.
+hVLogLine ("dialogPick: about to offer " + Builtin::IntToString (Builtin::StringLength (sItems))
+    + " characters of items, opening at " + Builtin::IntToString (giLastPick))
 If giLastPick < 1 Then
     Let giLastPick = 1
 EndIf
-Let iChoice = DlgSelectItemInList (sItems, sTitle, False, giLastPick)
+Let iOpenedAt = giLastPick
+Let iChoice = Builtin::DlgSelectItemInList (sItems, sTitle, False, giLastPick)
+hVLogLine ("dialogPick: the dialog returned")
 Pause ()
-logLine ("dialogPick: " + sTitle + " answered " + IntToString (iChoice))
+hVLogLine ("dialogPick: the pause finished")
+; BOTH NUMBERS, BECAUSE THE PAIR IS THE MEASUREMENT.
+;
+; The answer alone says the menu worked. The value it OPENED AT says
+; whether giLastPick survived since the last time -- and a global that does
+; not survive means THE SET IS LOADED TWICE, each copy keeping its own.
+; That is the difference between a machine where the menu remembers and one
+; where it forgets, and one run of this log settles which.
+hVLogLine ("dialogPick: " + sTitle + " opened at " + Builtin::IntToString (iOpenedAt)
+    + " and answered " + Builtin::IntToString (iChoice))
 If iChoice == 0 Then
     Return 0
 EndIf
@@ -225,19 +307,19 @@ EndFunction
 ;
 ; Deactivate before clearing, because a buffer that is already showing keeps
 ; what it had otherwise.
-Void Function sayVirtual (string sText)
+Void Function hVSayVirtual (string sText)
 Var
     int iActivated, int iAdded
-UserBufferDeactivate ()
-UserBufferClear ()
-Let iAdded = UserBufferAddText (sText)
-Let iActivated = UserBufferActivate ()
+Builtin::UserBufferDeactivate ()
+Builtin::UserBufferClear ()
+Let iAdded = Builtin::UserBufferAddText (sText)
+Let iActivated = Builtin::UserBufferActivate ()
 JAWSTopOfFile ()
 SayAll ()
 ; Both of these return a result and both were being thrown away. Every way of
 ; showing a result has failed silently in turn, and each time the only thing
 ; missing was somebody asking whether it had worked.
-logLine ("sayVirtual: added " + IntToString (iAdded) + ", activated " + IntToString (iActivated) + ", " + IntToString (StringLength (sText)) + " characters")
+hVLogLine ("sayVirtual: added " + Builtin::IntToString (iAdded) + ", activated " + Builtin::IntToString (iActivated) + ", " + Builtin::IntToString (Builtin::StringLength (sText)) + " characters")
 EndFunction
 
 
@@ -253,19 +335,19 @@ EndFunction
 ; The rule is deliberately mechanical rather than a judgement made command by
 ; command: one line and under two hundred characters is a sentence, and
 ; everything else is a document.
-Void Function sayOrShow (string sText)
+Void Function hVSayOrShow (string sText)
 If sText == "" Then
     Return
 EndIf
-If StringContains (sText, "\r\n") > 0 Then
-    sayVirtual (sText)
+If Builtin::StringContains (sText, "\r\n") > 0 Then
+    hVSayVirtual (sText)
     Return
 EndIf
-If StringLength (sText) > 200 Then
-    sayVirtual (sText)
+If Builtin::StringLength (sText) > 200 Then
+    hVSayVirtual (sText)
     Return
 EndIf
-logLine ("sayOrShow speaking " + IntToString (StringLength (sText)) + " characters rather than showing them")
+hVLogLine ("sayOrShow speaking " + Builtin::IntToString (Builtin::StringLength (sText)) + " characters rather than showing them")
 SayMessage (OT_MESSAGE, sText)
 EndFunction
 
@@ -273,18 +355,18 @@ EndFunction
 ; Runs a command line, hidden or shown, waiting or not, and hands back the exit
 ; code. Windows Script Host is registered on every Windows machine, so nothing
 ; of ours has to be.
-int Function shellRun (string sCommandLine, int iWindowStyle, int iWait)
+int Function hVShellRun (string sCommandLine, int iWindowStyle, int iWait)
 Var
     int iExit,
     object oShell
-Let oShell = CreateObjectEx (c_sShellProgId, False)
+Let oShell = Builtin::CreateObjectEx (c_sShellProgId, False)
 Let iExit = oShell.Run (sCommandLine, iWindowStyle, iWait)
 Return iExit
 EndFunction
 
 
 ; Wraps a string in double quotes, for a path going onto a command line.
-string Function stringQuote (string sText)
+string Function hVStringQuote (string sText)
 Return "\"" + sText + "\""
 EndFunction
 
@@ -293,20 +375,20 @@ EndFunction
 ;
 ; A whole parser is not needed to read one attribute, and the string functions
 ; are certain where an object model would be another thing to be wrong about.
-string Function attributeValue (string sXml, string sName)
+string Function hVAttributeValue (string sXml, string sName)
 Var
     int iEnd, int iStart,
     string sMark
 Let sMark = sName + "=\""
-Let iStart = StringContains (sXml, sMark)
+Let iStart = Builtin::StringContains (sXml, sMark)
 If iStart == 0 Then
     Return ""
 EndIf
-Let iStart = iStart + StringLength (sMark)
+Let iStart = iStart + Builtin::StringLength (sMark)
 Let iEnd = iStart
-While iEnd <= StringLength (sXml)
-    If SubString (sXml, iEnd, 1) == "\"" Then
-        Return SubString (sXml, iStart, iEnd - iStart)
+While iEnd <= Builtin::StringLength (sXml)
+    If Builtin::SubString (sXml, iEnd, 1) == "\"" Then
+        Return Builtin::SubString (sXml, iStart, iEnd - iStart)
     EndIf
     Let iEnd = iEnd + 1
 EndWhile
@@ -325,7 +407,7 @@ EndFunction
 ; Starts the helper WITHOUT waiting for it, for the commands that take a while.
 ;
 ; A JSL SCRIPT RUNS ON JAWS'S OWN THREAD. callBridge below ends in
-; shellRun (..., True) -- WAIT -- so until the helper exits, JAWS CANNOT SPEAK
+; hVShellRun (..., True) -- WAIT -- so until the helper exits, JAWS CANNOT SPEAK
 ; OR TAKE A KEY. That is right for a command that answers in a moment, and it
 ; froze a whole screen reader when an accessibility scan did not: speech went
 ; everywhere, not just in HomerView, and Alt+Tab produced silence.
@@ -334,16 +416,16 @@ EndFunction
 ; so. But blocking was never the problem; NOT RETURNING was. This starts the
 ; helper, returns at once so JAWS is responsive again, and asks JAWS to look
 ; back in a moment. Each visit costs milliseconds, and Escape works throughout.
-int Function startBridge (string sWaitFor, string sCommand, string sArgument)
+int Function hVStartBridge (string sWaitFor, string sCommand, string sArgument)
 Var
     int iExit,
     object oFile, object oFileSystem, object oNull,
     string sArgumentPath, string sCommandLine, string sPassed
-If SubString (c_sBridgePath, 1, 1) == "@" Then
+If Builtin::SubString (c_sBridgePath, 1, 1) == "@" Then
     SayMessage (OT_ERROR, "HomerView is not installed. Run its installer.")
     Return False
 EndIf
-Let oFileSystem = CreateObjectEx (c_sFileSystemProgId, False)
+Let oFileSystem = Builtin::CreateObjectEx (c_sFileSystemProgId, False)
 Let sArgumentPath = c_sAnswerPath + ".arg"
 If sArgument == "" Then
     Let sPassed = ""
@@ -354,27 +436,27 @@ Else
     Let oFile = oNull
     Let sPassed = "@" + sArgumentPath
 EndIf
-Let sCommandLine = stringQuote (c_sBridgePath) + " " + sCommand
-    + " " + stringQuote (c_sAnswerPath) + " " + stringQuote (sPassed)
-logLine ("startBridge " + sCommand + " without waiting, for " + sWaitFor)
+Let sCommandLine = hVStringQuote (c_sBridgePath) + " " + sCommand
+    + " " + hVStringQuote (c_sAnswerPath) + " " + hVStringQuote (sPassed)
+hVLogLine ("startBridge " + sCommand + " without waiting, for " + sWaitFor)
 If oFileSystem.FileExists (c_sAnswerPath) Then
     oFileSystem.DeleteFile (c_sAnswerPath)
 EndIf
 ; False is the whole point of this function: do not wait.
-Let iExit = shellRun (sCommandLine, 0, False)
+Let iExit = hVShellRun (sCommandLine, 0, False)
 Let gsWaitFor = sWaitFor
 Let giWaitTicks = 0
-ScheduleFunction ("bridgePoll", 5)
+ScheduleFunction ("hVBridgePoll", 5)
 Return True
 EndFunction
 
 
-string Function callBridge (string sCommand, string sArgument)
+string Function hVCallBridge (string sCommand, string sArgument)
 Var
     int iExit,
     object oFile, object oFileSystem, object oNull,
     string sAnswer, string sArgumentPath, string sCommandLine, string sPassed
-If SubString (c_sBridgePath, 1, 1) == "@" Then
+If Builtin::SubString (c_sBridgePath, 1, 1) == "@" Then
     SayMessage (OT_ERROR, "HomerView is not installed. Run its installer.")
     Return ""
 EndIf
@@ -393,7 +475,7 @@ EndIf
 ;
 ; True as the third argument to CreateTextFile writes UTF-16, so an accented
 ; character survives the trip. .NET reads the byte order mark and knows.
-Let oFileSystem = CreateObjectEx (c_sFileSystemProgId, False)
+Let oFileSystem = Builtin::CreateObjectEx (c_sFileSystemProgId, False)
 Let sArgumentPath = c_sAnswerPath + ".arg"
 If sArgument == "" Then
     Let sPassed = ""
@@ -404,16 +486,16 @@ Else
     Let oFile = oNull
     Let sPassed = "@" + sArgumentPath
 EndIf
-Let sCommandLine = stringQuote (c_sBridgePath) + " " + sCommand
-    + " " + stringQuote (c_sAnswerPath) + " " + stringQuote (sPassed)
-logLine ("callBridge " + sCommand + " sending "
-    + IntToString (StringLength (sArgument)) + " characters through a file")
+Let sCommandLine = hVStringQuote (c_sBridgePath) + " " + sCommand
+    + " " + hVStringQuote (c_sAnswerPath) + " " + hVStringQuote (sPassed)
+hVLogLine ("callBridge " + sCommand + " sending "
+    + Builtin::IntToString (Builtin::StringLength (sArgument)) + " characters through a file")
 ; A command that never started must never be read as the last one's success.
 If oFileSystem.FileExists (c_sAnswerPath) Then
     oFileSystem.DeleteFile (c_sAnswerPath)
 EndIf
 ; Nought hides the window; True waits for it to finish.
-Let iExit = shellRun (sCommandLine, 0, True)
+Let iExit = hVShellRun (sCommandLine, 0, True)
 If oFileSystem.FileExists (c_sAnswerPath) Then
     ; The fourth argument is -1, which asks the FileSystemObject to read the
     ; file as Unicode. The helper writes UTF-16 and this reads it, which is the
@@ -427,7 +509,7 @@ Else
     SayMessage (OT_ERROR, "HomerView did not answer. Launch it and try again.")
     Return ""
 EndIf
-logLine ("callBridge " + sCommand + " read " + IntToString (StringLength (sAnswer)) + " characters")
+hVLogLine ("callBridge " + sCommand + " read " + Builtin::IntToString (Builtin::StringLength (sAnswer)) + " characters")
 Let gsLastResult = sAnswer
 Return sAnswer
 EndFunction
@@ -446,7 +528,7 @@ EndFunction
 ; So the helper answers in XML instead: .NET turns the browser's JSON into XML
 ; with its own reader, and the answer's shape is the helper's own, so a path
 ; asked for here is a path the helper always writes.
-string Function xmlValue (string sXml, string sPath)
+string Function hVXmlValue (string sXml, string sPath)
 Var
     object oDoc, object oNode
 ; A REAL XML PARSER, AND NOT ONE WRITTEN HERE.
@@ -495,10 +577,10 @@ EndIf
 ; If msxml2.DOMDocument.6.0 is not registered on a machine, CreateObjectEx
 ; hands back nothing and there is no error to hear. So the unversioned ProgID
 ; is tried after it, and the log SAYS which one answered, or that neither did.
-Let oDoc = CreateObjectEx (c_sXmlProgId, False)
+Let oDoc = Builtin::CreateObjectEx (c_sXmlProgId, False)
 If oDoc.loadXML ("<root/>") == False Then
-    logLine ("xmlValue: " + c_sXmlProgId + " did not answer, trying " + c_sXmlProgIdAny)
-    Let oDoc = CreateObjectEx (c_sXmlProgIdAny, False)
+    hVLogLine ("xmlValue: " + c_sXmlProgId + " did not answer, trying " + c_sXmlProgIdAny)
+    Let oDoc = Builtin::CreateObjectEx (c_sXmlProgIdAny, False)
 EndIf
 ; Written the way Freedom Scientific write it in their own sample: no Let,
 ; which JAWS 11 Update 1 made optional, and a property set on a COM object
@@ -506,7 +588,7 @@ EndIf
 oDoc.async = False
 oDoc.resolveExternals = False
 If oDoc.loadXML (sXml) == False Then
-    logLine ("xmlValue: the answer was not well formed XML, asking for " + sPath)
+    hVLogLine ("xmlValue: the answer was not well formed XML, asking for " + sPath)
     Return ""
 EndIf
 Let oNode = oDoc.selectSingleNode (sPath)
@@ -529,21 +611,24 @@ EndFunction
 ; says void, so this uses the form the file has already proved compiles
 ; everywhere. The result is not read by anybody -- ScheduleFunction calls
 ; it by name -- so the type is a formality the compiler wants.
-int Function bridgePoll ()
+int Function hVBridgePoll ()
 Var
     object oFile, object oFileSystem,
     string sAnswer, string sWaitFor
 If gsWaitFor == "" Then
     Return False
 EndIf
-Let oFileSystem = CreateObjectEx (c_sFileSystemProgId, False)
+Let oFileSystem = Builtin::CreateObjectEx (c_sFileSystemProgId, False)
 If oFileSystem.FileExists (c_sAnswerPath) == False Then
     Let giWaitTicks = giWaitTicks + 1
     If giWaitTicks > c_iWaitLimit Then
         Let sWaitFor = gsWaitFor
         Let gsWaitFor = ""
-        logLine ("bridgePoll: " + sWaitFor + " gave no answer in time")
-        SayMessage (OT_ERROR, "HomerView is still working on that. It has been left running.")
+        hVLogLine ("bridgePoll: " + sWaitFor + " gave no answer in time")
+        ; THE HELPER IS STILL GOING, AND IT WILL FINISH. He watched a Washington
+        ; Post scan complete long after this point and write its report. So this
+        ; says what is TRUE -- the waiting has stopped, the work has not.
+        SayMessage (OT_MESSAGE, "Still working on that page. The report will be saved when it finishes.")
         Return False
     EndIf
     ; A WORD EVERY TEN SECONDS, NOT ONE AT THE END.
@@ -556,10 +641,13 @@ If oFileSystem.FileExists (c_sAnswerPath) == False Then
     ; Twenty looks of half a second each is ten seconds. The division rather
     ; than a remainder operator keeps to arithmetic this file already uses.
     If giWaitTicks / 20 * 20 == giWaitTicks Then
-        SayMessage (OT_STATUS, "Still working, "
-            + IntToString (giWaitTicks / 2) + " seconds")
+        ; SHORT, BECAUSE IT REPEATS. Spoken every ten seconds, "Still working"
+        ; is three syllables of nothing each time; the NUMBER is the only part
+        ; that changes and the only part worth hearing.
+        SayMessage (OT_STATUS, "Working, "
+            + Builtin::IntToString (giWaitTicks / 2))
     EndIf
-    ScheduleFunction ("bridgePoll", 5)
+    ScheduleFunction ("hVBridgePoll", 5)
     Return False
 EndIf
 Let oFile = oFileSystem.OpenTextFile (c_sAnswerPath, 1, False, -1)
@@ -567,11 +655,11 @@ Let sAnswer = oFile.ReadAll ()
 Let gsLastResult = sAnswer
 Let sWaitFor = gsWaitFor
 Let gsWaitFor = ""
-logLine ("bridgePoll: " + sWaitFor + " answered with "
-    + IntToString (StringLength (sAnswer)) + " characters after "
-    + IntToString (giWaitTicks) + " looks")
-If xmlValue (sAnswer, "/root/error") != "" Then
-    sayOrShow (xmlValue (sAnswer, "/root/error"))
+hVLogLine ("bridgePoll: " + sWaitFor + " answered with "
+    + Builtin::IntToString (Builtin::StringLength (sAnswer)) + " characters after "
+    + Builtin::IntToString (giWaitTicks) + " looks")
+If hVXmlValue (sAnswer, "/root/error") != "" Then
+    hVSayOrShow (hVXmlValue (sAnswer, "/root/error"))
     Return True
 EndIf
 If sWaitFor == "extractMainContent" Then
@@ -583,7 +671,7 @@ If sWaitFor == "openDocument" Then
     Return True
 EndIf
 ; The two scans both answer with a sentence of their own.
-sayOrShow (xmlValue (sAnswer, "/root/value"))
+hVSayOrShow (hVXmlValue (sAnswer, "/root/value"))
 EndFunction
 
 
@@ -593,9 +681,9 @@ EndFunction
 ; line argument wrapped in double quotes, so a double quote inside it would end
 ; the argument early and the rest of the program would arrive as separate
 ; arguments nobody reads. Nothing in this file's JavaScript uses one.
-string Function jsQuote (string sText)
-Let sText = StringReplaceSubstrings (sText, "\\", "\\\\")
-Let sText = StringReplaceSubstrings (sText, "'", "\\'")
+string Function hVJsQuote (string sText)
+Let sText = Builtin::StringReplaceSubstrings (sText, "\\", "\\\\")
+Let sText = Builtin::StringReplaceSubstrings (sText, "'", "\\'")
 Return "'" + sText + "'"
 EndFunction
 
@@ -612,19 +700,19 @@ EndFunction
 ; When there is no address, what the cursor IS on is worth saying. "No link
 ; here" sends a person hunting for a fault; "this is a banner region" tells
 ; them to move.
-string Function linkUrl ()
+string Function hVLinkUrl ()
 Var
     string sHref, string sTag, string sXml
 Let sXml = GetElementXML (0)
-Let sHref = attributeValue (sXml, "href")
+Let sHref = hVAttributeValue (sXml, "href")
 If sHref == "" Then
     Let sXml = GetElementXML (1)
-    Let sHref = attributeValue (sXml, "href")
+    Let sHref = hVAttributeValue (sXml, "href")
 EndIf
-logLine ("linkUrl: element XML is " + IntToString (StringLength (sXml)) + " characters: " + sXml)
+hVLogLine ("linkUrl: element XML is " + Builtin::IntToString (Builtin::StringLength (sXml)) + " characters: " + sXml)
 If sHref == "" Then
-    Let sTag = attributeValue (sXml, "fsTag")
-    logLine ("linkUrl: no href; the cursor is on a " + sTag)
+    Let sTag = hVAttributeValue (sXml, "fsTag")
+    hVLogLine ("linkUrl: no href; the cursor is on a " + sTag)
     Let gsLastTag = sTag
 Else
     Let gsLastTag = ""
@@ -632,8 +720,8 @@ EndIf
 ; The link's own words go with the address. The helper compares them with the
 ; page's title and says when they have nothing in common, which is the mismatch
 ; a sighted reader catches by hovering and a blind reader never sees.
-Let gsLastText = attributeValue (sXml, "fsText")
-logLine ("linkUrl: href is " + sHref)
+Let gsLastText = hVAttributeValue (sXml, "fsText")
+hVLogLine ("linkUrl: href is " + sHref)
 Return sHref
 EndFunction
 
@@ -646,18 +734,18 @@ EndFunction
 ; characters. The helper takes it apart instead, where a runtime exists, and
 ; sends back the value alone. A failure arrives as a line beginning ERROR:,
 ; which one comparison finds.
-string Function runScript (string sJavaScript)
+string Function hVRunScript (string sJavaScript)
 Var string sAnswer
-Let sAnswer = callBridge ("evaluateText", sJavaScript)
+Let sAnswer = hVCallBridge ("evaluateText", sJavaScript)
 If sAnswer == "" Then
     Return ""
 EndIf
-If SubString (sAnswer, 1, 6) == "ERROR:" Then
-    logLine ("runScript: " + sAnswer)
+If Builtin::SubString (sAnswer, 1, 6) == "ERROR:" Then
+    hVLogLine ("runScript: " + sAnswer)
     SayMessage (OT_ERROR, sAnswer)
     Return ""
 EndIf
-logLine ("runScript returning " + IntToString (StringLength (sAnswer)) + " characters")
+hVLogLine ("runScript returning " + Builtin::IntToString (Builtin::StringLength (sAnswer)) + " characters")
 Return sAnswer
 EndFunction
 
@@ -667,21 +755,21 @@ EndFunction
 ; A FUNCTION, NOT SEVEN NEAR-IDENTICAL SCRIPTS. Each document command is three
 ; lines that name a file and call this, so a new document is a new script and a
 ; new row in the table rather than another copy of the same twenty lines.
-Void Function openOwnDocument (string sFile, string sWhat)
+Void Function hVOpenOwnDocument (string sFile, string sWhat)
 Var
     int iExit,
     string sAnswer
-logLine ("openOwnDocument asked for " + sFile)
-Let sAnswer = callBridge ("openPage", c_sAppFolder + "\\" + sFile)
-If xmlValue (sAnswer, "/root/value") != "" Then
+hVLogLine ("openOwnDocument asked for " + sFile)
+Let sAnswer = hVCallBridge ("openPage", c_sAppFolder + "\\" + sFile)
+If hVXmlValue (sAnswer, "/root/value") != "" Then
     SayMessage (OT_STATUS, "Opening " + sWhat)
     Return
 EndIf
 ; The same fallback the guide has: a document that will not open at all is
 ; worse than one in the wrong window, and these are what somebody reaches for
 ; when nothing else is working.
-logLine ("openOwnDocument: falling back to the default browser")
-Let iExit = shellRun ("cmd.exe /c start \"\" " + stringQuote (c_sAppFolder + "\\" + sFile), 0, False)
+hVLogLine ("openOwnDocument: falling back to the default browser")
+Let iExit = hVShellRun ("cmd.exe /c start \"\" " + hVStringQuote (c_sAppFolder + "\\" + sFile), 0, False)
 SayMessage (OT_STATUS, "Opening outside HomerView")
 EndFunction
 
@@ -698,27 +786,27 @@ EndFunction
 ; The same attribute trick Jump to Probable Main uses, for the same reason --
 ; an attribute is the one thing the browser and the virtual cursor can both
 ; see.
-Void Function findAndMark (string sMode, string sNeedle, int bBackwards)
+Void Function hVFindAndMark (string sMode, string sNeedle, int bBackwards)
 Var
     int iMoved,
     string sAnswer, string sCount
-Let sAnswer = callBridge ("findMark", sMode + "\t" + sNeedle)
-If xmlValue (sAnswer, "/root/error") != "" Then
-    SayMessage (OT_ERROR, xmlValue (sAnswer, "/root/error"))
+Let sAnswer = hVCallBridge ("findMark", sMode + "\t" + sNeedle)
+If hVXmlValue (sAnswer, "/root/error") != "" Then
+    SayMessage (OT_ERROR, hVXmlValue (sAnswer, "/root/error"))
     Return
 EndIf
-Let sCount = xmlValue (sAnswer, "/root/value")
+Let sCount = hVXmlValue (sAnswer, "/root/value")
 If sCount == "0" Then
     SayMessage (OT_ERROR, "Not found")
     Return
 EndIf
 Let gsLastFind = sNeedle
 If bBackwards Then
-    Let iMoved = MoveToTagWithAttribute (S_BOTTOM, "", "data-homerviewfind", True)
+    Let iMoved = Builtin::MoveToTagWithAttribute (S_BOTTOM, "", "data-homerviewfind", True)
 Else
-    Let iMoved = MoveToTagWithAttribute (S_TOP, "", "data-homerviewfind", True)
+    Let iMoved = Builtin::MoveToTagWithAttribute (S_TOP, "", "data-homerviewfind", True)
 EndIf
-logLine ("findAndMark: " + sCount + " matches, moved " + IntToString (iMoved))
+hVLogLine ("findAndMark: " + sCount + " matches, moved " + Builtin::IntToString (iMoved))
 If iMoved Then
     SayMessage (OT_MESSAGE, sCount + " found")
     SayLine ()
@@ -729,16 +817,16 @@ EndFunction
 
 
 ; Moves to the next or previous match already marked. F3 and Shift+F3.
-Void Function findAgain (int bBackwards)
+Void Function hVFindAgain (int bBackwards)
 Var int iMoved
 If gsLastFind == "" Then
     SayMessage (OT_ERROR, "Nothing searched for yet")
     Return
 EndIf
 If bBackwards Then
-    Let iMoved = MoveToTagWithAttribute (S_PRIOR, "", "data-homerviewfind", True)
+    Let iMoved = Builtin::MoveToTagWithAttribute (S_PRIOR, "", "data-homerviewfind", True)
 Else
-    Let iMoved = MoveToTagWithAttribute (S_NEXT, "", "data-homerviewfind", True)
+    Let iMoved = Builtin::MoveToTagWithAttribute (S_NEXT, "", "data-homerviewfind", True)
 EndIf
 If iMoved Then
     SayLine ()
@@ -754,17 +842,17 @@ EndFunction
 ; step with it by check 17, because two places deciding the same question
 ; differently is how a message comes to describe something that did not
 ; happen.
-Int Function needsConverting (string sPath)
+Int Function hVNeedsConverting (string sPath)
 Var
     int iDot,
     string sExtension
-Let iDot = StringContains (sPath, ".")
+Let iDot = Builtin::StringContains (sPath, ".")
 If iDot == 0 Then
     Return True
 EndIf
 ; -1 is the LAST segment, which JAWS 7 and later support directly. Counting
 ; the segments first would work too and gives one more place to be wrong.
-Let sExtension = StringLower (StringSegment (sPath, ".", -1))
+Let sExtension = Builtin::StringLower (Builtin::StringSegment (sPath, ".", -1))
 If sExtension == "htm" Then
     Return False
 EndIf
@@ -791,10 +879,10 @@ EndFunction
 ; VIRTUAL keys here and not common ones, which is deliberate -- a common key
 ; would take Alt+Apostrophe away from FileDir and EdSharp, which handle it
 ; themselves and would never see it again.
-Script appendClipboard ()
+Script hVAppendClipboard ()
 Var
     string sAnswer, string sPath
-logLine ("appendClipboard started")
+hVLogLine ("hVAppendClipboard started")
 ; THE SAME FILE AS LAST TIME, WITHOUT ASKING AGAIN.
 ;
 ; Appending is gathering, and gathering means many presses into one file. Being
@@ -802,29 +890,29 @@ logLine ("appendClipboard started")
 ; yet there is nothing to append to, so this behaves exactly as Save Clipboard
 ; does and asks once.
 If gsClipboardFile == "" Then
-    logLine ("appendClipboard: no file yet, so asking as Save Clipboard would")
-    PerformScriptByName ("saveClipboard")
+    hVLogLine ("hVAppendClipboard: no file yet, so asking as Save Clipboard would")
+    PerformScriptByName ("hVSaveClipboard")
     Return
 EndIf
-Let sAnswer = callBridge ("clipboardToFile", "+" + gsClipboardFile)
-If xmlValue (sAnswer, "/root/error") != "" Then
-    SayMessage (OT_ERROR, xmlValue (sAnswer, "/root/error"))
+Let sAnswer = hVCallBridge ("clipboardToFile", "+" + gsClipboardFile)
+If hVXmlValue (sAnswer, "/root/error") != "" Then
+    SayMessage (OT_ERROR, hVXmlValue (sAnswer, "/root/error"))
     Return
 EndIf
-SayMessage (OT_MESSAGE, xmlValue (sAnswer, "/root/value"))
+SayMessage (OT_MESSAGE, hVXmlValue (sAnswer, "/root/value"))
 EndScript
 
 
 ; Empties the clipboard, so an append starts afresh. Alt+Shift+Apostrophe.
-Script clearClipboard ()
+Script hVClearClipboard ()
 Var string sAnswer
-logLine ("clearClipboard started")
-Let sAnswer = callBridge ("clipboardClear", "")
-If xmlValue (sAnswer, "/root/error") != "" Then
-    SayMessage (OT_ERROR, xmlValue (sAnswer, "/root/error"))
+hVLogLine ("hVClearClipboard started")
+Let sAnswer = hVCallBridge ("clipboardClear", "")
+If hVXmlValue (sAnswer, "/root/error") != "" Then
+    SayMessage (OT_ERROR, hVXmlValue (sAnswer, "/root/error"))
     Return
 EndIf
-SayMessage (OT_MESSAGE, xmlValue (sAnswer, "/root/value"))
+SayMessage (OT_MESSAGE, hVXmlValue (sAnswer, "/root/value"))
 EndScript
 
 
@@ -833,11 +921,11 @@ EndScript
 ;
 ; The whole point of an append is gathering: three paragraphs from different
 ; parts of a page into one note, without a second window to paste into.
-Script copyAppend ()
+Script hVCopyAppend ()
 Var
     string sAnswer, string sText
-logLine ("copyAppend started")
-Let sText = GetSelectedText ()
+hVLogLine ("hVCopyAppend started")
+Let sText = Builtin::GetSelectedText ()
 If sText == "" Then
     Let sText = GetLine ()
 EndIf
@@ -845,12 +933,12 @@ If sText == "" Then
     SayMessage (OT_ERROR, "Nothing to copy")
     Return
 EndIf
-Let sAnswer = callBridge ("clipboardAdd", sText)
-If xmlValue (sAnswer, "/root/error") != "" Then
-    SayMessage (OT_ERROR, xmlValue (sAnswer, "/root/error"))
+Let sAnswer = hVCallBridge ("clipboardAdd", sText)
+If hVXmlValue (sAnswer, "/root/error") != "" Then
+    SayMessage (OT_ERROR, hVXmlValue (sAnswer, "/root/error"))
     Return
 EndIf
-SayMessage (OT_MESSAGE, xmlValue (sAnswer, "/root/value"))
+SayMessage (OT_MESSAGE, hVXmlValue (sAnswer, "/root/value"))
 EndScript
 
 
@@ -860,16 +948,16 @@ EndScript
 ; virtual document and copying it is Control+A then Control+C, which is the
 ; browser's selection rather than the text a reader sees, and on many pages
 ; brings back the navigation and the footers with it.
-Script copyAll ()
+Script hVCopyAll ()
 Var string sAnswer
-logLine ("copyAll started")
+hVLogLine ("hVCopyAll started")
 SayMessage (OT_STATUS, "Copying")
-Let sAnswer = callBridge ("copyAll", "")
-If xmlValue (sAnswer, "/root/error") != "" Then
-    SayMessage (OT_ERROR, xmlValue (sAnswer, "/root/error"))
+Let sAnswer = hVCallBridge ("copyAll", "")
+If hVXmlValue (sAnswer, "/root/error") != "" Then
+    SayMessage (OT_ERROR, hVXmlValue (sAnswer, "/root/error"))
     Return
 EndIf
-SayMessage (OT_MESSAGE, xmlValue (sAnswer, "/root/value"))
+SayMessage (OT_MESSAGE, hVXmlValue (sAnswer, "/root/value"))
 EndScript
 
 
@@ -883,14 +971,14 @@ EndScript
 ; Downloads, replaced whole on each run -- and the HTML report opens in
 ; HomerView's own browser when it is done, so every other HomerView command
 ; works on it.
-Script checkAccessibilityIbm ()
+Script hVCheckAccessibilityIbm ()
 Var int iStarted
-logLine ("checkAccessibilityIbm started")
-SayMessage (OT_STATUS, "Checking with IBM")
+hVLogLine ("hVCheckAccessibilityIbm started")
+SayMessage (OT_STATUS, "Check Accessibility with IBM")
 ; STARTED, NOT WAITED FOR. A scan takes many seconds, and waiting here would
 ; hold JAWS'S OWN THREAD for all of them -- no speech anywhere, not just in
 ; HomerView. bridgePoll speaks the answer when it arrives.
-Let iStarted = startBridge ("checkAccessibilityIbm", "ace", "IBM_Accessibility")
+Let iStarted = hVStartBridge ("checkAccessibilityIbm", "ace", "IBM_Accessibility")
 If iStarted == False Then
     Return
 EndIf
@@ -904,10 +992,10 @@ EndScript
 ; more. Edge copies a selection and does nothing at all without one. This
 ; copies the selection when there is one and the line under the cursor when
 ; there is not, which is the case a reader hits most often.
-Script copySelection ()
+Script hVCopySelection ()
 Var string sText
-logLine ("copySelection started")
-Let sText = GetSelectedText ()
+hVLogLine ("hVCopySelection started")
+Let sText = Builtin::GetSelectedText ()
 If sText == "" Then
     Let sText = GetLine ()
     If sText == "" Then
@@ -919,31 +1007,35 @@ If sText == "" Then
     Return
 EndIf
 CopyToClipboard (sText)
-SayMessage (OT_MESSAGE, "Copied " + IntToString (StringLength (sText)) + " characters.")
+SayMessage (OT_MESSAGE, "Copied " + Builtin::IntToString (Builtin::StringLength (sText)) + " characters.")
 EndScript
 
 
 ; Selects from where the selection was started to here. Shift+F8.
-Script completeSelection ()
+Script hVCompleteSelection ()
 Var string sText
-logLine ("completeSelection started")
+hVLogLine ("hVCompleteSelection started")
 ; Muted for the same reason: this one reads the whole selection aloud, which
 ; on a long passage is the entire passage before he can do anything with it.
 SpeechOff ()
 PerformScript SelectTextBetweenMarkedPlaceAndCurrentPosition ()
 SpeechOn ()
-Let sText = GetSelectedText ()
+Let sText = Builtin::GetSelectedText ()
 ; THE OUTCOME, NOT THE ACTION. The previous version reported whether a function
 ; had returned true and logged nothing at all, so when it silently selected
 ; nothing there was no way to tell from the log whether the key had even
 ; arrived. The length of what is now selected is the only answer that means
 ; anything.
-logLine ("completeSelection: " + IntToString (StringLength (sText)) + " characters are selected")
+hVLogLine ("hVCompleteSelection: " + Builtin::IntToString (Builtin::StringLength (sText)) + " characters are selected")
 If sText == "" Then
     SayMessage (OT_ERROR, "Nothing selected")
     Return
 EndIf
-SayMessage (OT_MESSAGE, "Complete Selection")
+; THE COUNT IS THE RESULT, so it is what gets said. "Complete Selection"
+; only repeated the command name back; the number of characters is the one
+; thing the reader cannot see and actually wanted to know.
+SayMessage (OT_MESSAGE, "Complete Selection, "
+    + Builtin::IntToString (Builtin::StringLength (sText)) + " characters")
 EndScript
 
 
@@ -959,10 +1051,14 @@ EndScript
 ;
 ; Up to five places per problem, with what each element is and why the engine
 ; objected. A count without a location is a complaint, not a finding.
-Script checkAccessibility ()
+Script hVCheckAccessibility ()
 Var int iStarted
-logLine ("checkAccessibility started")
-SayMessage (OT_STATUS, "Checking")
+hVLogLine ("hVCheckAccessibility started")
+; COMMAND ECHO. The NAME of the command, not a description and not a vague
+; "Checking": a reader who has just chosen from a 44 row menu, or pressed a
+; key they may not be sure of, hears WHICH command is now running before any
+; of the waiting begins. The same words as the menu row, so the two agree.
+SayMessage (OT_STATUS, "Check Accessibility with axe")
 ; THE WHOLE REPORT, SAVED AND OPENED -- and started rather than waited for.
 ;
 ; The helper builds the report report.py builds on the NVDA side: plain
@@ -972,7 +1068,7 @@ SayMessage (OT_STATUS, "Checking")
 ;
 ; That takes seconds, sometimes tens of them, and this used to WAIT -- which
 ; froze every part of JAWS until it finished. bridgePoll reports instead.
-Let iStarted = startBridge ("checkAccessibility", "axeReport", "")
+Let iStarted = hVStartBridge ("checkAccessibility", "axeReport", "")
 If iStarted == False Then
     Return
 EndIf
@@ -995,21 +1091,21 @@ EndScript
 ; was missing the failure went to a hidden console and the command appeared to
 ; do nothing at all — twice. A program that declares its own apartment cannot
 ; fail that way, and the helper is already there.
-Script copyLogToClipboard ()
+Script hVCopyLogToClipboard ()
 Var
     string sAnswer
-logLine ("copyLogToClipboard started")
-Let sAnswer = callBridge ("clipboardFile", logPath ())
-If xmlValue (sAnswer, "/root/value") != "" Then
+hVLogLine ("hVCopyLogToClipboard started")
+Let sAnswer = hVCallBridge ("clipboardFile", hVLogPath ())
+If hVXmlValue (sAnswer, "/root/value") != "" Then
     SayMessage (OT_MESSAGE, "Log on the clipboard, as a file and as a path")
     Return
 EndIf
-logLine ("copyLogToClipboard: the file drop was refused: " + xmlValue (sAnswer, "/root/error"))
-Let sAnswer = callBridge ("clipboardText", logPath ())
-If xmlValue (sAnswer, "/root/value") != "" Then
+hVLogLine ("hVCopyLogToClipboard: the file drop was refused: " + hVXmlValue (sAnswer, "/root/error"))
+Let sAnswer = hVCallBridge ("clipboardText", hVLogPath ())
+If hVXmlValue (sAnswer, "/root/value") != "" Then
     SayMessage (OT_MESSAGE, "Log path on the clipboard")
 Else
-    SayMessage (OT_ERROR, "Clipboard refused. Log at " + logPath ())
+    SayMessage (OT_ERROR, "Clipboard refused. Log at " + hVLogPath ())
 EndIf
 EndScript
 
@@ -1019,11 +1115,11 @@ EndScript
 ; The text and the address of each, one per line, in the order they appear.
 ; A page's links are a table of contents nobody prints, and having them as
 ; text means they can be pasted into a message, searched, or kept.
-Script copyPageLinks ()
+Script hVCopyPageLinks ()
 Var
     int iJaws, int iLength,
     string sAnswer, string sResult, string sStripped, string sXml
-logLine ("copyPageLinks started")
+hVLogLine ("hVCopyPageLinks started")
 ; THE PARITY QUESTION, ASKED ON EVERY RUN RATHER THAN ONCE IN A LABORATORY.
 ;
 ; The links could be collected here instead of in the browser: GetDocumentXML
@@ -1045,13 +1141,13 @@ logLine ("copyPageLinks started")
 ; opening Link tag removed, and the difference divided by the length of the
 ; tag is how many there were.
 Let sXml = GetDocumentXML ()
-Let iLength = StringLength (sXml)
-Let sStripped = StringReplaceSubstrings (sXml, "<Link ", "")
-Let iJaws = (iLength - StringLength (sStripped)) / 6
-logLine ("  the off screen model has " + IntToString (iJaws) + " links in "
-    + IntToString (iLength) + " characters of document XML")
+Let iLength = Builtin::StringLength (sXml)
+Let sStripped = Builtin::StringReplaceSubstrings (sXml, "<Link ", "")
+Let iJaws = (iLength - Builtin::StringLength (sStripped)) / 6
+hVLogLine ("  the off screen model has " + Builtin::IntToString (iJaws) + " links in "
+    + Builtin::IntToString (iLength) + " characters of document XML")
 SayMessage (OT_STATUS, "Collecting links")
-Let sResult = runScript (
+Let sResult = hVRunScript (
     "(() => {"
     + "const l = [];"
     + "for (const a of document.querySelectorAll('a[href]')) {"
@@ -1070,10 +1166,10 @@ EndIf
 ; proved exists, and an unknown function is assumed to return an int, so the
 ; arithmetic would type check perfectly and be wrong in silence. Two numbers on
 ; one log line need no arithmetic to compare.
-logLine ("  PARITY on this page: off screen model " + IntToString (iJaws)
-    + " links, browser " + StringSegment (sResult, " ", 1) + " links")
-Let sAnswer = callBridge ("clipboardText", sResult)
-If xmlValue (sAnswer, "/root/value") != "" Then
+hVLogLine ("  PARITY on this page: off screen model " + Builtin::IntToString (iJaws)
+    + " links, browser " + Builtin::StringSegment (sResult, " ", 1) + " links")
+Let sAnswer = hVCallBridge ("clipboardText", sResult)
+If hVXmlValue (sAnswer, "/root/value") != "" Then
     SayMessage (OT_MESSAGE, "Links on the clipboard")
 Else
     SayMessage (OT_ERROR, "Clipboard refused")
@@ -1089,13 +1185,13 @@ EndScript
 ; "The link could not be reached", which read as a broken link when it was
 ; nothing of the kind. The bridge is a program, not a page, and no such rule
 ; applies to it.
-Script describeLinkTarget ()
+Script hVDescribeLinkTarget ()
 Var
     string sAnswer, string sResult, string sUrl
-logLine ("describeLinkTarget started")
-Let sUrl = linkUrl ()
+hVLogLine ("hVDescribeLinkTarget started")
+Let sUrl = hVLinkUrl ()
 If sUrl == "" Then
-    logLine ("describeLinkTarget: no address here")
+    hVLogLine ("hVDescribeLinkTarget: no address here")
     If gsLastTag == "" Then
         SayMessage (OT_ERROR, "No link here")
     Else
@@ -1104,15 +1200,15 @@ If sUrl == "" Then
     Return
 EndIf
 SayMessage (OT_STATUS, "Asking")
-Let sAnswer = callBridge ("probe", sUrl + "\t" + gsLastText)
+Let sAnswer = hVCallBridge ("probe", sUrl + "\t" + gsLastText)
 If sAnswer == "" Then
     Return
 EndIf
-If xmlValue (sAnswer, "/root/error") != "" Then
-    SayMessage (OT_ERROR, xmlValue (sAnswer, "/root/error"))
+If hVXmlValue (sAnswer, "/root/error") != "" Then
+    SayMessage (OT_ERROR, hVXmlValue (sAnswer, "/root/error"))
     Return
 EndIf
-Let sResult = xmlValue (sAnswer, "/root/value")
+Let sResult = hVXmlValue (sAnswer, "/root/value")
 ; THE ADDRESS IS SHOWN WHATEVER ELSE HAPPENS.
 ;
 ; This used to be two commands: one that fetched a description and one that
@@ -1125,11 +1221,11 @@ Let sResult = xmlValue (sAnswer, "/root/value")
 ; got. The order follows the NVDA side: what the page is, then the address
 ; last, where it can be read a character at a time.
 If sResult == "" Then
-    logLine ("describeLinkTarget: nothing came back about the target, showing the address alone")
-    sayOrShow ("Link not reached. Its address:"
+    hVLogLine ("hVDescribeLinkTarget: nothing came back about the target, showing the address alone")
+    hVSayOrShow ("Link not reached. Its address:"
         + "\r\n\r\n" + sUrl)
 Else
-    sayOrShow (sResult)
+    hVSayOrShow (sResult)
 EndIf
 EndScript
 
@@ -1140,10 +1236,10 @@ EndScript
 ; and are rarely reachable by the keys that would dismiss them. This closes any
 ; open dialog element, then presses Escape at whatever else is pinned over the
 ; content, and says how many things it shifted.
-Script dismissDialog ()
+Script hVDismissDialog ()
 Var string sResult
-logLine ("dismissDialog started")
-Let sResult = runScript (
+hVLogLine ("hVDismissDialog started")
+Let sResult = hVRunScript (
     "(() => {"
     + "let n = 0;"
     + "for (const el of document.querySelectorAll('dialog[open]')) { el.close(); n += 1; }"
@@ -1185,10 +1281,10 @@ EndScript
 ; AS HTML, because an article's links are often the reason for reading it, and
 ; plain text throws every one of them away. That was the fault in the version
 ; before this: it showed the words and lost everything they pointed at.
-Script extractMainContent ()
+Script hVExtractMainContent ()
 Var int iStarted
-logLine ("extractMainContent started")
-SayMessage (OT_STATUS, "Extracting")
+hVLogLine ("hVExtractMainContent started")
+SayMessage (OT_STATUS, "Extract Main Content")
 ; STARTED, NOT WAITED FOR, LIKE THE TWO SCANS.
 ;
 ; Tracing the menu commands by hand caught this one: extracting an article
@@ -1196,7 +1292,7 @@ SayMessage (OT_STATUS, "Extracting")
 ; as a scan does -- and this still WAITED, holding JAWS'S OWN THREAD for all of
 ; it. A reader would have lost speech everywhere, exactly as happened with Axe.
 ; The three slow commands were converted; this is the fourth and it was missed.
-Let iStarted = startBridge ("extractMainContent", "extract", "")
+Let iStarted = hVStartBridge ("extractMainContent", "extract", "")
 If iStarted == False Then
     Return
 EndIf
@@ -1205,14 +1301,14 @@ EndScript
 
 ; Launches or reconnects HomerView's copy of Microsoft Edge. No key by default:
 ; see the guide, since default.jkm is never touched.
-Script launchHomerView ()
+Script hVLaunchHomerView ()
 Var string sAnswer
 SayMessage (OT_STATUS, "Launching HomerView")
-Let sAnswer = callBridge ("launch", "")
+Let sAnswer = hVCallBridge ("launch", "")
 If sAnswer == "" Then
     Return
 EndIf
-If xmlValue (sAnswer, "/root/connected") == "true" Then
+If hVXmlValue (sAnswer, "/root/connected") == "true" Then
     ; NOTHING IS SAID HERE ON PURPOSE.
     ;
     ; A browser window opening announces itself: the screen reader reads the
@@ -1221,9 +1317,9 @@ If xmlValue (sAnswer, "/root/connected") == "true" Then
     ; the reader is listening for the page. The window IS the confirmation.
     ;
     ; A FAILURE still speaks, below, because nothing else would say so.
-    logLine ("launchHomerView: launched, and the window will announce itself")
+    hVLogLine ("hVLaunchHomerView: launched, and the window will announce itself")
 Else
-    SayMessage (OT_ERROR, xmlValue (sAnswer, "/root/error"))
+    SayMessage (OT_ERROR, hVXmlValue (sAnswer, "/root/error"))
 EndIf
 EndScript
 
@@ -1233,21 +1329,21 @@ EndScript
 ; No key because F4 is what the NVDA side uses and F4 in this browser puts the
 ; cursor in the address bar. A key that takes something away from the browser
 ; has to give more back than it costs, and a list nobody asked for does not.
-Script listTabs ()
+Script hVListTabs ()
 Var
     int iActivated, int iAdded, int iTab,
     string sAnswer, string sId, string sRecord, string sResult,
     string sTitle, string sUrl
-logLine ("listTabs started")
-Let sAnswer = callBridge ("tabList", "")
+hVLogLine ("hVListTabs started")
+Let sAnswer = hVCallBridge ("tabList", "")
 If sAnswer == "" Then
     Return
 EndIf
-If xmlValue (sAnswer, "/root/error") != "" Then
-    SayMessage (OT_ERROR, xmlValue (sAnswer, "/root/error"))
+If hVXmlValue (sAnswer, "/root/error") != "" Then
+    SayMessage (OT_ERROR, hVXmlValue (sAnswer, "/root/error"))
     Return
 EndIf
-Let sResult = xmlValue (sAnswer, "/root/value")
+Let sResult = hVXmlValue (sAnswer, "/root/value")
 If sResult == "" Then
     SayMessage (OT_ERROR, "No tabs")
     Return
@@ -1260,26 +1356,26 @@ EndIf
 ; separated by character 7 -- so the id survives to reach the link. A list built
 ; as prose would have thrown the id away, and the id is the only thing that can
 ; activate anything.
-UserBufferDeactivate ()
-UserBufferClear ()
-Let iAdded = UserBufferAddText ("HomerView tabs. Press Enter on one to go to it.")
-Let iAdded = UserBufferAddText ("")
+Builtin::UserBufferDeactivate ()
+Builtin::UserBufferClear ()
+Let iAdded = Builtin::UserBufferAddText ("HomerView tabs. Press Enter on one to go to it.")
+Let iAdded = Builtin::UserBufferAddText ("")
 Let iTab = 1
-Let sRecord = StringSegment (sResult, "\7", iTab)
+Let sRecord = Builtin::StringSegment (sResult, "\7", iTab)
 While sRecord != ""
-    Let sId = StringSegment (sRecord, "\t", 1)
-    Let sTitle = StringSegment (sRecord, "\t", 2)
-    Let sUrl = StringSegment (sRecord, "\t", 3)
-    Let iAdded = UserBufferAddLink (IntToString (iTab) + ". " + sTitle,
-        "homerViewTab (\"" + sId + "\")", sTitle)
-    Let iAdded = UserBufferAddText ("   " + sUrl)
+    Let sId = Builtin::StringSegment (sRecord, "\t", 1)
+    Let sTitle = Builtin::StringSegment (sRecord, "\t", 2)
+    Let sUrl = Builtin::StringSegment (sRecord, "\t", 3)
+    Let iAdded = UserBufferAddLink (Builtin::IntToString (iTab) + ". " + sTitle,
+        "hVHomerViewTab (\"" + sId + "\")", sTitle)
+    Let iAdded = Builtin::UserBufferAddText ("   " + sUrl)
     Let iTab = iTab + 1
-    Let sRecord = StringSegment (sResult, "\7", iTab)
+    Let sRecord = Builtin::StringSegment (sResult, "\7", iTab)
 EndWhile
-Let iActivated = UserBufferActivate ()
+Let iActivated = Builtin::UserBufferActivate ()
 JAWSTopOfFile ()
 SayAll ()
-logLine ("listTabs showed " + IntToString (iTab - 1) + " tabs, activated " + IntToString (iActivated))
+hVLogLine ("hVListTabs showed " + Builtin::IntToString (iTab - 1) + " tabs, activated " + Builtin::IntToString (iActivated))
 EndScript
 
 
@@ -1305,11 +1401,11 @@ EndScript
 ; whatever carries it. Searching for the text was the alternative, and it fails
 ; on any page that repeats the words elsewhere. The mark is removed from
 ; wherever it was last so a page only ever has one.
-Script moveToProbableMain ()
+Script hVMoveToProbableMain ()
 Var
     int iMoved,
     string sResult
-Let sResult = runScript (
+Let sResult = hVRunScript (
     "(() => {"
     + "for (const el of document.querySelectorAll('[data-homerviewmain]'))"
     + "  el.removeAttribute('data-homerviewmain');"
@@ -1345,9 +1441,9 @@ EndIf
 ; An earlier version called JAWSFindFirst, which does not exist. A call to an
 ; unknown function is not an error on its own in this language, so the compiler
 ; accepted it and the command would simply have done nothing.
-Let iMoved = MoveToTagWithAttribute (S_TOP, "", "data-homerviewmain", True)
-logLine ("moveToProbableMain: the page said " + sResult
-    + " and the move returned " + IntToString (iMoved))
+Let iMoved = Builtin::MoveToTagWithAttribute (S_TOP, "", "data-homerviewmain", True)
+hVLogLine ("hVMoveToProbableMain: the page said " + sResult
+    + " and the move returned " + Builtin::IntToString (iMoved))
 If iMoved Then
     ; WHICH KIND OF MAIN CONTENT IT IS, and the cursor moved either way.
     ;
@@ -1372,11 +1468,11 @@ EndScript
 
 
 ; Opens HomerView's guide. Control+F1, the key the NVDA side uses.
-Script openUserGuide ()
+Script hVOpenUserGuide ()
 Var
     int iExit,
     string sAnswer
-logLine ("openUserGuide started")
+hVLogLine ("hVOpenUserGuide started")
 ; IN HOMERVIEW'S BROWSER, NOT WHICHEVER ONE WINDOWS PREFERS.
 ;
 ; This used to be cmd /c start, which asks Windows what opens a .htm file. On a
@@ -1387,13 +1483,13 @@ logLine ("openUserGuide started")
 ; The shell is kept only for the case where the browser is not running at all,
 ; because a guide that will not open is worse than a guide in the wrong window,
 ; and the guide is exactly what somebody reaches for when nothing else works.
-Let sAnswer = callBridge ("openPage", c_sAppFolder + "\\HomerView.htm")
-If xmlValue (sAnswer, "/root/value") != "" Then
+Let sAnswer = hVCallBridge ("openPage", c_sAppFolder + "\\HomerView.htm")
+If hVXmlValue (sAnswer, "/root/value") != "" Then
     SayMessage (OT_STATUS, "Opening the guide")
     Return
 EndIf
-logLine ("openUserGuide: falling back to the default browser")
-Let iExit = shellRun ("cmd.exe /c start \"\" " + stringQuote (c_sAppFolder + "\\HomerView.htm"), 0, False)
+hVLogLine ("hVOpenUserGuide: falling back to the default browser")
+Let iExit = hVShellRun ("cmd.exe /c start \"\" " + hVStringQuote (c_sAppFolder + "\\HomerView.htm"), 0, False)
 SayMessage (OT_STATUS, "Opening outside HomerView")
 EndScript
 
@@ -1408,11 +1504,11 @@ EndScript
 ; Where each answer came from is reported with it. A published date from a
 ; citation tag and one guessed from a time element are not equally trustworthy,
 ; and a reader deciding whether to cite the page should be told which it is.
-Script sayMetadata ()
+Script hVSayMetadata ()
 Var string sResult
-logLine ("sayMetadata started")
+hVLogLine ("hVSayMetadata started")
 SayMessage (OT_STATUS, "Reading metadata")
-Let sResult = runScript (
+Let sResult = hVRunScript (
     "(() => {"
     + "const meta = {};"
     + "for (const el of document.querySelectorAll('meta[name],meta[property]')) {"
@@ -1461,9 +1557,9 @@ Let sResult = runScript (
     + "return l.concat(extra).join('\\n');"
     + "})()")
 If sResult != "" Then
-    sayOrShow (sResult)
+    hVSayOrShow (sResult)
 Else
-    logLine ("nothing to show: runScript returned nothing")
+    hVLogLine ("nothing to show: runScript returned nothing")
 EndIf
 EndScript
 
@@ -1481,8 +1577,8 @@ EndScript
 ;
 ; SaveCurrentLocation and SelectFromSavedLocationToCurrent are Freedom
 ; Scientific's own, from JAWS 16.
-Script startSelection ()
-logLine ("startSelection started")
+Script hVStartSelection ()
+hVLogLine ("hVStartSelection started")
 ; SaveCurrentLocation DID NOT DO IT. Its own description says it remembers the
 ; cursor's location for a later selection, and in an edit control it does --
 ; but in a VIRTUAL BUFFER the mechanism JAWS itself uses is a TEMPORARY
@@ -1513,20 +1609,20 @@ EndScript
 ; line of its own, among other differences. Copy All and Read All both take the
 ; browser's text, so the two commands, and both screen readers, deliver the
 ; same characters.
-Script readAll ()
+Script hVReadAll ()
 Var string sAnswer, string sText
-logLine ("readAll started")
-Let sAnswer = callBridge ("pageText", "")
-If xmlValue (sAnswer, "/root/error") != "" Then
-    SayMessage (OT_ERROR, xmlValue (sAnswer, "/root/error"))
+hVLogLine ("hVReadAll started")
+Let sAnswer = hVCallBridge ("pageText", "")
+If hVXmlValue (sAnswer, "/root/error") != "" Then
+    SayMessage (OT_ERROR, hVXmlValue (sAnswer, "/root/error"))
     Return
 EndIf
-Let sText = xmlValue (sAnswer, "/root/value")
+Let sText = hVXmlValue (sAnswer, "/root/value")
 If sText == "" Then
     SayMessage (OT_ERROR, "No text")
     Return
 EndIf
-logLine ("readAll speaking " + IntToString (StringLength (sText)) + " characters")
+hVLogLine ("hVReadAll speaking " + Builtin::IntToString (Builtin::StringLength (sText)) + " characters")
 SayMessage (OT_MESSAGE, sText)
 EndScript
 
@@ -1542,14 +1638,14 @@ EndScript
 ;
 ; The converters are FOUND, not shipped: pandoc and 2htm are looked for where
 ; they already live, and the command says plainly when neither is there.
-Script openDocument ()
+Script hVOpenDocument ()
 Var
     string sAnswer, string sPath
-logLine ("openDocument started")
-Let sAnswer = callBridge ("openDialog", "Open a document in HomerView\tDocuments|*.htm;*.html;*.txt;*.md;*.docx;*.doc;*.pdf;*.epub;*.rtf;*.odt;*.pptx;*.xlsx;*.csv|All files|*.*\t")
-Let sPath = xmlValue (sAnswer, "/root/value")
+hVLogLine ("hVOpenDocument started")
+Let sAnswer = hVCallBridge ("openDialog", "Open a document in HomerView\tDocuments|*.htm;*.html;*.txt;*.md;*.docx;*.doc;*.pdf;*.epub;*.rtf;*.odt;*.pptx;*.xlsx;*.csv|All files|*.*\t")
+Let sPath = hVXmlValue (sAnswer, "/root/value")
 If sPath == "" Then
-    logLine ("openDocument: no file was chosen")
+    hVLogLine ("hVOpenDocument: no file was chosen")
     Return
 EndIf
 ; "CONVERTING" ONLY WHEN SOMETHING IS CONVERTED.
@@ -1559,12 +1655,19 @@ EndIf
 ; that is a claim about work that is not happening, and the reader has no
 ; way to tell the difference between a message that is wrong and one that
 ; is about to be followed by a wait.
-If needsConverting (sPath) Then
+; THE NAME FIRST, THEN WHAT IS HAPPENING TO THE FILE.
+;
+; The echo names the command, as every other command now does. "Converting" is
+; kept after it because it says something the name does not: that this file
+; needs work before it can be read, so a wait is expected. A web page gets the
+; name alone and no promise of work that is not happening.
+SayMessage (OT_STATUS, "Open Document")
+If hVNeedsConverting (sPath) Then
     SayMessage (OT_STATUS, "Converting")
 EndIf
 ; Converting a large PDF can take a minute, and waiting for it here held all
 ; of JAWS. Started instead; bridgePoll says "Opened in HomerView" when it is.
-If startBridge ("openDocument", "openDocument", sPath) == False Then
+If hVStartBridge ("openDocument", "hVOpenDocument", sPath) == False Then
     Return
 EndIf
 EndScript
@@ -1576,23 +1679,23 @@ EndScript
 ; way and also as anything pandoc can write -- Word, OpenDocument, Markdown,
 ; ebook -- chosen simply by naming the file, which is more than the browser
 ; offers and is why the key is taken.
-Script savePage ()
+Script hVSavePage ()
 Var
     string sAnswer, string sPath
-logLine ("savePage started")
-Let sAnswer = callBridge ("saveDialog", "Save this page as\tWeb page|*.htm|Word document|*.docx|OpenDocument text|*.odt|Markdown|*.md|EPUB ebook|*.epub|All files|*.*\t")
-Let sPath = xmlValue (sAnswer, "/root/value")
+hVLogLine ("hVSavePage started")
+Let sAnswer = hVCallBridge ("saveDialog", "Save this page as\tWeb page|*.htm|Word document|*.docx|OpenDocument text|*.odt|Markdown|*.md|EPUB ebook|*.epub|All files|*.*\t")
+Let sPath = hVXmlValue (sAnswer, "/root/value")
 If sPath == "" Then
-    logLine ("savePage: no file was chosen")
+    hVLogLine ("hVSavePage: no file was chosen")
     Return
 EndIf
 SayMessage (OT_STATUS, "Saving")
-Let sAnswer = callBridge ("savePage", sPath)
-If xmlValue (sAnswer, "/root/error") != "" Then
-    sayOrShow (xmlValue (sAnswer, "/root/error"))
+Let sAnswer = hVCallBridge ("savePage", sPath)
+If hVXmlValue (sAnswer, "/root/error") != "" Then
+    hVSayOrShow (hVXmlValue (sAnswer, "/root/error"))
     Return
 EndIf
-SayMessage (OT_MESSAGE, xmlValue (sAnswer, "/root/value"))
+SayMessage (OT_MESSAGE, hVXmlValue (sAnswer, "/root/value"))
 EndScript
 
 
@@ -1618,41 +1721,41 @@ EndScript
 ;
 ; NOTHING IS CREATED HERE. If nothing has been saved from this page there is
 ; no folder, and the answer says so rather than opening an empty one.
-Script openPageFolder ()
+Script hVOpenPageFolder ()
 Var
     string sAnswer
-logLine ("openPageFolder started")
-Let sAnswer = callBridge ("openPageFolder", "")
+hVLogLine ("hVOpenPageFolder started")
+Let sAnswer = hVCallBridge ("openPageFolder", "")
 If sAnswer == "" Then
     Return
 EndIf
-If xmlValue (sAnswer, "/root/error") != "" Then
-    sayOrShow (xmlValue (sAnswer, "/root/error"))
+If hVXmlValue (sAnswer, "/root/error") != "" Then
+    hVSayOrShow (hVXmlValue (sAnswer, "/root/error"))
     Return
 EndIf
-SayMessage (OT_MESSAGE, xmlValue (sAnswer, "/root/value"))
+SayMessage (OT_MESSAGE, hVXmlValue (sAnswer, "/root/value"))
 EndScript
 
 
-Script downloadFiles ()
+Script hVDownloadFiles ()
 Var
     int iFailed, int iGot, int iOk, int iWhich,
     string sAnswer, string sFolder, string sKinds, string sName,
     string sNames, string sSummary, string sTrouble
-logLine ("downloadFiles started")
+hVLogLine ("hVDownloadFiles started")
 SayMessage (OT_STATUS, "Scanning links")
-Let sAnswer = callBridge ("downloadScan", "")
-If xmlValue (sAnswer, "/root/error") != "" Then
-    SayMessage (OT_ERROR, xmlValue (sAnswer, "/root/error"))
+Let sAnswer = hVCallBridge ("downloadScan", "")
+If hVXmlValue (sAnswer, "/root/error") != "" Then
+    SayMessage (OT_ERROR, hVXmlValue (sAnswer, "/root/error"))
     Return
 EndIf
-Let sSummary = xmlValue (sAnswer, "/root/value")
+Let sSummary = hVXmlValue (sAnswer, "/root/value")
 If sSummary == "" Then
-    logLine ("downloadFiles: nothing came back from the scan")
+    hVLogLine ("hVDownloadFiles: nothing came back from the scan")
     Return
 EndIf
-Let sKinds = StringSegment (sSummary, "\t", 2)
-Let iOk = InputBox ("Which kinds? " + StringSegment (sSummary, "\t", 1),
+Let sKinds = Builtin::StringSegment (sSummary, "\t", 2)
+Let iOk = Builtin::InputBox ("Which kinds? " + Builtin::StringSegment (sSummary, "\t", 1),
     "Web Download", sKinds)
 If iOk == 0 Then
     Return
@@ -1661,14 +1764,14 @@ If sKinds == "" Then
     SayMessage (OT_ERROR, "Nothing chosen")
     Return
 EndIf
-Let sAnswer = callBridge ("downloadList", sKinds)
-If xmlValue (sAnswer, "/root/error") != "" Then
-    SayMessage (OT_ERROR, xmlValue (sAnswer, "/root/error"))
+Let sAnswer = hVCallBridge ("downloadList", sKinds)
+If hVXmlValue (sAnswer, "/root/error") != "" Then
+    SayMessage (OT_ERROR, hVXmlValue (sAnswer, "/root/error"))
     Return
 EndIf
-Let sSummary = xmlValue (sAnswer, "/root/value")
-Let sFolder = StringSegment (sSummary, "\t", 2)
-Let sNames = StringSegment (sSummary, "\t", 3)
+Let sSummary = hVXmlValue (sAnswer, "/root/value")
+Let sFolder = Builtin::StringSegment (sSummary, "\t", 2)
+Let sNames = Builtin::StringSegment (sSummary, "\t", 3)
 ; ONE AT A TIME, EACH NAME SPOKEN BEFORE IT IS FETCHED.
 ;
 ; urlFido's way, and the reason it reads well: the name goes by, and silence
@@ -1683,30 +1786,30 @@ Let iWhich = 1
 Let iGot = 0
 Let iFailed = 0
 Let sTrouble = ""
-Let sName = StringSegment (sNames, "\7", iWhich)
+Let sName = Builtin::StringSegment (sNames, "\7", iWhich)
 While sName != ""
     SayMessage (OT_MESSAGE, sName)
-    Let sAnswer = callBridge ("downloadOne", IntToString (iWhich))
-    If xmlValue (sAnswer, "/root/error") != "" Then
+    Let sAnswer = hVCallBridge ("downloadOne", Builtin::IntToString (iWhich))
+    If hVXmlValue (sAnswer, "/root/error") != "" Then
         Let iFailed = iFailed + 1
-        Let sTrouble = sTrouble + sName + ": " + xmlValue (sAnswer, "/root/error") + "\r\n"
-        SayMessage (OT_ERROR, "Error. " + xmlValue (sAnswer, "/root/error"))
+        Let sTrouble = sTrouble + sName + ": " + hVXmlValue (sAnswer, "/root/error") + "\r\n"
+        SayMessage (OT_ERROR, "Error. " + hVXmlValue (sAnswer, "/root/error"))
     Else
         Let iGot = iGot + 1
     EndIf
     Let iWhich = iWhich + 1
-    Let sName = StringSegment (sNames, "\7", iWhich)
+    Let sName = Builtin::StringSegment (sNames, "\7", iWhich)
 EndWhile
 ; A MESSAGE BOX AT THE END, because a spoken summary after twenty spoken names
 ; is one more thing said and gone, and this is the part worth reading twice.
-Let sSummary = IntToString (iGot) + " of " + IntToString (iGot + iFailed)
+Let sSummary = Builtin::IntToString (iGot) + " of " + Builtin::IntToString (iGot + iFailed)
     + " files fetched into" + "\r\n" + sFolder
 If iFailed > 0 Then
-    Let sSummary = sSummary + "\r\n\r\n" + IntToString (iFailed)
+    Let sSummary = sSummary + "\r\n\r\n" + Builtin::IntToString (iFailed)
         + " did not come:" + "\r\n" + sTrouble
 EndIf
-logLine ("downloadFiles: " + IntToString (iGot) + " fetched, "
-    + IntToString (iFailed) + " failed")
+hVLogLine ("hVDownloadFiles: " + Builtin::IntToString (iGot) + " fetched, "
+    + Builtin::IntToString (iFailed) + " failed")
 MessageBox (sSummary)
 EndScript
 
@@ -1716,61 +1819,61 @@ EndScript
 ; CONTROL+F IS LEFT ALONE. JAWS's own find is forward only and it is a good
 ; find; what JAWS has no key for is going the other way, so this is the missing
 ; half rather than a replacement.
-Script findBackwards ()
+Script hVFindBackwards ()
 Var
     int iOk,
     string sNeedle
-logLine ("findBackwards started")
+hVLogLine ("hVFindBackwards started")
 Let sNeedle = gsLastFind
-Let iOk = InputBox ("Find backwards", "HomerView", sNeedle)
+Let iOk = Builtin::InputBox ("Find backwards", "HomerView", sNeedle)
 If iOk == 0 Then
     Return
 EndIf
-findAndMark ("plain", sNeedle, True)
+hVFindAndMark ("plain", sNeedle, True)
 EndScript
 
 
 ; Searches forward for a regular expression. Control+F3.
-Script findByPattern ()
+Script hVFindByPattern ()
 Var
     int iOk,
     string sNeedle
-logLine ("findByPattern started")
+hVLogLine ("hVFindByPattern started")
 Let sNeedle = gsLastFind
-Let iOk = InputBox ("Find forward with a regular expression", "HomerView", sNeedle)
+Let iOk = Builtin::InputBox ("Find forward with a regular expression", "HomerView", sNeedle)
 If iOk == 0 Then
     Return
 EndIf
-findAndMark ("pattern", sNeedle, False)
+hVFindAndMark ("pattern", sNeedle, False)
 EndScript
 
 
 ; Searches backwards for a regular expression. Control+Shift+F3.
-Script findByPatternBackwards ()
+Script hVFindByPatternBackwards ()
 Var
     int iOk,
     string sNeedle
-logLine ("findByPatternBackwards started")
+hVLogLine ("hVFindByPatternBackwards started")
 Let sNeedle = gsLastFind
-Let iOk = InputBox ("Find backwards with a regular expression", "HomerView", sNeedle)
+Let iOk = Builtin::InputBox ("Find backwards with a regular expression", "HomerView", sNeedle)
 If iOk == 0 Then
     Return
 EndIf
-findAndMark ("pattern", sNeedle, True)
+hVFindAndMark ("pattern", sNeedle, True)
 EndScript
 
 
 ; The next match, of whichever find was done last. F3.
-Script findNext ()
-logLine ("findNext started")
-findAgain (False)
+Script hVFindNext ()
+hVLogLine ("hVFindNext started")
+hVFindAgain (False)
 EndScript
 
 
 ; The previous match, of whichever find was done last. Shift+F3.
-Script findPrevious ()
-logLine ("findPrevious started")
-findAgain (True)
+Script hVFindPrevious ()
+hVLogLine ("hVFindPrevious started")
+hVFindAgain (True)
 EndScript
 
 
@@ -1779,13 +1882,13 @@ EndScript
 ; A find moves you to matches one at a time. This is the other question: what
 ; are they all? Each match is separated by a form feed between blank lines, so
 ; they read as pages rather than as a run-on list.
-Script extractByPattern ()
+Script hVExtractByPattern ()
 Var
     int iOk,
     string sAnswer, string sNeedle, string sResult
-logLine ("extractByPattern started")
+hVLogLine ("hVExtractByPattern started")
 Let sNeedle = gsLastFind
-Let iOk = InputBox ("Extract every match of a regular expression", "HomerView", sNeedle)
+Let iOk = Builtin::InputBox ("Extract every match of a regular expression", "HomerView", sNeedle)
 If iOk == 0 Then
     Return
 EndIf
@@ -1794,63 +1897,63 @@ If sNeedle == "" Then
     Return
 EndIf
 Let gsLastFind = sNeedle
-Let sAnswer = callBridge ("extractPattern", sNeedle)
-If xmlValue (sAnswer, "/root/error") != "" Then
-    SayMessage (OT_ERROR, xmlValue (sAnswer, "/root/error"))
+Let sAnswer = hVCallBridge ("extractPattern", sNeedle)
+If hVXmlValue (sAnswer, "/root/error") != "" Then
+    SayMessage (OT_ERROR, hVXmlValue (sAnswer, "/root/error"))
     Return
 EndIf
-Let sResult = xmlValue (sAnswer, "/root/value")
+Let sResult = hVXmlValue (sAnswer, "/root/value")
 If sResult == "" Then
-    logLine ("extractByPattern: nothing came back")
+    hVLogLine ("hVExtractByPattern: nothing came back")
     Return
 EndIf
-sayVirtual (sResult)
+hVSayVirtual (sResult)
 EndScript
 
 
 ; The Quick Start. Alt+Shift+F1.
-Script openQuickStart ()
-openOwnDocument ("ReadMe.htm", "the Quick Start")
+Script hVOpenQuickStart ()
+hVOpenOwnDocument ("ReadMe.htm", "the Quick Start")
 EndScript
 
 
 ; What has changed, release by release. Shift+F1.
-Script showHistory ()
-openOwnDocument ("History.htm", "the history of changes")
+Script hVShowHistory ()
+hVOpenOwnDocument ("History.htm", "the history of changes")
 EndScript
 
 
 ; The notes for anyone working on HomerView itself. Control+Shift+F1.
-Script openDeveloperNotes ()
-openOwnDocument ("Developer.htm", "the developer notes")
+Script hVOpenDeveloperNotes ()
+hVOpenOwnDocument ("Developer.htm", "the developer notes")
 EndScript
 
 
 ; Every key in one document, which is the printable companion to the Hotkey
 ; Summary. No key of its own; it is on the menu.
-Script openHotkeyDocument ()
-openOwnDocument ("Hotkeys.htm", "the hotkey document")
+Script hVOpenHotkeyDocument ()
+hVOpenOwnDocument ("Hotkeys.htm", "the hotkey document")
 EndScript
 
 
 ; What HomerView is for, in its own words. No key; on the menu.
-Script openAnnouncement ()
-openOwnDocument ("Announce.htm", "the project announcement")
+Script hVOpenAnnouncement ()
+hVOpenOwnDocument ("Announce.htm", "the project announcement")
 EndScript
 
 
 ; This session's log, opened to read rather than copied to send. Alt+Control+F1.
-Script openSessionLog ()
+Script hVOpenSessionLog ()
 Var
     int iExit,
     string sAnswer
-logLine ("openSessionLog started")
-Let sAnswer = callBridge ("openPage", c_sLogFile)
-If xmlValue (sAnswer, "/root/value") != "" Then
+hVLogLine ("hVOpenSessionLog started")
+Let sAnswer = hVCallBridge ("openPage", c_sLogFile)
+If hVXmlValue (sAnswer, "/root/value") != "" Then
     SayMessage (OT_STATUS, "Opening the log")
     Return
 EndIf
-Let iExit = shellRun ("cmd.exe /c start \"\" " + stringQuote (c_sLogFile), 0, False)
+Let iExit = hVShellRun ("cmd.exe /c start \"\" " + hVStringQuote (c_sLogFile), 0, False)
 SayMessage (OT_STATUS, "Opening outside HomerView")
 EndScript
 
@@ -1859,9 +1962,9 @@ EndScript
 ;
 ; NOT A DOCUMENT, because the useful facts about a build are not in a file that
 ; ships with it: the version, when it was installed, and where the log is.
-Script showAbout ()
-logLine ("showAbout started")
-sayVirtual ("HomerView " + c_sVersion + " for JAWS"
+Script hVShowAbout ()
+hVLogLine ("hVShowAbout started")
+hVSayVirtual ("HomerView " + c_sVersion + " for JAWS"
     + "\r\n" + "Installed " + c_sInstalled
     + "\r\n\r\n" + "Program: " + c_sAppFolder
     + "\r\n" + "Log: " + c_sLogFile
@@ -1880,21 +1983,21 @@ EndScript
 ; may not carry -- and a short list of addresses worth trying directly, which
 ; is how an accessibility statement is usually found at all, since most sites
 ; never link to theirs.
-Script findContacts ()
+Script hVFindContacts ()
 Var string sAnswer, string sResult
-logLine ("findContacts started")
+hVLogLine ("hVFindContacts started")
 SayMessage (OT_STATUS, "Finding contacts")
-Let sAnswer = callBridge ("contacts", "")
-If xmlValue (sAnswer, "/root/error") != "" Then
-    sayOrShow (xmlValue (sAnswer, "/root/error"))
+Let sAnswer = hVCallBridge ("contacts", "")
+If hVXmlValue (sAnswer, "/root/error") != "" Then
+    hVSayOrShow (hVXmlValue (sAnswer, "/root/error"))
     Return
 EndIf
-Let sResult = xmlValue (sAnswer, "/root/value")
+Let sResult = hVXmlValue (sAnswer, "/root/value")
 If sResult == "" Then
-    logLine ("findContacts: nothing came back")
+    hVLogLine ("hVFindContacts: nothing came back")
     Return
 EndIf
-sayVirtual (sResult)
+hVSayVirtual (sResult)
 EndScript
 
 
@@ -1911,18 +2014,18 @@ EndScript
 ; it to miss a name it has not seen. Presented as fact that would be worse than
 ; useless; presented as a starting point it is something no screen reader
 ; offers.
-Script listNames ()
+Script hVListNames ()
 Var string sAnswer, string sResult
-logLine ("listNames started")
+hVLogLine ("hVListNames started")
 SayMessage (OT_STATUS, "Reading names")
-Let sAnswer = callBridge ("pageNames", "")
-If xmlValue (sAnswer, "/root/error") != "" Then
-    sayOrShow (xmlValue (sAnswer, "/root/error"))
+Let sAnswer = hVCallBridge ("pageNames", "")
+If hVXmlValue (sAnswer, "/root/error") != "" Then
+    hVSayOrShow (hVXmlValue (sAnswer, "/root/error"))
     Return
 EndIf
-Let sResult = xmlValue (sAnswer, "/root/value")
+Let sResult = hVXmlValue (sAnswer, "/root/value")
 If sResult == "" Then
-    logLine ("listNames: nothing came back")
+    hVLogLine ("hVListNames: nothing came back")
     Return
 EndIf
 ; Spoken, not shown: the list has just been opened in a tab, and a buffer in
@@ -1937,31 +2040,31 @@ EndScript
 ; point is to GO somewhere. This is the other question -- what is open -- and
 ; answering it should cost nothing. F4 itself belongs to Edge's address bar, so
 ; the shifted key takes the idea without taking the browser's key.
-Script sayTabNames ()
+Script hVSayTabNames ()
 Var
     int iWhich,
     string sAnswer, string sNames, string sRecord, string sSpoken
-logLine ("sayTabNames started")
-Let sAnswer = callBridge ("tabList", "")
-If xmlValue (sAnswer, "/root/error") != "" Then
-    SayMessage (OT_ERROR, xmlValue (sAnswer, "/root/error"))
+hVLogLine ("hVSayTabNames started")
+Let sAnswer = hVCallBridge ("tabList", "")
+If hVXmlValue (sAnswer, "/root/error") != "" Then
+    SayMessage (OT_ERROR, hVXmlValue (sAnswer, "/root/error"))
     Return
 EndIf
-Let sNames = xmlValue (sAnswer, "/root/value")
+Let sNames = hVXmlValue (sAnswer, "/root/value")
 If sNames == "" Then
     SayMessage (OT_ERROR, "No tabs")
     Return
 EndIf
 Let iWhich = 1
-Let sRecord = StringSegment (sNames, "\7", iWhich)
+Let sRecord = Builtin::StringSegment (sNames, "\7", iWhich)
 While sRecord != ""
     If sSpoken == "" Then
-        Let sSpoken = StringSegment (sRecord, "\t", 2)
+        Let sSpoken = Builtin::StringSegment (sRecord, "\t", 2)
     Else
-        Let sSpoken = sSpoken + ". " + StringSegment (sRecord, "\t", 2)
+        Let sSpoken = sSpoken + ". " + Builtin::StringSegment (sRecord, "\t", 2)
     EndIf
     Let iWhich = iWhich + 1
-    Let sRecord = StringSegment (sNames, "\7", iWhich)
+    Let sRecord = Builtin::StringSegment (sNames, "\7", iWhich)
 EndWhile
 SayMessage (OT_MESSAGE, sSpoken)
 EndScript
@@ -1973,15 +2076,15 @@ EndScript
 ; paths when a file has been copied, and the text otherwise. Two of his own
 ; programs answering one question two ways would be a second vocabulary for one
 ; idea.
-Script sayClipboard ()
+Script hVSayClipboard ()
 Var string sAnswer, string sResult
-logLine ("sayClipboard started")
-Let sAnswer = callBridge ("clipboardSay", "")
-If xmlValue (sAnswer, "/root/error") != "" Then
-    SayMessage (OT_ERROR, xmlValue (sAnswer, "/root/error"))
+hVLogLine ("hVSayClipboard started")
+Let sAnswer = hVCallBridge ("clipboardSay", "")
+If hVXmlValue (sAnswer, "/root/error") != "" Then
+    SayMessage (OT_ERROR, hVXmlValue (sAnswer, "/root/error"))
     Return
 EndIf
-Let sResult = xmlValue (sAnswer, "/root/value")
+Let sResult = hVXmlValue (sAnswer, "/root/value")
 If sResult == "" Then
     ; SILENCE IS NOT AN ANSWER, AND HERE IT LOOKED LIKE A BROKEN KEY.
     ;
@@ -1990,39 +2093,39 @@ If sResult == "" Then
     ; tester reported Alt+Apostrophe "not working" on a machine where the key
     ; map was demonstrably fine. A command that has nothing to report must SAY
     ; that it has nothing to report.
-    logLine ("sayClipboard: the clipboard held nothing")
+    hVLogLine ("hVSayClipboard: the clipboard held nothing")
     SayMessage (OT_MESSAGE, "The clipboard is empty")
     Return
 EndIf
-sayOrShow (sResult)
+hVSayOrShow (sResult)
 EndScript
 
 
 ; Saves the clipboard to a text file, proposing the last name used.
 ; Control+Apostrophe.
-Script saveClipboard ()
+Script hVSaveClipboard ()
 Var
     string sAnswer, string sPath
-logLine ("saveClipboard started")
+hVLogLine ("hVSaveClipboard started")
 ; A REAL SAVE-AS DIALOG, not a box to type a path into.
 ;
 ; InputBox asked for a path and gave no way to look for one. The helper shows
 ; the CLASSIC Windows dialog -- the old GetSaveFileName one, not the modern
 ; Common Item Dialog -- because that is the one with a folder tree that can be
 ; walked and a tab order that goes where you expect.
-Let sAnswer = callBridge ("saveDialog", "Save the clipboard as\tText files|*.txt|All files|*.*\t" + gsClipboardFile)
-Let sPath = xmlValue (sAnswer, "/root/value")
+Let sAnswer = hVCallBridge ("saveDialog", "Save the clipboard as\tText files|*.txt|All files|*.*\t" + gsClipboardFile)
+Let sPath = hVXmlValue (sAnswer, "/root/value")
 If sPath == "" Then
-    logLine ("saveClipboard: no file was chosen")
+    hVLogLine ("hVSaveClipboard: no file was chosen")
     Return
 EndIf
 Let gsClipboardFile = sPath
-Let sAnswer = callBridge ("clipboardToFile", sPath)
-If xmlValue (sAnswer, "/root/error") != "" Then
-    SayMessage (OT_ERROR, xmlValue (sAnswer, "/root/error"))
+Let sAnswer = hVCallBridge ("clipboardToFile", sPath)
+If hVXmlValue (sAnswer, "/root/error") != "" Then
+    SayMessage (OT_ERROR, hVXmlValue (sAnswer, "/root/error"))
     Return
 EndIf
-SayMessage (OT_MESSAGE, xmlValue (sAnswer, "/root/value"))
+SayMessage (OT_MESSAGE, hVXmlValue (sAnswer, "/root/value"))
 EndScript
 
 
@@ -2052,13 +2155,13 @@ EndScript
 ; So this reports the four things that decide whether anything can work, IN
 ; SPEECH, WITHOUT WRITING A LOG AND WITHOUT CALLING THE BRIDGE. If the scripts
 ; are loaded at all, this SPEAKS -- which is itself the first fact worth having.
-Script sayDiagnostics ()
+Script hVSayDiagnostics ()
 Var
     object oFileSystem,
     string sText
 SayMessage (OT_MESSAGE, "HomerView diagnostics")
 Let sText = "Version " + c_sVersion + ". "
-Let oFileSystem = CreateObjectEx (c_sFileSystemProgId, False)
+Let oFileSystem = Builtin::CreateObjectEx (c_sFileSystemProgId, False)
 If oFileSystem.FileExists (c_sBridgePath) Then
     Let sText = sText + "The helper program is there. "
 Else
@@ -2086,80 +2189,80 @@ EndIf
 ; GetJAWSSettingsDirectory: "the JAWS drive and settings directory without a
 ; trailing backslash", no parameters. Read in FSDN rather than assumed, and
 ; it is the folder the installer writes these scripts into.
-If oFileSystem.FileExists (GetJAWSSettingsDirectory () + "\\default.jss") Then
+If oFileSystem.FileExists (Builtin::GetJAWSSettingsDirectory () + "\\default.jss") Then
     Let sText = sText + "THIS MACHINE HAS ITS OWN default.jss, which replaces the one JAWS ships. "
 Else
     Let sText = sText + "No custom default.jss, so JAWS uses its own. "
 EndIf
 Let sText = sText + "Answers go to " + c_sAnswerPath + "."
-sayOrShow (sText)
-logLine ("sayDiagnostics: " + sText)
+hVSayOrShow (sText)
+hVLogLine ("hVSayDiagnostics: " + sText)
 EndScript
 
 
-Script showHotkeySummary ()
+Script hVShowHotkeySummary ()
 Var
     int iActivated, int iAdded
-UserBufferDeactivate ()
-UserBufferClear ()
-Let iAdded = UserBufferAddText ("HomerView " + c_sVersion + " for JAWS, installed " + c_sInstalled)
-Let iAdded = UserBufferAddText ("")
-Let iAdded = UserBufferAddText ("Anywhere:")
-Let iAdded = UserBufferAddLink ("  Alt+JAWSKey+H   Launch or return to HomerView", "homerViewLink (\"launchHomerView\")", "Launch HomerView")
-Let iAdded = UserBufferAddLink ("  Alt+JAWSKey+F10 Alternate Menu, every command in one list", "homerViewLink (\"showHomerViewMenu\")", "Alternate Menu")
-Let iAdded = UserBufferAddLink ("  Alt+JAWSKey+A   Check the page with axe and save a report", "homerViewLink (\"checkAccessibility\")", "Check Accessibility with axe")
-Let iAdded = UserBufferAddLink ("  Alt+JAWSKey+D   Close a cookie banner or consent wall", "homerViewLink (\"dismissDialog\")", "Dismiss Dialog")
-Let iAdded = UserBufferAddLink ("  Alt+Shift+H     This summary", "homerViewLink (\"showHotkeySummary\")", "Hotkey Summary")
-Let iAdded = UserBufferAddLink ("  Shift+F4        Say the names of the open tabs", "homerViewLink (\"sayTabNames\")", "Tab Names")
-Let iAdded = UserBufferAddLink ("  Alt+JAWSKey+L   Copy the log file to the clipboard", "homerViewLink (\"copyLogToClipboard\")", "Log to Clipboard")
-Let iAdded = UserBufferAddLink ("  Alt+JAWSKey+Q   Say what HomerView knows about itself", "homerViewLink (\"sayDiagnostics\")", "Diagnostics")
-Let iAdded = UserBufferAddText ("")
-Let iAdded = UserBufferAddText ("On a web page:")
-Let iAdded = UserBufferAddLink ("  Shift+Q         Move to the main content, declared or not", "homerViewLink (\"moveToProbableMain\")", "Jump to Probable Main")
-Let iAdded = UserBufferAddLink ("  Alt+L           Where this link goes, and its address", "homerViewLink (\"describeLinkTarget\")", "Link Target")
-Let iAdded = UserBufferAddLink ("  Alt+M           What the page says about itself", "homerViewLink (\"sayMetadata\")", "Say Metadata")
-Let iAdded = UserBufferAddLink ("  Alt+Shift+P     Copy every link on the page to the clipboard", "homerViewLink (\"copyPageLinks\")", "Page Links to Clipboard")
-Let iAdded = UserBufferAddLink ("  Alt+Shift+W     Fetch the files this page links to", "homerViewLink (\"downloadFiles\")", "Web Download")
-Let iAdded = UserBufferAddLink ("  Alt+Shift+F     Open this page's folder", "homerViewLink (\"openPageFolder\")", "Page Folder")
-Let iAdded = UserBufferAddLink ("  Control+O       Open a document as a page", "homerViewLink (\"openDocument\")", "Open Document")
-Let iAdded = UserBufferAddLink ("  Control+S       Save this page in any format", "homerViewLink (\"savePage\")", "Save Page")
-Let iAdded = UserBufferAddLink ("  Control+F1      The HomerView guide", "homerViewLink (\"openUserGuide\")", "User Guide")
-Let iAdded = UserBufferAddLink ("  Alt+Shift+F1    The Quick Start", "homerViewLink (\"openQuickStart\")", "Quick Start")
-Let iAdded = UserBufferAddLink ("  Shift+F1        What changed in each release", "homerViewLink (\"showHistory\")", "History of Changes")
-Let iAdded = UserBufferAddLink ("  Control+Shift+F1 Notes for developers", "homerViewLink (\"openDeveloperNotes\")", "Developer Notes")
-Let iAdded = UserBufferAddLink ("  Alt+Control+F1  This session's log, to read", "homerViewLink (\"openSessionLog\")", "Session Log")
-Let iAdded = UserBufferAddLink ("  Alt+F1          Which build is loaded", "homerViewLink (\"showAbout\")", "About HomerView")
-Let iAdded = UserBufferAddLink ("  Control+Shift+F Find backwards", "homerViewLink (\"findBackwards\")", "Reverse Find for Text")
-Let iAdded = UserBufferAddLink ("  Control+F3      Find forward with a pattern", "homerViewLink (\"findByPattern\")", "Forward Find with Regular Expression")
-Let iAdded = UserBufferAddLink ("  Control+Shift+F3 Find backwards with a pattern", "homerViewLink (\"findByPatternBackwards\")", "Reverse Find with Regular Expression")
-Let iAdded = UserBufferAddLink ("  F3              The next match", "homerViewLink (\"findNext\")", "Forward Find Again")
-Let iAdded = UserBufferAddLink ("  Shift+F3        The previous match", "homerViewLink (\"findPrevious\")", "Reverse Find Again")
-Let iAdded = UserBufferAddLink ("  Control+Shift+E Gather every match of a pattern", "homerViewLink (\"extractByPattern\")", "Extract with Regular Expression")
-Let iAdded = UserBufferAddLink ("  Shift+F9        Extract the main content into a tab", "homerViewLink (\"extractMainContent\")", "Extract Main Content")
-Let iAdded = UserBufferAddLink ("  Alt+Apostrophe  Say what is on the clipboard", "homerViewLink (\"sayClipboard\")", "Say Clipboard")
-Let iAdded = UserBufferAddLink ("  Control+Apostrophe Save the clipboard to a file", "homerViewLink (\"saveClipboard\")", "Save Clipboard")
-Let iAdded = UserBufferAddLink ("  Control+Shift+Apostrophe Add the clipboard to a file", "homerViewLink (\"appendClipboard\")", "Append Clipboard")
-Let iAdded = UserBufferAddLink ("  Alt+Shift+Apostrophe Empty the clipboard", "homerViewLink (\"clearClipboard\")", "Clear Clipboard")
-Let iAdded = UserBufferAddLink ("  F8              Start a selection here", "homerViewLink (\"startSelection\")", "Start Selection")
-Let iAdded = UserBufferAddLink ("  Shift+F8        Select from there to here", "homerViewLink (\"completeSelection\")", "Complete Selection")
-Let iAdded = UserBufferAddLink ("  Control+C       Copy the selection, or this line", "homerViewLink (\"copySelection\")", "Copy Selection")
-Let iAdded = UserBufferAddLink ("  Alt+C           Add it to what is on the clipboard", "homerViewLink (\"copyAppend\")", "Copy Append")
-Let iAdded = UserBufferAddLink ("  Control+F8      Put the whole page on the clipboard", "homerViewLink (\"copyAll\")", "Copy All")
-Let iAdded = UserBufferAddLink ("  Alt+F8          Speak the whole page, cursor unmoved", "homerViewLink (\"readAll\")", "Read All")
-Let iAdded = UserBufferAddLink ("  Alt+N           List the names, places and dates", "homerViewLink (\"listNames\")", "List Names")
-Let iAdded = UserBufferAddLink ("  Alt+JAWSKey+C   Find who to tell about this site", "homerViewLink (\"findContacts\")", "Find Contacts")
-Let iAdded = UserBufferAddLink ("  Alt+JAWSKey+I   Check the page with IBM Equal Access", "homerViewLink (\"checkAccessibilityIbm\")", "Check Accessibility with IBM")
-Let iAdded = UserBufferAddText ("")
-Let iAdded = UserBufferAddText ("On the Alternate Menu only:")
-Let iAdded = UserBufferAddLink ("  The open tabs, by name and address", "homerViewLink (\"listTabs\")", "Tab List")
-Let iAdded = UserBufferAddText ("")
-Let iAdded = UserBufferAddText ("JAWS already does these, so HomerView does not: the element lists on")
-Let iAdded = UserBufferAddText ("JAWSKey+F5, F6 and F7, the main region on Q, the address on JAWSKey+A,")
-Let iAdded = UserBufferAddText ("find on Control+F, and the page summary on JAWSKey+F3.")
-Let iActivated = UserBufferActivate ()
+Builtin::UserBufferDeactivate ()
+Builtin::UserBufferClear ()
+Let iAdded = Builtin::UserBufferAddText ("HomerView " + c_sVersion + " for JAWS, installed " + c_sInstalled)
+Let iAdded = Builtin::UserBufferAddText ("")
+Let iAdded = Builtin::UserBufferAddText ("Anywhere:")
+Let iAdded = UserBufferAddLink ("  Alt+JAWSKey+H   Launch or return to HomerView", "hVHomerViewLink (\"hVLaunchHomerView\")", "Launch HomerView")
+Let iAdded = UserBufferAddLink ("  Alt+JAWSKey+F10 Alternate Menu, every command in one list", "hVHomerViewLink (\"hVShowHomerViewMenu\")", "Alternate Menu")
+Let iAdded = UserBufferAddLink ("  Alt+JAWSKey+A   Check the page with axe and save a report", "hVHomerViewLink (\"hVCheckAccessibility\")", "Check Accessibility with axe")
+Let iAdded = UserBufferAddLink ("  Alt+JAWSKey+D   Close a cookie banner or consent wall", "hVHomerViewLink (\"hVDismissDialog\")", "Dismiss Dialog")
+Let iAdded = UserBufferAddLink ("  Alt+Shift+H     This summary", "hVHomerViewLink (\"hVShowHotkeySummary\")", "Hotkey Summary")
+Let iAdded = UserBufferAddLink ("  Shift+F4        Say the names of the open tabs", "hVHomerViewLink (\"hVSayTabNames\")", "Tab Names")
+Let iAdded = UserBufferAddLink ("  Alt+JAWSKey+L   Copy the log file to the clipboard", "hVHomerViewLink (\"hVCopyLogToClipboard\")", "Log to Clipboard")
+Let iAdded = UserBufferAddLink ("  Alt+JAWSKey+Q   Say what HomerView knows about itself", "hVHomerViewLink (\"hVSayDiagnostics\")", "Diagnostics")
+Let iAdded = Builtin::UserBufferAddText ("")
+Let iAdded = Builtin::UserBufferAddText ("On a web page:")
+Let iAdded = UserBufferAddLink ("  Shift+Q         Move to the main content, declared or not", "hVHomerViewLink (\"hVMoveToProbableMain\")", "Jump to Probable Main")
+Let iAdded = UserBufferAddLink ("  Alt+L           Where this link goes, and its address", "hVHomerViewLink (\"hVDescribeLinkTarget\")", "Link Target")
+Let iAdded = UserBufferAddLink ("  Alt+M           What the page says about itself", "hVHomerViewLink (\"hVSayMetadata\")", "Say Metadata")
+Let iAdded = UserBufferAddLink ("  Alt+Shift+P     Copy every link on the page to the clipboard", "hVHomerViewLink (\"hVCopyPageLinks\")", "Page Links to Clipboard")
+Let iAdded = UserBufferAddLink ("  Alt+Shift+W     Fetch the files this page links to", "hVHomerViewLink (\"hVDownloadFiles\")", "Web Download")
+Let iAdded = UserBufferAddLink ("  Alt+Shift+F     Open this page's folder", "hVHomerViewLink (\"hVOpenPageFolder\")", "Page Folder")
+Let iAdded = UserBufferAddLink ("  Control+O       Open a document as a page", "hVHomerViewLink (\"hVOpenDocument\")", "Open Document")
+Let iAdded = UserBufferAddLink ("  Control+S       Save this page in any format", "hVHomerViewLink (\"hVSavePage\")", "Save Page")
+Let iAdded = UserBufferAddLink ("  Control+F1      The HomerView guide", "hVHomerViewLink (\"hVOpenUserGuide\")", "User Guide")
+Let iAdded = UserBufferAddLink ("  Alt+Shift+F1    The Quick Start", "hVHomerViewLink (\"hVOpenQuickStart\")", "Quick Start")
+Let iAdded = UserBufferAddLink ("  Shift+F1        What changed in each release", "hVHomerViewLink (\"hVShowHistory\")", "History of Changes")
+Let iAdded = UserBufferAddLink ("  Control+Shift+F1 Notes for developers", "hVHomerViewLink (\"hVOpenDeveloperNotes\")", "Developer Notes")
+Let iAdded = UserBufferAddLink ("  Alt+Control+F1  This session's log, to read", "hVHomerViewLink (\"hVOpenSessionLog\")", "Session Log")
+Let iAdded = UserBufferAddLink ("  Alt+F1          Which build is loaded", "hVHomerViewLink (\"hVShowAbout\")", "About HomerView")
+Let iAdded = UserBufferAddLink ("  Control+Shift+F Find backwards", "hVHomerViewLink (\"hVFindBackwards\")", "Reverse Find for Text")
+Let iAdded = UserBufferAddLink ("  Control+F3      Find forward with a pattern", "hVHomerViewLink (\"hVFindByPattern\")", "Forward Find with Regular Expression")
+Let iAdded = UserBufferAddLink ("  Control+Shift+F3 Find backwards with a pattern", "hVHomerViewLink (\"hVFindByPatternBackwards\")", "Reverse Find with Regular Expression")
+Let iAdded = UserBufferAddLink ("  F3              The next match", "hVHomerViewLink (\"hVFindNext\")", "Forward Find Again")
+Let iAdded = UserBufferAddLink ("  Shift+F3        The previous match", "hVHomerViewLink (\"hVFindPrevious\")", "Reverse Find Again")
+Let iAdded = UserBufferAddLink ("  Control+Shift+E Gather every match of a pattern", "hVHomerViewLink (\"hVExtractByPattern\")", "Extract with Regular Expression")
+Let iAdded = UserBufferAddLink ("  Shift+F9        Extract the main content into a tab", "hVHomerViewLink (\"hVExtractMainContent\")", "Extract Main Content")
+Let iAdded = UserBufferAddLink ("  Alt+Apostrophe  Say what is on the clipboard", "hVHomerViewLink (\"hVSayClipboard\")", "Say Clipboard")
+Let iAdded = UserBufferAddLink ("  Control+Apostrophe Save the clipboard to a file", "hVHomerViewLink (\"hVSaveClipboard\")", "Save Clipboard")
+Let iAdded = UserBufferAddLink ("  Control+Shift+Apostrophe Add the clipboard to a file", "hVHomerViewLink (\"hVAppendClipboard\")", "Append Clipboard")
+Let iAdded = UserBufferAddLink ("  Alt+Shift+Apostrophe Empty the clipboard", "hVHomerViewLink (\"hVClearClipboard\")", "Clear Clipboard")
+Let iAdded = UserBufferAddLink ("  F8              Start a selection here", "hVHomerViewLink (\"hVStartSelection\")", "Start Selection")
+Let iAdded = UserBufferAddLink ("  Shift+F8        Select from there to here", "hVHomerViewLink (\"hVCompleteSelection\")", "Complete Selection")
+Let iAdded = UserBufferAddLink ("  Control+C       Copy the selection, or this line", "hVHomerViewLink (\"hVCopySelection\")", "Copy Selection")
+Let iAdded = UserBufferAddLink ("  Alt+C           Add it to what is on the clipboard", "hVHomerViewLink (\"hVCopyAppend\")", "Copy Append")
+Let iAdded = UserBufferAddLink ("  Control+F8      Put the whole page on the clipboard", "hVHomerViewLink (\"hVCopyAll\")", "Copy All")
+Let iAdded = UserBufferAddLink ("  Alt+F8          Speak the whole page, cursor unmoved", "hVHomerViewLink (\"hVReadAll\")", "Read All")
+Let iAdded = UserBufferAddLink ("  Alt+N           List the names, places and dates", "hVHomerViewLink (\"hVListNames\")", "List Names")
+Let iAdded = UserBufferAddLink ("  Alt+JAWSKey+C   Find who to tell about this site", "hVHomerViewLink (\"hVFindContacts\")", "Find Contacts")
+Let iAdded = UserBufferAddLink ("  Alt+JAWSKey+I   Check the page with IBM Equal Access", "hVHomerViewLink (\"hVCheckAccessibilityIbm\")", "Check Accessibility with IBM")
+Let iAdded = Builtin::UserBufferAddText ("")
+Let iAdded = Builtin::UserBufferAddText ("On the Alternate Menu only:")
+Let iAdded = UserBufferAddLink ("  The open tabs, by name and address", "hVHomerViewLink (\"hVListTabs\")", "Tab List")
+Let iAdded = Builtin::UserBufferAddText ("")
+Let iAdded = Builtin::UserBufferAddText ("JAWS already does these, so HomerView does not: the element lists on")
+Let iAdded = Builtin::UserBufferAddText ("JAWSKey+F5, F6 and F7, the main region on Q, the address on JAWSKey+A,")
+Let iAdded = Builtin::UserBufferAddText ("find on Control+F, and the page summary on JAWSKey+F3.")
+Let iActivated = Builtin::UserBufferActivate ()
 JAWSTopOfFile ()
 SayAll ()
-logLine ("showHotkeySummary: last add " + IntToString (iAdded) + ", activated " + IntToString (iActivated))
+hVLogLine ("hVShowHotkeySummary: last add " + Builtin::IntToString (iAdded) + ", activated " + Builtin::IntToString (iActivated))
 EndScript
 
 
@@ -2178,7 +2281,7 @@ EndScript
 ;
 ; Not sorted, because the order here puts what is used most at the top rather
 ; than what starts with A.
-Script showHomerViewMenu ()
+Script hVShowHomerViewMenu ()
 Var
     int iChoice, int iRecord,
     string sItems, string sRecord, string sTable
@@ -2197,70 +2300,70 @@ Var
 ;
 ; PerformScriptByName takes the name as a string, so no chain of branches is
 ; needed at all. FSDN documents it with a worked example.
-Let sTable = "Launch HomerView, Launches or reconnects HomerView's copy of Microsoft Edge. (Alt+JAWSKey+H)\tlaunchHomerView"
-    + "\7" + "Jump to Probable Main, Moves to the main content, whether the page declares it or not. (Shift+Q)\tmoveToProbableMain"
-    + "\7" + "Link Target, Says where the link under the cursor goes and shows its address. (Alt+L)\tdescribeLinkTarget"
-    + "\7" + "Say Metadata, Shows what the page says about itself. (Alt+M)\tsayMetadata"
-    + "\7" + "Check Accessibility with axe, Tests the page with Deque axe-core and saves a report. (Alt+JAWSKey+A)\tcheckAccessibility"
-    + "\7" + "Extract Main Content, Extracts the readable part of the page into a tab of its own. (Shift+F9)\textractMainContent"
-    + "\7" + "Page Links to Clipboard, Copies the text and address of every link on the page. (Alt+Shift+P)\tcopyPageLinks"
-    + "\7" + "Dismiss Dialog, Closes a cookie banner, newsletter offer or consent wall that Escape will not. (Alt+JAWSKey+D)\tdismissDialog"
-    + "\7" + "Say Clipboard, Says what is on the clipboard, paths or text. (Alt+Apostrophe)\tsayClipboard"
-    + "\7" + "Save Clipboard, Saves the clipboard to a text file. (Control+Apostrophe)\tsaveClipboard"
-    + "\7" + "Append Clipboard, Adds the clipboard to the end of a text file. (Control+Shift+Apostrophe)\tappendClipboard"
-    + "\7" + "Clear Clipboard, Empties the clipboard so an append starts afresh. (Alt+Shift+Apostrophe)\tclearClipboard"
-    + "\7" + "Start Selection, Marks where a selection begins, to be finished with Shift+F8. (F8)\tstartSelection"
-    + "\7" + "Complete Selection, Selects from where F8 was pressed to here. (Shift+F8)\tcompleteSelection"
-    + "\7" + "Copy Selection, Copies the selection, or the line under the cursor. (Control+C)\tcopySelection"
-    + "\7" + "Copy Append, Adds the selection or the line to what is on the clipboard. (Alt+C)\tcopyAppend"
-    + "\7" + "Copy All, Puts the whole page on the clipboard. (Control+F8)\tcopyAll"
-    + "\7" + "Read All, Speaks the whole page from the top without moving the cursor. (Alt+F8)\treadAll"
-    + "\7" + "List Names, Lists the people, places, organisations and dates a page mentions. (Alt+N)\tlistNames"
-    + "\7" + "Find Contacts, Finds who to tell about this site: email, accessibility statement, contact pages. (Alt+JAWSKey+C)\tfindContacts"
-    + "\7" + "Check Accessibility with IBM, Runs IBM Equal Access and saves every format to Downloads. (Alt+JAWSKey+I)\tcheckAccessibilityIbm"
-    + "\7" + "Tab List, Lists the open tabs by name and address.\tlistTabs"
-    + "\7" + "Tab Names, Says the names of the open tabs without moving anywhere. (Shift+F4)\tsayTabNames"
-    + "\7" + "Hotkey Summary, Lists every HomerView command and its key. (Alt+Shift+H)\tshowHotkeySummary"
-    + "\7" + "Web Download, Fetches the files this page links to, with the browser's own cookies. (Alt+Shift+W)\tdownloadFiles"
-    + "\7" + "Page Folder, Opens this page's folder in File Explorer, to browse what was saved from it. (Alt+Shift+F)\topenPageFolder"
-    + "\7" + "Open Document, Opens a Word file, PDF, ebook or spreadsheet as a page. (Control+O)\topenDocument"
-    + "\7" + "Save Page, Saves this page as html, Word, Markdown or an ebook. (Control+S)\tsavePage"
-    + "\7" + "User Guide, Opens the HomerView guide. (Control+F1)\topenUserGuide"
-    + "\7" + "Quick Start, The short introduction to HomerView. (Alt+Shift+F1)\topenQuickStart"
-    + "\7" + "History of Changes, What changed in each release. (Shift+F1)\tshowHistory"
-    + "\7" + "Developer Notes, Notes for anyone working on HomerView itself. (Control+Shift+F1)\topenDeveloperNotes"
-    + "\7" + "Hotkey Document, Every key in one printable document.\topenHotkeyDocument"
-    + "\7" + "Project Announcement, What HomerView is for, in its own words.\topenAnnouncement"
-    + "\7" + "Session Log, Opens this session's log to read. (Alt+Control+F1)\topenSessionLog"
-    + "\7" + "About HomerView, Which build is loaded and where everything lives. (Alt+F1)\tshowAbout"
-    + "\7" + "Reverse Find for Text, Searches backwards for text, which JAWS has no key for. (Control+Shift+F)\tfindBackwards"
-    + "\7" + "Forward Find with Regular Expression, Searches forward for a pattern. (Control+F3)\tfindByPattern"
-    + "\7" + "Reverse Find with Regular Expression, Searches backwards for a pattern. (Control+Shift+F3)\tfindByPatternBackwards"
-    + "\7" + "Forward Find Again, The next match of whichever find was done last. (F3)\tfindNext"
-    + "\7" + "Reverse Find Again, The previous match of whichever find was done last. (Shift+F3)\tfindPrevious"
-    + "\7" + "Extract with Regular Expression, Gathers every match for reading. (Control+Shift+E)\textractByPattern"
-    + "\7" + "Log to Clipboard, Puts the HomerView log on the clipboard, ready to attach to a message. (Alt+JAWSKey+L)\tcopyLogToClipboard"
-    + "\7" + "Diagnostics, Says whether the helper, the log folder and the start page are where they should be. (Alt+JAWSKey+Q)\tsayDiagnostics"
+Let sTable = "About HomerView, Which build is loaded and where everything lives. (Alt+F1)\thVShowAbout"
+    + "\7" + "Append Clipboard, Adds the clipboard to the end of a text file. (Control+Shift+Apostrophe)\thVAppendClipboard"
+    + "\7" + "Check Accessibility with axe, Tests the page with Deque axe-core and saves a report. (Alt+JAWSKey+A)\thVCheckAccessibility"
+    + "\7" + "Check Accessibility with IBM, Runs IBM Equal Access and saves every format to Downloads. (Alt+JAWSKey+I)\thVCheckAccessibilityIbm"
+    + "\7" + "Clear Clipboard, Empties the clipboard so an append starts afresh. (Alt+Shift+Apostrophe)\thVClearClipboard"
+    + "\7" + "Complete Selection, Selects from where F8 was pressed to here. (Shift+F8)\thVCompleteSelection"
+    + "\7" + "Copy All, Puts the whole page on the clipboard. (Control+F8)\thVCopyAll"
+    + "\7" + "Copy Append, Adds the selection or the line to what is on the clipboard. (Alt+C)\thVCopyAppend"
+    + "\7" + "Copy Selection, Copies the selection, or the line under the cursor. (Control+C)\thVCopySelection"
+    + "\7" + "Developer Notes, Notes for anyone working on HomerView itself. (Control+Shift+F1)\thVOpenDeveloperNotes"
+    + "\7" + "Diagnostics, Says whether the helper, the log folder and the start page are where they should be. (Alt+JAWSKey+Q)\thVSayDiagnostics"
+    + "\7" + "Dismiss Dialog, Closes a cookie banner, newsletter offer or consent wall that Escape will not. (Alt+JAWSKey+D)\thVDismissDialog"
+    + "\7" + "Extract Main Content, Extracts the readable part of the page into a tab of its own. (Shift+F9)\thVExtractMainContent"
+    + "\7" + "Extract with Regular Expression, Gathers every match for reading. (Control+Shift+E)\thVExtractByPattern"
+    + "\7" + "Find Contacts, Finds who to tell about this site: email, accessibility statement, contact pages. (Alt+JAWSKey+C)\thVFindContacts"
+    + "\7" + "Forward Find Again, The next match of whichever find was done last. (F3)\thVFindNext"
+    + "\7" + "Forward Find with Regular Expression, Searches forward for a pattern. (Control+F3)\thVFindByPattern"
+    + "\7" + "History of Changes, What changed in each release. (Shift+F1)\thVShowHistory"
+    + "\7" + "Hotkey Document, Every key in one printable document.\thVOpenHotkeyDocument"
+    + "\7" + "Hotkey Summary, Lists every HomerView command and its key. (Alt+Shift+H)\thVShowHotkeySummary"
+    + "\7" + "Jump to Probable Main, Moves to the main content, whether the page declares it or not. (Shift+Q)\thVMoveToProbableMain"
+    + "\7" + "Launch HomerView, Launches or reconnects HomerView's copy of Microsoft Edge. (Alt+JAWSKey+H)\thVLaunchHomerView"
+    + "\7" + "Link Target, Says where the link under the cursor goes and shows its address. (Alt+L)\thVDescribeLinkTarget"
+    + "\7" + "List Names, Lists the people, places, organisations and dates a page mentions. (Alt+N)\thVListNames"
+    + "\7" + "Log to Clipboard, Puts the HomerView log on the clipboard, ready to attach to a message. (Alt+JAWSKey+L)\thVCopyLogToClipboard"
+    + "\7" + "Open Document, Opens a Word file, PDF, ebook or spreadsheet as a page. (Control+O)\thVOpenDocument"
+    + "\7" + "Page Folder, Opens this page's folder in File Explorer, to browse what was saved from it. (Alt+Shift+F)\thVOpenPageFolder"
+    + "\7" + "Page Links to Clipboard, Copies the text and address of every link on the page. (Alt+Shift+P)\thVCopyPageLinks"
+    + "\7" + "Project Announcement, What HomerView is for, in its own words.\thVOpenAnnouncement"
+    + "\7" + "Quick Start, The short introduction to HomerView. (Alt+Shift+F1)\thVOpenQuickStart"
+    + "\7" + "Read All, Speaks the whole page from the top without moving the cursor. (Alt+F8)\thVReadAll"
+    + "\7" + "Reverse Find Again, The previous match of whichever find was done last. (Shift+F3)\thVFindPrevious"
+    + "\7" + "Reverse Find for Text, Searches backwards for text, which JAWS has no key for. (Control+Shift+F)\thVFindBackwards"
+    + "\7" + "Reverse Find with Regular Expression, Searches backwards for a pattern. (Control+Shift+F3)\thVFindByPatternBackwards"
+    + "\7" + "Save Clipboard, Saves the clipboard to a text file. (Control+Apostrophe)\thVSaveClipboard"
+    + "\7" + "Save Page, Saves this page as html, Word, Markdown or an ebook. (Control+S)\thVSavePage"
+    + "\7" + "Say Clipboard, Says what is on the clipboard, paths or text. (Alt+Apostrophe)\thVSayClipboard"
+    + "\7" + "Say Metadata, Shows what the page says about itself. (Alt+M)\thVSayMetadata"
+    + "\7" + "Session Log, Opens this session's log to read. (Alt+Control+F1)\thVOpenSessionLog"
+    + "\7" + "Start Selection, Marks where a selection begins, to be finished with Shift+F8. (F8)\thVStartSelection"
+    + "\7" + "Tab List, Lists the open tabs by name and address.\thVListTabs"
+    + "\7" + "Tab Names, Says the names of the open tabs without moving anywhere. (Shift+F4)\thVSayTabNames"
+    + "\7" + "User Guide, Opens the HomerView guide. (Control+F1)\thVOpenUserGuide"
+    + "\7" + "Web Download, Fetches the files this page links to, with the browser's own cookies. (Alt+Shift+W)\thVDownloadFiles"
 ; The list the dialog shows is the first field of every row.
 Let iRecord = 1
-Let sRecord = StringSegment (sTable, "\7", iRecord)
+Let sRecord = Builtin::StringSegment (sTable, "\7", iRecord)
 While sRecord != ""
     If iRecord == 1 Then
-        Let sItems = StringSegment (sRecord, "\t", 1)
+        Let sItems = Builtin::StringSegment (sRecord, "\t", 1)
     Else
-        Let sItems = sItems + "\7" + StringSegment (sRecord, "\t", 1)
+        Let sItems = sItems + "\7" + Builtin::StringSegment (sRecord, "\t", 1)
     EndIf
     Let iRecord = iRecord + 1
-    Let sRecord = StringSegment (sTable, "\7", iRecord)
+    Let sRecord = Builtin::StringSegment (sTable, "\7", iRecord)
 EndWhile
-logLine ("showHomerViewMenu: offering the menu")
-Let iChoice = dialogPick ("HomerView", sItems)
+hVLogLine ("hVShowHomerViewMenu: offering the menu")
+Let iChoice = hVDialogPick ("HomerView", sItems)
 If iChoice == 0 Then
     Return
 EndIf
-Let sRecord = StringSegment (sTable, "\7", iChoice)
-logLine ("menu row " + IntToString (iChoice) + " runs " + StringSegment (sRecord, "\t", 2))
-PerformScriptByName (StringSegment (sRecord, "\t", 2))
+Let sRecord = Builtin::StringSegment (sTable, "\7", iChoice)
+hVLogLine ("menu row " + Builtin::IntToString (iChoice) + " runs " + Builtin::StringSegment (sRecord, "\t", 2))
+PerformScriptByName (Builtin::StringSegment (sRecord, "\t", 2))
 EndScript
 
 
@@ -2278,22 +2381,22 @@ EndScript
 ;
 ; Named by UserBufferAddLink rather than called anywhere, so the compiler
 ; cannot check it -- which is what check 15 is for.
-Void Function homerViewTab (string sId)
+Void Function hVHomerViewTab (string sId)
 Var string sAnswer
-logLine ("homerViewTab asked for " + sId)
-UserBufferDeactivate ()
-Let sAnswer = callBridge ("activate", sId)
-If xmlValue (sAnswer, "/root/error") != "" Then
-    SayMessage (OT_ERROR, xmlValue (sAnswer, "/root/error"))
+hVLogLine ("hVHomerViewTab asked for " + sId)
+Builtin::UserBufferDeactivate ()
+Let sAnswer = hVCallBridge ("activate", sId)
+If hVXmlValue (sAnswer, "/root/error") != "" Then
+    SayMessage (OT_ERROR, hVXmlValue (sAnswer, "/root/error"))
     Return
 EndIf
 SayMessage (OT_MESSAGE, "Going there")
 EndFunction
 
 
-Void Function homerViewLink (string sName)
-logLine ("homerViewLink asked for " + sName)
-UserBufferDeactivate ()
+Void Function hVHomerViewLink (string sName)
+hVLogLine ("hVHomerViewLink asked for " + sName)
+Builtin::UserBufferDeactivate ()
 ; The chain of branches that used to be here said the same thing twenty times.
 ; PerformScriptByName takes the name as a string, so the link's own target is
 ; the answer and there is nothing to keep in step.

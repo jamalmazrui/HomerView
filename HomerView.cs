@@ -1627,6 +1627,18 @@ namespace Homer
             // Every step now says what it did and how long it took.
             Log("  IBM engine ready, running the " + sRuleset + " ruleset");
             DateTime oStarted = DateTime.UtcNow;
+            // THE SCAN GETS ITS FULL TIME, AND THE SCRIPT STOPS WAITING SOONER.
+            //
+            // These were briefly matched at 45 seconds so the helper would
+            // always answer inside the script's minute. Then he reported that
+            // the Washington Post report DID appear -- just long after. Cutting
+            // the budget would have turned a slow success into a guaranteed
+            // failure on exactly the heavy pages where a report is worth most.
+            //
+            // So the two limits are deliberately DIFFERENT. The script stops
+            // WAITING at a minute and says the report will be saved when it
+            // finishes; the helper carries on and writes it. The reader gets
+            // their screen reader back and the file still arrives.
             int iWas = iCallBudgetSeconds;
             iCallBudgetSeconds = 120;
 
@@ -3644,7 +3656,10 @@ namespace Homer
             {
                 // A full-page image of a long page takes longer than a call
                 // that only asks a question.
-                iCallBudgetSeconds = 60;
+                // 45 is right HERE: capturing an image is bounded work, not an
+                // open-ended analysis, so a long wait means something is wrong
+                // rather than merely big.
+                iCallBudgetSeconds = 45;
                 string sReply = SendAndWait(sSocket,
                     "{\"id\":1,\"method\":\"" + sMethod + "\",\"params\":" + sParams + "}");
                 if (sReply == null)

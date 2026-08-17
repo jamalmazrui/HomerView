@@ -493,7 +493,7 @@ def buildReportHtml(dAxeResult, sPageTitle, sPageUrl, sReportPath, sPlainText, s
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>HomerView accessibility report: {escape(sPageTitle)}</title>
+<title>Axe Accessibility Report</title>
 <style>{reportStyle}</style>
 </head>
 <body>

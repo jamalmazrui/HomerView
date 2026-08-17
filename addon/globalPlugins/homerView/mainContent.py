@@ -150,7 +150,8 @@ def buildDocument(dArticle, sPageUrl):
         '<html lang="en">\n'
         "<head>\n"
         '<meta charset="utf-8">\n'
-        f"<title>{escapeHtml(sTitle)}</title>\n"
+        # The name alone: the page it came from is implicit.
+        '<title>Main Content</title>\n'
         "</head>\n"
         "<body>\n"
         "<header>\n" + "\n".join(lHeader) + "\n</header>\n"

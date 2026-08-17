@@ -1683,7 +1683,12 @@ If hVNeedsConverting (sPath) Then
 EndIf
 ; Converting a large PDF can take a minute, and waiting for it here held all
 ; of JAWS. Started instead; bridgePoll says "Opened in HomerView" when it is.
-If hVStartBridge ("openDocument", "hVOpenDocument", sPath) == False Then
+; THE SECOND ARGUMENT IS A BRIDGE COMMAND, NOT A SCRIPT NAME.
+; The hV rename reached it and made it "hVOpenDocument", which no case in
+; the helper matches -- every Control+O answered "unknown command" for
+; every file type. I repaired the FIRST argument of these calls at the time
+; and did not check the second.
+If hVStartBridge ("openDocument", "openDocument", sPath) == False Then
     Return
 EndIf
 EndScript
@@ -1931,7 +1936,11 @@ If sResult == "" Then
     hVLogLine ("hVExtractByPattern: nothing came back")
     Return
 EndIf
-hVSayVirtual (sResult)
+; NAMED ON ITS FIRST LINE, the same practice as the generated tabs.
+; A virtual view has no title bar for JAWSKey+T to read, so the first
+; line IS the title -- and a reader who lands in a buffer of text with
+; no heading has to work out what they are looking at.
+hVSayVirtual ("Pattern Matches" + "\r\n\r\n" + sResult)
 EndScript
 
 
@@ -2014,7 +2023,11 @@ If sResult == "" Then
     hVLogLine ("hVFindContacts: nothing came back")
     Return
 EndIf
-hVSayVirtual (sResult)
+; NAMED ON ITS FIRST LINE, the same practice as the generated tabs.
+; A virtual view has no title bar for JAWSKey+T to read, so the first
+; line IS the title -- and a reader who lands in a buffer of text with
+; no heading has to work out what they are looking at.
+hVSayVirtual ("Publisher Contacts" + "\r\n\r\n" + sResult)
 EndScript
 
 
@@ -2327,7 +2340,7 @@ EndScript
 Script hVShowHomerViewMenu ()
 Var
     int bOnPage, int iChoice, int iKept, int iRecord,
-    string sItems, string sKept, string sRecord, string sTable
+    string sApp, string sItems, string sKept, string sRecord, string sTable
 ; ONE TABLE, AND THE INDEX PICKS FROM IT.
 ;
 ; This used to build the list in one place and then decide what to run by
@@ -2402,7 +2415,30 @@ Let sTable = "About HomerView, Which build is loaded and where everything lives.
 ; THE KEPT ROWS ARE COLLECTED INTO sKept AND THE CHOICE IS LOOKED UP THERE,
 ; because the numbers must line up with what was offered -- dispatching from
 ; the full table after showing a shorter list would run the wrong command.
+; THE TEST IS "AM I IN A BROWSER", NOT "IS THE VIRTUAL CURSOR ON".
+;
+; IsVirtualPCCursor alone was too strict and hid working commands: it is FALSE
+; in forms mode, and false while the focus sits in the address bar or a text
+; box -- yet Web Download, Copy All and the scans all work perfectly well from
+; there. He opened the menu in Edge and found Web Download missing, which is
+; exactly this.
+;
+; GetAppFileNameWithoutExtension names the application whatever the cursor is
+; doing, so the page commands are offered whenever a browser is in front. The
+; virtual cursor still counts on its own, for a document that is not Edge.
 Let bOnPage = Builtin::IsVirtualPCCursor ()
+Let sApp = Builtin::StringLower (GetAppFileNameWithoutExtension ())
+; ONE LINE PER If, which is this project's rule and also what the JSL wants:
+; a condition split across lines counted as an If with no EndIf.
+If Builtin::StringContains (sApp, "edge") Then
+    Let bOnPage = True
+EndIf
+If Builtin::StringContains (sApp, "chrome") Then
+    Let bOnPage = True
+EndIf
+If Builtin::StringContains (sApp, "firefox") Then
+    Let bOnPage = True
+EndIf
 Let iRecord = 1
 Let iKept = 0
 Let sRecord = Builtin::StringSegment (sTable, "\7", iRecord)
@@ -2422,7 +2458,7 @@ While sRecord != ""
 EndWhile
 hVLogLine ("hVShowHomerViewMenu: " + Builtin::IntToString (iKept) + " of "
     + Builtin::IntToString (iRecord - 1) + " commands apply here; on a page = "
-    + Builtin::IntToString (bOnPage))
+    + Builtin::IntToString (bOnPage) + ", application " + sApp)
 hVLogLine ("hVShowHomerViewMenu: offering the menu")
 Let iChoice = hVDialogPick ("HomerView", sItems)
 If iChoice == 0 Then

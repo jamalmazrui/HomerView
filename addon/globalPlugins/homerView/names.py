@@ -120,7 +120,7 @@ def buildHtml(sPageTitle, sPageUrl, lFound):
         '<html lang="en">',
         "<head>",
         '<meta charset="utf-8">',
-        f"<title>Names on {escapeHtml(sPageTitle)}</title>",
+        "<title>Names</title>",
         "</head>",
         "<body>",
         "<h1>What this page mentions</h1>",

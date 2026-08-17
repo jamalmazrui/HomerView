@@ -1834,9 +1834,14 @@ namespace Homer
         {
             var oText = new StringBuilder();
             oText.Append("<!DOCTYPE html>\r\n<html lang=\"en\">\r\n<head>\r\n");
-            oText.Append("<meta charset=\"utf-8\">\r\n<title>Accessibility report: ");
-            oText.Append(EscapeHtml(sTitle));
-            oText.Append("</title>\r\n</head>\r\n<body>\r\n");
+            // THE ENGINE'S NAME FIRST, SO JAWSKey+T IDENTIFIES THE TAB.
+            // Two reports of the same page both began "Accessibility
+            // report", so hearing the title told a reader nothing about
+            // WHICH one they were in.
+            // NO PAGE TITLE AFTER IT. The reader arrived here FROM that page,
+            // so repeating its title only makes JAWSKey+T longer to hear
+            // before the part that identifies the tab. The name alone.
+            oText.Append("<meta charset=\"utf-8\">\r\n<title>IBM Accessibility Report</title>\r\n</head>\r\n<body>\r\n");
             oText.Append("<h1>Accessibility report</h1>\r\n");
             oText.Append("<p><a href=\"#findings\">Skip to the findings</a></p>\r\n");
             oText.Append("<h2>What was tested</h2>\r\n<ul>\r\n");
@@ -2153,9 +2158,14 @@ namespace Homer
             XmlNode oInapplicable = oDocument.SelectSingleNode("/root/inapplicable");
             var oText = new StringBuilder();
             oText.Append("<!DOCTYPE html>\r\n<html lang=\"en\">\r\n<head>\r\n");
-            oText.Append("<meta charset=\"utf-8\">\r\n<title>Accessibility report: ");
-            oText.Append(EscapeHtml(sTitle));
-            oText.Append("</title>\r\n</head>\r\n<body>\r\n<h1>Accessibility report</h1>\r\n");
+            // THE ENGINE'S NAME FIRST, SO JAWSKey+T IDENTIFIES THE TAB.
+            // Two reports of the same page both began "Accessibility
+            // report", so hearing the title told a reader nothing about
+            // WHICH one they were in.
+            // NO PAGE TITLE AFTER IT. The reader arrived here FROM that page,
+            // so repeating its title only makes JAWSKey+T longer to hear
+            // before the part that identifies the tab. The name alone.
+            oText.Append("<meta charset=\"utf-8\">\r\n<title>Axe Accessibility Report</title>\r\n</head>\r\n<body>\r\n<h1>Accessibility report</h1>\r\n");
             oText.Append("<p><a href=\"#violations\">Skip to the violations</a></p>\r\n");
             oText.Append("<h2>In plain words</h2>\r\n<p>");
             if (iViolations == 0)
@@ -2692,10 +2702,19 @@ namespace Homer
     };
     const lOut = [];
     const setSeen = new Set();
+    // EVERYTHING THE PAGE POINTS AT, NOT JUST ITS ANCHORS.
+    //
+    // Anchors alone missed most of what a reader might want: the images, the
+    // scripts, the stylesheets, the media. A page of many links reported
+    // nothing to download at all.
     for (const el of Array.from(document.querySelectorAll(
-            ""a[href], area[href], link[href][download]""))) {
+            ""a[href], area[href], link[href], img[src], script[src],""
+            + "" video[src], audio[src], source[src], iframe[src], embed[src], object[data]""))) {
         let sAbsolute = """";
-        try { sAbsolute = new URL(el.getAttribute(""href""), window.location.href).href; }
+        const sRaw = el.getAttribute(""href"") || el.getAttribute(""src"")
+            || el.getAttribute(""data"") || """";
+        if (!sRaw) continue;
+        try { sAbsolute = new URL(sRaw, window.location.href).href; }
         catch (error) { continue; }
         if (!sAbsolute.startsWith(""http"")) continue;
         if (setSeen.has(sAbsolute)) continue;
@@ -2711,7 +2730,12 @@ namespace Homer
             if (dMime[sType]) sExtension = dMime[sType];
         }
         if (!sExtension && el.hasAttribute(""download"")) sExtension = ""unknown"";
-        if (!sExtension) continue;
+        // NO EXTENSION IS NOT NOTHING. A modern site addresses its pages
+        // without one -- /programs/advocacy rather than advocacy.html -- and
+        // dropping those left a page of hundreds of links reporting nothing at
+        // all. They are kept as ""unknown"" and the helper asks the server what
+        // they are with a HEAD request.
+        if (!sExtension) sExtension = ""unknown"";
         setSeen.add(sAbsolute);
         lOut.push(sExtension + ""\t"" + sAbsolute + ""\t""
             + (el.textContent || el.getAttribute(""aria-label"") || """").trim().slice(0, 120));
@@ -2784,7 +2808,116 @@ namespace Homer
                 lLinks.Add(new string[] { lParts[0], lParts[1],
                     lParts.Length > 2 ? lParts[2] : "" });
             }
+            NameTheUnknown(lLinks);
             return lLinks;
+        }
+
+        /// <summary>
+        /// Asks the server what an extensionless address actually is.
+        ///
+        /// A modern site addresses its pages without an extension, so the page
+        /// scan cannot tell a document from an image from an article by
+        /// looking. A HEAD request costs no body and the Content-Type header
+        /// answers exactly that question.
+        ///
+        /// BOUNDED, BECAUSE A PAGE CAN CARRY HUNDREDS OF LINKS. Only the
+        /// unknown ones are asked, at most iHeadLimit of them, with a short
+        /// timeout each: this runs while somebody waits, and a page that needs
+        /// two hundred round trips is not worth the wait. Whatever is not
+        /// resolved stays "unknown", which is already a kind the reader can
+        /// choose -- "Named by the server".
+        /// </summary>
+        private static void NameTheUnknown(List<string[]> lLinks)
+        {
+            const int iHeadLimit = 40;
+            int iAsked = 0;
+            var dSeen = new Dictionary<string, string>();
+            foreach (string[] lLink in lLinks)
+            {
+                if (lLink[0] != "unknown" || iAsked >= iHeadLimit)
+                    continue;
+                string sType = "";
+                if (dSeen.ContainsKey(lLink[1]))
+                {
+                    sType = dSeen[lLink[1]];
+                }
+                else
+                {
+                    iAsked += 1;
+                    try
+                    {
+                        var oRequest = (HttpWebRequest) WebRequest.Create(lLink[1]);
+                        oRequest.Method = "HEAD";
+                        oRequest.Timeout = 5000;
+                        oRequest.ReadWriteTimeout = 5000;
+                        oRequest.AllowAutoRedirect = true;
+                        // The same agent the page fetcher uses: a server that
+                        // refuses an unknown client would answer nothing useful.
+                        oRequest.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) HomerView";
+                        using (var oReply = (HttpWebResponse) oRequest.GetResponse())
+                        {
+                            sType = (oReply.ContentType ?? "").ToLowerInvariant();
+                            int iSemicolon = sType.IndexOf(';');
+                            if (iSemicolon > 0) sType = sType.Substring(0, iSemicolon).Trim();
+                            // A server may also name the file outright, which
+                            // beats guessing from the type.
+                            string sDisposition = oReply.Headers["Content-Disposition"] ?? "";
+                            var oMatch = Regex.Match(sDisposition, "filename\\*?=\\\"?([^\\\";]+)");
+                            if (oMatch.Success)
+                            {
+                                string sNamed = oMatch.Groups[1].Value.Trim();
+                                int iDot = sNamed.LastIndexOf('.');
+                                if (iDot > 0 && iDot < sNamed.Length - 1)
+                                    sType = "name:" + sNamed.Substring(iDot + 1).ToLowerInvariant();
+                            }
+                        }
+                    }
+                    catch (Exception) { sType = ""; }
+                    dSeen[lLink[1]] = sType;
+                }
+                string sExtension = ExtensionForType(sType);
+                if (sExtension != "") lLink[0] = sExtension;
+            }
+            if (iAsked > 0)
+                Log("  asked the server about " + iAsked.ToString() + " address(es) with no extension");
+        }
+
+        /// <summary>
+        /// One content type, turned into the extension a reader would expect.
+        /// </summary>
+        private static string ExtensionForType(string sType)
+        {
+            if (sType == null || sType == "") return "";
+            if (sType.StartsWith("name:")) return sType.Substring(5);
+            switch (sType)
+            {
+                case "text/html": case "application/xhtml+xml": return "html";
+                case "text/plain": return "txt";
+                case "text/css": return "css";
+                case "text/csv": return "csv";
+                case "text/markdown": return "md";
+                case "application/javascript": case "text/javascript": return "js";
+                case "application/json": return "json";
+                case "application/xml": case "text/xml": return "xml";
+                case "application/pdf": return "pdf";
+                case "application/rtf": case "text/rtf": return "rtf";
+                case "application/epub+zip": return "epub";
+                case "application/zip": return "zip";
+                case "application/msword": return "doc";
+                case "application/vnd.openxmlformats-officedocument.wordprocessingml.document": return "docx";
+                case "application/vnd.ms-excel": return "xls";
+                case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": return "xlsx";
+                case "application/vnd.ms-powerpoint": return "ppt";
+                case "application/vnd.openxmlformats-officedocument.presentationml.presentation": return "pptx";
+                case "image/jpeg": return "jpg";
+                case "image/png": return "png";
+                case "image/gif": return "gif";
+                case "image/svg+xml": return "svg";
+                case "image/webp": return "webp";
+                case "audio/mpeg": return "mp3";
+                case "video/mp4": return "mp4";
+                default: return "";
+            }
         }
 
         /// <summary>
@@ -3513,9 +3646,9 @@ namespace Homer
             var oSpoken = new StringBuilder();
             int iTotal = 0;
             oText.Append("<!DOCTYPE html>\r\n<html lang=\"en\">\r\n<head>\r\n");
-            oText.Append("<meta charset=\"utf-8\">\r\n<title>Names on ");
-            oText.Append(EscapeHtml(sTitle));
-            oText.Append("</title>\r\n</head>\r\n<body>\r\n<h1>What this page mentions</h1>\r\n");
+            // The name alone, like the other generated pages: the page it
+            // came from is named in the first list item below anyway.
+            oText.Append("<meta charset=\"utf-8\">\r\n<title>Names</title>\r\n</head>\r\n<body>\r\n<h1>What this page mentions</h1>\r\n");
             oText.Append("<ul>\r\n<li>Page: " + EscapeHtml(sTitle) + "</li>\r\n");
             oText.Append("<li>Address: <a href=\"" + EscapeHtml(sUrl) + "\">"
                 + EscapeHtml(sUrl) + "</a></li>\r\n");
@@ -4119,6 +4252,41 @@ namespace Homer
             }
         }
 
+        /// <summary>
+        /// Throws away the converted documents from previous sessions.
+        ///
+        /// Every converted file -- an epub, a PDF, a slide deck turned into a
+        /// page -- lands in HomerView's temp folder under the name it came in
+        /// with. NOTHING EVER REMOVED THEM, so the folder grew for as long as
+        /// the program was used, and Windows does not clear it: it is under
+        /// LocalAppData, not the system temporary folder.
+        ///
+        /// A LAUNCH IS THE RIGHT MOMENT. It is the one point where no converted
+        /// page can be open in the browser, so nothing in use is taken away.
+        /// Only this folder, only files, and a failure is logged and ignored --
+        /// a file somebody still has open must not stop the browser starting.
+        /// </summary>
+        private static void ClearTempFolder()
+        {
+            try
+            {
+                string sFolder = Path.Combine(
+                    Directory.GetParent(ProfileFolder()).FullName, "temp");
+                if (!Directory.Exists(sFolder))
+                    return;
+                int iGone = 0;
+                foreach (string sFile in Directory.GetFiles(sFolder))
+                {
+                    try { File.Delete(sFile); iGone += 1; }
+                    catch (Exception) { }
+                }
+                if (iGone > 0)
+                    Log("  cleared " + iGone.ToString() + " converted file(s) from the temp folder");
+            }
+            catch (Exception oError)
+            { Log("  the temp folder could not be cleared: " + oError.Message); }
+        }
+
         private static string Launch(string sStartUrl)
         {
             // Already there? Then this is a reconnect, which is the ordinary
@@ -4177,6 +4345,11 @@ namespace Homer
                 }
             }
 
+            // CLEARED HERE, NOT AT THE TOP OF THIS METHOD. Everything above
+            // is the RECONNECT path, and a reader who presses the launch key
+            // to come back to their window may well have a converted document
+            // open in it. Only a genuinely new browser gets a clean folder.
+            ClearTempFolder();
             string sEdge = FindEdge();
             Log("  edge:        " + (sEdge == null ? "NOT FOUND" : sEdge));
             if (sEdge == null)
@@ -4566,7 +4739,11 @@ namespace Homer
             var builder = new StringBuilder();
             builder.Append("<!doctype html>\r\n<html lang=\"en\">\r\n<head>\r\n");
             builder.Append("<meta charset=\"utf-8\">\r\n");
-            builder.Append("<title>" + EscapeHtml(sTitle) + "</title>\r\n");
+            // "Main Content of" first, so the tab says what it is rather
+            // than repeating the original page's title and leaving the
+            // reader unsure which of the two tabs they are in.
+            // The name alone: the page it came from is implicit.
+            builder.Append("<title>Main Content</title>\r\n");
             builder.Append("</head>\r\n<body>\r\n<header>\r\n");
             builder.Append("<h1>" + EscapeHtml(sTitle) + "</h1>\r\n");
             if (sByline != "")

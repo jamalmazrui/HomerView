@@ -8,6 +8,14 @@ commands, the same answers, on keys chosen to suit each screen reader's own
 conventions. Where this guide gives two keys, the first is JAWS and the second
 is NVDA.
 
+Parity is a standing goal of the project rather than a description of how things
+happen to stand. A feature is not finished when it works on one screen reader:
+every command, every message and every page HomerView generates is built in an
+equivalent form for both, and each follows that screen reader's own conventions
+where they differ. So a report opens in a tab titled the same way on either, and
+anything shown in a viewer names itself on its first line, because a virtual view
+has no title bar to read.
+
 ## What HomerView is
 
 HomerView launches and drives its own copy of Microsoft Edge through the Chrome

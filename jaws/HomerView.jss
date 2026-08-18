@@ -346,15 +346,63 @@ EndFunction
 ; The rule is deliberately mechanical rather than a judgement made command by
 ; command: one line and under two hundred characters is a sentence, and
 ; everything else is a document.
+; The text after its first line break, so the caller can ask whether a SECOND
+; one follows. JSL has no "count the occurrences" function, and asking twice is
+; clearer than a loop that only ever needs two answers.
+string Function hVAfterFirstLine (string sText)
+Var int iBreak
+Let iBreak = Builtin::StringContains (sText, "\r\n")
+If iBreak == 0 Then
+    Return ""
+EndIf
+Return Builtin::SubString (sText, iBreak + 2, Builtin::StringLength (sText) - iBreak - 1)
+EndFunction
+
+
 Void Function hVSayOrShow (string sText)
 If sText == "" Then
     Return
 EndIf
+; THREE LINES OR MORE GOES TO THE VIEWER; ONE OR TWO IS SPOKEN.
+;
+; His rule, and it draws the line where the reader's experience changes: two
+; lines can be held in the head as they are heard, and more cannot -- that is
+; when you want to move through it, re-read a part, or copy a piece.
+;
+; A single line break means TWO lines, which is still spoken. A second break
+; means three, which is shown. The 200 character test stays as a second reason
+; to show: one very long line is no easier to take in as speech than three
+; short ones.
 If Builtin::StringContains (sText, "\r\n") > 0 Then
+    If Builtin::StringContains (hVAfterFirstLine (sText), "\r\n") > 0 Then
+        hVSayVirtual (sText)
+        Return
+    EndIf
+EndIf
+If Builtin::StringLength (sText) > 200 Then
     hVSayVirtual (sText)
     Return
 EndIf
-If Builtin::StringLength (sText) > 200 Then
+; PRESS THE SAME KEY AGAIN TO PUT IT IN THE VIEWER.
+;
+; A tester asked whether to press Escape after Link Target, and the answer was
+; no -- that one was spoken, not shown -- WHICH IS THE POINT: he could not tell
+; which kind of output he had just been given. Long output already goes to the
+; viewer, where Escape dismisses it. Short output is spoken, and until now
+; there was no way to get at it afterwards.
+;
+; THIS IS THE JAWS PATTERN, USING THE JAWS FUNCTION. IsSameScript: "Determines
+; if the current script has been called two or more times in a row without any
+; intervening scripts being called and with NO MORE THAN 500 MILLISECONDS
+; between each call... The number of times the script has repeated, 0 means it
+; has not repeated." So the threshold and the semantics are Freedom
+; Scientific's, not ours, and the behaviour matches every other script set that
+; does this.
+;
+; The second press shows the SAME text in the viewer, where it can be read by
+; character, word or line, and copied selectively.
+If Builtin::IsSameScript () > 0 Then
+    hVLogLine ("sayOrShow: repeated, so showing it in the viewer instead")
     hVSayVirtual (sText)
     Return
 EndIf

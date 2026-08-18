@@ -65,6 +65,35 @@ def withLabel(sLabel, sText):
     return sText
 
 
+def sayOrShow(sText, sTitle="HomerView"):
+    """Say short output, show long output, and show short output on a repeat.
+
+    THE SAME RULE AS THE JAWS SIDE, which is the point: a reader who moves
+    between the two screen readers should not have to learn two behaviours.
+
+    Three lines or more goes to a browseable message, where it can be read by
+    character, word or line and copied selectively. One or two lines is spoken,
+    because that much can be held in the head as it is heard.
+
+    AND PRESSING THE SAME KEY AGAIN SHOWS IT ANYWAY. A tester could not tell
+    which kind of output he had just been given -- whether Escape was needed to
+    dismiss it -- and this removes the guess: if you want it in front of you,
+    press the key again. NVDA's getLastScriptRepeatCount is the counterpart of
+    the JAWS IsSameScript, and both carry their own timing rule.
+    """
+    from . import output
+
+    if not sText:
+        return
+    if getLastScriptRepeatCount() > 0 or sText.count("\n") >= 2 or len(sText) > 200:
+        # output.lines is the established route for several lines of result --
+        # a box that can be re-read, moved through and copied whole with
+        # Control+C. Inventing a second one would only mean two behaviours.
+        output.lines(sTitle, sText.split("\n"))
+        return
+    ui.message(sText)
+
+
 def sayOrSpell(sText, sEmptyMessage):
     """Say text, or spell it when the same key was just pressed."""
     if not sText:

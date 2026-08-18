@@ -1,69 +1,58 @@
 ﻿---
-title: "HomerView: a browser that answers"
+title: "HomerView: JAWS support reaches parity with NVDA"
 ---
 
 HomerView is a free, open-source companion for reading the web with a screen
-reader. It runs on Windows and works the same way with **JAWS** and with
-**NVDA**. Neither is the main one; the two implementations are kept at parity
-deliberately, key for key and answer for answer, so that what you learn on one
-you already know on the other.
+reader on Windows. It works with **JAWS** and with **NVDA**, and as of this
+release the two are at feature parity: the same commands, the same answers, the
+same generated pages. Neither is the main one.
 
-You can get it from the [HomerView project
-page](https://github.com/JamalMazrui/HomerView), and the
-[HomerView executable installer](https://github.com/JamalMazrui/HomerView/releases/latest)
-is the quickest way to start.
+Where a key differs between them, it differs because each follows its own screen
+reader's conventions. Everything else is the same on both, so what you learn on
+one you already know on the other.
 
-## What it is for
+## What HomerView is for
 
-A screen reader tells you what is on the screen. HomerView tries to answer the
-questions you actually have about a page, which is a different job:
+**A browser.** It drives its own copy of Microsoft Edge, so every native Edge
+feature is there, reached through your own screen reader's browse mode rather
+than through anything HomerView invented.
 
-- What is this page really about, underneath the navigation and the banners?
-- Where does that link go, before I commit to following it?
-- Is this page accessible, and if not, what exactly is wrong with it?
-- Can I have every file this page links to, without twenty separate visits to
-  the download shelf?
-- Can I read this Word document, this PDF, this ebook, as an ordinary web page
-  where all of these commands work?
+**An accessibility tester.** One command runs the axe engine over the current
+page, another runs IBM's. Each writes a report naming every rule that failed,
+its severity, the elements involved and how to fix them: plain enough to send to
+a publisher, specific enough for their developers to act on.
 
-It answers those by driving its own copy of Microsoft Edge through the Chrome
-DevTools Protocol. That means it can ask the browser things a screen reader
-cannot see: the page as scripts have actually built it, the browser's own
-cookies, what a link's server says before you go there.
+**A document and ebook reader.** DOCX, EPUB, PDF and other popular formats are
+converted to structured HTML and opened in the browser, so headings, lists,
+tables and links become real navigation in browse mode rather than a flat wall
+of text.
 
-## What makes it different
+**A downloader.** It finds the files a page points at, identifies each type, and
+fetches the kinds you choose, using the browser's own cookies so a signed-in
+page works.
 
-**It is not a scraper.** Requests carry the browser's own cookies, user agent
-and referrer, so a file behind a sign-in comes to you exactly as it would to a
-click.
+**An extractor.** One command lifts the main content out of a page and opens it
+free of navigation, banners and advertising.
 
-**It answers rather than describes.** Link Target does not say "link, 47
-characters"; it says what is at the other end, how big it is, and whether the
-address goes somewhere other than it appears to.
-
-**It respects what your screen reader already does well.** HomerView adds no
-command for listing headings or links, because JAWS and NVDA both do that
-properly already. It fills gaps rather than competing.
-
-**Both screen readers are first class.** Every command in this announcement
-exists on both, on keys chosen to suit each one's conventions. Where the keys
-differ, they differ for a reason that is written down.
+**And a set of smaller aids** for finding and selecting text, listing tabs and
+links, reading metadata, and putting what you find on the clipboard.
 
 ## Getting it
 
-1. Download the [HomerView executable
-   installer](https://github.com/JamalMazrui/HomerView/releases/latest).
-2. Run it. The installer offers to set up the JAWS scripts, the NVDA add-on, or
-   both, depending on what it finds on your machine.
-3. Press **Alt+JAWSKey+H** (JAWS) or **NVDA+Alt+H** (NVDA) to start.
+HomerView is at <https://github.com/JamalMazrui/HomerView>. Run the installer
+and tick the box for the screen reader you use; it offers whichever it finds.
 
-The source, the issue tracker and the full history are on the [HomerView
-project page](https://github.com/JamalMazrui/HomerView).
+You will need one of:
 
-## Who it is by
+- **JAWS**, from Freedom Scientific:
+  <https://www.freedomscientific.com/products/software/jaws/>
+- **NVDA**, from NV Access: <https://www.nvaccess.org/download/>
 
-HomerView is written by Jamal Mazrui, who is blind and uses it daily. It is one
-of the Homer family of accessibility tools, alongside EdSharp, FileDir, urlFido
-and DbDo, and it shares their conventions: the same clipboard commands, the same
-selection keys, the same idea that a program should say what happened rather
-than leave you guessing.
+Microsoft Edge is required. HomerView keeps its own browser profile, so it never
+disturbs the one you browse with.
+
+## Where to start
+
+Press **Alt+Insert+H** in JAWS, or **Alt+NVDA+H** in NVDA, to open the HomerView
+window. From there the menu key lists every command and hot key help lists every
+key. The full guide is HomerView.htm, installed with the program.

@@ -513,6 +513,15 @@ namespace Homer
                     case "savepage":
                         sResult = SavePage(sArgument);
                         break;
+                    case "elevate":
+                        sResult = Elevate();
+                        break;
+                    case "recentlist":
+                        sResult = RecentList();
+                        break;
+                    case "recentadd":
+                        sResult = RecentAdd(sArgument);
+                        break;
                     case "openpage":
                         sResult = OpenPage(sArgument);
                         break;
@@ -1254,6 +1263,10 @@ namespace Homer
             // %20, and a screen reader reads each one as "percent two zero", so
             // a name with four spaces in it arrives as a mouthful of numbers.
             // The path is what a person recognises.
+            // RECORDED ONLY ON SUCCESS. A list of pages that failed to open
+            // would be worse than no list: every entry an invitation to fail
+            // again.
+            RecentAdd(Path.GetFileName(sTarget) + "\t" + sUrl);
             return "{\"value\":" + Quote("Opened " + Path.GetFileName(sTarget)) + "}";
         }
 
@@ -4355,6 +4368,179 @@ namespace Homer
             }
             catch (Exception oError)
             { Log("  the temp folder could not be cleared: " + oError.Message); }
+        }
+
+        /// <summary>
+        /// Fetches the newest release and runs its installer.
+        ///
+        /// THE SAME ADDRESSES THE NVDA SIDE USES, so both screen readers follow
+        /// the same release: releases/latest/download/HomerView_setup.exe, which
+        /// always names the current one without anybody editing a version into
+        /// a link.
+        ///
+        /// The version comparison is deliberately simple -- if the tag differs
+        /// from what is running, there is something newer. Parsing version
+        /// numbers to decide "newer" invites an ordering bug for no gain, since
+        /// the latest release IS what the reader wants either way.
+        ///
+        /// THE INSTALLER IS RUN, NOT SILENTLY APPLIED. It asks its own
+        /// questions about which screen reader to set up, and a program that
+        /// replaces itself without asking is not one to trust.
+        /// </summary>
+        /// <summary>
+        /// The list of pages recently opened, newest first.
+        ///
+        /// EdSharp offers recent files on Alt+R and this is the same idea for
+        /// pages: having read something, you want it back without retyping an
+        /// address or hunting through browser history that holds everything
+        /// you have ever visited rather than what HomerView opened.
+        ///
+        /// A PLAIN TEXT FILE, one entry per line, title then tab then address.
+        /// It has to survive the program closing, it is small, and a reader who
+        /// wants to see or prune it can open it in any editor.
+        /// </summary>
+        private static string RecentFile()
+        {
+            return Path.Combine(
+                Directory.GetParent(ProfileFolder()).FullName, "recent.txt");
+        }
+
+        private static string RecentAdd(string sEntry)
+        {
+            // Title and address arrive already joined by a tab.
+            if (string.IsNullOrEmpty(sEntry) || !sEntry.Contains("\t"))
+                return "{\"value\":\"\"}";
+            try
+            {
+                var lKept = new List<string>();
+                lKept.Add(sEntry.Replace("\r", " ").Replace("\n", " "));
+                string sAddress = sEntry.Substring(sEntry.IndexOf('\t') + 1);
+                if (File.Exists(RecentFile()))
+                {
+                    foreach (string sLine in File.ReadAllLines(RecentFile()))
+                    {
+                        // THE SAME PAGE ONLY ONCE, and at the top: a list where
+                        // one address fills forty lines is no list at all.
+                        if (sLine.Trim() == "" || sLine.EndsWith("\t" + sAddress))
+                            continue;
+                        lKept.Add(sLine);
+                        if (lKept.Count >= 40) break;
+                    }
+                }
+                File.WriteAllLines(RecentFile(), lKept.ToArray());
+            }
+            catch (Exception oError)
+            { Log("  the recent list could not be written: " + oError.Message); }
+            return "{\"value\":\"\"}";
+        }
+
+        private static string RecentList()
+        {
+            try
+            {
+                if (!File.Exists(RecentFile()))
+                    return "{\"error\":\"No pages have been opened yet.\"}";
+                var lLines = new List<string>();
+                foreach (string sLine in File.ReadAllLines(RecentFile()))
+                    if (sLine.Trim() != "") lLines.Add(sLine);
+                if (lLines.Count == 0)
+                    return "{\"error\":\"No pages have been opened yet.\"}";
+                // Newline between records, as every other list here does: a
+                // title can hold a vertical bar and XML carries no BEL.
+                return "{\"value\":" + Quote(string.Join("\n", lLines.ToArray())) + "}";
+            }
+            catch (Exception oError)
+            {
+                return "{\"error\":" + Quote("The recent list could not be read. "
+                    + oError.Message) + "}";
+            }
+        }
+
+        private static string Elevate()
+        {
+            const string sRepository = "JamalMazrui/HomerView";
+            string sLatest = "";
+            try
+            {
+                ServicePointManager.SecurityProtocol =
+                    (SecurityProtocolType) 3072 | SecurityProtocolType.Tls;
+                var oRequest = (HttpWebRequest) WebRequest.Create(
+                    "https://api.github.com/repos/" + sRepository + "/releases/latest");
+                oRequest.Timeout = 15000;
+                oRequest.ReadWriteTimeout = 15000;
+                // GitHub refuses a request with no user agent.
+                oRequest.UserAgent = "HomerView";
+                oRequest.Accept = "application/vnd.github+json";
+                using (var oReply = (HttpWebResponse) oRequest.GetResponse())
+                using (var oReader = new StreamReader(oReply.GetResponseStream()))
+                {
+                    string sJson = oReader.ReadToEnd();
+                    var oMatch = Regex.Match(sJson, "\"tag_name\"\\s*:\\s*\"([^\"]+)\"");
+                    if (oMatch.Success) sLatest = oMatch.Groups[1].Value.TrimStart('v', 'V');
+                }
+            }
+            catch (Exception oError)
+            {
+                Log("  the release could not be checked: " + oError.Message);
+                return "{\"error\":" + Quote("The newest version could not be checked. "
+                    + oError.Message) + "}";
+            }
+            if (sLatest == "")
+                return "{\"error\":\"GitHub did not name a release.\"}";
+            // version.txt IS THE ONE SOURCE OF THE VERSION -- the build writes
+            // it from manifest.ini and the installer ships it beside the
+            // program, so reading it here cannot drift from what was released.
+            string sRunning = "";
+            try
+            {
+                string sFile = Path.Combine(
+                    Path.GetDirectoryName(
+                        System.Reflection.Assembly.GetExecutingAssembly().Location),
+                    "version.txt");
+                if (File.Exists(sFile)) sRunning = File.ReadAllText(sFile).Trim();
+            }
+            catch (Exception) { }
+            Log("  running " + sRunning + ", newest is " + sLatest);
+            // An unknown running version is not a reason to refuse; offering the
+            // newest is still the right answer.
+            if (sRunning != "" && sLatest == sRunning)
+                return "{\"value\":" + Quote("HomerView " + sRunning
+                    + " is the newest version.") + "}";
+
+            string sTarget = Path.Combine(Path.GetTempPath(), "HomerView_setup.exe");
+            try
+            {
+                var oGet = (HttpWebRequest) WebRequest.Create(
+                    "https://github.com/" + sRepository
+                    + "/releases/latest/download/HomerView_setup.exe");
+                oGet.Timeout = 30000;
+                oGet.ReadWriteTimeout = 120000;
+                oGet.UserAgent = "HomerView";
+                using (var oReply = (HttpWebResponse) oGet.GetResponse())
+                using (var oStream = oReply.GetResponseStream())
+                using (var oFile = File.Create(sTarget))
+                    oStream.CopyTo(oFile);
+                Log("  downloaded " + new FileInfo(sTarget).Length.ToString() + " bytes");
+            }
+            catch (Exception oError)
+            {
+                Log("  the installer could not be downloaded: " + oError.Message);
+                return "{\"error\":" + Quote("Version " + sLatest
+                    + " could not be downloaded. " + oError.Message) + "}";
+            }
+            try
+            {
+                var oStart = new ProcessStartInfo(sTarget);
+                oStart.UseShellExecute = true;
+                Process.Start(oStart);
+            }
+            catch (Exception oError)
+            {
+                return "{\"error\":" + Quote("The installer could not be started. "
+                    + oError.Message) + "}";
+            }
+            return "{\"value\":" + Quote("Version " + sLatest
+                + " is downloading and its installer is starting. Follow its questions.") + "}";
         }
 
         private static string Launch(string sStartUrl)

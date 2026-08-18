@@ -176,6 +176,9 @@ Source: "C:\HomerView\Start.htm"; DestDir: "{app}"; Flags: ignoreversion skipifs
 Source: "C:\HomerView\Axe.js"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "C:\HomerView\Ace.js"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "C:\HomerView\Nlp.js"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
+; version.txt travels with the program so Elevate Version can tell what is
+; running without parsing it out of anything.
+Source: "C:\HomerView\version.txt"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "C:\HomerView\installJawsScripts.cmd"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 ; Run by installJawsScripts.ps1, not by hand. It writes the MyExtensions file
 ; that makes JAWS load our scripts at all, and puts the keys into the user's own
@@ -353,6 +356,7 @@ Type: files; Name: "{app}\Start.htm"
 Type: files; Name: "{app}\Axe.js"
 Type: files; Name: "{app}\Ace.js"
 Type: files; Name: "{app}\Nlp.js"
+Type: files; Name: "{app}\version.txt"
 Type: filesandordirs; Name: "{app}\build"
 Type: filesandordirs; Name: "{app}\dist"
 

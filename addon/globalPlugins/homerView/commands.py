@@ -252,7 +252,7 @@ lCommands = [
      "Extracts the readable part of the page into a page of its own that you can "
      "search, save or send. F9 is Edge's own reading view, and Shift+F9 is "
      "HomerView's, which works on pages Edge will not."),
-    ("downloadFiles", "openPageFolder", "Web Download", ["kb:alt+shift+w"],
+    ("downloadFiles", "Web Download", ["kb:alt+shift+w"],
      "Pick files to download from a web page, on the key EdSharp uses for it."),
     ("openPageFolder", "Page Folder", ["kb:alt+shift+f"],
      "Open this page's folder in File Explorer, to browse what was saved from it. "

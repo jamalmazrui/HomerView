@@ -956,6 +956,37 @@ EndIf
 EndFunction
 
 
+; The word or phrase to search for, taken from the page rather than typed.
+;
+; A SELECTION WINS over the word under the cursor, so a phrase can be searched
+; for by selecting it first. If there is neither, there is nothing to look for
+; and saying so is better than opening a dialog nobody asked for.
+Void Function hVFindWordFrom (int bBackwards)
+Var string sWord
+hVLogLine ("hVFindWordFrom started, backwards = " + Builtin::IntToString (bBackwards))
+Let sWord = Builtin::GetSelectedText ()
+If sWord == "" Then
+    Let sWord = Builtin::GetWord ()
+EndIf
+Let sWord = Builtin::StringTrimLeadingBlanks (Builtin::StringTrimTrailingBlanks (sWord))
+If sWord == "" Then
+    SayMessage (OT_ERROR, "No word here")
+    Return
+EndIf
+SayMessage (OT_STATUS, sWord)
+hVFindAndMark ("plain", sWord, bBackwards)
+; F3 MUST REPEAT *THIS* SEARCH, NOT JAWS'S OWN.
+;
+; hVFindAndMark records the kind as "plain", which tells F3 to call
+; JAWSFindNext -- and JAWS knows nothing about a word we took off the page and
+; marked ourselves, so the repeat would jump somewhere unrelated or say nothing.
+;
+; The matches here are OUR marked tags, so the repeat has to walk them. Setting
+; the kind after the search says so.
+Let gsLastFindKind = "marked"
+EndFunction
+
+
 ; Moves to the next or previous match already marked. F3 and Shift+F3.
 Void Function hVFindAgain (int bBackwards)
 Var int iMoved
@@ -969,6 +1000,23 @@ Var int iMoved
 ;
 ; gsLastFindKind remembers which, so one pair of keys serves both and the
 ; reader never has to think about which sort of search they last ran.
+; ONLY A SEARCH JAWS ITSELF RAN IS REPEATED BY JAWS. A word taken off the
+; page and marked here is ours, and is walked below like a pattern search.
+; F3 AND SHIFT+F3 ARE HOMERVIEW'S, AND THEY SUPERSEDE THE NATIVE KEYS ON
+; PURPOSE. They repeat searches JAWS never ran -- a pattern search, a word
+; taken off the page -- so they cannot simply be JAWS's find-again.
+;
+; WHAT THEY DO IS DECIDE. If the last search was one JAWS itself ran, they hand
+; straight back to JAWS, which owns those matches; otherwise they walk ours.
+; The reader presses one key either way and never has to remember which sort of
+; search they last used.
+;
+; AN EMPTY KIND MEANS NO HOMERVIEW SEARCH HAS RUN THIS SESSION -- but the reader
+; may well have used JAWS's own Control+F, so the honest answer is to let JAWS
+; repeat it rather than to refuse.
+If gsLastFindKind == "" Then
+    Let gsLastFindKind = "plain"
+EndIf
 If gsLastFindKind == "plain" Then
     If bBackwards Then
         PerformScript JAWSFindPrior ()
@@ -1756,6 +1804,105 @@ EndScript
 ;
 ; SaveCurrentLocation and SelectFromSavedLocationToCurrent are Freedom
 ; Scientific's own, from JAWS 16.
+; Goes back to where a selection was begun. Alt+Shift+F8.
+;
+; Start Selection drops a temporary place marker, so returning to it is
+; MoveToPriorPlaceMarker -- JAWS's own script, which speaks the line it lands
+; on and handles the case where no marker was ever set.
+;
+; The use for this is losing your place: you mark a start, read on to find the
+; end, and then want to hear the beginning again before pressing Shift+F8.
+; Checks whether a newer HomerView exists, and installs it. Control+F11.
+;
+; The helper asks GitHub for the newest release and compares it with the
+; version.txt that travels with the program. IF THERE IS SOMETHING NEWER IT
+; DOWNLOADS THE INSTALLER AND STARTS IT -- it is not applied silently, because
+; the installer asks its own questions about which screen reader to set up, and
+; a program that replaces itself without asking is not one to trust.
+;
+; This can take a moment on a slow connection, so it goes through the poller
+; rather than holding JAWS while it downloads.
+; Offers the pages opened recently, and opens the one chosen. Alt+R.
+;
+; EdSharp puts recent FILES on Alt+R and this is the same idea for pages.
+; Browser history holds everything ever visited; this holds only what HomerView
+; opened, which is a far shorter and more useful list.
+Script hVRecentPages ()
+Var
+    int iChoice, int iWhich,
+    string sAnswer, string sItems, string sList, string sRecord
+hVLogLine ("hVRecentPages started")
+SayMessage (OT_STATUS, "Recent Pages")
+Let sAnswer = hVCallBridge ("recentList", "")
+If hVXmlValue (sAnswer, "/root/error") != "" Then
+    hVSayOrShow (hVXmlValue (sAnswer, "/root/error"))
+    Return
+EndIf
+Let sList = hVXmlValue (sAnswer, "/root/value")
+If sList == "" Then
+    SayMessage (OT_MESSAGE, "No pages have been opened yet")
+    Return
+EndIf
+; The title is offered; the address travels with it and is never read aloud.
+Let iWhich = 1
+Let sRecord = Builtin::StringSegment (sList, "\n", iWhich)
+While sRecord != ""
+    If iWhich == 1 Then
+        Let sItems = Builtin::StringSegment (sRecord, "\t", 1)
+    Else
+        Let sItems = sItems + "\7" + Builtin::StringSegment (sRecord, "\t", 1)
+    EndIf
+    Let iWhich = iWhich + 1
+    Let sRecord = Builtin::StringSegment (sList, "\n", iWhich)
+EndWhile
+Let iChoice = hVDialogPick ("Recent Pages", sItems)
+If iChoice == 0 Then
+    Return
+EndIf
+Let sRecord = Builtin::StringSegment (sList, "\n", iChoice)
+Let sAnswer = hVCallBridge ("openPage", Builtin::StringSegment (sRecord, "\t", 2))
+If hVXmlValue (sAnswer, "/root/error") != "" Then
+    hVSayOrShow (hVXmlValue (sAnswer, "/root/error"))
+    Return
+EndIf
+SayMessage (OT_MESSAGE, hVXmlValue (sAnswer, "/root/value"))
+EndScript
+
+
+Script hVElevateVersion ()
+Var int iStarted
+hVLogLine ("hVElevateVersion started")
+SayMessage (OT_STATUS, "Elevate Version")
+Let iStarted = hVStartBridge ("elevateVersion", "elevate", "")
+If iStarted == False Then
+    Return
+EndIf
+EndScript
+
+
+Script hVGoToSelectionStart ()
+hVLogLine ("hVGoToSelectionStart started")
+SayMessage (OT_STATUS, "Go to Start of Selection")
+PerformScript MoveToPriorPlaceMarker ()
+EndScript
+
+
+; Searches for the word under the cursor, forwards. Alt+F3, as EdSharp binds it.
+;
+; NOTHING IS TYPED, WHICH IS THE POINT: having heard a term, you want the next
+; place it appears, not a dialog asking you to spell it back. The selected text
+; is used when there is a selection, so a phrase works as well as a word.
+Script hVFindWordAtCursor ()
+hVFindWordFrom (False)
+EndScript
+
+
+; The same, backwards. Alt+Shift+F3.
+Script hVFindWordAtCursorBackwards ()
+hVFindWordFrom (True)
+EndScript
+
+
 Script hVStartSelection ()
 hVLogLine ("hVStartSelection started")
 ; SaveCurrentLocation DID NOT DO IT. Its own description says it remembers the
@@ -2501,6 +2648,11 @@ Let iAdded = UserBufferAddLink ("  Alt+L           Where this link goes, and its
 Let iAdded = UserBufferAddLink ("  Alt+M           What the page says about itself", "hVHomerViewLink (\"hVSayMetadata\")", "Say Metadata")
 Let iAdded = UserBufferAddLink ("  Alt+Shift+P     Copy every link on the page to the clipboard", "hVHomerViewLink (\"hVCopyPageLinks\")", "Page Links to Clipboard")
 Let iAdded = UserBufferAddLink ("  Alt+Shift+W     Fetch the files this page links to", "hVHomerViewLink (\"hVDownloadFiles\")", "Web Download")
+Let iAdded = Builtin::UserBufferAddLink ("  Alt+R           Open a page you had open recently", "hVHomerViewLink (\"hVRecentPages\")", "Recent Pages")
+Let iAdded = Builtin::UserBufferAddLink ("  Control+F11     Check for a newer HomerView", "hVHomerViewLink (\"hVElevateVersion\")", "Elevate Version")
+Let iAdded = Builtin::UserBufferAddLink ("  Alt+Shift+F8    Go to Start of Selection", "hVHomerViewLink (\"hVGoToSelectionStart\")", "Go to Start of Selection")
+Let iAdded = Builtin::UserBufferAddLink ("  Alt+F3          Forward Find at Cursor", "hVHomerViewLink (\"hVFindWordAtCursor\")", "Forward Find at Cursor")
+Let iAdded = Builtin::UserBufferAddLink ("  Alt+Shift+F3    Reverse Find at Cursor", "hVHomerViewLink (\"hVFindWordAtCursorBackwards\")", "Reverse Find at Cursor")
 Let iAdded = UserBufferAddLink ("  Alt+Shift+F     Open this page's folder", "hVHomerViewLink (\"hVOpenPageFolder\")", "Page Folder")
 Let iAdded = UserBufferAddLink ("  Control+O       Open a document as a page", "hVHomerViewLink (\"hVOpenDocument\")", "Open Document")
 Let iAdded = UserBufferAddLink ("  Control+S       Save this page in any format", "hVHomerViewLink (\"hVSavePage\")", "Save Page")
@@ -2591,11 +2743,14 @@ Let sTable = "About HomerView, Which build is loaded and where everything lives.
     + "\7" + "Developer Notes, Notes for anyone working on HomerView itself. (Control+Shift+F1)\thVOpenDeveloperNotes\tA"
     + "\7" + "Diagnostics, Says whether the helper, the log folder and the start page are where they should be. (Alt+JAWSKey+Q)\thVSayDiagnostics\tA"
     + "\7" + "Dismiss Dialog, Closes a cookie banner, newsletter offer or consent wall that Escape will not. (Alt+JAWSKey+D)\thVDismissDialog\tA"
+    + "\7" + "Elevate Version, Checks for a newer HomerView and installs it. (Control+F11)\thVElevateVersion\tA"
     + "\7" + "Extract Main Content, Extracts the readable part of the page into a tab of its own. (Shift+F9)\thVExtractMainContent\tP"
     + "\7" + "Extract with Regular Expression, Gathers every match for reading. (Control+Shift+E)\thVExtractByPattern\tP"
     + "\7" + "Find Contacts, Finds who to tell about this site: email, accessibility statement, contact pages. (Alt+JAWSKey+C)\thVFindContacts\tP"
     + "\7" + "Forward Find Again, The next match of whichever find was done last. (F3)\thVFindNext\tP"
+    + "\7" + "Forward Find at Cursor, Searches forward for the word under the cursor, or the selected text, without asking you to type it. (Alt+F3)\thVFindWordAtCursor\tP"
     + "\7" + "Forward Find with Regular Expression, Searches forward for a pattern. (Control+F3)\thVFindByPattern\tP"
+    + "\7" + "Go to Start of Selection, Moves back to where you began a selection, so you can hear the start again before completing it with Shift+F8. (Alt+Shift+F8)\thVGoToSelectionStart\tP"
     + "\7" + "History of Changes, What changed in each release. (Shift+F1)\thVShowHistory\tA"
     + "\7" + "Hot Key Help, Lists every HomerView command and its key. (Alt+Shift+H)\thVHotKeyHelp\tA"
     + "\7" + "Jump to Probable Main, Moves to the main content, whether the page declares it or not. (Shift+Q)\thVMoveToProbableMain\tP"
@@ -2609,7 +2764,9 @@ Let sTable = "About HomerView, Which build is loaded and where everything lives.
     + "\7" + "Project Announcement, What HomerView is for, in its own words.\thVOpenAnnouncement\tA"
     + "\7" + "Quick Start, The short introduction to HomerView. (Alt+Shift+F1)\thVOpenQuickStart\tA"
     + "\7" + "Read All, Speaks the whole page from the top without moving the cursor. (Alt+F8)\thVReadAll\tP"
+    + "\7" + "Recent Pages, Opens a page you had open recently. (Alt+R)\thVRecentPages\tA"
     + "\7" + "Reverse Find Again, The previous match of whichever find was done last. (Shift+F3)\thVFindPrevious\tP"
+    + "\7" + "Reverse Find at Cursor, Searches backward for the word under the cursor, or the selected text, without asking you to type it. (Alt+Shift+F3)\thVFindWordAtCursorBackwards\tP"
     + "\7" + "Reverse Find for Text, Searches backwards for text, which JAWS has no key for. (Control+Shift+F)\thVFindBackwards\tP"
     + "\7" + "Reverse Find with Regular Expression, Searches backwards for a pattern. (Control+Shift+F3)\thVFindByPatternBackwards\tP"
     + "\7" + "Save Clipboard, Saves the clipboard to a text file. (Control+Apostrophe)\thVSaveClipboard\tA"

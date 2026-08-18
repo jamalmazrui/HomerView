@@ -177,4 +177,4 @@ For the NVDA side, rebuild the add-on and install it in a scratch NVDA profile.
 
 ## Source
 
-<https://github.com/JamalMazrui/HomerView>
+- [HomerView project on GitHub](https://github.com/JamalMazrui/HomerView)

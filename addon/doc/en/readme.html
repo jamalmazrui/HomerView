@@ -194,28 +194,27 @@ and source</a></li>
 <strong>JAWS</strong> and <strong>NVDA</strong> equally. It drives its
 own copy of Microsoft Edge and answers questions about a page that a
 screen reader alone cannot.</p>
-<p>The two screen readers are at feature parity: the same commands, the
-same answers, the same generated pages. Keys differ only where each
-screen reader’s own conventions differ, so this file gives both only
-where they part company.</p>
+<p>The two screen readers do the same things: the same commands, the
+same answers, the same pages. Keys differ only where the two screen
+readers themselves differ, so this file gives both keys only where they
+are not the same.</p>
 <p>This is the short version. The full guide is HomerView.htm, which
 <strong>Control+F1</strong> opens from inside HomerView.</p>
 <h2 id="what-it-is-for">What it is for</h2>
 <ul>
-<li><strong>A browser</strong> — every native Edge feature, through your
-own browse mode.</li>
-<li><strong>An accessibility tester</strong> — automated results from
-the axe or IBM engines, written up as a report you can send to a
-publisher.</li>
-<li><strong>A document and ebook reader</strong> — DOCX, EPUB, PDF and
-other popular formats converted to structured HTML, so headings, lists
-and tables become real navigation.</li>
-<li><strong>A downloader</strong> — the files a page points at,
-identified by type and fetched by the kinds you choose.</li>
-<li><strong>An extractor</strong> — the main content of a page, without
-navigation or adverts.</li>
-<li><strong>Smaller aids</strong> — finding and selecting text, listing
-tabs and links, reading metadata, and the clipboard.</li>
+<li><strong>A browser</strong> — everything Edge already does, read
+through your own screen reader.</li>
+<li><strong>An accessibility tester</strong> — the axe or IBM engine
+checks the page, and writes a report you can send to the people who run
+the site.</li>
+<li><strong>A document and ebook reader</strong> — Word files, EPUB
+books, PDFs and other common formats become web pages, so headings,
+lists and tables become real ones you can move through.</li>
+<li><strong>A file downloader</strong> — the files a page points to,
+sorted by kind, and it fetches the kinds you pick.</li>
+<li><strong>Other tools</strong> — main content on its own without menus
+or adverts; the names a page mentions; finding and selecting text; tabs,
+links and the clipboard.</li>
 </ul>
 <h2 id="quick-start">Quick start</h2>
 <h3 id="install-it">Install it</h3>
@@ -226,16 +225,19 @@ restart is not normally needed.</p>
 <p>To confirm which build is loaded, press <strong>Alt+Shift+H</strong>;
 its first line gives the version and when it was installed.</p>
 <h3 id="start-it">Start it</h3>
-<p><strong>Alt+Insert+H</strong> (JAWS) or <strong>Alt+NVDA+H</strong>
+<p>Throughout this file, JAWS and NVDA name each screen reader’s own
+modifier key, which may be Insert or Caps Lock, whichever you have
+set.</p>
+<p><strong>Alt+JAWS+H</strong> (JAWS) or <strong>Alt+NVDA+H</strong>
 (NVDA) opens a HomerView window of Microsoft Edge on a start page. It is
 a separate browser profile, so your ordinary browsing is untouched. The
 same key later reconnects rather than opening a second window.</p>
 <h3 id="the-one-key-to-remember">The one key to remember</h3>
-<p><strong>Alt+Insert+F10</strong> (JAWS) or
-<strong>Alt+NVDA+F10</strong> (NVDA) opens the Alternate Menu. Every
-command is on it, in alphabetical order, with its key beside it, and
-only the commands that apply where you are. Nothing is hidden behind a
-keystroke you must know in advance.</p>
+<p><strong>Alt+JAWS+F10</strong> (JAWS) or <strong>Alt+NVDA+F10</strong>
+(NVDA) opens the Alternate Menu. Every command is on it, in alphabetical
+order, with its key beside it, and only the commands that apply where
+you are. Nothing is hidden behind a keystroke you must know in
+advance.</p>
 <p><strong>Alt+Shift+H</strong> is the other one worth knowing: hot key
 help, listing every command in a window where each key is a link — press
 Enter on a line to run it.</p>
@@ -250,9 +252,9 @@ of its own, adverts and footers gone, links kept.</li>
 <li><strong>Alt+L</strong>, with the cursor on a link — say what is at
 the other end without going there: what kind of thing, how big, and
 whether the address leads somewhere other than it appears.</li>
-<li><strong>Alt+Insert+A</strong> (JAWS) or <strong>Alt+NVDA+A</strong>
+<li><strong>Alt+JAWS+A</strong> (JAWS) or <strong>Alt+NVDA+A</strong>
 (NVDA) — check the page with axe and save a readable report to
-Downloads, opening it in a tab. <strong>Alt+Insert+I</strong> or
+Downloads, opening it in a tab. <strong>Alt+JAWS+I</strong> or
 <strong>Alt+NVDA+I</strong> does the same with IBM’s engine.</li>
 <li><strong>Alt+Shift+W</strong> — offer every file the page points at,
 by kind, and fetch the ones you choose using the browser’s own
@@ -264,13 +266,13 @@ as a web page you can navigate by heading.</li>
 text in a window you can read by character, word or line and copy
 from.</p>
 <h3 id="if-something-goes-wrong">If something goes wrong</h3>
-<p><strong>Alt+Insert+L</strong> (JAWS) or
+<p><strong>Alt+JAWS+L</strong> (JAWS) or
 <strong>Control+Shift+L</strong> (NVDA) puts the log on the clipboard,
 ready to attach to a message. It records every command, answer and
 failure in order, and begins with the version it came from.</p>
-<p><strong>Alt+Insert+Q</strong> speaks what HomerView knows about
-itself, without touching the log or the helper — the first thing to try
-if nothing else responds.</p>
+<p><strong>Alt+JAWS+Q</strong> speaks what HomerView knows about itself,
+without touching the log or the helper — the first thing to try if
+nothing else responds.</p>
 <h2 id="what-is-in-the-box">What is in the box</h2>
 <ul>
 <li><strong>ReadMe.htm</strong> — this file.</li>
@@ -286,23 +288,28 @@ readers.</li>
 <h2 id="requirements">Requirements</h2>
 <ul>
 <li>Windows 10 or later</li>
-<li>Microsoft Edge</li>
+<li>Microsoft Edge, which is built into every modern Windows
+computer</li>
 <li>One of:
 <ul>
-<li><strong>JAWS</strong> 2024 or later, from Freedom Scientific — <a
-href="https://www.freedomscientific.com/products/software/jaws/"
-class="uri">https://www.freedomscientific.com/products/software/jaws/</a></li>
-<li><strong>NVDA</strong> 2023.1 or later, from NV Access — <a
-href="https://www.nvaccess.org/download/"
-class="uri">https://www.nvaccess.org/download/</a></li>
+<li><a
+href="https://www.freedomscientific.com/products/software/jaws/">JAWS
+2024 or later, from Freedom Scientific</a></li>
+<li><a href="https://www.nvaccess.org/download/">NVDA 2023.1 or later,
+from NV Access</a></li>
 </ul></li>
 <li>Optional: pandoc or 2htm, for the widest range of document formats.
 HomerView finds them if installed and says plainly when they are
 not.</li>
 </ul>
 <h2 id="licence-and-source">Licence and source</h2>
-<p>Free and open source. Source, issues and releases are at <a
-href="https://github.com/JamalMazrui/HomerView"
-class="uri">https://github.com/JamalMazrui/HomerView</a>.</p>
+<p>Free and open source.</p>
+<ul>
+<li><a
+href="https://github.com/JamalMazrui/HomerView/releases/latest/download/HomerView_setup.exe">HomerView
+executable installer</a></li>
+<li><a href="https://github.com/JamalMazrui/HomerView">HomerView project
+on GitHub</a></li>
+</ul>
 </body>
 </html>

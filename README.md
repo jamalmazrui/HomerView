@@ -6,26 +6,26 @@ HomerView is a screen-reader companion for reading the web, for **JAWS** and
 **NVDA** equally. It drives its own copy of Microsoft Edge and answers questions
 about a page that a screen reader alone cannot.
 
-The two screen readers are at feature parity: the same commands, the same
-answers, the same generated pages. Keys differ only where each screen reader's
-own conventions differ, so this file gives both only where they part company.
+The two screen readers do the same things: the same commands, the same
+answers, the same pages. Keys differ only where the two screen readers themselves
+differ, so this file gives both keys only where they are not the same.
 
 This is the short version. The full guide is HomerView.htm, which **Control+F1**
 opens from inside HomerView.
 
 ## What it is for
 
-- **A browser** — every native Edge feature, through your own browse mode.
-- **An accessibility tester** — automated results from the axe or IBM engines,
-  written up as a report you can send to a publisher.
-- **A document and ebook reader** — DOCX, EPUB, PDF and other popular formats
-  converted to structured HTML, so headings, lists and tables become real
-  navigation.
-- **A downloader** — the files a page points at, identified by type and fetched
-  by the kinds you choose.
-- **An extractor** — the main content of a page, without navigation or adverts.
-- **Smaller aids** — finding and selecting text, listing tabs and links, reading
-  metadata, and the clipboard.
+- **A browser** — everything Edge already does, read through your own screen
+  reader.
+- **An accessibility tester** — the axe or IBM engine checks the page, and
+  writes a report you can send to the people who run the site.
+- **A document and ebook reader** — Word files, EPUB books, PDFs and other
+  common formats become web pages, so headings, lists and tables become real
+  ones you can move through.
+- **A file downloader** — the files a page points to, sorted by kind, and it
+  fetches the kinds you pick.
+- **Other tools** — main content on its own without menus or adverts; the names
+  a page mentions; finding and selecting text; tabs, links and the clipboard.
 
 ## Quick start
 
@@ -40,14 +40,17 @@ version and when it was installed.
 
 ### Start it
 
-**Alt+Insert+H** (JAWS) or **Alt+NVDA+H** (NVDA) opens a HomerView window of
+Throughout this file, JAWS and NVDA name each screen reader's own modifier
+key, which may be Insert or Caps Lock, whichever you have set.
+
+**Alt+JAWS+H** (JAWS) or **Alt+NVDA+H** (NVDA) opens a HomerView window of
 Microsoft Edge on a start page. It is a separate browser profile, so your
 ordinary browsing is untouched. The same key later reconnects rather than
 opening a second window.
 
 ### The one key to remember
 
-**Alt+Insert+F10** (JAWS) or **Alt+NVDA+F10** (NVDA) opens the Alternate Menu.
+**Alt+JAWS+F10** (JAWS) or **Alt+NVDA+F10** (NVDA) opens the Alternate Menu.
 Every command is on it, in alphabetical order, with its key beside it, and only
 the commands that apply where you are. Nothing is hidden behind a keystroke you
 must know in advance.
@@ -66,8 +69,8 @@ Open any article, then:
 3. **Alt+L**, with the cursor on a link — say what is at the other end without
    going there: what kind of thing, how big, and whether the address leads
    somewhere other than it appears.
-4. **Alt+Insert+A** (JAWS) or **Alt+NVDA+A** (NVDA) — check the page with axe and
-   save a readable report to Downloads, opening it in a tab. **Alt+Insert+I** or
+4. **Alt+JAWS+A** (JAWS) or **Alt+NVDA+A** (NVDA) — check the page with axe and
+   save a readable report to Downloads, opening it in a tab. **Alt+JAWS+I** or
    **Alt+NVDA+I** does the same with IBM's engine.
 5. **Alt+Shift+W** — offer every file the page points at, by kind, and fetch the
    ones you choose using the browser's own cookies.
@@ -79,11 +82,11 @@ window you can read by character, word or line and copy from.
 
 ### If something goes wrong
 
-**Alt+Insert+L** (JAWS) or **Control+Shift+L** (NVDA) puts the log on the
+**Alt+JAWS+L** (JAWS) or **Control+Shift+L** (NVDA) puts the log on the
 clipboard, ready to attach to a message. It records every command, answer and
 failure in order, and begins with the version it came from.
 
-**Alt+Insert+Q** speaks what HomerView knows about itself, without touching the
+**Alt+JAWS+Q** speaks what HomerView knows about itself, without touching the
 log or the helper — the first thing to try if nothing else responds.
 
 ## What is in the box
@@ -100,15 +103,16 @@ Each is on the Alternate Menu, and most have a key of their own.
 ## Requirements
 
 - Windows 10 or later
-- Microsoft Edge
+- Microsoft Edge, which is built into every modern Windows computer
 - One of:
-  - **JAWS** 2024 or later, from Freedom Scientific —
-    <https://www.freedomscientific.com/products/software/jaws/>
-  - **NVDA** 2023.1 or later, from NV Access — <https://www.nvaccess.org/download/>
+  - [JAWS 2024 or later, from Freedom Scientific](https://www.freedomscientific.com/products/software/jaws/)
+  - [NVDA 2023.1 or later, from NV Access](https://www.nvaccess.org/download/)
 - Optional: pandoc or 2htm, for the widest range of document formats. HomerView
   finds them if installed and says plainly when they are not.
 
 ## Licence and source
 
-Free and open source. Source, issues and releases are at
-<https://github.com/JamalMazrui/HomerView>.
+Free and open source.
+
+- [HomerView executable installer](https://github.com/JamalMazrui/HomerView/releases/latest/download/HomerView_setup.exe)
+- [HomerView project on GitHub](https://github.com/JamalMazrui/HomerView)

@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <title>HomerView: six tools in one browser, for JAWS and NVDA</title>
+  <title>HomerView: several tools in one browser, for JAWS and NVDA</title>
   <style>
     html {
       color: #1a1a1a;
@@ -166,7 +166,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">HomerView: six tools in one browser, for JAWS and
+<h1 class="title">HomerView: several tools in one browser, for JAWS and
 NVDA</h1>
 </header>
 <nav id="TOC" role="doc-toc">
@@ -177,12 +177,9 @@ id="toc-an-accessibility-tester">An accessibility tester</a></li>
 <li><a href="#a-document-and-ebook-reader"
 id="toc-a-document-and-ebook-reader">A document and ebook
 reader</a></li>
-<li><a href="#a-web-downloader" id="toc-a-web-downloader">A web
+<li><a href="#a-file-downloader" id="toc-a-file-downloader">A file
 downloader</a></li>
-<li><a href="#a-main-content-extractor"
-id="toc-a-main-content-extractor">A main-content extractor</a></li>
-<li><a href="#and-smaller-aids" id="toc-and-smaller-aids">And smaller
-aids</a></li>
+<li><a href="#other-tools" id="toc-other-tools">Other tools</a></li>
 <li><a href="#jaws-and-nvda-equally" id="toc-jaws-and-nvda-equally">JAWS
 and NVDA, equally</a></li>
 <li><a href="#getting-it" id="toc-getting-it">Getting it</a></li>
@@ -190,60 +187,68 @@ and NVDA, equally</a></li>
 </nav>
 <p>HomerView is a free, open-source companion for reading the web with a
 screen reader on Windows. It runs Microsoft Edge under your own screen
-reader and adds six things that reading the web with
+reader and adds the things that reading the web with
 <strong>JAWS</strong> or <strong>NVDA</strong> otherwise asks you to go
 elsewhere for.</p>
 <h2 id="a-browser">A browser</h2>
-<p>Every native Edge feature, reached through your own browse mode.
-HomerView adds commands; it does not replace the browser or ask you to
-learn a new one.</p>
+<p>Everything Microsoft Edge already does, read through your own screen
+reader. HomerView adds commands. It does not replace the browser or ask
+you to learn a new one.</p>
 <h2 id="an-accessibility-tester">An accessibility tester</h2>
-<p>One command runs the axe engine over the page in front of you;
-another runs IBM’s. Each writes a report naming every rule that failed,
-its severity, the elements involved and how to fix them. Plain enough to
-send to a publisher, specific enough for their developers to act on —
-which is the point, because a report a sighted developer can act on gets
-more fixed than a complaint can.</p>
+<p>One command checks the page with the axe engine. Another checks it
+with IBM’s. Each writes a report that names every rule the page broke,
+how serious it is, which parts of the page are at fault, and how to fix
+them.</p>
+<p>The report is plain enough to send to the people who run the site,
+and exact enough for their developers to act on. That matters: a report
+a developer can act on gets more fixed than a complaint does.</p>
 <h2 id="a-document-and-ebook-reader">A document and ebook reader</h2>
-<p>DOCX, EPUB, PDF and other popular formats are converted to structured
-HTML and opened in the browser. Headings, lists, tables and links become
-real navigation in browse mode, so a book or a report is something you
-move through by heading rather than a flat wall of text.</p>
-<h2 id="a-web-downloader">A web downloader</h2>
-<p>It finds the files the current page points at — documents, images,
-media, scripts — works out what each one actually is, and fetches the
-kinds you choose, using the browser’s own cookies so a page you are
-signed in to still works.</p>
-<h2 id="a-main-content-extractor">A main-content extractor</h2>
-<p>One command lifts the article out of a page and opens it without the
-navigation, banners and advertising, links intact.</p>
-<h2 id="and-smaller-aids">And smaller aids</h2>
-<p>Finding and selecting text, listing tabs and links, reading a page’s
-metadata, saying where a link really goes, and putting any of it on the
-clipboard.</p>
+<p>HomerView turns Word files, EPUB books, PDFs and other common formats
+into web pages, then opens them. Headings, lists, tables and links
+become real headings, lists, tables and links. So you move through a
+book or a report by heading, instead of reading a flat wall of text.</p>
+<h2 id="a-file-downloader">A file downloader</h2>
+<p>It finds the files a page points to, works out what each one is, and
+downloads the kinds you pick. It uses the browser’s own cookies, so
+pages you have signed in to still work.</p>
+<h2 id="other-tools">Other tools</h2>
+<ul>
+<li><strong>Main content</strong> pulls the article out of a page and
+opens it without the menus, banners and adverts.</li>
+<li><strong>Names</strong> lists the people, places, groups and dates a
+page mentions, which is a different question from what the page
+says.</li>
+<li>Find and select text, list tabs and links, read a page’s hidden
+details, hear where a link really goes, and copy any of it.</li>
+</ul>
 <h2 id="jaws-and-nvda-equally">JAWS and NVDA, equally</h2>
-<p>The two are at feature parity: the same commands, the same answers,
-the same generated pages. Keys differ only where each screen reader’s
-own conventions differ, so this announcement gives both only where they
-part company.</p>
+<p>The two do the same things: the same commands, the same answers, the
+same pages. Keys differ only where the two screen readers themselves
+differ, so this announcement gives both keys only where they are not the
+same.</p>
 <p>You will need one of:</p>
 <ul>
-<li><strong>JAWS</strong>, from Freedom Scientific: <a
-href="https://www.freedomscientific.com/products/software/jaws/"
-class="uri">https://www.freedomscientific.com/products/software/jaws/</a></li>
-<li><strong>NVDA</strong>, from NV Access: <a
-href="https://www.nvaccess.org/download/"
-class="uri">https://www.nvaccess.org/download/</a></li>
+<li><a
+href="https://www.freedomscientific.com/products/software/jaws/">JAWS,
+from Freedom Scientific</a></li>
+<li><a href="https://www.nvaccess.org/download/">NVDA, from NV
+Access</a></li>
 </ul>
-<p>Microsoft Edge is required. HomerView keeps its own browser profile,
-so your ordinary browsing is untouched.</p>
+<p>Microsoft Edge is also required, and it is built into every modern
+Windows computer, so there is nothing to install. HomerView keeps its
+own browser profile, so your ordinary browsing is untouched.</p>
 <h2 id="getting-it">Getting it</h2>
-<p>HomerView is at <a href="https://github.com/JamalMazrui/HomerView"
-class="uri">https://github.com/JamalMazrui/HomerView</a>. Run the
-installer and tick the box for the screen reader you use; it offers
-whichever it finds.</p>
-<p>Then press <strong>Alt+Insert+H</strong> in JAWS, or
-<strong>Alt+NVDA+H</strong> in NVDA. From there the menu key lists every
-command and hot key help lists every key.</p>
+<ul>
+<li><a
+href="https://github.com/JamalMazrui/HomerView/releases/latest/download/HomerView_setup.exe">HomerView
+executable installer</a></li>
+<li><a href="https://github.com/JamalMazrui/HomerView">HomerView project
+on GitHub</a></li>
+</ul>
+<p>Run the installer and tick the box for the screen reader you use; it
+offers whichever it finds. Then press <strong>Alt+JAWS+H</strong> in
+JAWS, or <strong>Alt+NVDA+H</strong> in NVDA (the JAWS and NVDA modifier
+keys may be Insert or Caps Lock, whichever you have set). From there the
+menu key lists every command, and hot key help lists every key.</p>
 </body>
 </html>

@@ -1,159 +1,180 @@
 ﻿---
-title: HomerView for Developers
-subtitle: How to build it, and how it is put together
-author: Jamal Mazrui
+title: "HomerView Developer Notes"
 ---
 
-# What you need
+How to rebuild HomerView from source, and what the pieces are.
 
-- **Python 3**, to run the build scripts.
-- **Inno Setup 6**, to compile the installer, from
-  [jrsoftware.org](https://jrsoftware.org/isdl.php).
-- **Git**, if you plan to publish.
-- **NVDA 2025.1 or newer**, to test what you build.
+HomerView has two front ends and one engine. The **NVDA add-on** is Python; the
+**JAWS scripts** are JSL; both talk to the same helper program, and both are
+maintained at parity. Neither is the reference implementation. When the two
+would answer one question differently, that is a bug in whichever one is newer.
 
-The source lives in C:\HomerView. Nothing else has to be installed; the
-converters HomerView uses at run time are found rather than bundled.
+## The pieces
 
-# Building it
+- **`addon/`** — the NVDA add-on, Python. `commands.py` is the authoritative
+  command list for that side: name, display name, keys and description.
+- **`jaws/HomerView.jss`** — the JAWS scripts, JSL. `HomerView.jkm` is the
+  readable home of the key bindings; `HomerView.jsd` is the documentation JAWS
+  shows in its own dialogs.
+- **`HomerView.cs`** — the helper, C# against .NET Framework 4.8, compiled to
+  `HomerView.exe`. It holds the WebSocket connection to Edge, the accessibility
+  engines, the download machinery, the file dialogs and the converters. Anything
+  JSL cannot do, the helper does.
+- **`buildHomerView.ps1`** — the build.
+- **`checkJawsScripts.ps1`** — compiles the JAWS scripts against every installed
+  JAWS version, after running the quality checks.
+- **`checkHomerViewQuality.ps1`** — fifteen checks over the source, described
+  below.
+- **`chainJawsScripts.ps1`** — writes the key bindings into the user's
+  `default.jkm` and hooks `MyExtensions.jss`. This is what actually binds keys;
+  `HomerView.jkm` is documentation.
+- **`installJawsScripts.ps1`** — the installer's JAWS step.
+- **`HomerView_setup.iss`** — the Inno Setup script.
 
-    buildHomerView.cmd
+## Rebuilding
 
-That is the whole of it. Four steps run in order:
+From the source folder:
 
-1. **The setup script is checked**, before anything is compiled. Inno Setup
-   reports a line number and four words when it rejects a script, which is
-   enough to find the line and not enough to explain it. These checks catch the
-   common faults and say what is wrong.
-2. **The bridge is compiled** into HomerViewBridge.exe, with csc.exe from the
-   .NET Framework. That is the piece the JAWS scripts use, because JAWS
-   scripting cannot open a WebSocket. The NVDA add-on does not need it.
-3. **The add-on is packaged** into build\HomerView.nvda-addon.
-4. **The installer is compiled** into HomerView_setup.exe.
+```
+powershell -ExecutionPolicy Bypass -File buildHomerView.ps1
+```
 
-Two things are verified afterwards. The version in addon\manifest.ini must
-match the one in HomerView_setup.iss, because a release where those disagree is
-one nobody notices until a user reports the wrong number. And every Python file
-on disk must be inside the built add-on, because a module left out builds
-cleanly and fails on the user's machine at the moment they press the key.
+That compiles the helper with `csc`, runs the quality checks, compiles the JAWS
+scripts against each installed JAWS version, builds the NVDA add-on, and runs
+Inno Setup over `HomerView_setup.iss`. It writes `buildHomerView.log`; read that
+rather than the console.
 
-One log is written, beside the script, and it covers the whole build. There
-used to be two, because packaging the add-on was a separate program, and the
-reason for a failure could be in whichever of them nobody had been asked for.
-Nothing about zipping a folder needed its own script.
+The build fails if the quality checks fail. That is deliberate.
 
-# The JAWS side
+### Requirements
 
-HomerView supports both screen readers from one installer. The last page offers
-the NVDA add-on and, separately, the JAWS scripts. Each checkbox appears only
-when that screen reader is actually installed, because offering to install
-scripts for a screen reader somebody does not have is a question with one
-sensible answer.
+- Windows 10 or later
+- .NET Framework 4.8 (`csc.exe` from the framework folder; no SDK needed)
+- Inno Setup 6
+- JAWS 2024 or later installed, for `scompile.exe`
+- PowerShell 5.1
 
-The JAWS scripts are installed by installJawsScripts.ps1 rather than by the
-installer's file section, because they have to be **compiled in place**. A .jsb
-built by one year's compiler is not reliably loaded by another year's JAWS, so
-the script finds every JAWS version on the machine and compiles the source with
-that version's own scompile.exe.
+Nothing is downloaded during a build. The converters — pandoc and 2htm — are
+**found, not bundled**: a program folder is replaced wholesale on update, and
+some managed environments will not execute from a roaming profile.
 
-It runs as the ordinary user, never elevated. JAWS keeps its settings under the
-user's roaming application data, and an elevated run would write to the
-administrator's profile instead, where the user would never see it.
+### Installing what you built
 
-One line goes into default.jkm, for the launch key, because launching cannot
-live in the Edge key map: before HomerView runs there is no Edge window. That
-file is merged rather than replaced, and the original is kept beside it as
-default.jkm.beforeHomerView. A user's default key map may hold years of their
-own work.
+```
+HomerView_setup.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /LOG="setup.log"
+```
 
-Uninstalling takes all of it back out.
+Run that from an elevated prompt; silent mode suppresses the wizard, not
+elevation. The JAWS scripts install silently; the NVDA add-on and pandoc do not,
+because one needs NVDA's own dialog and the other is a large download nobody
+should be handed unasked.
 
-# Publishing a release
+Afterwards press **Alt+Shift+H**: its first line gives the version and install
+time, which is how you confirm which build JAWS actually has loaded.
 
-    buildHomerView.cmd
-    git add -A
-    git commit -m "HomerView 1.2.3"
-    git push
-    tagRelease
+## Removing HomerView
 
-tagRelease reads the version from HomerView_setup.exe and expects that file in
-the project root, which is where the setup script puts it.
+NVDA can remove an add-on from its own Add-on Store. **JAWS has nothing of the
+kind**: scripts compiled into a settings folder and keys written into a user's
+`default.jkm` stay there until something takes them out. The uninstaller is the
+only way back, so it is treated as a feature rather than as plumbing.
 
-The add-on always has the same name, HomerView.nvda-addon, so the setup script
-never needs editing when the version changes. Only two files carry the version:
-addon\manifest.ini and HomerView_setup.iss.
+It appears in two places, both stated explicitly in the `.iss` rather than left
+to Inno's defaults, because a default nobody has written down is one a later
+edit can switch off unnoticed:
 
-# Tidying up
+- **`unins000.exe` in the installation folder**, from `UninstallFilesDir={app}`
+- **Windows Apps and Features**, from `CreateUninstallRegKey=yes`, listed under
+  the program's name and version
 
-    cleanDir.cmd
+What removal takes out:
 
-Moves everything the project does not need out of the folder and into
-C:\temp\HomerView_misc. It moves rather than deletes, so anything taken by
-mistake can be moved back. Pass -bWhatIf to see what would move first.
+- **The JAWS scripts** — `HomerView.jss`, `.jkm`, `.jsd` and the compiled
+  `.jsb`, from every language folder of every installed JAWS version
+- **The key bindings**, by running `chainJawsScripts -bUndo`, which removes the
+  block from the user's `default.jkm` and unhooks `MyExtensions.jss`
+- **The NVDA add-on**, through NVDA's own `--remove-addon` rather than by
+  deleting folders behind its back, since NVDA keeps its own record of what is
+  installed
+- **`%LOCALAPPDATA%\HomerView`** entirely — the log, the cached engines, the
+  extracted pages and the whole Edge profile
+- **The program folder**, which is Inno's own job
 
-    python tidyRepo.py
+What removal deliberately leaves alone: **your Downloads folder**. The reports
+and the fetched files are yours, and an uninstaller that deletes a person's
+downloads has badly overstepped.
 
-Surveys the repository: files tracked that should not be, large files anywhere
-in the history, and source files missing from it. It prints the whole plan and
-changes nothing unless you add --do-it.
+Two details worth knowing:
 
-# How the code is arranged
+**JAWS is asked to reload at the end.** On installation a reload saves a
+restart; on removal it prevents a fault, because JAWS otherwise holds the old
+compiled scripts in memory and the old keys bound, and every HomerView key goes
+on half-working against a program whose files have gone.
 
-The add-on is a global plugin in addon\globalPlugins\homerView. About forty
-modules, each with one job.
+**The removal log goes to `%TEMP%\HomerViewUninstall.log`**, not to HomerView's
+own folder, because that folder is deleted moments later — so a removal that
+went wrong would otherwise erase the only record of how.
 
-The ones worth knowing first:
+## The quality checks
 
-- **commands.py** is the table of every command: its name, its key and what it
-  does. The gesture bindings, the Alternate Menu, the hotkey summary and the
-  documentation all read from it, so none of them can drift from the others.
-- **cdp.py** speaks to the browser over the Chrome DevTools Protocol.
-- **edge.py** launches and finds the browser.
-- **service.py** is the worker thread. Everything that touches the browser is
-  queued to it, and results come back to NVDA's main thread.
-- **pageBuffer.py** is the browse mode buffer that carries the page commands.
-- **homer/** is the shared toolkit, ported from the C# version used by the
-  other Homer Tools.
+`checkHomerViewQuality.ps1` runs before any compiler and gates the build. Each
+check reports **what it found** before it judges anything, because a check that
+reports only a verdict cannot be debugged.
 
-# Rules the code follows
+1. Every script in the key map exists in the source, and back
+2. Every script the menu performs exists
+3. Every menu row reads name, comma, sentence, optional parenthesised key
+4. Every keyed command's menu key matches the key map
+5. The documentation file and the scripts correspond
+6. No lone backslash in a string literal (JSL escapes are `\\ \" \r \n \t \7 \'`)
+7. No C-style comments
+8. No `Null`, no `Let` without assignment, every declared name carries its type
+9. Nothing used before it is defined
+10. Every helper command has a case in the C#, and every dispatched method exists
+11. Arguments reach the helper through a file, not the command line
+12. No orphaned C# attribute; `[STAThread]` sits on `Main`
+13. The answer-file encoding contract holds across the C# and the JSL
+14. The key map, the binder and the Hotkey Summary agree, sections included
+15. Every Hotkey Summary link names a real function and a real script
+16. No menu command name contains another
 
-**No network call on NVDA's main thread.** That thread is the one NVDA speaks
-from, so a slow server would hold speech for as long as the request took.
-Everything goes to the worker.
+## Conventions worth knowing before you change anything
 
-**A dialog opened inside a command must wait for the command to return.**
-Otherwise NVDA never processes the focus change, announces nothing, and keeps
-sending arrow keys to the page underneath. That is what lbc.afterScript is for.
+**Anything JSL cannot do, the helper does.** JSL has no WebSocket, no JSON, no
+file dialogs, no clipboard reading. Rather than working around that in JSL, add
+a command to the helper.
 
-**The test that runs for every object NVDA creates does no input or output.**
-It runs thousands of times per page, and it is an integer set lookup.
+**Anything page-sized stays on the helper's side.** A Windows command line
+takes about 32,000 characters, and a page's links can exceed that. Every
+argument is written to a file and the path is passed instead.
 
-**The browser must use its own profile.** Since Chrome and Edge 136, the remote
-debugging switches are ignored on the default profile, so there would be no
-connection at all.
+**Reduce in the browser, not afterwards.** A command that brings a whole
+accessibility report back and parses it will appear to hang on a large page.
+Return one line per finding and a count of the rest.
 
-**Files go where Windows says they go.** The program folder is written once by
-the installer and read after that. Logs, the history and the browser profile go
-in local application data. Settings go in roaming application data. Generated
-pages go in the temporary folder.
+**Anything HomerView opens goes to HomerView's browser.** Opening a file through
+the shell hands it to whatever Windows thinks opens `.htm`, where no HomerView
+command works.
 
-# Things worth checking after an edit
+**Mark, then navigate.** Where the browser has found something the virtual
+cursor must move to, the browser marks it with an attribute of ours and the
+scripts move to whatever carries it. An attribute is the one thing both sides
+can see.
 
-Two faults have recurred often enough to be worth a habit.
+**Check that it worked, not that it ran.** An exit code is not a result. Every
+step that matters reports what it found.
 
-**A name used but never defined.** Several times an automated edit removed
-something still in use, and it shipped. A scan of every module for names loaded
-but never bound catches it in a second.
+## Testing a change
 
-**A method that promises a value and never returns one.** A method named build
-or get that falls off the end returns nothing, and the caller fails on the next
-line. That one broke the Alternate Menu for two releases.
+```
+powershell -ExecutionPolicy Bypass -File checkJawsScripts.ps1
+```
 
-Use the parser rather than string matching for structural edits. Replacing text
-between two markers has twice destroyed a file, once inflating it from 55 KB to
-115 MB, because the markers were in the wrong order and the match came back
-empty.
+runs the quality checks and compiles the JAWS scripts against every installed
+version without building anything else. It is the fast loop.
 
-# Licence
+For the NVDA side, rebuild the add-on and install it in a scratch NVDA profile.
 
-GNU General Public License version 2, the same licence NVDA uses.
+## Source
+
+<https://github.com/JamalMazrui/HomerView>

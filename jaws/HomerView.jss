@@ -2087,13 +2087,49 @@ EndScript
 ; A find moves you to matches one at a time. This is the other question: what
 ; are they all? Each match is separated by a form feed between blank lines, so
 ; they read as pages rather than as a run-on list.
+; Says how many times a pattern matches, and nothing else. Control+Shift+Y.
+;
+; EdSharp calls this Yield and binds it to the same key. It answers "is this
+; pattern worth extracting with?" before the reader commits to a list of
+; matches, and it is the quickest way to tell whether a pattern is right.
+;
+; THE PATTERN IS SHARED WITH EVERY OTHER PATTERN COMMAND. gsLastFind is what
+; the finds and Extract also seed their box from, so a reader can count with a
+; pattern, then extract with it, then search for it, without retyping.
+Script hVYieldByPattern ()
+Var
+    int iOk,
+    string sAnswer, string sNeedle
+hVLogLine ("hVYieldByPattern started")
+SayMessage (OT_STATUS, "Yield with Pattern")
+Let sNeedle = gsLastFind
+Let iOk = Builtin::InputBox ("Count the matches of a pattern", "HomerView", sNeedle)
+If iOk == 0 Then
+    Return
+EndIf
+If sNeedle == "" Then
+    SayMessage (OT_ERROR, "No pattern")
+    Return
+EndIf
+Let gsLastFind = sNeedle
+Let sAnswer = hVCallBridge ("countPattern", sNeedle)
+If hVXmlValue (sAnswer, "/root/error") != "" Then
+    hVSayOrShow (hVXmlValue (sAnswer, "/root/error"))
+    Return
+EndIf
+; The helper has already put it in the singular or the plural.
+SayMessage (OT_MESSAGE, hVXmlValue (sAnswer, "/root/value"))
+EndScript
+
+
 Script hVExtractByPattern ()
 Var
     int iOk,
     string sAnswer, string sNeedle, string sResult
 hVLogLine ("hVExtractByPattern started")
+SayMessage (OT_STATUS, "Extract with Pattern")
 Let sNeedle = gsLastFind
-Let iOk = Builtin::InputBox ("Extract every match of a regular expression", "HomerView", sNeedle)
+Let iOk = Builtin::InputBox ("Extract every match of a pattern", "HomerView", sNeedle)
 If iOk == 0 Then
     Return
 EndIf
@@ -2480,6 +2516,7 @@ Let iAdded = UserBufferAddLink ("  Control+Shift+F3 Find backwards with a patter
 Let iAdded = UserBufferAddLink ("  F3              The next match", "hVHomerViewLink (\"hVFindNext\")", "Forward Find Again")
 Let iAdded = UserBufferAddLink ("  Shift+F3        The previous match", "hVHomerViewLink (\"hVFindPrevious\")", "Reverse Find Again")
 Let iAdded = UserBufferAddLink ("  Control+Shift+E Gather every match of a pattern", "hVHomerViewLink (\"hVExtractByPattern\")", "Extract with Regular Expression")
+Let iAdded = Builtin::UserBufferAddLink ("  Control+Shift+Y Count the matches of a pattern", "hVHomerViewLink (\"hVYieldByPattern\")", "Yield with Pattern")
 Let iAdded = UserBufferAddLink ("  Shift+F9        Extract the main content into a tab", "hVHomerViewLink (\"hVExtractMainContent\")", "Extract Main Content")
 Let iAdded = UserBufferAddLink ("  Alt+Apostrophe  Say what is on the clipboard", "hVHomerViewLink (\"hVSayClipboard\")", "Say Clipboard")
 Let iAdded = UserBufferAddLink ("  Control+Apostrophe Save the clipboard to a file", "hVHomerViewLink (\"hVSaveClipboard\")", "Save Clipboard")
@@ -2585,6 +2622,7 @@ Let sTable = "About HomerView, Which build is loaded and where everything lives.
     + "\7" + "Tab Names, Says the names of the open tabs without moving anywhere. (Shift+F4)\thVSayTabNames\tA"
     + "\7" + "User Guide, Opens the HomerView guide. (Control+F1)\thVOpenUserGuide\tA"
     + "\7" + "Web Download, Fetches the files this page links to, with the browser's own cookies. (Alt+Shift+W)\thVDownloadFiles\tP"
+    + "\7" + "Yield with Pattern, Says how many times a pattern matches. (Control+Shift+Y)\thVYieldByPattern\tP"
 ; The list the dialog shows is the first field of every row.
 ; ONLY WHAT APPLIES RIGHT NOW.
 ;

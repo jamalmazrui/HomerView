@@ -25,7 +25,7 @@ startPageText = """<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="homerViewStartVersion" content="{version}">
-<title>HomerView</title>
+<title>HomerView Start Page</title>
 </head>
 <body>
 <header>

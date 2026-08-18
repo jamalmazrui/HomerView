@@ -57,6 +57,7 @@ Control+O=hVOpenDocument
 Control+S=hVSavePage
 Control+Shift+Apostrophe=hVAppendClipboard
 Control+Shift+E=hVExtractByPattern
+Control+Shift+Y=hVYieldByPattern
 Control+Shift+F1=hVOpenDeveloperNotes
 Control+Shift+F3=hVFindByPatternBackwards
 Control+Shift+F=hVFindBackwards

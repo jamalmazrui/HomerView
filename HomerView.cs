@@ -122,7 +122,7 @@ namespace Homer
         {
             return "<!DOCTYPE html>\r\n"
                 + "<html lang=\"en\">\r\n<head>\r\n<meta charset=\"utf-8\">\r\n"
-                + "<title>HomerView</title>\r\n</head>\r\n<body>\r\n"
+                + "<title>HomerView Start Page</title>\r\n</head>\r\n<body>\r\n"
                 + "<h1>HomerView</h1>\r\n"
                 + "<p>This window is ready. Open something, or press the menu key "
                 + "for every command.</p>\r\n"
@@ -478,6 +478,9 @@ namespace Homer
                         break;
                     case "findmark":
                         sResult = FindMark(sArgument);
+                        break;
+                    case "countpattern":
+                        sResult = CountPattern(sArgument);
                         break;
                     case "extractpattern":
                         sResult = ExtractPattern(sArgument);
@@ -3327,6 +3330,53 @@ namespace Homer
         /// for Windows, so the matches read as pages rather than as a list and
         /// anything that understands a form feed can page through them.
         /// </summary>
+        /// <summary>
+        /// How many times a pattern matches, and nothing else.
+        ///
+        /// EdSharp calls this Yield. It answers "is it worth extracting these?"
+        /// before the reader commits to a list, and it is the quickest way to
+        /// tell whether a pattern is right: one that yields 0 or 4,000 is
+        /// usually a pattern to rewrite.
+        ///
+        /// Same text as Extract -- the selection when there is one, the page
+        /// otherwise -- so the count given is the count an extract would give.
+        /// </summary>
+        private static string CountPattern(string sNeedle)
+        {
+            if (string.IsNullOrEmpty(sNeedle))
+                return "{\"error\":\"No pattern\"}";
+            string sScript = "(() => {"
+                + " let oRe;"
+                + " try { oRe = new RegExp(" + Quote(sNeedle) + ", 'gi'); }"
+                + " catch (error) { return 'BAD: ' + error.message; }"
+                + " const sPicked = String(window.getSelection ? window.getSelection() : '');"
+                + " const sText = sPicked ? sPicked"
+                + "   : (document.body ? document.body.innerText : '');"
+                + " let iCount = 0;"
+                + " let oHit;"
+                + " while ((oHit = oRe.exec(sText)) !== null) {"
+                + "   if (oHit[0] === '') { oRe.lastIndex += 1; continue; }"
+                + "   iCount += 1;"
+                + "   if (iCount > 100000) break;"
+                + " }"
+                + " return String(iCount);"
+                + "})()";
+            string sAnswer = EvaluateText(sScript);
+            if (sAnswer == null || sAnswer.StartsWith("ERROR:"))
+                return "{\"error\":\"Could not search\"}";
+            if (sAnswer.StartsWith("BAD: "))
+                return "{\"error\":" + Quote("That pattern is not valid. "
+                    + sAnswer.Substring(5)) + "}";
+            int iCount = 0;
+            int.TryParse(sAnswer.Trim(), out iCount);
+            Log("  the pattern matched " + iCount.ToString() + " time(s)");
+            // SINGULAR WHEN THERE IS ONE. "1 matches" makes a program sound
+            // broken, and zero is a real answer worth saying plainly rather
+            // than treating as a failure.
+            return "{\"value\":" + Quote(iCount.ToString()
+                + (iCount == 1 ? " match" : " matches")) + "}";
+        }
+
         private static string ExtractPattern(string sNeedle)
         {
             if (string.IsNullOrEmpty(sNeedle))
@@ -3336,7 +3386,13 @@ namespace Homer
                 + " let oRe;"
                 + " try { oRe = new RegExp(" + Quote(sNeedle) + ", 'gi'); }"
                 + " catch (error) { return 'BAD: ' + error.message; }"
-                + " const sText = document.body ? document.body.innerText : '';"
+                // THE SELECTION IF THERE IS ONE, OTHERWISE THE WHOLE PAGE.
+                // That is how EdSharp's Extract behaves, and it is what makes
+                // the command usable on a long page: select the part you care
+                // about first and the matches come only from there.
+                + " const sPicked = String(window.getSelection ? window.getSelection() : '');"
+                + " const sText = sPicked ? sPicked"
+                + "   : (document.body ? document.body.innerText : '');"
                 + " const lOut = [];"
                 + " let oHit;"
                 + " while ((oHit = oRe.exec(sText)) !== null) {"
@@ -3355,12 +3411,24 @@ namespace Homer
             if (sAnswer == "")
                 return "{\"error\":\"No matches\"}";
             string[] lHits = sAnswer.Split('\u0001');
-            // \r\n\f\r\n between matches, as he specified.
-            string sJoined = string.Join("\r\n\f\r\n", lHits);
-            Log("  extracted " + lHits.Length.ToString() + " matches, "
+            // BLANK LINE, THREE HYPHENS, BLANK LINE -- his separator, and it
+            // reads aloud as a clear break where a form feed did not. Each
+            // match is TRIMMED FIRST: a match that begins or ends with blank
+            // lines would otherwise put four blank lines between two entries
+            // and bury the rule that divides them.
+            var lTrimmed = new List<string>();
+            foreach (string sHit in lHits)
+            {
+                string sClean = sHit.Trim(' ', '\t', '\r', '\n');
+                if (sClean != "") lTrimmed.Add(sClean);
+            }
+            string sJoined = string.Join("\r\n\r\n---\r\n\r\n", lTrimmed.ToArray());
+            Log("  extracted " + lTrimmed.Count.ToString() + " matches, "
                 + sJoined.Length.ToString() + " characters");
-            return "{\"value\":" + Quote(lHits.Length.ToString()
-                + (lHits.Length == 1 ? " match." : " matches.") + "\r\n\r\n" + sJoined) + "}";
+            if (lTrimmed.Count == 0)
+                return "{\"error\":\"No match\"}";
+            return "{\"value\":" + Quote(lTrimmed.Count.ToString()
+                + (lTrimmed.Count == 1 ? " match." : " matches.") + "\r\n\r\n" + sJoined) + "}";
         }
 
         // --- Who to tell ------------------------------------------------------

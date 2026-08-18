@@ -427,6 +427,7 @@ $lVirtualKeys = @(
     "Control+O=hVOpenDocument",
     "Control+S=hVSavePage",
     "Control+Shift+E=hVExtractByPattern",
+    "Control+Shift+Y=hVYieldByPattern",
     "Control+Shift+F1=hVOpenDeveloperNotes",
     "Shift+F1=hVShowHistory",
     "Shift+F4=hVSayTabNames",

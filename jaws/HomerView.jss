@@ -152,7 +152,7 @@ Const
 
 Globals
     int giLastPick, int giWaitTicks,
-    string gsClipboardFile, string gsLastFind,
+    string gsClipboardFile, string gsLastFind, string gsLastFindKind,
     string gsLastResult, string gsLastTag, string gsLastText, string gsLogPath,
     string gsWaitFor
 
@@ -845,6 +845,48 @@ EndFunction
 ; The same attribute trick Jump to Probable Main uses, for the same reason --
 ; an attribute is the one thing the browser and the virtual cursor can both
 ; see.
+; Whether a search that runs off the end should start again at the other end.
+;
+; FREEDOM SCIENTIFIC'S OWN SETTINGS DOCUMENTATION describes the option: "When
+; this checkbox is checked, pressing navigation quick keys will wrap when the
+; top or bottom of a page is reached. JAWS announces this when it happens." It
+; lives with the virtual cursor settings, and a HomerView search that ignored
+; it would behave differently from every other kind of movement on the page.
+;
+; I COULD NOT CONFIRM THE KEY'S NAME FROM THE DOCUMENTATION, so this tries the
+; likely ones rather than asserting one. IniReadInteger is safe for that:
+; FSDN says it returns "the default value if the key does not exist", so a
+; wrong guess costs nothing and simply falls through to the next.
+;
+; WHICHEVER ANSWERS IS LOGGED, so one run on a real machine names the setting
+; for good and this can be reduced to a single lookup.
+;
+; The fallback is to WRAP, because that is what JAWS does out of the box and
+; what a reader who has not changed anything will expect.
+int Function hVWrapAllowed ()
+Var
+    int iValue,
+    string sFile
+Let sFile = "default.jcf"
+Let iValue = Builtin::IniReadInteger ("Options", "NavigationWrap", -1, sFile)
+If iValue == -1 Then
+    Let iValue = Builtin::IniReadInteger ("Options", "WrapAtBottom", -1, sFile)
+EndIf
+If iValue == -1 Then
+    Let iValue = Builtin::IniReadInteger ("HTML", "NavigationWrap", -1, sFile)
+EndIf
+If iValue == -1 Then
+    Let iValue = Builtin::IniReadInteger ("HTML", "WrapAtBottom", -1, sFile)
+EndIf
+If iValue == -1 Then
+    hVLogLine ("wrapAllowed: no wrap setting found, so wrapping as JAWS does by default")
+    Return True
+EndIf
+hVLogLine ("wrapAllowed: the setting says " + Builtin::IntToString (iValue))
+Return iValue
+EndFunction
+
+
 Void Function hVFindAndMark (string sMode, string sNeedle, int bBackwards)
 Var
     int iMoved,
@@ -860,17 +902,56 @@ If sCount == "0" Then
     Return
 EndIf
 Let gsLastFind = sNeedle
+Let gsLastFindKind = sMode
+; FROM THE CURSOR, THEN WRAPPING, AS A FIND IS EXPECTED TO BEHAVE.
+;
+; This began at S_TOP going forward and S_BOTTOM going back, and FSDN is plain
+; that those mean "the starting point for the search" -- the top or the bottom
+; OF THE DOCUMENT. So a search halfway down a page threw the reader back to the
+; first match instead of taking them to the next one, and a backwards search
+; jumped to the very last match on the page.
+;
+; JAWS's own Control+F searches from where the cursor is. A HomerView search
+; that behaves differently is exactly the confusion he asked to avoid, so this
+; goes S_NEXT or S_PRIOR first.
+;
+; AND THEN WRAPS, because the screen readers do: if nothing lies ahead, the
+; search starts again from the far end rather than reporting a failure the
+; reader can see is wrong -- they know the word is on the page, it is simply
+; behind them.
 If bBackwards Then
-    Let iMoved = Builtin::MoveToTagWithAttribute (S_BOTTOM, "", "data-homerviewfind", True)
+    Let iMoved = Builtin::MoveToTagWithAttribute (S_PRIOR, "", "data-homerviewfind", True)
 Else
-    Let iMoved = Builtin::MoveToTagWithAttribute (S_TOP, "", "data-homerviewfind", True)
+    Let iMoved = Builtin::MoveToTagWithAttribute (S_NEXT, "", "data-homerviewfind", True)
+EndIf
+If iMoved == 0 && hVWrapAllowed () Then
+    hVLogLine ("findAndMark: nothing ahead, so wrapping to the far end")
+    ; ANNOUNCED, because Freedom Scientific say JAWS announces a wrap when it
+    ; happens. A cursor that leaps from one end of a page to the other without
+    ; a word is disorienting. AND IT NAMES THE END IT WENT TO -- a backwards
+    ; search wraps to the BOTTOM, and saying "top" there would be wrong.
+    If bBackwards Then
+        SayMessage (OT_MESSAGE, "Wrapped to the bottom")
+    Else
+        SayMessage (OT_MESSAGE, "Wrapped to the top")
+    EndIf
+    If bBackwards Then
+        Let iMoved = Builtin::MoveToTagWithAttribute (S_BOTTOM, "", "data-homerviewfind", True)
+    Else
+        Let iMoved = Builtin::MoveToTagWithAttribute (S_TOP, "", "data-homerviewfind", True)
+    EndIf
 EndIf
 hVLogLine ("findAndMark: " + sCount + " matches, moved " + Builtin::IntToString (iMoved))
+; NO COUNT. A FIND SAYS THE LINE IT LANDED ON, AS BOTH SCREEN READERS DO.
+;
+; This announced "7 found" before reading the line. Neither JAWS nor NVDA does
+; that for a find, and the number answers a question nobody asked: what the
+; reader wants is where they now are. The count stays in the log, where it
+; helps whoever is debugging and costs the reader nothing.
 If iMoved Then
-    SayMessage (OT_MESSAGE, sCount + " found")
     SayLine ()
 Else
-    SayMessage (OT_MESSAGE, sCount + " found, cursor not moved")
+    SayMessage (OT_ERROR, "Not found")
 EndIf
 EndFunction
 
@@ -878,6 +959,24 @@ EndFunction
 ; Moves to the next or previous match already marked. F3 and Shift+F3.
 Void Function hVFindAgain (int bBackwards)
 Var int iMoved
+; F3 AND SHIFT+F3 REPEAT WHICHEVER KIND OF SEARCH WAS LAST.
+;
+; Two kinds of search end up here. A PLAIN one is JAWS's own -- its dialog, its
+; matches, its cursor -- so repeating it means JAWS's own repeat, and using our
+; marked-tag walk instead would step through tags JAWS never set. A PATTERN
+; search is ours, because JAWS's find has no regular expressions, so repeating
+; that means walking the tags the helper marked.
+;
+; gsLastFindKind remembers which, so one pair of keys serves both and the
+; reader never has to think about which sort of search they last ran.
+If gsLastFindKind == "plain" Then
+    If bBackwards Then
+        PerformScript JAWSFindPrior ()
+    Else
+        Let iMoved = Builtin::JAWSFindNext ()
+    EndIf
+    Return
+EndIf
 If gsLastFind == "" Then
     SayMessage (OT_ERROR, "Nothing searched for yet")
     Return
@@ -887,10 +986,26 @@ If bBackwards Then
 Else
     Let iMoved = Builtin::MoveToTagWithAttribute (S_NEXT, "", "data-homerviewfind", True)
 EndIf
+; WRAPS TOO, for the same reason the first search does. Without this, F3 walks
+; to the last match and then reports "Not found" while the reader is looking at
+; a page full of them.
+If iMoved == 0 && hVWrapAllowed () Then
+    hVLogLine ("findAgain: nothing ahead, so wrapping to the far end")
+    If bBackwards Then
+        SayMessage (OT_MESSAGE, "Wrapped to the bottom")
+    Else
+        SayMessage (OT_MESSAGE, "Wrapped to the top")
+    EndIf
+    If bBackwards Then
+        Let iMoved = Builtin::MoveToTagWithAttribute (S_BOTTOM, "", "data-homerviewfind", True)
+    Else
+        Let iMoved = Builtin::MoveToTagWithAttribute (S_TOP, "", "data-homerviewfind", True)
+    EndIf
+EndIf
 If iMoved Then
     SayLine ()
 Else
-    SayMessage (OT_MESSAGE, "No more")
+    SayMessage (OT_ERROR, "Not found")
 EndIf
 EndFunction
 
@@ -1902,15 +2017,24 @@ EndScript
 ; half rather than a replacement.
 Script hVFindBackwards ()
 Var
-    int iOk,
-    string sNeedle
+    int bFound
 hVLogLine ("hVFindBackwards started")
-Let sNeedle = gsLastFind
-Let iOk = Builtin::InputBox ("Find backwards", "HomerView", sNeedle)
-If iOk == 0 Then
-    Return
-EndIf
-hVFindAndMark ("plain", sNeedle, True)
+; THE JAWS FIND DIALOG ITSELF, ALREADY SET TO SEARCH BACKWARDS.
+;
+; This used to put up its own input box and then mark the matches in the page,
+; which meant a count nobody asked for and wording of our own. FSDN:
+; "JAWSFind ... Finds text on the screen by presenting a dialog for input of
+; text, direction, and choice to search for graphic or text", and ITS ONE
+; PARAMETER IS "True if the find direction should be set to REVERSE by
+; default".
+;
+; So Control+Shift+F is Control+F with the direction already flipped, which is
+; exactly what it was meant to be. JAWS searches its own virtual view of the
+; page, speaks the line it lands on, and says its own "not found" -- all in the
+; wording this reader already knows from every other program.
+Let bFound = Builtin::JAWSFind (True)
+Let gsLastFindKind = "plain"
+hVLogLine ("hVFindBackwards: JAWSFind answered " + Builtin::IntToString (bFound))
 EndScript
 
 

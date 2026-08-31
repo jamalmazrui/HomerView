@@ -1,0 +1,112 @@
+﻿# RepoFiles.txt -- what this repository carries beyond what the program installs.
+#
+# HomerView_setup.iss is the first list: every file it names with a Source line
+# is part of the project by definition, and nothing here needs to repeat it.
+# This file is the second list, and there is no third place to look.
+#
+# TRACKED is what the repository keeps but the program does not install: the
+# scripts that build, check and release it, and the sources they read.
+#
+# LOCAL is what lives on disk and is never committed: build output, logs, and
+# working material. A name here is a promise that losing the file costs
+# nothing, because the build makes it again.
+#
+# To keep a new file out of the repository, name it in neither list. That is
+# how a file is excluded.
+#
+# A name here may take three shapes: a plain name, a folder ending in a
+# backslash, or a pattern holding an asterisk. All three are still names,
+# written down here on purpose, rather than a sweep guessing from an
+# extension what a file is for. Until 31 August 2026 only the first shape
+# was matched, so build\ and notes\ had been in this file from the start
+# and had never matched anything.
+
+tracked:
+
+# This file itself, which is the second of the two lists that decide what
+# belongs here. A list that does not name itself is a stray by its own rule.
+RepoFiles.txt
+.gitignore
+handover.md
+
+# The build, and the checks it runs.
+buildAll.cmd
+buildAll.ps1
+buildBridge.cmd
+buildHomerView.cmd
+buildHomerView.ps1
+buildHomerViewBridge.cmd
+buildHomerViewBridge.ps1
+checkHomerViewQuality.cmd
+checkHomerViewQuality.ps1
+checkJawsScripts.cmd
+checkJawsScripts.ps1
+checkParity.cmd
+checkParity.py
+
+# The sources the build compiles, and the scripts the installer runs.
+HomerView.cs
+HomerView_setup.iss
+chainJawsScripts.cmd
+chainJawsScripts.ps1
+installJawsScripts.cmd
+installJawsScripts.ps1
+summarizeSetup.cmd
+summarizeSetup.ps1
+
+# The documentation set, in Markdown. Every .htm beside it is generated from
+# these by makeDocs and is installed, so the setup script already names it.
+Announce.md
+Developer.md
+History.md
+HomerView.md
+LICENSE.md
+README.md
+hotkeys.md
+makeDocs.py
+
+# What decides where a file belongs, shared unchanged with the other Homer
+# Tools projects, and the two sweeps that apply it. Both import
+# homerPolicy rather than describing it; cleanDir.ps1 described it and
+# emptied the folder on 31 August 2026, and is gone.
+homerPolicy.py
+tidyRepo.py
+cleanDir.cmd
+cleanDir.py
+
+# Making the repository, and telling git what is text. Neither is
+# installed, and both are the repository's own business.
+createHomerViewRepo.cmd
+createHomerViewRepo.ps1
+.gitattributes
+
+# The JAWS script set, which the installer copies from jaws\.
+jaws\HomerView.jss
+jaws\HomerView.jkm
+jaws\HomerView.jsd
+
+# The NVDA add-on sources, under addon\.
+addon\manifest.ini
+
+local:
+
+# Build output. Made by buildHomerView, never committed.
+HomerView.exe
+HomerView_setup.exe
+jaws\HomerView.jsb
+build\
+version.txt
+
+# Fetched at build time from a CDN, and large.
+Axe.js
+Ace.js
+Nlp.js
+2htm.exe
+pandoc.exe
+
+# Logs, and the working material that is kept but not carried. Every script
+# in this project writes a log beside itself, so one pattern covers them
+# all and a new script needs no line here. The three named separately
+# before this were the three that happened to be thought of.
+*.log
+notes\

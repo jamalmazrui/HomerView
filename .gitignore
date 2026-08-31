@@ -45,3 +45,18 @@ Thumbs.db
 desktop.ini
 *~
 *.bak
+
+# Untracked by tidyRepo: development files that reached the
+# repository through git add -A. They are still on disk.
+Announce.docx
+HomerView.html
+HomerView.jkm
+HomerView.jsd
+HomerView.jss
+HomerViewGlobal.jkm
+Hotkeys.ini
+Plan.md
+build/HomerView.nvda-addon
+cleanDir.ps1
+installer/license.txt
+temp.txt

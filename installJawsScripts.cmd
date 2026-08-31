@@ -51,34 +51,15 @@ rem The installer now reports what it did in a message box rather than leaving
 rem a console open, and it must not have to GUESS what happened here. This file
 rem says so in one line, written where the installer can read it and overwritten
 rem on every run so it never describes an older attempt.
-rem WRITTEN TO C:\temp, NOT BESIDE THIS SCRIPT.
+rem NOTHING IS WRITTEN TO C:\temp ANY MORE.
 rem
-rem This script lives in the installation folder, under Program Files, and it
-rem runs as the ORIGINAL USER rather than the elevated one -- which is right,
-rem because JAWS settings belong to that user. But a standard user CANNOT WRITE
-rem TO PROGRAM FILES, so the result file was never created, and the installer
-rem read its absence as "the step did not run" while the scripts had in fact
-rem compiled. A summary that reports a success as a failure is worse than none.
+rem A result file lived there so the ELEVATED installer could read an exit code
+rem written by this NON-ELEVATED script. It worked, but it put a stray file
+rem outside the program's own folders and it was one more thing to keep in step
+rem -- the summary looked for it in the wrong place once already.
 rem
-rem C:\temp is writable by the user and readable by the elevated installer,
-rem which is exactly what a message passed between the two of them needs.
-if not exist "C:\temp" mkdir "C:\temp" 2>nul
-> "C:\temp\HomerView_jaws.result" echo %exitCode%
-rem THE SECOND LINE IS THE LOG FOLDER, so the installer can put its own log
-rem there too. The installer runs ELEVATED and cannot resolve this user's
-rem application data; THIS script runs as the user and can. Passing the path
-rem up is the only way both logs end up in one place, which is what he asked
-rem for: one folder to zip, not two.
->> "C:\temp\HomerView_jaws.result" echo %logDir%
-
-rem NO LOG COPY IN C:\temp ANY MORE.
-rem
-rem This used to copy the log there so it could be dictated over the phone.
-rem Every log now lives in one folder -- %LOCALAPPDATA%\HomerView\logs -- which
-rem is the one place he asks a tester to zip, and a second copy elsewhere only
-rem raises the question of which is current. The RESULT file below stays in
-rem C:\temp because it is not a log: it is a message to the ELEVATED installer,
-rem which cannot resolve this user's application data.
-)
-:copiedLog
+rem THE LOG ALREADY SAYS EVERYTHING IT SAID. This script's own log ends with
+rem "Finished. N settings folders done, N skipped, N with a problem", in the
+rem HomerView logs folder where the summary is looking anyway. One file, one
+rem place, and no second copy of the same fact to fall out of step.
 endlocal & exit /b %exitCode%

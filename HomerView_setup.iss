@@ -138,14 +138,18 @@ Source: "C:\HomerView\LICENSE.md"; DestDir: "{app}"; DestName: "License.txt"; Fl
 Source: "C:\HomerView\addon\*"; DestDir: "{app}\addon"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "C:\HomerView\HomerView_setup.iss"; DestDir: "{app}"; Flags: ignoreversion
 
-; Build scripts only. The repository scripts, the clean script and the two Git
-; configuration files belong to the development directory and have no meaning
-; in an installation: nobody installs HomerView in order to create its GitHub
-; repository, and a .gitignore beside the program is at best confusing.
+; Build scripts only. The repository scripts, the sweep that tidies the
+; development folder, and the two Git configuration files belong to that
+; folder and have no meaning in an installation: nobody installs HomerView in
+; order to create its GitHub repository, and a .gitignore beside the program
+; is at best confusing.
+;
+; cleanDir was named here until 31 August 2026, on the two lines directly
+; under this comment explaining why it should not be. It moves anything the
+; project does not name, which is the last program that belongs in an
+; installation folder.
 Source: "C:\HomerView\buildHomerView.cmd"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\HomerView\buildHomerView.ps1"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\HomerView\cleanDir.cmd"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
-Source: "C:\HomerView\cleanDir.ps1"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 
 ; The development plan, kept for its historical value.
 Source: "C:\HomerView\docs\*"; DestDir: "{app}\docs"; Flags: ignoreversion recursesubdirs createallsubdirs skipifsourcedoesntexist
@@ -176,6 +180,14 @@ Source: "C:\HomerView\Start.htm"; DestDir: "{app}"; Flags: ignoreversion skipifs
 Source: "C:\HomerView\Axe.js"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "C:\HomerView\Ace.js"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "C:\HomerView\Nlp.js"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
+; version.txt travels with the program so Elevate Version can tell which build
+; is running. The #define above reads it at COMPILE time to set AppVersion;
+; that does not put a copy beside the program, which is what the runtime needs.
+Source: "C:\HomerView\version.txt"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
+; The Results box, shown after every finish-page step has run. It is not an
+; option and has no checkbox: it always runs, and always last.
+Source: "C:\HomerView\summarizeSetup.cmd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\HomerView\summarizeSetup.ps1"; DestDir: "{app}"; Flags: ignoreversion
 ; version.txt travels with the program so Elevate Version can tell what is
 ; running without parsing it out of anything.
 Source: "C:\HomerView\version.txt"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
@@ -269,6 +281,27 @@ Filename: "{app}\build\{#AddonFile}"; Description: "Install the HomerView add-on
 ; -bQuiet was already there for the silent case; runhidden keeps the window
 ; from appearing at all. waituntilterminated stays, so the summary can report
 ; what happened rather than guess.
+; THE OLD SET COMES OUT BEFORE THE NEW ONE GOES IN.
+;
+; This is the same script with -bUninstall, which reads the manifest an
+; earlier release wrote and puts every file it touched back as it was. It
+; runs FIRST, and only when InitializeSetup found an old install and the
+; reader chose to continue.
+;
+; NOT postinstall, DELIBERATELY: a postinstall entry is a checkbox on the
+; finish page, and this is not a choice to offer twice. The reader already
+; agreed at the prompt, and a box they could untick would leave BOTH sets
+; of keys installed -- the one outcome this exists to prevent. A comment
+; cannot sit inside the entry either: a line continuation ends at one.
+; reader chose to continue. Removing before installing means the two sets
+; never exist at once, so no key ever has two bindings.
+Filename: "{app}\installJawsScripts.cmd"; \
+  Parameters: "-bUninstall -bQuiet"; \
+  WorkingDir: "{app}"; \
+  StatusMsg: "Removing the older HomerView scripts for JAWS..."; \
+  Flags: runasoriginaluser waituntilterminated runhidden; \
+  Check: RemovingOldScripts
+
 Filename: "{app}\installJawsScripts.cmd"; \
   Parameters: "-sVersion {#AppVersion} -bQuiet"; \
   WorkingDir: "{app}"; \
@@ -554,9 +587,99 @@ end;
 { never under the installation folder, because this installer requires          }
 { administrator rights and a standard user could not then write to the profile. }
 
+{ Every JAWS settings folder that an earlier HomerView wrote into.
+
+  HOW AN OLD INSTALL IS RECOGNISED. The previous approach put HomerView's keys
+  into default.jkm and recorded every file it touched in homerViewChain.manifest
+  beside them. That manifest is the mark: where it exists, the old approach is
+  in place in that folder. }
+function foldersWithOldScripts(): String;
+var
+  sRoot, sVersions, sYear, sLanguages, sLanguage, sFound: String;
+  oYear, oLanguage: TFindRec;
+begin
+  Result := '';
+  sRoot := ExpandConstant('{userappdata}\Freedom Scientific\JAWS');
+  if not DirExists(sRoot) then
+    Exit;
+  sVersions := AddBackslash(sRoot);
+  if FindFirst(sVersions + '*', oYear) then
+  try
+    repeat
+      if (oYear.Attributes and FILE_ATTRIBUTE_DIRECTORY) = 0 then Continue;
+      if (oYear.Name = '.') or (oYear.Name = '..') then Continue;
+      sYear := sVersions + oYear.Name + '\Settings';
+      if not DirExists(sYear) then Continue;
+      sLanguages := AddBackslash(sYear);
+      if FindFirst(sLanguages + '*', oLanguage) then
+      try
+        repeat
+          if (oLanguage.Attributes and FILE_ATTRIBUTE_DIRECTORY) = 0 then Continue;
+          if (oLanguage.Name = '.') or (oLanguage.Name = '..') then Continue;
+          sLanguage := sLanguages + oLanguage.Name;
+          sFound := sLanguage + '\homerViewChain.manifest';
+          if FileExists(sFound) then
+            Result := Result + '  JAWS ' + oYear.Name + #13#10;
+        until not FindNext(oLanguage);
+      finally
+        FindClose(oLanguage);
+      end;
+    until not FindNext(oYear);
+  finally
+    FindClose(oYear);
+  end;
+end;
+
+{ Set by InitializeSetup when an older HomerView is found and the reader
+  agrees to replace it. DECLARED HERE, ABOVE EVERYTHING THAT READS IT:
+  Pascal Script resolves a name only if it has already been seen, and the
+  compiler said so plainly -- "Unknown identifier bRemoveOldScripts" --
+  when this sat in the var block further down. }
+var
+  bRemoveOldScripts: Boolean;
+
+{ Whether InitializeSetup found an older HomerView and the reader agreed to
+  replace it. A Check function is how a [Run] entry asks a question of the
+  code, and this one keeps the removal step out of the way entirely on a
+  machine that has never had HomerView. }
+function RemovingOldScripts(): Boolean;
+begin
+  Result := bRemoveOldScripts;
+end;
+
 function InitializeSetup(): Boolean;
+var
+  sFolders: String;
 begin
   Result := True;
+
+  { THE TWO APPROACHES MUST NOT BE MIXED, WHICH IS WHY THIS CAN CANCEL.
+    An earlier HomerView put its keys in default.jkm, where they applied in
+    every program with a virtual cursor -- Control+O in an Outlook message ran
+    HomerView's Open Document. This release puts them in Edge's own key map
+    instead, where they exist only in the browser.
+    LEAVING BOTH IN PLACE WOULD GIVE THE READER TWO BINDINGS FOR EVERY KEY and
+    no way to tell which answered. So the old set is removed first, and if that
+    is not wanted, NOTHING IS INSTALLED. }
+  sFolders := foldersWithOldScripts();
+  if sFolders = '' then
+    Exit;
+  if MsgBox('HomerView has been installed here before, using an older method'
+      + ' that added its keys to the JAWS default scripts:' + #13#10 + #13#10
+      + sFolders + #13#10
+      + 'This version puts those keys in Edge''s own scripts instead, so they'
+      + ' work in the browser and nowhere else.' + #13#10 + #13#10
+      + 'The older scripts will be removed first. Nothing else in your JAWS'
+      + ' settings is changed, and the removal can be undone from the'
+      + ' uninstaller.' + #13#10 + #13#10
+      + 'Choose OK to remove them and continue, or Cancel to stop and leave'
+      + ' this computer as it is.',
+      mbConfirmation, MB_OKCANCEL) <> IDOK then
+  begin
+    Result := False;
+    Exit;
+  end;
+  bRemoveOldScripts := True;
 end;
 
 { ---------------------------------------------------------------------------
@@ -611,98 +734,95 @@ begin
          or DirExists(sAddons + 'homerView.pendingInstall');
 end;
 
-function JawsResult(): Integer;
+
+{ Inno's own record joins the consolidated HomerView_setup.log, so there is ONE
+  file to read and one file to send. }
+procedure appendSetupLog(sFolder: string);
 var
-  sText: AnsiString;
-  sValue: String;
+  lBanner, lSetupLines: TArrayOfString;
+  sSnapshot: string;
 begin
-  { -1 means the step did not run at all. }
-  Result := -1;
-  if LoadStringFromFile('C:\temp\HomerView_jaws.result', sText) then
-  begin
-    { ASSIGNED, NOT CAST. LoadStringFromFile wants an AnsiString, and Pascal
-      Script converts one to a String on assignment; writing String(sText) as a
-      cast is not something it accepts. }
-    sValue := Trim(sText);
-    Result := StrToIntDef(sValue, 0);
+  { Inno STILL HOLDS ITS LOG OPEN FOR WRITING while this runs, and the
+    line-reading function is refused a file somebody is writing. A raw file copy
+    shares happily with the writer, so the log is snapshotted first and the
+    snapshot is read. The last line or two of the session are not in it, which
+    is the price of reading a log before it closes. }
+  sSnapshot := ExpandConstant('{tmp}\innoLogSnapshot.txt');
+  if not CopyFile(ExpandConstant('{log}'), sSnapshot, False) then
+    Exit;
+  if not LoadStringsFromFile(sSnapshot, lSetupLines) then
+    Exit;
+  SetArrayLength(lBanner, 2);
+  lBanner[0] := '';
+  lBanner[1] := '==== HomerView installer (Inno Setup)  '
+    + GetDateTimeString('yyyy/mm/dd hh:nn:ss', '-', ':') + ' ====';
+  SaveStringsToFile(AddBackslash(sFolder) + 'HomerView_setup.log', lBanner, True);
+  SaveStringsToFile(AddBackslash(sFolder) + 'HomerView_setup.log', lSetupLines, True);
+end;
+
+{ What the installer already knows, handed to the summary so ONE box tells the
+  whole story instead of two telling halves. }
+procedure saveResultsForSummary(sFolder: string; sText: string);
+var
+  lsLines: TArrayOfString;
+begin
+  SetArrayLength(lsLines, 1);
+  lsLines[0] := sText;
+  SaveStringsToFile(AddBackslash(sFolder) + 'HomerView_setup_results.txt', lsLines, False);
+end;
+
+{ The single Results box: always shown, always last.
+  WHY IT IS A SEPARATE PROGRAM. The finish page's checkboxes run AFTER this
+  code has had its last say, so the disposition of each one is not known here.
+  Setup launches the summary WITHOUT WAITING, so the box appears once every
+  step has finished and closing it is the last thing that happens. }
+procedure showResultsSummary(sFolder: string);
+var
+  iResult: Integer;
+begin
+  try
+    Exec(ExpandConstant('{cmd}'),
+      '/c ""' + ExpandConstant('{app}\summarizeSetup.cmd') + '" "' + sFolder + '""',
+      ExpandConstant('{app}'), SW_HIDE, ewNoWait, iResult);
+  except
   end;
 end;
 
 procedure DeinitializeSetup();
 var
-  sMessage: String;
-  sLogFolder: String;
-  lResult: TArrayOfString;
-  iJaws: Integer;
+  sBreak, sLogFolder, sMessage: String;
 begin
-  { Nothing to report if nothing was installed, and nobody to read it in a
-    silent installation -- where a message box would sit there forever
-    waiting for a click that a script cannot give. }
+  { DeinitializeSetup RUNS WHENEVER SETUP EXITS, INCLUDING ON CANCEL.
+    Announcing success to somebody who has just backed out would be a plain
+    lie. And there is nobody to read a box in a silent installation, where it
+    would wait for ever for a click no script can give. }
   if (not bInstalled) or WizardSilent then
     Exit;
-  sMessage := 'HomerView is installed.' + #13#10 + #13#10
-    + 'Program files:' + #13#10 + '  ' + ExpandConstant('{app}') + #13#10 + #13#10
-    + 'Results' + #13#10;
+  sBreak := #13#10;
 
-  iJaws := JawsResult();
-  if iJaws = 0 then
-    sMessage := sMessage + '  JAWS scripts: installed.' + #13#10
-  else if iJaws > 0 then
-    sMessage := sMessage + '  JAWS scripts: FAILED. Send the logs named below.' + #13#10
-  else
-    { REPORTED EVEN WHEN JAWS WAS NEVER DETECTED, which is the case that cost a
-      tester an evening: no result file AND no checkbox means the step was never
-      offered, and a summary that stays silent about it looks like success. }
-    sMessage := sMessage + '  JAWS scripts: NOT installed (the step did not run).' + #13#10;
+  { The logs folder, under this user's application data. A file in C:\temp used
+    to carry this path up from the non-elevated script; that file is gone, and
+    with it a stray file outside the program's own folders and a second copy of
+    a fact that had already fallen out of step once. }
+  sLogFolder := ExpandConstant('{localappdata}\HomerView\logs');
+  ForceDirectories(sLogFolder);
 
-  if AddonIsInstalled() then
-    sMessage := sMessage + '  NVDA add-on: installed. Restart NVDA to use it.' + #13#10
-  else if not NvdaIsRunning() then
-    sMessage := sMessage + '  NVDA add-on: NOT installed, because NVDA was not running.' + #13#10
-      + '    Start NVDA, then open:' + #13#10
-      + '    ' + ExpandConstant('{app}\build\{#AddonFile}') + #13#10
-  else
-    sMessage := sMessage + '  NVDA add-on: not installed. Open the file in the program folder''s build folder.' + #13#10;
+  sMessage := 'HomerView is installed.' + sBreak + sBreak
+    + 'Program files:' + sBreak + '  ' + ExpandConstant('{app}') + sBreak
+    + 'Logs:' + sBreak + '  ' + sLogFolder + sBreak + sBreak
+    + 'Results' + sBreak;
 
+  { pandoc is decided before this point, so it can be reported here. The JAWS
+    and NVDA steps run from the finish page AFTER this text is handed over, so
+    the summary reports those. }
   if FileExists(ExpandConstant('{app}\pandoc.exe')) then
-    sMessage := sMessage + '  pandoc: present. Ebooks and Markdown will open.' + #13#10
+    sMessage := sMessage + '  pandoc: present. Ebooks and Markdown will open.' + sBreak
   else
-    sMessage := sMessage + '  pandoc: not present. Ebooks and Markdown will not open until it is.' + #13#10;
+    sMessage := sMessage + '  pandoc: not present. Ebooks and Markdown need it.' + sBreak;
+  if not HaveJaws() then
+    sMessage := sMessage + '  JAWS scripts: not offered, because JAWS was not found here.' + sBreak;
 
-  { THE LOGS, NAMED IN THE BOX SO THEY CAN BE ASKED FOR OVER THE PHONE.
-    Copied to one fixed path each: Inno's own log otherwise sits in the
-    temporary folder under a dated name nobody can dictate, and the JAWS log
-    under a timestamped one among several. }
-  ForceDirectories('C:\temp');
-  // CopyFile, not FileCopy. The documented name is CopyFile(Existing, New,
-  // FailIfExists) -- there is no FileCopy in Pascal Script at all, and the
-  // compile aborted before it reached this line, so the wrong name would have
-  // failed the NEXT build rather than this one.
-  // BOTH LOGS IN ONE FOLDER, WHICH IS THE ONE HE HAS TO ASK A TESTER TO ZIP.
-  //
-  // C:\temp was chosen because an elevated installer cannot resolve the
-  // ORIGINAL user's application data. installJawsScripts.cmd runs as that user
-  // and now writes its log folder as the second line of the result file, so
-  // this can follow it there. C:\temp keeps a copy as well, since the folder
-  // is only known when the JAWS step actually ran.
-  sLogFolder := '';
-  if LoadStringsFromFile('C:\temp\HomerView_jaws.result', lResult) then
-    if GetArrayLength(lResult) > 1 then
-      sLogFolder := Trim(lResult[1]);
-  if (sLogFolder <> '') and DirExists(sLogFolder) then
-    if CopyFile(ExpandConstant('{log}'), AddBackslash(sLogFolder) + 'HomerView_setup.log', False) then
-      sMessage := sMessage + #13#10 + 'The logs are together in:' + #13#10
-        + '  ' + sLogFolder + #13#10;
-  // ONE FOLDER, NAMED ONCE. Every log lives with the others, so what he asks
-  // a tester for is a single folder rather than two places and a guess about
-  // which copy is current.
-  if sLogFolder = '' then
-    sMessage := sMessage + #13#10 + 'If anything above went wrong, the logs are in'
-      + #13#10 + '  your HomerView logs folder.' + #13#10;
-
-  { LAST, BECAUSE IT IS THE ONE THING THEY NEED NEXT. }
-  sMessage := sMessage + #13#10
-    + 'To start HomerView, press Alt+Insert+H in JAWS, or Alt+NVDA+H in NVDA.';
-
-  MsgBox(sMessage, mbInformation, MB_OK);
+  appendSetupLog(sLogFolder);
+  saveResultsForSummary(sLogFolder, sMessage);
+  showResultsSummary(sLogFolder);
 end;

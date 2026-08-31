@@ -1,57 +1,47 @@
-# What does not belong in the repository.
+﻿# What git must not carry. RepoFiles.txt is the reasoning; this is the part of
+# it git can enforce, and the two are meant to agree.
 #
-# Grouped by why, because a bare list of names tells the next reader nothing
-# about whether an entry is still needed.
+# A NOTE ON WHAT .gitignore CANNOT DO, because it cost this project real time:
+# it has no effect on a file that is ALREADY TRACKED. Adding a name here does
+# not remove it from the repository -- git rm --cached does that, and tidyRepo
+# is what runs it. So this file keeps new output out; it does not clean up.
+#
+# And it cannot sort by what a file is FOR, only by what its name looks like.
+# The working material and the documentation set look identical from here:
+# both are .md and .htm at the root. That is why notes\ exists -- one folder
+# named once below, instead of a pattern that has to judge every future file.
 
-# Logs. Every script writes one beside itself, and they are regenerated on the
-# next run. The single pattern covers them all, so no script needs its own line.
+# Working material: saved pages, drafts, retired programs, old copies.
+# Kept on disk because it is why several decisions were made the way they
+# were, and out of the repository because it is not part of the program.
+notes/
+
+# Build output. buildHomerView makes all of it from the sources.
+HomerView.exe
+HomerView_setup.exe
+version.txt
+build/
+jaws/HomerView.jsb
+
+# Fetched at build time, and large. Named in the setup script so they install,
+# but there is no reason to carry a copy of somebody else's library.
+Axe.js
+Ace.js
+Nlp.js
+
+# Third-party programs the installer offers. Downloaded, never authored here.
+2htm.exe
+pandoc.exe
+
+# Logs. Every script in this project writes one beside itself.
 *.log
 
-# What HomerView writes while it runs. These land in the folder when the
-# program is run from the source directory rather than from an installation.
-Axe.json
-Ace.json
-Report.html
-Report.txt
-Start.html
-MainContent.htm
-HomerView.db
-HomerView.jsonl
-
-# Correspondence and working notes. Written for one person, or about the
-# project rather than part of it.
-Announce_draft*.md
-Edge_Hotkeys.md
-Letter_to_*
-Reply_to_*
-Transition_*
-
-# Scripts that belong to this machine rather than to the project. The
-# repository script exists to create the repository, so a clone has no use for
-# it, and the clean script is a local convenience.
-clean.cmd
-createHomerViewRepo.cmd
-createHomerViewRepo.ps1
-
-# Python's own leavings.
+# What Python leaves behind when a module is imported.
 __pycache__/
-*.py[cod]
-dist/
+*.pyc
 
-# Two large binaries, for two different reasons.
-#
-# pandoc.exe is about 220 megabytes and GitHub refuses any single file over a
-# hundred. It is no longer packaged at all: the installer offers to fetch it.
-# A local copy here is ignored rather than committed.
-pandoc.exe
-#
-# The built installer is a release asset rather than source. Fifteen copies of
-# it once accounted for 390 megabytes of history, which was most of what a
-# clone had to download, and they had to be removed by rewriting every commit.
-# Attach it to a release instead.
-HomerView_setup.exe
-
-# The built add-on IS tracked, deliberately, so that somebody who clones this
-# can install HomerView without building it first. It is about 400 kilobytes,
-# which is a size worth carrying. Nothing above excludes it; this note is here
-# so nobody adds a line that does.
+# What Windows and the editors leave behind.
+Thumbs.db
+desktop.ini
+*~
+*.bak

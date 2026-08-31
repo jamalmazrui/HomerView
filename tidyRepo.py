@@ -26,10 +26,13 @@ every part in one pass so there is no second round to discover anything in.
 
 WHAT IT LOOKS FOR
 
-  1. Tracked files that the project does not need. The setup script says what
-     the project installs, and .gitignore says what is deliberately excluded;
-     anything tracked that is neither is a candidate, and every one is listed
-     for you to confirm rather than assumed.
+  1. Tracked files that the project does not need. Two lists decide, and
+     homerPolicy.py reads both: the setup script says what the program
+     installs, and RepoFiles.txt says what the repository carries besides.
+     Anything tracked that neither names is a candidate, and every one is
+     listed for you to confirm rather than assumed. cleanDir.py applies the
+     same rule to the folder, through the same module, so the two sweeps
+     cannot disagree.
   2. Large objects anywhere in the history, whether still reachable or not,
      because that is what makes a clone slow and what GitHub complains about.
   3. Files on disk that are neither tracked nor ignored.
@@ -51,6 +54,8 @@ import re
 import shutil
 import subprocess
 import sys
+
+import homerPolicy
 
 c_iLargeBytes = 5 * 1024 * 1024          # worth naming in the history
 c_iBulkyBytes = 25 * 1024 * 1024         # worth removing, counted across copies
@@ -119,41 +124,46 @@ def gitOut(lArguments):
 
 
 def neededFiles():
-    """What the setup script installs, which is the definition of needed.
+    """The three lists that decide what belongs, read by homerPolicy.
 
-    Read from HomerView_setup.iss rather than listed here, so this cannot drift
-    from what is actually shipped.
-    """
-    setNeeded = {".gitignore", ".gitattributes", "tidyRepo.py", c_sLogName}
-    pathIss = os.path.join(pathRoot, "HomerView_setup.iss")
-    if not os.path.exists(pathIss):
-        say("  WARNING: HomerView_setup.iss is not here, so nothing can be")
-        say("           judged unnecessary. Run this from C:\\HomerView.")
-        return None
-    with open(pathIss, encoding="utf-8-sig") as fileIss:
-        sIss = fileIss.read()
-    for match in re.finditer(r'^Source:\s*"([^"]+)"', sIss, re.M):
-        sPath = match.group(1).replace("C:\\HomerView\\", "").replace("\\", "/")
-        sPath = sPath.replace("{#AddonFile}", "HomerView.nvda-addon")
-        setNeeded.add(sPath.rstrip("*").rstrip("/") or sPath)
-    return setNeeded
+    This used to be twenty lines here, and they held the very fault
+    homerPolicy's own header is written against:
 
-
-def isNeeded(sPath, setNeeded):
-    """Whether a tracked path is part of what the project ships."""
-    sPath = sPath.replace("\\", "/")
-    if sPath in setNeeded:
-        return True
-    # A folder the setup script takes wholesale covers everything under it.
-    for sNeeded in setNeeded:
-        if sNeeded and sPath.startswith(sNeeded.rstrip("/") + "/"):
+        if sPath.endswith((".md", ".htm")) and "/" not in sPath:
             return True
-    # Documentation and the build outputs belong even when named individually.
-    if sPath.startswith(("addon/", "docs/", "installer/", "build/")):
-        return True
-    if sPath.endswith((".md", ".htm")) and "/" not in sPath:
-        return True
-    return False
+
+    That line said any .md or .htm at the top of the folder is part of the
+    project, which is every saved page and every old draft. homerPolicy.py
+    was copied into this project to replace it and, until 31 August 2026,
+    nothing imported it: the shared decider sat in the folder while this
+    script and cleanDir each kept a private one, and the two disagreed.
+
+    Returns the policy, or None when it cannot be read, in which case
+    nothing can be judged and the caller should stop rather than guess.
+    """
+    sIssName = homerPolicy.setupScriptName(pathRoot)
+    if not sIssName:
+        say("  WARNING: there is no setup script here, so nothing can be")
+        say("           judged unnecessary. Run this from the project folder.")
+        return None
+    oInstalled = homerPolicy.installedFiles(pathRoot)
+    if oInstalled is None:
+        say("  WARNING: %s could not be read." % sIssName)
+        return None
+    setTracked, setLocal = homerPolicy.repoFiles(pathRoot)
+    if not setTracked:
+        say("  WARNING: %s names nothing as tracked, and judging the whole"
+            % homerPolicy.c_sRepoFilesName)
+        say("           repository against an empty list would call every file")
+        say("           a stray.")
+        return None
+    return oInstalled, setTracked, setLocal
+
+
+def isNeeded(sPath, oPolicy):
+    """Whether a path belongs in the repository, by the shared rule."""
+    oInstalled, setTracked, setLocal = oPolicy
+    return homerPolicy.isRepoFile(sPath, oInstalled, setTracked)
 
 
 def surveyTracked(setNeeded):
@@ -333,17 +343,20 @@ def main():
     say(f"1. TRACKED FILES: {len(lTracked)} tracked, {len(lStray)} the project does not need.")
     say("")
     if lStray:
-        say("   These are tracked but are not installed, not in addon, docs,")
-        say("   installer or build, and not documentation. Most will be files")
+        say("   These are named by neither the setup script nor RepoFiles.txt,")
+        say("   which are the only two lists that decide. Most will be files")
         say("   that arrived through git add -A.")
         say("")
         for sPath in sorted(lStray):
-            iSize = 0
+            # A file that is not on disk is missing, and saying "0 bytes"
+            # for it reads as an empty file, which is a different fault
+            # and one worth chasing. That is what this said on 31 August
+            # 2026 about twenty-one files a sweep had just moved away.
             try:
-                iSize = os.path.getsize(os.path.join(pathRoot, sPath))
+                sSize = f"{os.path.getsize(os.path.join(pathRoot, sPath)):,} bytes"
             except OSError:
-                pass
-            say(f"     {sPath}  ({iSize:,} bytes)")
+                sSize = "tracked but not on disk"
+            say(f"     {sPath}  ({sSize})")
         say("")
         say("   They will be untracked, NOT deleted from disk, and added to")
         say("   .gitignore so they do not come back.")

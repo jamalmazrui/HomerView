@@ -501,6 +501,36 @@ writeLog ""
 # JAWS scripts, and an installer worth testing should still be produced. What
 # it does is make the build finish with a failure, so that tagRelease does not
 # run on a release whose JAWS half does not compile.
+# THE POWERSHELL WE SHIP IS PARSED HERE, NOT ON A TESTER'S MACHINE.
+#
+# chainJawsScripts.ps1 and installJawsScripts.ps1 run at INSTALL time, so a
+# syntax error in either survives every build and first appears when somebody
+# installs -- which is exactly what happened once: a trailing comma in an array
+# literal meant chainJawsScripts died before writing one line of its log, and
+# the installer could only report that the keys had not been bound.
+#
+# PowerShell's own parser answers this in a moment. Nothing is executed.
+writeLog "Step 1b of 5: parsing the PowerShell that the installer runs"
+foreach ($sName in @("chainJawsScripts.ps1", "installJawsScripts.ps1", "checkJawsScripts.ps1")) {
+    $pathScript = Join-Path $pathRoot $sName
+    if (-not (Test-Path $pathScript)) {
+        writeLog "  $sName is not here, so it was not parsed."
+        continue
+    }
+    $lErrors = $null
+    $null = [System.Management.Automation.Language.Parser]::ParseFile(
+        $pathScript, [ref] $null, [ref] $lErrors)
+    if ($lErrors -and $lErrors.Count -gt 0) {
+        writeLog "  ERROR: $sName does not parse. It would fail at install time:"
+        foreach ($oError in $lErrors) {
+            writeLog "    line $($oError.Extent.StartLineNumber): $($oError.Message)"
+        }
+        writeLog "buildHomerView finished with a failure"
+        exit 1
+    }
+    writeLog "  $sName parses"
+}
+
 writeLog "Step 2 of 5: checking that the JAWS scripts compile"
 $script:bJawsFailed = $false
 $pathCheck = Join-Path $pathRoot "checkJawsScripts.ps1"
@@ -714,6 +744,9 @@ if ($script:bJawsFailed) {
 }
 writeLog "Ready for tagRelease."
 writeLog "buildHomerView finished"
+# EXPLICIT, so the exit code cannot be inherited from the last native
+# command that happened to run. His routine keys off it.
+exit 0
 
 # --- Check the setup script before anyone compiles it -----------------------
 #

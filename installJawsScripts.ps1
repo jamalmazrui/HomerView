@@ -710,7 +710,15 @@ foreach ($folderVersion in $lVersions) {
         chainThroughUserDefault $pathTarget $sVersion | Out-Null
         addGlobalBinding $pathTarget
         $vCompiled = compileScript $sVersion $pathTarget
-        if ($vCompiled -eq "skipped") {
+        # THE STRING GOES ON THE LEFT, AND THAT IS THE WHOLE FIX.
+        #
+        # PowerShell compares using the LEFT operand's type. Written the
+        # other way round, $vCompiled -eq "skipped" converts "skipped" to a
+        # BOOLEAN when the left side is $true -- and any non-empty string is
+        # true -- so a folder that compiled perfectly was counted as skipped.
+        # The log said "0 settings folders done, 3 skipped" after three clean
+        # compiles, and the Results box then said nothing about JAWS at all.
+        if ("skipped" -eq $vCompiled) {
             $iSkipped += 1
         } elseif ($vCompiled) {
             $iDone += 1

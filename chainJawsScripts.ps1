@@ -413,7 +413,22 @@ $lBrowserKeys = @(
 # Control+F1 is here rather than in the common keys, though the NVDA side has
 # it everywhere: Control+F1 collapses the ribbon in Office, and a guide is not
 # worth taking that. It is on the Alternate Menu, which works anywhere.
+# SPLIT BY WHERE THE KEY IS SAFE, NOT BY WHAT THE COMMAND DOES.
+#
+# [Virtual Keys] in default.jkm applies WHEREVER A VIRTUAL CURSOR IS ACTIVE,
+# and that is not only a browser: an Outlook message, a Word document and a PDF
+# all get one. Control+O in Outlook was running HomerView's Open Document.
+#
+# A key carrying JAWSKey cannot collide with an application's own command, so
+# those stay global and work anywhere. EVERYTHING ELSE MOVES INTO EDGE'S OWN
+# KEY MAP, where it simply does not exist elsewhere -- no guard, no pass
+# through, and no guessing what JAWS would otherwise have done with the key.
 $lVirtualKeys = @(
+
+)
+
+# The same keys, scoped to Edge by living in Edge's key map instead.
+$lEdgeVirtualKeys = @(
     "Alt+Control+F1=hVOpenSessionLog",
     "Alt+F1=hVShowAbout",
     "Alt+M=hVSayMetadata",
@@ -717,55 +732,95 @@ foreach ($folderVersion in $lVersions) {
             # purpose is still work that can fail, and if it threw, this whole
             # script died and the installer reported only "the keys could not be
             # bound" with nothing above it to say why.
-            if ($lBrowserKeys.Count -gt 0) {
-                # --- the browser's own key map ---------------------------------
-                #
-                # Same discipline as default.jkm: back up before changing, take our
-                # old block out before putting a new one in, and if there is no user
-                # copy yet, COPY THE FACTORY FILE FIRST rather than writing a file
-                # that holds only our keys.
-                #
-                # If Edge has no factory msedge.jkm at all, one is created holding
-                # just [Common Keys] and our line. That is safe here in a way it
-                # would not be for default.jkm: an application key map that does not
-                # exist takes nothing away, because JAWS falls through to the
-                # default map for everything it does not name.
-                $sEdgeBase = browserConfigName $pathUser $pathShared
-                writeLog "    the browser's settings are called '$sEdgeBase'"
-                $pathUserEdgeJkm = Join-Path $pathUser "$sEdgeBase.jkm"
-                $pathSharedEdgeJkm = if ($pathShared) { Join-Path $pathShared "$sEdgeBase.jkm" } else { "" }
-                if (Test-Path $pathUserEdgeJkm) {
-                    if (-not (Test-Path "$pathUserEdgeJkm.homerViewBackup")) {
-                        Copy-Item $pathUserEdgeJkm "$pathUserEdgeJkm.homerViewBackup" -Force
-                        writeLog "    backed up $sEdgeBase.jkm before changing it"
-                    }
-                    $iOldEdge = removeOurBlock $pathUserEdgeJkm
-                    if ($iOldEdge -gt 0) {
-                        writeLog "    removed $iOldEdge line(s) from $sEdgeBase.jkm written by an earlier release"
-                    }
-                } elseif ($pathSharedEdgeJkm -and (Test-Path $pathSharedEdgeJkm)) {
-                    Copy-Item $pathSharedEdgeJkm $pathUserEdgeJkm -Force
-                    writeLog "    copied the factory $sEdgeBase.jkm into the user folder, so nothing is lost"
-                    $lManifest += "created|$sEdgeBase.jkm"
-                } else {
-                    Set-Content -Path $pathUserEdgeJkm -Value @("[Common Keys]") -Encoding UTF8
-                    writeLog "    no factory $sEdgeBase.jkm exists, so a new one was written with only our key"
-                    $lManifest += "created|$sEdgeBase.jkm"
-                }
-                addToSection $pathUserEdgeJkm "[Common Keys]" $lBrowserKeys
-                writeLog "    added $($lBrowserKeys.Count) key(s) to [Common Keys] in $sEdgeBase.jkm"
-                writeLog "      these work whenever Edge is in front, in any cursor mode, and nowhere else"
-                if ($lManifest -notcontains "created|$sEdgeBase.jkm") {
-                    $lManifest += "edited|$sEdgeBase.jkm"
-                }
-                $sEdgeFinal = Get-Content $pathUserEdgeJkm -Raw
-                foreach ($sKey in $lBrowserKeys) {
-                    if (-not $sEdgeFinal.Contains($sKey)) {
-                        writeLog "    ERROR: $sKey is not in $sEdgeBase.jkm after writing it"
-                        $iFailed += 1
-                    }
+            # --- EDGE'S OWN SCRIPT SET AND KEY MAP -------------------------
+            #
+            # THIS IS WHAT KEEPS HOMERVIEW'S KEYS OUT OF OUTLOOK AND WORD.
+            # [Virtual Keys] in default.jkm applies wherever a virtual cursor
+            # is active, which includes an Outlook message, a Word document and
+            # a PDF -- so Control+O in Outlook was running HomerView's Open
+            # Document. Keys that live in EDGE'S key map do not exist anywhere
+            # else, so JAWS resolves them normally in every other program.
+            #
+            # AND THE SCRIPTS ARE INHERITED, NOT REPLACED. The scripting
+            # documentation calls this LAYERING: "when one script set is loaded
+            # on top of another such that scripts in the set loaded later
+            # supersede scripts loaded in an earlier set. Scripts which are not
+            # overridden in a set loaded later are INHERITED from a set loaded
+            # earlier." So the user file Uses the factory Edge binary first and
+            # HomerView.jsb second: everything Vispero ships still works, and
+            # our commands are added on top.
+            $sEdgeBase = browserConfigName $pathUser $pathShared
+            if (-not $sEdgeBase) {
+                writeLog "    Edge's script name could not be discovered, so its keys stay in default.jkm"
+                addToSection $pathUserJkm "[Virtual Keys]" $lEdgeVirtualKeys
+                writeLog "      added $($lEdgeVirtualKeys.Count) key(s) to [Virtual Keys] as a fallback"
+            } else {
+                $pathEdgeJss = Join-Path $pathUser "$sEdgeBase.jss"
+                $pathEdgeJkm = Join-Path $pathUser "$sEdgeBase.jkm"
+                $pathSharedEdgeJsb = $null
+                if ($pathShared) {
+                    $sTry = Join-Path $pathShared "$sEdgeBase.jsb"
+                    if (Test-Path $sTry) { $pathSharedEdgeJsb = $sTry }
                 }
 
+                # The script file. Written only if we have not written it
+                # before, so a file somebody else made is never overwritten.
+                if (-not (Test-Path $pathEdgeJss)) {
+                    $lJss = @($c_sMarker)
+                    if ($pathSharedEdgeJsb) {
+                        # The factory Edge scripts first, so everything they do
+                        # still happens.
+                        $lJss += "Use `"$sEdgeBase.jsb`""
+                        writeLog "    the factory $sEdgeBase.jsb will be layered under HomerView's"
+                    } else {
+                        writeLog "    JAWS ships no $sEdgeBase.jsb, so there is nothing to inherit"
+                    }
+                    $lJss += 'Use "HomerView.jsb"'
+                    $lJss += ""
+                    $lJss += "; A script file must define something, or it will not compile."
+                    $lJss += "void function hVEdgeFiller ()"
+                    $lJss += "return"
+                    $lJss += "EndFunction"
+                    Set-Content -Path $pathEdgeJss -Value $lJss -Encoding UTF8
+                    writeLog "    wrote $sEdgeBase.jss, layering HomerView over Edge's own scripts"
+                    $lManifest += "created|$sEdgeBase.jss"
+                    $null = compileFile $sCompiler $pathEdgeJss
+                } else {
+                    writeLog "    $sEdgeBase.jss is already here, so it is left alone"
+                }
+
+                # The key map. Same discipline as default.jkm: copy the factory
+                # file first if there is no user copy, so nothing it provides
+                # is lost, then replace only our own block.
+                if (-not (Test-Path $pathEdgeJkm)) {
+                    $sSharedEdgeJkm = $null
+                    if ($pathShared) {
+                        $sTry = Join-Path $pathShared "$sEdgeBase.jkm"
+                        if (Test-Path $sTry) { $sSharedEdgeJkm = $sTry }
+                    }
+                    if ($sSharedEdgeJkm) {
+                        Copy-Item $sSharedEdgeJkm $pathEdgeJkm -Force
+                        writeLog "    copied the factory $sEdgeBase.jkm into the user folder, so nothing is lost"
+                        $lManifest += "created|$sEdgeBase.jkm"
+                    } else {
+                        Set-Content -Path $pathEdgeJkm -Value @("[Virtual Keys]") -Encoding UTF8
+                        writeLog "    JAWS ships no $sEdgeBase.jkm, so a new one was started"
+                        $lManifest += "created|$sEdgeBase.jkm"
+                    }
+                } else {
+                    if (-not (Test-Path "$pathEdgeJkm.homerViewBackup")) {
+                        Copy-Item $pathEdgeJkm "$pathEdgeJkm.homerViewBackup" -Force
+                        writeLog "    backed up $sEdgeBase.jkm before changing it"
+                    }
+                    $iOld = removeOurBlock $pathEdgeJkm
+                    if ($iOld -gt 0) { writeLog "    removed $iOld line(s) written by an earlier release" }
+                    if ($lManifest -notcontains "created|$sEdgeBase.jkm") {
+                        $lManifest += "edited|$sEdgeBase.jkm"
+                    }
+                }
+                addToSection $pathEdgeJkm "[Virtual Keys]" $lEdgeVirtualKeys
+                writeLog "    added $($lEdgeVirtualKeys.Count) key(s) to [Virtual Keys] in $sEdgeBase.jkm"
+                writeLog "      these work only while Edge has focus, and nowhere else"
             }
 
             # What is in the file now, not what was written to it.

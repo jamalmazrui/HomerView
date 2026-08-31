@@ -7,36 +7,96 @@ so it says things plainly rather than simply.
 
 HomerView works with JAWS and NVDA. The two are meant to do the same things,
 and `checkParity.cmd` measures how far that is true rather than asserting it:
-**78 of 92 commands covered, 14 gaps.** Run it after adding a command to either
+**80 of 94 commands covered, 14 gaps.** Run it after adding a command to either
 side.
 
 The JAWS side has just been through a significant change, described next.
 
-## The change that matters most: Edge-scoped keys
+## The change that matters most: no default scripts at all
 
-HomerView's keys used to live in `default.jkm`'s `[Virtual Keys]`. JAWS applies
-that section **wherever a virtual cursor is active**, which is not only a
-browser: an Outlook message, a Word document and a PDF all get one. Control+O
-in Outlook was running HomerView's Open Document.
+HomerView's keys used to live in `default.jkm`'s `[Virtual Keys]`, reached
+through `MyExtensions`, with a user `default.jss` sometimes rewritten so the
+chain would get there. JAWS applies `[Virtual Keys]` **wherever a virtual
+cursor is active**, which is not only a browser: an Outlook message, a Word
+document and a PDF all get one. Control+O in Outlook was running HomerView's
+Open Document.
 
-They now live in **Edge's own key map**, written per settings folder by
-`chainJawsScripts.ps1`:
+**Nothing outside the browser is touched now.** `chainJawsScripts.ps1` writes
+two files per settings folder and no others:
 
-- 39 keys go into `msedge.jkm`, where they exist only while Edge has focus.
-- 9 keys carrying the JAWS modifier stay in `default.jkm`, because a key with
-  JAWSKey in it cannot collide with an application's own command.
-- A user `msedge.jss` is written that `Use`s the factory Edge binary first and
-  `HomerView.jsb` second. The scripting documentation calls this **layering**:
-  anything not overridden is inherited. JAWS ships no Edge scripts today, so
-  there is nothing to inherit yet, but the code is ready if that changes.
+- `<browser>.jss`, which `Use`s the factory browser binary first when JAWS
+  ships one, then `HomerView.jsb`. The documentation calls this **layering**:
+  anything not overridden is inherited.
+- `<browser>.jkm`, with the 9 keys that must work in the address bar and in
+  forms mode in `[Common Keys]` and the 39 page keys in `[Virtual Keys]`.
+  Both sections are inside the browser's own file, so both are scoped to it.
 
-The installer detects an older install by its `homerViewChain.manifest`, names
-the JAWS versions, and offers OK or Cancel. Cancel stops Setup before a file is
-copied, because **the two approaches must never both be installed** — every key
-would have two bindings and no way to tell which answered.
+No user `default.jss`, no user `default.jkm`, no `MyExtensions`.
+`chainThroughUserDefault` is a documented no-op; `reportUserDefault` still
+runs, because reading is not changing. Every run reads the user `default.jkm`
+and says either that it names nothing of HomerView's or how many lines an
+older release left there — the claim is checked, not asserted.
 
-`hVInPageContext` and `hVPassKeyOn` remain in the scripts as belt and braces.
-They are no longer the mechanism.
+**The one key that cannot be scoped** is starting the browser when it is not
+running. That is a Windows shortcut key, `Alt+Control+H`, on a desktop
+shortcut the installer creates with `HotKey: "ctrl+alt+h"`. It runs
+`HomerView.exe launch`, which reconnects and raises the window, asks for a
+window if the process is alive without one, or starts the browser. No screen
+reader is involved, which is why one shortcut serves JAWS and NVDA alike.
+
+Windows only honours a shortcut key on a `.lnk` on the desktop or in the Start
+menu, so that shortcut is not optional, and the Start menu entries carry no
+`HotKey` — the same key on two shortcuts is a conflict, not a fallback. If
+Alt+Control+H is silent, something else has registered it as a global hotkey
+and wins.
+
+`HomerView.exe` is now built `/target:winexe` so the shortcut does not flash a
+console. Nothing is lost: every answer is written to a file. PowerShell does
+not wait for a windows program, so the build's smoke test uses
+`Start-Process -Wait`.
+
+## Any Chromium browser
+
+Which browser comes from `HomerView.inix` under `%APPDATA%`, as `browser` and
+`browserPath` in `[Preferences]`, or from `-sBrowserExe`. Edge when nothing is
+chosen, which is what every earlier installation used.
+
+Browsers are found by asking Windows three ways: App Paths under both hives,
+the **enumerable** `StartMenuInternet` key, and the usual folders. The real
+test is not a name: `canBeDriven` starts a candidate on a throwaway profile
+and watches for a `DevToolsActivePort` file, which answers the question for
+that machine rather than in general.
+
+Changing the browser rewrites the JAWS key maps, because JAWS names a script
+set after the executable. The manifest records `browser|<name>`, and a
+different one is cleared before the new one is written — two browsers each
+claiming Control+O is worse than either.
+
+**The browser table is written twice**, in `browsers.py` for NVDA and in
+`HomerView.cs` for JAWS, because the JAWS side has no Python and the add-on
+must not depend on the program being installed beside it. Check 17 compares
+them, which is the standing rule: where two languages agree by convention
+rather than by compilation, write the check.
+
+## NVDA: no global keys either
+
+Every global command is browser scoped, and the set is **derived from the
+command table** rather than typed out, because a hand list drifts and a
+command added to one and not the other is a key that fires in Word.
+
+Scoping rather than not binding at all, deliberately. NVDA offers two ways:
+bind on the browse mode class, or bind globally and refuse the key elsewhere.
+The first is wrong here — browse mode bindings do not fire in forms mode or
+the address bar, and these are exactly the commands that must. Refusing
+instead gives the scope wanted in every cursor mode, and NVDA passes the key
+on, which is what the JAWS side gets from an application key map.
+
+NVDA does not need to have started the browser. `attach()` finds it through
+the port file and a local socket, and `refreshProcessIds()` gets the identity
+from the protocol. `_attachToBrowserStartedElsewhere` notices on a focus
+change, gated behind four cheap tests and the port file's modified time, and
+deliberately not in the identity test, which runs for every object NVDA
+creates and must stay an integer set lookup.
 
 ## What is not finished
 
@@ -51,9 +111,11 @@ They are no longer the mechanism.
   `README.htm` — are written into `%LOCALAPPDATA%\HomerView` by the NVDA side's
   `copyDocuments`. They duplicate the installed copies and appear to serve no
   purpose. Worth removing, on its own rather than beside another change.
-- **A known asymmetry.** On JAWS the page-context guard asks "is this a
-  browser"; on NVDA it asks "is this HomerView's own browser", by process. The
-  NVDA test is stricter and probably right.
+- **A known asymmetry, now narrower.** On JAWS the page-context guard asks "is
+  this a browser"; on NVDA it asks "is this HomerView's own browser", by
+  process. The NVDA test is stricter and probably right. With the keys scoped
+  to the browser on both sides the guard rarely fires at all, so this matters
+  less than it did, but it is still an asymmetry.
 
 ## How to work on it
 
@@ -62,7 +124,7 @@ for `git add -A`, commit, push, `tagRelease`. Its five steps compile the JAWS
 scripts against every installed JAWS version, parse the PowerShell the
 installer will run, build the bridge and the add-on, and compile the installer.
 
-`checkHomerViewQuality.cmd` runs the fifteen checks. They exist because each one
+`checkHomerViewQuality.cmd` runs the seventeen checks. They exist because each one
 caught something real, and several would have caught faults that reached a
 tester. The ones worth knowing:
 

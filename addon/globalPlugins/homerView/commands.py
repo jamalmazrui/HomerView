@@ -104,6 +104,16 @@ lCommands = [
     ("openLog", "Session Log", ["kb:alt+control+f1"],
      "Open a copy of this session's log, for working out what went wrong."),
 
+    # --- Changing how HomerView behaves ----------------------------------
+    ("chooseBrowser", "Choose Browser", ["kb:alt+shift+b"],
+     "Choose which Chromium browser HomerView drives, from the ones installed "
+     "here. B for Browser, and Alt+Shift with a letter is where the settings "
+     "commands live because they are used once and then not again for months."),
+    ("openSettings", "HomerView Settings", ["kb:alt+shift+s"],
+     "Open the settings file, HomerView.inix, in a text editor. Everything the "
+     "settings panel changes is in it, and a comment beside each value says what "
+     "it does."),
+
     # --- Moving through a page -------------------------------------------
     ("moveToMainContent", "Jump to Main", ["kb:j", "kb:NVDA+alt+j"],
      "Jumps to the main content the page declares. J for Jump, and it is one of "
@@ -380,6 +390,8 @@ lGroups = [
     ("Adjusting the voice", [
         "speakFaster", "speakSlower", "speakLouder", "speakSofter",
         "togglePunctuation", "reportSpeechSettings"]),
+    ("Changing how HomerView behaves", [
+        "chooseBrowser", "openSettings"]),
     ("Now and then", [
         "elevateVersion", "recentPages", "reportConnection", "selfTest"]),
 ]
@@ -414,10 +426,25 @@ def byScript():
             "keys": list(lKeys),
             "name": sName,
         }
-    for sScript, sName, sDescription in lFolded:
+    # BOTH SHAPES, BECAUSE THE TABLE HOLDS BOTH. lFolded was meant for
+    # commands with no key of their own, three fields to a row -- and two
+    # rows have since acquired a key and a fourth field. Unpacking three
+    # raised ValueError on the fourth, which broke makeDocs outright and,
+    # worse, would have been swallowed anywhere the call sits inside a try.
+    #
+    # Reading the row by its length accepts what is actually there. The
+    # alternative, moving those two rows back to lCommands, is a change to
+    # what the table means that would have to be made again the next time
+    # somebody adds a key to a folded command.
+    for oRow in lFolded:
+        if len(oRow) == 4:
+            sScript, sName, lKeys, sDescription = oRow
+        else:
+            sScript, sName, sDescription = oRow
+            lKeys = []
         dByScript[sScript] = {
             "description": sDescription,
-            "keys": [],
+            "keys": list(lKeys),
             "name": sName,
         }
     return dByScript

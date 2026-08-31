@@ -7,6 +7,45 @@ What changed, newest first, written the way you would tell somebody rather than
 as a list of commit messages. The reasoning behind each change is in the code,
 where it belongs. This is the short version.
 
+## Every key now belongs to the browser
+
+HomerView no longer changes any of your screen reader's own settings.
+
+On JAWS it used to add keys to the default key map and add a line to the
+default script chain. Keys in the default key map work wherever a virtual
+cursor is active, which is not only a web browser: an Outlook message, a Word
+document and a PDF all have one. Control+O in an Outlook message was opening a
+document in HomerView.
+
+Now every key lives in the browser's own key map and script file, so the keys
+do not exist in any other program. On NVDA every command does nothing outside
+the HomerView browser and the key is passed on to whatever you are using.
+
+**Alt+Control+H starts HomerView from anywhere.** That is a Windows shortcut
+key on the HomerView icon the installer puts on your desktop, so it works
+whichever screen reader you use, and whether or not one is running. Press it
+and HomerView opens, or comes back to the window you already had. If it does
+nothing, another program has taken that key; you can change it in the
+shortcut's properties.
+
+## HomerView works with any Chromium browser
+
+Edge, Chrome, Brave, Vivaldi and others built on Chromium all work, because
+HomerView talks to a browser in a language they all speak.
+
+**Choose Browser, on Alt+Shift+B**, lists the browsers on your computer and
+lets you pick one. If you are not sure a browser will work, the Test button
+starts it, checks, and closes it again, which takes a few seconds and gives a
+real answer rather than a guess.
+
+**HomerView Settings, on Alt+Shift+S**, opens the settings file, where the
+choice is kept along with every other preference. Each value has a comment
+beside it saying what it does.
+
+Changing the browser also moves the JAWS keys into the new browser and takes
+them out of the old one. Close the browser window, press Alt+Control+H, and
+restart JAWS.
+
 ## Version 1.48.5 — 15 August 2026
 
 ### List Names

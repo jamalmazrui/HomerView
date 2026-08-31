@@ -43,10 +43,23 @@ version and when it was installed.
 Throughout this file, JAWS and NVDA name each screen reader's own modifier
 key, which may be Insert or Caps Lock, whichever you have set.
 
-**Alt+JAWS+H** (JAWS) or **Alt+NVDA+H** (NVDA) opens a HomerView window of
-Microsoft Edge on a start page. It is a separate browser profile, so your
-ordinary browsing is untouched. The same key later reconnects rather than
-opening a second window.
+**Alt+Control+H** opens a HomerView browser window on a start page. It is a
+separate browser profile, so your ordinary browsing is untouched. The same key
+later brings you back to that window rather than opening a second one.
+
+That key is on the HomerView icon the installer puts on your desktop, so it
+works whichever screen reader you use, and whether or not one is running. If
+it does nothing, another program has taken the key; open the icon's properties
+and set a different one.
+
+Every other HomerView key works while the HomerView browser is in front, and
+does nothing anywhere else. That is on purpose. HomerView does not change any
+of your screen reader's own settings, so no key of ours can appear where you
+did not expect it.
+
+HomerView uses Microsoft Edge unless you tell it otherwise. **Alt+Shift+B**
+lists the browsers on your computer and lets you pick another. Chrome, Brave
+and Vivaldi all work.
 
 ### The one key to remember
 

@@ -35,6 +35,7 @@
 // The output file is UTF-8 with a byte order mark and Windows line breaks, so
 // the file reading on the JAWS side gets what it expects.
 
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -387,14 +388,37 @@ namespace Homer
         [STAThread]
         private static int Main(string[] lArguments)
         {
-            if (lArguments.Length < 2)
+            if (lArguments.Length < 1)
             {
-                Console.Error.WriteLine("Usage: HomerView <command> <outputFile> [argument]");
+                Console.Error.WriteLine("Usage: HomerView <command> [outputFile] [argument]");
                 return 2;
             }
 
             string sCommand = lArguments[0].ToLowerInvariant();
-            string sOutputFile = lArguments[1];
+
+            // THE ANSWER FILE IS OPTIONAL NOW, BECAUSE OF THE DESKTOP
+            // SHORTCUT. The JAWS scripts always pass one: they run this
+            // program and then read what it wrote, so the path has to be
+            // theirs. The shortcut passes nothing but "launch", because a
+            // .lnk cannot usefully name a file nobody will read.
+            //
+            // A DEFAULT RATHER THAN A REFUSAL, and it goes beside the logs
+            // rather than in the temp folder. The answer to a launch is
+            // worth finding when the launch did not appear to work, and a
+            // folder Windows may clear at any moment is not where to look.
+            string sOutputFile;
+            if (lArguments.Length > 1)
+            {
+                sOutputFile = lArguments[1];
+            }
+            else
+            {
+                string sLogFolder = Path.Combine(
+                    Directory.GetParent(ProfileFolder()).FullName, "logs");
+                try { Directory.CreateDirectory(sLogFolder); }
+                catch (Exception) { }
+                sOutputFile = Path.Combine(sLogFolder, "HomerViewShortcut.json");
+            }
             string sArgument = lArguments.Length > 2 ? lArguments[2] : "";
 
             // Written once, and only when this process started the file, so a
@@ -427,6 +451,11 @@ namespace Homer
                     && sCommand != "clipboardadd" && sCommand != "pagefolder"
                     && sCommand != "openpage" && sCommand != "savedialog"
                     && sCommand != "opendialog"
+                    // Choosing a browser is exactly what somebody does when
+                    // no browser will start, so refusing these for want of
+                    // one would refuse the cure along with the symptom.
+                    && sCommand != "browsers" && sCommand != "setbrowser"
+                    && sCommand != "settingsfile"
                     && !ReadPort())
                 {
                     Log("  no port file, so the browser is not running");
@@ -544,6 +573,15 @@ namespace Homer
                         break;
                     case "pagefolder":
                         sResult = "{\"value\":" + Quote(PageFolder(sArgument)) + "}";
+                        break;
+                    case "browsers":
+                        sResult = "{\"value\":" + Quote(BrowserList()) + "}";
+                        break;
+                    case "setbrowser":
+                        sResult = "{\"value\":" + Quote(SetBrowser(sArgument)) + "}";
+                        break;
+                    case "settingsfile":
+                        sResult = "{\"value\":" + Quote(SettingsFilePath()) + "}";
                         break;
                     case "clipboardadd":
                         sResult = ClipboardAdd(sArgument);
@@ -1222,6 +1260,249 @@ namespace Homer
         /// now replaces ITS OWN files by name, which is what "replaced with the
         /// new content" has to mean once the folder is shared.
         /// </summary>
+        // --- Which browser HomerView drives ---------------------------------
+
+        /// <summary>
+        /// The browsers installed here, one to a line: name, tab, path.
+        ///
+        /// THIS TABLE IS DUPLICATED IN browsers.py, and the duplication is
+        /// deliberate rather than careless. The JAWS side has no Python, and
+        /// the NVDA add-on must not depend on this program being installed
+        /// beside it, since it can be installed on its own from the .nvda-addon
+        /// file. So each side finds browsers for itself.
+        ///
+        /// Two copies of a list is exactly the shape that drifts, and neither
+        /// compiler can see the other, so checkHomerViewQuality compares them.
+        /// That is the standing rule in this project: where two languages
+        /// agree on something by convention rather than by compilation, write
+        /// the check.
+        ///
+        /// Windows is asked three ways, in order of how much it knows. App
+        /// Paths is where a program records where it lives. StartMenuInternet
+        /// is where a browser records that it is a browser, and it is
+        /// ENUMERABLE, so it finds browsers this table has never heard of.
+        /// The usual folders are the last resort.
+        ///
+        /// NEWLINE SEPARATED, WITH A TAB INSIDE THE LINE, for the reason the
+        /// tab lists learned the hard way: a control character is illegal in
+        /// XML and a vertical bar appears in real titles and paths. A newline
+        /// is one of the three control characters XML allows and cannot occur
+        /// in a Windows path.
+        /// </summary>
+        private static string[,] KnownBrowsers()
+        {
+            return new string[,]
+            {
+                { "Microsoft Edge", "msedge.exe", "Microsoft\\Edge\\Application" },
+                { "Google Chrome", "chrome.exe", "Google\\Chrome\\Application" },
+                { "Brave", "brave.exe", "BraveSoftware\\Brave-Browser\\Application" },
+                { "Vivaldi", "vivaldi.exe", "Vivaldi\\Application" },
+                { "Opera", "opera.exe", "Opera" },
+                { "Chromium", "chrome.exe", "Chromium\\Application" },
+            };
+        }
+
+        private static string AppPathsExecutable(string sExe)
+        {
+            string sKey = @"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\" + sExe;
+            foreach (RegistryKey hive in new RegistryKey[]
+                     { Registry.CurrentUser, Registry.LocalMachine })
+            {
+                try
+                {
+                    using (RegistryKey key = hive.OpenSubKey(sKey))
+                    {
+                        if (key == null) continue;
+                        string sPath = (key.GetValue("") as string ?? "").Trim('"');
+                        if (sPath != "" && File.Exists(sPath)) return sPath;
+                    }
+                }
+                catch (Exception) { }
+            }
+            return "";
+        }
+
+        private static string FolderExecutable(string sExe, string sFolder)
+        {
+            foreach (string sVariable in new string[]
+                     { "PROGRAMFILES", "PROGRAMFILES(X86)", "LOCALAPPDATA" })
+            {
+                string sRoot = Environment.GetEnvironmentVariable(sVariable);
+                if (string.IsNullOrEmpty(sRoot)) continue;
+                string sTry = Path.Combine(Path.Combine(sRoot, sFolder), sExe);
+                if (File.Exists(sTry)) return sTry;
+            }
+            return "";
+        }
+
+        private static string BrowserList()
+        {
+            var lLines = new List<string>();
+            var setSeen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            string[,] lKnown = KnownBrowsers();
+            for (int iRow = 0; iRow < lKnown.GetLength(0); iRow++)
+            {
+                string sName = lKnown[iRow, 0];
+                string sExe = lKnown[iRow, 1];
+                string sFolder = lKnown[iRow, 2];
+                foreach (string sPath in new string[]
+                         { AppPathsExecutable(sExe), FolderExecutable(sExe, sFolder) })
+                {
+                    if (sPath == "" || setSeen.Contains(sPath)) continue;
+                    setSeen.Add(sPath);
+                    lLines.Add(sName + "\t" + sPath);
+                }
+            }
+            // Anything Windows calls a browser and this table does not know.
+            foreach (RegistryKey hive in new RegistryKey[]
+                     { Registry.LocalMachine, Registry.CurrentUser })
+            {
+                try
+                {
+                    using (RegistryKey keyRoot =
+                           hive.OpenSubKey(@"SOFTWARE\Clients\StartMenuInternet"))
+                    {
+                        if (keyRoot == null) continue;
+                        foreach (string sClient in keyRoot.GetSubKeyNames())
+                        {
+                            using (RegistryKey keyCommand =
+                                   keyRoot.OpenSubKey(sClient + @"\shell\open\command"))
+                            {
+                                if (keyCommand == null) continue;
+                                string sCommand = (keyCommand.GetValue("") as string ?? "").Trim();
+                                string sPath = sCommand.StartsWith("\"")
+                                    ? sCommand.Substring(1).Split('"')[0]
+                                    : sCommand.Split(' ')[0];
+                                if (sPath == "" || !File.Exists(sPath)) continue;
+                                if (setSeen.Contains(sPath)) continue;
+                                setSeen.Add(sPath);
+                                lLines.Add(sClient + "\t" + sPath);
+                            }
+                        }
+                    }
+                }
+                catch (Exception) { }
+            }
+            Log("  " + lLines.Count + " browser(s) found");
+            return string.Join("\n", lLines.ToArray());
+        }
+
+        /// <summary>
+        /// Where the browser choice is kept, which is the file the add-on
+        /// writes. One store, so the two halves cannot disagree about which
+        /// browser is in use.
+        /// </summary>
+        private static string SettingsFilePath()
+        {
+            string sFolder = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "HomerView");
+            try { Directory.CreateDirectory(sFolder); }
+            catch (Exception) { }
+            return Path.Combine(sFolder, "HomerView.inix");
+        }
+
+        /// <summary>
+        /// Record the chosen browser, then bind the JAWS keys inside it.
+        ///
+        /// The value arrives as the name, a tab, and the path, which is a line
+        /// straight out of BrowserList, so the caller never has to take one
+        /// apart and put it back together.
+        ///
+        /// EDITED IN PLACE RATHER THAN REWRITTEN. Somebody may have edited
+        /// this file by hand, and inix keeps comments, blank lines and
+        /// ordering precisely so a file a person has worked on comes back as
+        /// they left it. Two values are changed and nothing else moves.
+        /// </summary>
+        private static string SetBrowser(string sValue)
+        {
+            string[] lParts = sValue.Split('\t');
+            if (lParts.Length < 2 || lParts[1].Trim() == "")
+                return "No browser was given.";
+            string sName = lParts[0].Trim();
+            string sPath = lParts[1].Trim();
+            if (!File.Exists(sPath))
+                return "There is no program at " + sPath + ".";
+
+            string sFile = SettingsFilePath();
+            var lLines = new List<string>();
+            if (File.Exists(sFile))
+                lLines.AddRange(File.ReadAllLines(sFile));
+            else
+                lLines.Add("[Preferences]");
+            bool bName = false, bPath = false;
+            for (int i = 0; i < lLines.Count; i++)
+            {
+                string sTrimmed = lLines[i].TrimStart();
+                if (sTrimmed.StartsWith("browser=", StringComparison.OrdinalIgnoreCase))
+                {
+                    lLines[i] = "browser=" + sName;
+                    bName = true;
+                }
+                else if (sTrimmed.StartsWith("browserPath=", StringComparison.OrdinalIgnoreCase))
+                {
+                    lLines[i] = "browserPath=" + sPath;
+                    bPath = true;
+                }
+            }
+            if (!bName || !bPath)
+            {
+                // Under [Preferences] if there is one, because a value written
+                // above the first section heading belongs to the implicit
+                // Global section and would not be found where it is looked for.
+                int iWhere = lLines.Count;
+                for (int i = 0; i < lLines.Count; i++)
+                {
+                    if (lLines[i].Trim().Equals("[Preferences]", StringComparison.OrdinalIgnoreCase))
+                    {
+                        iWhere = i + 1;
+                        break;
+                    }
+                }
+                var lAdded = new List<string>();
+                if (!bName) lAdded.Add("browser=" + sName);
+                if (!bPath) lAdded.Add("browserPath=" + sPath);
+                lLines.InsertRange(iWhere, lAdded);
+            }
+            File.WriteAllLines(sFile, lLines.ToArray(), new UTF8Encoding(true));
+            Log("  the browser is now " + sName + " at " + sPath);
+
+            // AND THE KEYS HAVE TO MOVE WITH IT. JAWS names an application
+            // script set after the executable, so the keys HomerView binds
+            // live in a file called after whichever browser was chosen. Change
+            // the browser and the new one has no HomerView keys while the old
+            // one still has all of them. chainJawsScripts does the whole of
+            // it, including removing the previous browser's files.
+            string sChain = Path.Combine(
+                Path.GetDirectoryName(
+                    System.Reflection.Assembly.GetExecutingAssembly().Location),
+                "chainJawsScripts.cmd");
+            if (!File.Exists(sChain))
+            {
+                Log("  chainJawsScripts is not installed, so no JAWS key was rebound");
+                return sName + " will be used. Close the browser and press Alt+Control+H.";
+            }
+            try
+            {
+                var oStart = new ProcessStartInfo(sChain,
+                    "-sBrowserExe " + Quote(Path.GetFileName(sPath)));
+                oStart.UseShellExecute = false;
+                oStart.CreateNoWindow = true;
+                using (Process process = Process.Start(oStart))
+                {
+                    process.WaitForExit(180000);
+                    Log("  chainJawsScripts finished with exit code " + process.ExitCode);
+                }
+            }
+            catch (Exception exception)
+            {
+                Log("  chainJawsScripts could not be run: " + exception.Message);
+                return sName + " will be used, but the JAWS keys could not be rebound.";
+            }
+            return sName + " will be used. Close the browser, press Alt+Control+H, "
+                 + "and restart JAWS so its keys move to the new browser.";
+        }
+
         private static string PageFolder(string sPageTitle)
         {
             string sFolder = Path.Combine(DownloadsFolder(), SafeStem(sPageTitle));

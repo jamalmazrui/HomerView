@@ -66,7 +66,10 @@ if (Test-Path $pathOutput) {
     writeLog "Removed the previous $pathOutput"
 }
 
-$lArguments = @("/nologo", "/target:exe", "/platform:x64",
+# winexe rather than exe, so the desktop shortcut that carries Alt+Control+H
+# does not put a console window on the screen. Every answer is written to a
+# file, so nothing is lost by having no console.
+$lArguments = @("/nologo", "/target:winexe", "/platform:x64",
     "/out:$pathOutput", $pathSource)
 writeLog "Running: csc.exe $($lArguments -join ' ')"
 $sOutput = & $pathCompiler @lArguments 2>&1 | Out-String

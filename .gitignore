@@ -46,17 +46,11 @@ desktop.ini
 *~
 *.bak
 
-# Untracked by tidyRepo: development files that reached the
-# repository through git add -A. They are still on disk.
-Announce.docx
-HomerView.html
-HomerView.jkm
-HomerView.jsd
-HomerView.jss
-HomerViewGlobal.jkm
-Hotkeys.ini
-Plan.md
-build/HomerView.nvda-addon
-cleanDir.ps1
-installer/license.txt
-temp.txt
+# A NOTE ON SHAPE, learned on 31 August 2026. A pattern with no slash in it
+# matches AT EVERY LEVEL, not only at the top. tidyRepo appended twelve bare
+# names here after a run, three of which were HomerView.jss, HomerView.jkm and
+# HomerView.jsd -- the stale root copies. Those three names also match
+# jaws/HomerView.jss, .jkm and .jsd, which are the live script set. They were
+# already tracked, so nothing broke, but an untracked one would have gone
+# missing silently. Write a leading slash when a name means the top of the
+# project: /HomerView.jss, not HomerView.jss.

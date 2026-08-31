@@ -1,47 +1,53 @@
-﻿# chainJawsScripts.ps1 -- make the installed HomerView scripts reachable
+﻿# chainJawsScripts.ps1 -- bind HomerView's keys inside the browser, and
+# nowhere else.
 #
-# Compiling HomerView.jsb into the JAWS settings folder does not make JAWS run
+# Compiling HomerView.jsb into a JAWS settings folder does not make JAWS run
 # it. JAWS loads the script file NAMED AFTER THE EXECUTABLE, plus the default
-# file, and nothing else. Nothing on this machine is called HomerView.exe, so
-# HomerView.jsb has been sitting there being loaded by nobody. That is why
-# Alt+JAWSKey+H did nothing, and why the other five would have done nothing
-# either.
+# file, and nothing else. Nothing on the machine is called HomerView.exe, so
+# HomerView.jsb sat there being loaded by nobody.
 #
-# There are two halves to fixing it, and this does both.
+# WHAT THIS WRITES, AND IT IS THE WHOLE LIST: two files named after the
+# browser, in the user settings folder.
 #
-# THE SCRIPTS. Freedom Scientific's own extension point for adding scripts
-# globally is MyExtensions: the default script file calls down to
-# MyExtensions.jsb, so a MyExtensions.jss in the USER settings folder that says
-# Use "HomerView.jsb" makes every HomerView script available everywhere,
-# without a user copy of default.jss existing at all. That last part matters. A
-# user default.jss shadows the factory one, which is JAWS's entire interface to
-# Windows, and getting it wrong is the failure that needs Narrator started to
-# recover from. MyExtensions asks for none of that risk. The one rule is that
-# names must be unique, because the default scripts do not call down to
-# MyExtensions for a name they already have.
+#   <browser>.jss   Uses the factory browser scripts first, when JAWS ships
+#                   any, then HomerView.jsb. The documentation calls this
+#                   LAYERING: anything not overridden is inherited, so
+#                   everything Vispero provides still works.
+#   <browser>.jkm   [Common Keys] for the nine that must work in the address
+#                   bar and in forms mode, [Virtual Keys] for the thirty-nine
+#                   that act on a page. Both sections are inside the browser's
+#                   own file, so both are scoped to the browser.
 #
-# THE KEYS. Key maps are plain text and are layered, application over default.
-# The supported way to add a default binding is a user copy of default.jkm, and
-# the important word is COPY: this takes the factory file first and adds to it,
-# so nothing is lost whether JAWS merges the two or uses only ours. Freedom
-# Scientific's own instructions for changing a modifier key say to do exactly
-# that. Creating a user default.jkm that holds only our line is the thing to
-# avoid, and it is what this project rightly refused to do before.
+# NOTHING OUTSIDE THE BROWSER IS TOUCHED. No user default.jss, no user
+# default.jkm, no MyExtensions. That is a change from every release before
+# this one, and it is worth saying why each of those went.
 #
-# ALMOST everything goes in default.jkm. [Virtual Keys] there scopes a command
-# to "while the virtual cursor is active", which is the right scope for reading
-# a page, and only launching sits in [Common Keys], because before HomerView
-# runs there is no browser to be in.
+#   default.jkm held nine keys, and [Virtual Keys] there applies WHEREVER A
+#   VIRTUAL CURSOR IS ACTIVE -- an Outlook message, a Word document and a PDF
+#   all get one. Control+O in Outlook was running HomerView's Open Document.
 #
-# THE ONE EXCEPTION IS msedge.jkm, and it is not a shortcut either. A command
-# like Open Document should work whenever the BROWSER is in front -- address
-# bar, form field, focus mode -- which is a scope [Virtual Keys] cannot express
-# and [Common Keys] over-expresses, since that would take Control+O from every
-# application on the machine. An application key map says exactly the intended
-# thing: this key, in this program, in any cursor mode.
+#   MyExtensions was how the scripts were reached globally, which they no
+#   longer need to be, since the browser's own script file Uses HomerView.jsb
+#   directly.
 #
-# Everything it changes is backed up first, everything it does is recorded in a
-# manifest beside the scripts, and -bUndo puts it all back.
+#   default.jss was read and sometimes rewritten so the chain would reach
+#   MyExtensions. That file is JAWS's entire interface to Windows, and getting
+#   it wrong is the failure that needs Narrator started to recover from.
+#
+# THE ONE KEY THAT CANNOT BE SCOPED TO THE BROWSER is the one that starts it.
+# That is a Windows shortcut key, Alt+Control+H, set on a desktop shortcut by
+# the installer. It runs HomerView.exe, which reconnects and raises the window
+# or starts the browser, so it involves no screen reader at all -- which is
+# why the same shortcut serves JAWS and NVDA.
+#
+# ANY CHROMIUM BROWSER, not only Edge. Which one comes from HomerView.inix, or
+# from -sBrowserExe, and JAWS's own ConfigNames.ini says what its script set
+# is called. Changing the setting clears the previous browser's files before
+# writing the new ones, because two browsers each claiming Control+O is worse
+# than either.
+#
+# Everything it changes is backed up first, everything it does is recorded in
+# a manifest beside the scripts, and -bUndo puts it all back.
 #
 # Writes chainJawsScripts.log beside itself.
 
@@ -49,7 +55,17 @@ param(
     [switch] $bUndo,
     # Handed over by installJawsScripts so both write to the same file. Run by
     # hand it picks its own, named the same way.
-    [string] $pathLogFile = ""
+    [string] $pathLogFile = "",
+    # WHICH BROWSER THE KEYS ARE BOUND IN, as the executable file name --
+    # msedge.exe, chrome.exe, brave.exe, vivaldi.exe. Left empty it is read
+    # from HomerView.inix, and failing that it is Edge, which is what every
+    # installation before this one used.
+    #
+    # It is a parameter as well as a setting because changing the browser has
+    # to rewrite the key maps, and the settings command needs to name the
+    # browser it is rewriting them for rather than depend on the file it has
+    # just written being read back correctly.
+    [string] $sBrowserExe = ""
 )
 
 $ErrorActionPreference = "Continue"
@@ -66,6 +82,43 @@ try { New-Item -ItemType Directory -Force -Path (Split-Path $pathLog) | Out-Null
 # The comment that marks our own lines in somebody else's file. Anything
 # between this and the end of our block is ours to remove and nothing else is.
 $c_sMarker = "; Added by HomerView"
+
+
+# THE ONE PLACE THE BROWSER IS DECIDED, and it is a file both sides read.
+#
+# HomerView.inix in the roaming application data folder is where the add-on
+# keeps preferences, so the setting lives there rather than in a second store
+# of this script's own. A second store is how two halves of one program come
+# to disagree about which browser they are driving.
+#
+# The value wanted is browserPath, a full path to the executable, because that
+# is what actually launches. The executable's file name is derived from it,
+# because that is what JAWS names a script set after. Deriving one from the
+# other means they cannot disagree either.
+function chosenBrowserExe {
+    param([string] $sGiven)
+
+    if ($sGiven) {
+        writeLog "  browser: $sGiven, given on the command line"
+        return [System.IO.Path]::GetFileName($sGiven)
+    }
+    $pathInix = Join-Path $env:APPDATA "HomerView\HomerView.inix"
+    if (Test-Path $pathInix) {
+        foreach ($sLine in (Get-Content $pathInix -ErrorAction SilentlyContinue)) {
+            if ($sLine -match '^\s*browserPath\s*=\s*(.+?)\s*$') {
+                $sPath = $Matches[1]
+                if ($sPath) {
+                    writeLog "  browser: $sPath, from HomerView.inix"
+                    return [System.IO.Path]::GetFileName($sPath)
+                }
+            }
+        }
+        writeLog "  HomerView.inix is here but names no browser, so Edge is assumed"
+    } else {
+        writeLog "  no HomerView.inix yet, so Edge is assumed"
+    }
+    return "msedge.exe"
+}
 
 function writeLog {
     param([string] $sMessage)
@@ -271,7 +324,9 @@ $lCommonKeys = @(
     "Alt+JAWSKey+F10=hVShowHomerViewMenu",
     "Alt+JAWSKey+H=hVLaunchHomerView",
     "Alt+JAWSKey+I=hVCheckAccessibilityIbm",
+    "Alt+Shift+B=hVChooseBrowser",
     "Alt+Shift+H=hVHotKeyHelp",
+    "Alt+Shift+S=hVOpenSettings",
     "Alt+JAWSKey+L=hVCopyLogToClipboard",
     "Alt+JAWSKey+Q=hVSayDiagnostics"
 )
@@ -304,131 +359,74 @@ $lCommonKeys = @(
 # the shared one; then any existing Edge key map in either folder; and only
 # then the name JAWS reported here, as a last resort.
 function browserConfigName {
-    param([string] $pathUser, [string] $pathShared)
+    param([string] $pathUser, [string] $pathShared, [string] $sExeBase)
+
+    # WHAT THE BROWSER'S SETTINGS ARE ACTUALLY CALLED, discovered rather than
+    # assumed. I assumed "msedge" once and was wrong, and the evidence was in
+    # this script's own log all along: it probed for msedge files and reported
+    # nothing, in either settings folder. A key map named msedge.jkm sits where
+    # JAWS never looks.
+    #
+    # JAWS+Q in the browser says what is going on:
+    #
+    #   "Microsoft Edge with Chromium settings are used in the msedge.dll
+    #    application. The configuration name is wikipedia."
+    #
+    # Two facts there. THE APPLICATION IS msedge.DLL, not the exe. And its
+    # settings alias is "Microsoft Edge with Chromium" -- the base name JAWS
+    # loads configuration files under. The rule, from Appendix D: take the
+    # executable name, look it up in ConfigNames.ini, and load every file
+    # beginning with the alias found there.
+    #
+    # ("wikipedia" is a third layer again: JAWS 17 and later load a DOMAIN
+    # script set named after the site. Nothing here uses that.)
+    #
+    # THE LAST RESORT IS THE EXECUTABLE NAME ITSELF, which is what JAWS uses
+    # when ConfigNames.ini has no entry -- so it is the documented answer
+    # rather than a guess. It is NOT default.jkm. Falling back to the default
+    # key map would put the keys in every program with a virtual cursor, which
+    # is the whole thing this design exists to stop; better a key map JAWS may
+    # not read than a key that fires in Outlook.
     foreach ($pathWhere in @($pathUser, $pathShared)) {
         if (-not $pathWhere) { continue }
         $pathIni = Join-Path $pathWhere "ConfigNames.ini"
         if (-not (Test-Path $pathIni)) { continue }
         foreach ($sLine in (Get-Content $pathIni)) {
-            if ($sLine -match '^\s*msedge\s*=\s*(.+?)\s*$') {
-                writeLog "    ConfigNames.ini in $pathWhere says msedge is '$($Matches[1])'"
+            if ($sLine -match "^\s*$([regex]::Escape($sExeBase))\s*=\s*(.+?)\s*$") {
+                writeLog "    ConfigNames.ini in $pathWhere says $sExeBase is '$($Matches[1])'"
                 return $Matches[1]
             }
         }
     }
     foreach ($pathWhere in @($pathUser, $pathShared)) {
         if (-not $pathWhere) { continue }
-        $oFound = Get-ChildItem -Path $pathWhere -Filter "*Edge*.jkm" -File -ErrorAction SilentlyContinue |
+        $oFound = Get-ChildItem -Path $pathWhere -Filter "*$sExeBase*.jkm" -File -ErrorAction SilentlyContinue |
             Select-Object -First 1
         if ($oFound) {
             $sName = [System.IO.Path]::GetFileNameWithoutExtension($oFound.Name)
-            writeLog "    found an existing Edge key map, so the settings name is '$sName'"
+            writeLog "    found an existing key map, so the settings name is '$sName'"
             return $sName
         }
     }
-    writeLog "    no Edge settings name could be discovered; using the name JAWS reported"
-    return "Microsoft Edge with Chromium"
+    writeLog "    ConfigNames.ini has no entry for $sExeBase, so JAWS uses the executable"
+    writeLog "    name itself and so do we: '$sExeBase'"
+    return $sExeBase
 }
 
 
-# KEYS SCOPED TO THE BROWSER, IN ANY CURSOR MODE.
+# THE PAGE KEYS, WHICH GO IN [Virtual Keys] OF THE BROWSER'S OWN KEY MAP.
 #
-# A key map has a section per cursor context, so [Virtual Keys] in default.jkm
-# means "only while the virtual cursor is active" -- which is NOT the same as
-# "while the browser is in front". Control+O in the address bar, in a form
-# field, or in focus mode fell through to whatever else wanted it, and once
-# fell all the way through to Adobe Reader.
+# Two lists, and the split is by WHEN THE KEY IS SAFE rather than by what the
+# command does. [Virtual Keys] applies only while the virtual cursor is
+# active, so a plain letter here cannot type itself into a form field or the
+# address bar. Shift+Q is taken at his decision: a page has one main region,
+# so the native meaning of Shift+Q, the PREVIOUS one, has nowhere to go.
 #
-# [Common Keys] in default.jkm would fix the mode and break the scope: JAWS
-# would intercept Control+O in EVERY application and have to hand it back by
-# hand, which is the global hotkey he explicitly does not want.
-#
-# WHICH COMMANDS BELONG HERE, AND WHICH STAY IN [Virtual Keys]:
-#
-#   A command that acts on the PAGE, the WINDOW or the PROGRAM belongs here.
-#   Saving the page, listing its names, downloading its files, opening a
-#   document or a guide, naming the tabs -- none of these depend on where the
-#   cursor is, and all of them are things to want while typing in a form or
-#   standing in the address bar.
-#
-#   A command that acts AT THE CURSOR stays in [Virtual Keys], because outside
-#   the virtual cursor there IS no cursor for it to act at. Start and Complete
-#   Selection, Copy Line, Link Target, Jump to Probable Main and the whole find
-#   family are meaningless in a form field, and Control+C especially must go on
-#   meaning copy there.
-#
-#   The clipboard family stays virtual too. It is not cursor-bound, but it
-#   belongs to the reading workflow, and an apostrophe combination is a poorer
-#   thing to intercept while somebody is typing.
-#
-# AN APPLICATION KEY MAP IS THE MECHANISM THAT MEANS WHAT HE ASKED FOR. Keys in
-# msedge.jkm apply when Edge is the active application and nowhere else, and
-# [Common Keys] WITHIN THAT FILE means every cursor mode within it. Word keeps
-# its own Control+O and never sees ours.
-$lBrowserKeys = @(
-    # EMPTY, AND NOW FOR A REASON I CAN CITE RATHER THAN GUESS.
-    #
-    # Freedom Scientific's own script manual, 3.2 Processing Keystrokes, gives
-    # the algorithm exactly:
-    #
-    #   JAWS first looks for the keystroke in the APPLICATION key map. If it
-    #   finds it there, it notes the script name and then looks for that
-    #   script IN THE APPLICATION SCRIPT FILE.
-    #
-    #   Only if the keystroke is NOT in the application key map does it search
-    #   the default key map -- and a script named there is looked for in the
-    #   application script file first, then in the default file.
-    #
-    # HomerView's scripts live in MyExtensions, which belongs to the DEFAULT
-    # chain, not to Edge's script file. So a key in Edge's key map names a
-    # script Edge's script file does not contain.
-    #
-    # AND 2.8 Keyboard Manager Options MAKES IT WORSE, WHICH IS WHY THIS IS
-    # EMPTY RATHER THAN LEFT AS A TEST: "If a keystroke is assigned in both the
-    # application and default key map files, ONLY THE APPLICATION KEYSTROKE IS
-    # ACTIVE. JAWS always acts on the first keystroke it finds and it looks in
-    # the application key map file first."
-    #
-    # So the fallback I thought I had was not one. Putting Control+O in Edge's
-    # map would have SHADOWED the working [Virtual Keys] binding and could have
-    # broken the one command he most wants, in the one mode where it works
-    # today.
-    #
-    # THE ROUTE THAT MAKES THIS WORK is to put HomerView's scripts INTO Edge's
-    # script set -- Doug Lee's .chain, or the Merge technique from his own
-    # HomerKit: a user copy of Edge's script file with Use "HomerView.jsb"
-    # added, recompiled. Then the application script file DOES contain
-    # hVOpenDocument and the application key map resolves. That is the next
-    # piece of work and it is worth doing carefully.
-)
-# Shift+Q IS taken, at his decision: a page has one main region, so the native
-# meaning of Shift+Q -- the PREVIOUS one -- has nowhere to go. Every letter is
-# already a navigation quick key, and Shift with a
-# quick key is reserved for the previous element of that kind.
-# The screen reader modifier is deliberately absent here, and present in the
-# common keys above. A command that only means anything on a web page can
-# afford the browser's own modifier; launching, the menu and the log have to
-# work when the browser has not started, or has started wrongly, which is
-# exactly when they are wanted.
-# Control+F1 is here rather than in the common keys, though the NVDA side has
-# it everywhere: Control+F1 collapses the ribbon in Office, and a guide is not
-# worth taking that. It is on the Alternate Menu, which works anywhere.
-# SPLIT BY WHERE THE KEY IS SAFE, NOT BY WHAT THE COMMAND DOES.
-#
-# [Virtual Keys] in default.jkm applies WHEREVER A VIRTUAL CURSOR IS ACTIVE,
-# and that is not only a browser: an Outlook message, a Word document and a PDF
-# all get one. Control+O in Outlook was running HomerView's Open Document.
-#
-# A key carrying JAWSKey cannot collide with an application's own command, so
-# those stay global and work anywhere. EVERYTHING ELSE MOVES INTO EDGE'S OWN
-# KEY MAP, where it simply does not exist elsewhere -- no guard, no pass
-# through, and no guessing what JAWS would otherwise have done with the key.
-$lVirtualKeys = @(
-
-)
-
-# The same keys, scoped to Edge by living in Edge's key map instead.
-$lEdgeVirtualKeys = @(
+# Both lists now live in the browser's key map, so both are scoped to the
+# browser. Two empty lists that used to sit here -- one for keys the
+# application key map could not resolve, one for keys still in default.jkm --
+# are gone with the approach that needed them.
+$lPageKeys = @(
     "Alt+Control+F1=hVOpenSessionLog",
     "Alt+F1=hVShowAbout",
     "Alt+M=hVSayMetadata",
@@ -474,6 +472,12 @@ $iDone = 0
 $iSkipped = 0
 $iFailed = 0
 
+# DECIDED ONCE, BEFORE THE LOOP, so every settings folder is set up for the
+# same browser. Reading the setting per folder would let a file changed while
+# this runs leave two JAWS versions pointing at different browsers.
+$sBrowserExe = chosenBrowserExe $sBrowserExe
+writeLog ""
+
 foreach ($folderVersion in $lVersions) {
     $sVersion = $folderVersion.Name
     writeLog "JAWS $sVersion"
@@ -514,7 +518,9 @@ foreach ($folderVersion in $lVersions) {
         # answers on its own the question of whether another script set has
         # been here first, and what the browser's files are really called.
         writeLog "  what is already in place:"
-        foreach ($sBase in @("default", "MyExtensions", "msedge", "Microsoft Edge with Chromium")) {
+        foreach ($sBase in @("default", "MyExtensions", "msedge",
+                             "Microsoft Edge with Chromium", "chrome",
+                             "Google Chrome", "brave", "vivaldi")) {
             foreach ($sWhere in @("user", "shared")) {
                 $pathWhere = if ($sWhere -eq "user") { $pathUser } else { $pathShared }
                 if (-not $pathWhere) { continue }
@@ -541,6 +547,10 @@ foreach ($folderVersion in $lVersions) {
                 if ($lParts.Count -lt 2) { continue }
                 $sAction = $lParts[0]
                 $sName = $lParts[1]
+                # A record of WHICH BROWSER this folder was set up for,
+                # not a file. It is read on the way in, to clear a
+                # previous browser when the setting has changed.
+                if ($sAction -eq "browser") { continue }
                 $pathFile = Join-Path $pathUser $sName
                 if ($sAction -eq "created") {
                     foreach ($sExtension in @("", ".jsb")) {
@@ -560,11 +570,17 @@ foreach ($folderVersion in $lVersions) {
                         $iOut = removeOurBlock $pathFile
                         writeLog "    took $iOut of our lines back out of $sName"
                     }
+                    # A SOURCE FILE PUT BACK IS STILL THE OLD BINARY UNTIL
+                    # IT IS COMPILED. Restoring somebody's .jss and leaving
+                    # our .jsb beside it would undo the file and not the
+                    # behaviour, which is the worse half to leave done.
+                    if ((Test-Path $pathFile) -and $sName -like "*.jss") {
+                        $null = compileFile $sCompiler $pathFile
+                    }
                 }
             }
-            # MyExtensions may have been edited rather than created, in which
-            # case what is now on disk is somebody else's and has to be built
-            # again.
+            # MyExtensions is not written any more, but an installation made
+            # by a release that did write it still has to be put back.
             $pathMine = Join-Path $pathUser "MyExtensions.jss"
             if (Test-Path $pathMine) { $null = compileFile $sCompiler $pathMine }
             Remove-Item $pathManifest -Force
@@ -590,292 +606,248 @@ foreach ($folderVersion in $lVersions) {
             continue
         }
 
-        # --- MyExtensions ------------------------------------------------
-        $pathMyJss = Join-Path $pathUser "MyExtensions.jss"
-        $pathMyJsb = Join-Path $pathUser "MyExtensions.jsb"
+        # --- THE BROWSER'S OWN SCRIPT SET AND KEY MAP ----------------------
+        #
+        # THIS IS THE WHOLE OF WHAT HOMERVIEW WRITES INTO A JAWS SETTINGS
+        # FOLDER, AND THAT IS THE POINT. Two files named after the browser,
+        # plus HomerView.jsb which the installer already put here. No user
+        # default.jss, no user default.jkm, no MyExtensions. HomerView changes
+        # no default script and no default key map, and that sentence is only
+        # worth writing down while it is exactly true.
+        #
+        # WHAT IT REPLACED, so the reason survives. The keys used to live in
+        # default.jkm: nine carrying the JAWS modifier in [Common Keys], and
+        # the rest in [Virtual Keys]. [Virtual Keys] there applies WHEREVER A
+        # VIRTUAL CURSOR IS ACTIVE, which is not only a browser -- an Outlook
+        # message, a Word document and a PDF all get one, and Control+O in
+        # Outlook was running HomerView's Open Document. The scripts were
+        # reached through MyExtensions, which the factory default.jss chains,
+        # so the default chain had to be understood and sometimes rewritten on
+        # every machine.
+        #
+        # Keys in the browser's own key map simply do not exist elsewhere. No
+        # guard, no passing the key back, and no guessing what JAWS would have
+        # done with it.
+        #
+        # THE TWO SECTIONS STILL MEAN DIFFERENT THINGS, and both are now inside
+        # one file, so both are scoped to the browser:
+        #
+        #   [Common Keys]  -- any cursor mode in this browser. The nine that
+        #                     have to work in the address bar and in forms
+        #                     mode: launching, the menu, hotkey help, the
+        #                     accessibility scans, the log, diagnostics.
+        #   [Virtual Keys] -- only while the virtual cursor is active. The
+        #                     thirty-nine that act on a page, several of which
+        #                     are plain letters and would type themselves in a
+        #                     form field.
+        #
+        # THE ONE KEY THAT CANNOT LIVE HERE is launching, when the browser is
+        # not running or not in front. That is now a Windows shortcut key,
+        # Alt+Control+H, on a desktop shortcut the installer creates. It runs
+        # HomerView.exe, which reconnects and raises the window or starts the
+        # browser, so it needs no screen reader at all -- which is why one
+        # shortcut serves JAWS and NVDA alike.
+        $sBrowserBase = [System.IO.Path]::GetFileNameWithoutExtension($sBrowserExe)
+        $sConfigBase = browserConfigName $pathUser $pathShared $sBrowserBase
+        $pathBrowserJss = Join-Path $pathUser "$sConfigBase.jss"
+        $pathBrowserJkm = Join-Path $pathUser "$sConfigBase.jkm"
+
+        # A BROWSER THAT IS NOT THE ONE WE LAST WROTE FOR HAS TO BE CLEARED
+        # FIRST. Changing the setting from Edge to Chrome leaves Edge's key map
+        # holding thirty-nine keys that answer to scripts Chrome's script file
+        # loads, and the reader has two browsers claiming Control+O. The
+        # manifest records which browser this folder was done for, so the
+        # question can be asked rather than assumed.
+        $sPreviousBase = ""
+        foreach ($sLine in $lManifest) {
+            if ($sLine -match '^browser\|(.+)$') { $sPreviousBase = $Matches[1] }
+        }
+        if ($sPreviousBase -and $sPreviousBase -ne $sConfigBase) {
+            writeLog "  this folder was set up for $sPreviousBase and the browser is now $sConfigBase"
+            foreach ($sSuffix in @("jkm", "jss", "jsb")) {
+                $pathOld = Join-Path $pathUser "$sPreviousBase.$sSuffix"
+                if (-not (Test-Path $pathOld)) { continue }
+                if ($lManifest -contains "created|$sPreviousBase.$sSuffix") {
+                    Remove-Item $pathOld -Force -ErrorAction SilentlyContinue
+                    writeLog "    removed $sPreviousBase.$sSuffix, which we created"
+                } elseif ($sSuffix -eq "jkm") {
+                    $iOut = removeOurBlock $pathOld
+                    writeLog "    took $iOut of our lines back out of $sPreviousBase.jkm"
+                }
+            }
+            $lManifest = @($lManifest | Where-Object { $_ -notlike "*|$sPreviousBase.*" -and $_ -notlike "browser|*" })
+        }
+
+        # THE SCRIPT FILE, WHICH LAYERS RATHER THAN REPLACES. The scripting
+        # documentation's own word for it: "when one script set is loaded on
+        # top of another such that scripts in the set loaded later supersede
+        # scripts loaded in an earlier set. Scripts which are not overridden in
+        # a set loaded later are INHERITED from a set loaded earlier." So the
+        # user file Uses the factory browser binary first, when JAWS ships one,
+        # and HomerView.jsb second. Everything Vispero provides still works and
+        # ours is added on top.
+        #
+        # WRITTEN ONLY IF ABSENT, so a file somebody else made is never
+        # overwritten.
         $bScriptsOk = $false
-        if ((Test-Path $pathMyJsb) -and (-not (Test-Path $pathMyJss))) {
-            # The same rule the script chaining convention uses: a compiled
-            # file with no source means somebody got here first and left no way
-            # in. Guessing at its contents would throw away their work.
-            writeLog "  ERROR: MyExtensions.jsb is here but MyExtensions.jss is not, so another"
-            writeLog "         set of scripts owns it and there is no source to add to."
+        $pathSharedBrowserJsb = ""
+        if ($pathShared) {
+            $sTry = Join-Path $pathShared "$sConfigBase.jsb"
+            if (Test-Path $sTry) { $pathSharedBrowserJsb = $sTry }
+        }
+        if (-not (Test-Path $pathBrowserJss)) {
+            $lJss = @($c_sMarker)
+            if ($pathSharedBrowserJsb) {
+                $lJss += "Use `"$sConfigBase.jsb`""
+                writeLog "    the factory $sConfigBase.jsb will be layered under HomerView's"
+            } else {
+                writeLog "    JAWS ships no $sConfigBase.jsb, so there is nothing to inherit"
+            }
+            $lJss += 'Use "HomerView.jsb"'
+            $lJss += ""
+            $lJss += "; A script file must define something, or it will not compile."
+            $lJss += "void function hVBrowserFiller ()"
+            $lJss += "return"
+            $lJss += "EndFunction"
+            Set-Content -Path $pathBrowserJss -Value $lJss -Encoding UTF8
+            writeLog "    wrote $sConfigBase.jss, layering HomerView over the browser's own scripts"
+            $lManifest += "created|$sConfigBase.jss"
+            $bScriptsOk = compileFile $sCompiler $pathBrowserJss
+        } else {
+            $sExisting = Get-Content $pathBrowserJss -Raw
+            if ($sExisting -match '(?im)^\s*use\s+"HomerView\.jsb"') {
+                writeLog "    $sConfigBase.jss is already here and already uses HomerView.jsb"
+                $bScriptsOk = $true
+            } else {
+                # SOMEBODY ELSE'S FILE, AND IT STAYS THEIRS. One Use line is
+                # added inside our own marked block, which -bUndo takes out
+                # again, rather than the file being replaced.
+                if (-not (Test-Path "$pathBrowserJss.homerViewBackup")) {
+                    Copy-Item $pathBrowserJss "$pathBrowserJss.homerViewBackup" -Force
+                    writeLog "    backed up $sConfigBase.jss before adding one line to it"
+                }
+                $null = removeOurBlock $pathBrowserJss
+                $lTheirs = @(Get-Content $pathBrowserJss)
+                $iLastUse = -1
+                for ($i = 0; $i -lt $lTheirs.Count; $i++) {
+                    if ($lTheirs[$i] -match '(?i)^\s*use\s+"') { $iLastUse = $i }
+                }
+                $lBlock = @($c_sMarker, 'Use "HomerView.jsb"', "$c_sMarker ends")
+                if ($iLastUse -lt 0) {
+                    $lTheirs = $lBlock + $lTheirs
+                } else {
+                    $lTheirs = $lTheirs[0..$iLastUse] + $lBlock + $lTheirs[($iLastUse + 1)..($lTheirs.Count - 1)]
+                }
+                Set-Content -Path $pathBrowserJss -Value $lTheirs -Encoding UTF8
+                writeLog "    added Use HomerView.jsb to the $sConfigBase.jss that was already here"
+                $lManifest += "edited|$sConfigBase.jss"
+                $bScriptsOk = compileFile $sCompiler $pathBrowserJss
+            }
+        }
+
+        if (-not $bScriptsOk) {
+            writeLog "  ERROR: $sConfigBase.jss did not compile, so no key is bound here."
+            writeLog "         Binding keys to scripts that cannot load would give silent"
+            writeLog "         failures, which is worse than none."
+            $iFailed += 1
+            writeLog ""
+            continue
+        }
+
+        # --- the key map ---------------------------------------------------
+        #
+        # THE COPY IS THE POINT when JAWS ships one. A user key map can be used
+        # in place of the factory one rather than alongside it, so a file
+        # holding only our keys could cost every binding the factory file
+        # provides. Starting from a copy cannot.
+        if (-not (Test-Path $pathBrowserJkm)) {
+            $sSharedJkm = ""
+            if ($pathShared) {
+                $sTry = Join-Path $pathShared "$sConfigBase.jkm"
+                if (Test-Path $sTry) { $sSharedJkm = $sTry }
+            }
+            if ($sSharedJkm) {
+                Copy-Item $sSharedJkm $pathBrowserJkm -Force
+                writeLog "    copied the factory $sConfigBase.jkm into the user folder, so nothing is lost"
+            } else {
+                Set-Content -Path $pathBrowserJkm -Value @("[Common Keys]", "", "[Virtual Keys]") -Encoding UTF8
+                writeLog "    JAWS ships no $sConfigBase.jkm, so a new one was started"
+            }
+            $lManifest += "created|$sConfigBase.jkm"
+        } else {
+            if (-not (Test-Path "$pathBrowserJkm.homerViewBackup")) {
+                Copy-Item $pathBrowserJkm "$pathBrowserJkm.homerViewBackup" -Force
+                writeLog "    backed up $sConfigBase.jkm before changing it"
+            }
+            # EVERY BLOCK OF OURS COMES OUT ONCE, BEFORE ANY GOES BACK IN.
+            # removeOurBlock works on the whole file rather than on one
+            # section, and calling it inside the loop below took out the
+            # section that had just been written.
+            $iOld = removeOurBlock $pathBrowserJkm
+            if ($iOld -gt 0) { writeLog "    removed $iOld line(s) written by an earlier release" }
+            if ($lManifest -notcontains "created|$sConfigBase.jkm") {
+                $lManifest += "edited|$sConfigBase.jkm"
+            }
+        }
+
+        foreach ($sPair in @(@("[Common Keys]", $lCommonKeys), @("[Virtual Keys]", $lPageKeys))) {
+            addToSection $pathBrowserJkm $sPair[0] $sPair[1]
+            writeLog "    added $($sPair[1].Count) key(s) to $($sPair[0]) in $sConfigBase.jkm"
+        }
+        writeLog "      these work only while the browser has focus, and nowhere else"
+        $lManifest += "browser|$sConfigBase"
+
+        # What is in the file now, not what was written to it.
+        #
+        # Every step in this script once reported success while the launch key
+        # was being deleted by the next step. A count of lines added is a
+        # record of an action; reading the key back is a record of an outcome,
+        # and only one of those is worth logging.
+        $lAllKeys = $lCommonKeys + $lPageKeys
+        $iMissing = 0
+        if (Test-Path $pathBrowserJkm) {
+            $sFinal = Get-Content $pathBrowserJkm -Raw
+            foreach ($sKey in $lAllKeys) {
+                if (-not $sFinal.Contains($sKey)) {
+                    writeLog "    ERROR: $sKey is not in $sConfigBase.jkm after writing it"
+                    $iMissing += 1
+                }
+            }
+        } else {
+            writeLog "    ERROR: $sConfigBase.jkm is not there at all after writing it"
+            $iMissing += 1
+        }
+
+        # AND THE OTHER HALF OF THE PROMISE, CHECKED RATHER THAN ASSERTED.
+        # Nothing of ours should be in the default key map, including anything
+        # an older release put there. Saying so in the log every run is what
+        # keeps the claim honest.
+        $pathDefaultJkm = Join-Path $pathUser "default.jkm"
+        if (Test-Path $pathDefaultJkm) {
+            $sDefault = Get-Content $pathDefaultJkm -Raw
+            $iOurs = 0
+            foreach ($sKey in $lAllKeys) {
+                $sScript = ($sKey -split "=")[1]
+                if ($sDefault -match [regex]::Escape($sScript)) { $iOurs += 1 }
+            }
+            if ($iOurs -gt 0) {
+                writeLog "    NOTE: the user default.jkm still names $iOurs HomerView script(s),"
+                writeLog "          left by a release before this one. Run -bUndo with that"
+                writeLog "          release, or remove those lines by hand."
+            } else {
+                writeLog "    the user default.jkm names nothing of HomerView's, as intended"
+            }
+        } else {
+            writeLog "    there is no user default.jkm here, which is how HomerView leaves it"
+        }
+
+        if ($iMissing -gt 0) {
             $iFailed += 1
         } else {
-            if (Test-Path $pathMyJss) {
-                $sMy = Get-Content $pathMyJss -Raw
-                if ($sMy -match '(?im)^\s*use\s+"HomerView\.jsb"') {
-                    writeLog "    MyExtensions.jss already uses HomerView.jsb"
-                } else {
-                    if (-not (Test-Path "$pathMyJss.homerViewBackup")) {
-                        Copy-Item $pathMyJss "$pathMyJss.homerViewBackup" -Force
-                        writeLog "    backed up MyExtensions.jss before changing it"
-                    }
-                    # Below any Use lines that are already there, so an earlier
-                    # author keeps whatever order they chose.
-                    $lMy = @(Get-Content $pathMyJss)
-                    $iLastUse = -1
-                    for ($i = 0; $i -lt $lMy.Count; $i++) {
-                        if ($lMy[$i] -match '(?i)^\s*use\s+"') { $iLastUse = $i }
-                    }
-                    $lBlock = @($c_sMarker, 'Use "HomerView.jsb"', "$c_sMarker ends")
-                    if ($iLastUse -lt 0) {
-                        $lMy = $lBlock + $lMy
-                    } else {
-                        $lMy = $lMy[0..$iLastUse] + $lBlock + $lMy[($iLastUse + 1)..($lMy.Count - 1)]
-                    }
-                    Set-Content -Path $pathMyJss -Value $lMy -Encoding UTF8
-                    writeLog "    added Use HomerView.jsb to MyExtensions.jss"
-                    $lManifest += "edited|MyExtensions.jss"
-                }
-            } else {
-                $pathSharedMy = if ($pathShared) { Join-Path $pathShared "MyExtensions.jss" } else { "" }
-                if ($pathSharedMy -and (Test-Path $pathSharedMy)) {
-                    Copy-Item $pathSharedMy $pathMyJss -Force
-                    writeLog "    copied the factory MyExtensions.jss, so nothing in it is lost"
-                    $lMy = @(Get-Content $pathMyJss)
-                    $iLastUse = -1
-                    for ($i = 0; $i -lt $lMy.Count; $i++) {
-                        if ($lMy[$i] -match '(?i)^\s*use\s+"') { $iLastUse = $i }
-                    }
-                    $lBlock = @($c_sMarker, 'Use "HomerView.jsb"', "$c_sMarker ends")
-                    if ($iLastUse -lt 0) { $lMy = $lBlock + $lMy } else {
-                        $lMy = $lMy[0..$iLastUse] + $lBlock + $lMy[($iLastUse + 1)..($lMy.Count - 1)]
-                    }
-                    Set-Content -Path $pathMyJss -Value $lMy -Encoding UTF8
-                    $lManifest += "created|MyExtensions.jss"
-                } else {
-                    # Nothing to preserve, so the smallest file that can hold a
-                    # Use line. The function is there because a script file of
-                    # nothing but Use lines is not reliably accepted.
-                    $lNew = @(
-                        "; MyExtensions.jss -- where scripts added to JAWS itself belong.",
-                        ";",
-                        "; The default script file calls down to this one, so anything named here",
-                        "; is available in every application without a user copy of default.jss",
-                        "; existing at all. Names have to be unique: the default scripts do not",
-                        "; call down for a name they already have.",
-                        "",
-                        $c_sMarker,
-                        'Use "HomerView.jsb"',
-                        "$c_sMarker ends",
-                        "",
-                        "void Function homerViewChainFiller ()",
-                        "Return",
-                        "EndFunction"
-                    )
-                    Set-Content -Path $pathMyJss -Value $lNew -Encoding UTF8
-                    writeLog "    wrote a new MyExtensions.jss that uses HomerView.jsb"
-                    $lManifest += "created|MyExtensions.jss"
-                }
-            }
-            $bScriptsOk = compileFile $sCompiler $pathMyJss
-            if (-not $bScriptsOk) { $iFailed += 1 }
+            writeLog "    all $($lAllKeys.Count) keys read back correctly from $sConfigBase.jkm"
+            $iDone += 1
         }
 
-        # --- the key maps -------------------------------------------------
-        if ($bScriptsOk) {
-            $sBase = "default"
-            $pathUserJkm = Join-Path $pathUser "$sBase.jkm"
-            $pathSharedJkm = if ($pathShared) { Join-Path $pathShared "$sBase.jkm" } else { "" }
-
-            # EVERY BLOCK OF OURS COMES OUT ONCE, BEFORE ANY GOES BACK IN.
-            #
-            # removeOurBlock works on the whole file, not on one section, and it
-            # used to be called inside the loop below. So the first pass took
-            # out both sections' blocks and put [Common Keys] back, and the
-            # second pass took out the [Common Keys] block that had just been
-            # written and put [Virtual Keys] back. The file ended with the
-            # browser keys and no launch key, every log line said success, and
-            # the counts even said so out loud: removed 10, then removed 4.
-            if (Test-Path $pathUserJkm) {
-                if (-not (Test-Path "$pathUserJkm.homerViewBackup")) {
-                    Copy-Item $pathUserJkm "$pathUserJkm.homerViewBackup" -Force
-                    writeLog "    backed up $sBase.jkm before changing it"
-                }
-                $iOld = removeOurBlock $pathUserJkm
-                if ($iOld -gt 0) {
-                    writeLog "    removed $iOld line(s) written by an earlier release"
-                }
-            }
-            foreach ($sPair in @(@("[Common Keys]", $lCommonKeys), @("[Virtual Keys]", $lVirtualKeys))) {
-                $sSectionName = $sPair[0]
-                $lKeys = $sPair[1]
-
-                if (Test-Path $pathUserJkm) {
-                    addToSection $pathUserJkm $sSectionName $lKeys
-                    writeLog "    added $($lKeys.Count) key(s) to $sSectionName in the user $sBase.jkm"
-                    $lManifest += "edited|$sBase.jkm"
-                } elseif ($pathSharedJkm -and (Test-Path $pathSharedJkm)) {
-                    # The copy is the whole point. A user key map can be used
-                    # in place of the factory one rather than alongside it, so
-                    # a file holding only our keys could cost every binding the
-                    # factory file provides. Starting from a copy cannot.
-                    Copy-Item $pathSharedJkm $pathUserJkm -Force
-                    writeLog "    copied the factory $sBase.jkm into the user folder, so nothing is lost"
-                    addToSection $pathUserJkm $sSectionName $lKeys
-                    writeLog "    added $($lKeys.Count) key(s) to $sSectionName in it"
-                    $lManifest += "created|$sBase.jkm"
-                } else {
-                    writeLog "    ERROR: no default.jkm was found in either folder, so the keys cannot"
-                    writeLog "           be added without inventing one. Nothing was changed."
-                    $iFailed += 1
-                }
-            }
-            # SKIPPED ENTIRELY WHILE THERE ARE NO BROWSER KEYS, and there are
-            # none: the application key map cannot resolve HomerView's commands
-            # until the scripts are chained into Edge's own set, so the list is
-            # deliberately empty.
-            #
-            # It used to run anyway -- discovering a settings name, backing up,
-            # creating a key map -- to write NOTHING into it. Work with no
-            # purpose is still work that can fail, and if it threw, this whole
-            # script died and the installer reported only "the keys could not be
-            # bound" with nothing above it to say why.
-            # --- EDGE'S OWN SCRIPT SET AND KEY MAP -------------------------
-            #
-            # THIS IS WHAT KEEPS HOMERVIEW'S KEYS OUT OF OUTLOOK AND WORD.
-            # [Virtual Keys] in default.jkm applies wherever a virtual cursor
-            # is active, which includes an Outlook message, a Word document and
-            # a PDF -- so Control+O in Outlook was running HomerView's Open
-            # Document. Keys that live in EDGE'S key map do not exist anywhere
-            # else, so JAWS resolves them normally in every other program.
-            #
-            # AND THE SCRIPTS ARE INHERITED, NOT REPLACED. The scripting
-            # documentation calls this LAYERING: "when one script set is loaded
-            # on top of another such that scripts in the set loaded later
-            # supersede scripts loaded in an earlier set. Scripts which are not
-            # overridden in a set loaded later are INHERITED from a set loaded
-            # earlier." So the user file Uses the factory Edge binary first and
-            # HomerView.jsb second: everything Vispero ships still works, and
-            # our commands are added on top.
-            $sEdgeBase = browserConfigName $pathUser $pathShared
-            if (-not $sEdgeBase) {
-                writeLog "    Edge's script name could not be discovered, so its keys stay in default.jkm"
-                addToSection $pathUserJkm "[Virtual Keys]" $lEdgeVirtualKeys
-                writeLog "      added $($lEdgeVirtualKeys.Count) key(s) to [Virtual Keys] as a fallback"
-            } else {
-                $pathEdgeJss = Join-Path $pathUser "$sEdgeBase.jss"
-                $pathEdgeJkm = Join-Path $pathUser "$sEdgeBase.jkm"
-                $pathSharedEdgeJsb = $null
-                if ($pathShared) {
-                    $sTry = Join-Path $pathShared "$sEdgeBase.jsb"
-                    if (Test-Path $sTry) { $pathSharedEdgeJsb = $sTry }
-                }
-
-                # The script file. Written only if we have not written it
-                # before, so a file somebody else made is never overwritten.
-                if (-not (Test-Path $pathEdgeJss)) {
-                    $lJss = @($c_sMarker)
-                    if ($pathSharedEdgeJsb) {
-                        # The factory Edge scripts first, so everything they do
-                        # still happens.
-                        $lJss += "Use `"$sEdgeBase.jsb`""
-                        writeLog "    the factory $sEdgeBase.jsb will be layered under HomerView's"
-                    } else {
-                        writeLog "    JAWS ships no $sEdgeBase.jsb, so there is nothing to inherit"
-                    }
-                    $lJss += 'Use "HomerView.jsb"'
-                    $lJss += ""
-                    $lJss += "; A script file must define something, or it will not compile."
-                    $lJss += "void function hVEdgeFiller ()"
-                    $lJss += "return"
-                    $lJss += "EndFunction"
-                    Set-Content -Path $pathEdgeJss -Value $lJss -Encoding UTF8
-                    writeLog "    wrote $sEdgeBase.jss, layering HomerView over Edge's own scripts"
-                    $lManifest += "created|$sEdgeBase.jss"
-                    $null = compileFile $sCompiler $pathEdgeJss
-                } else {
-                    writeLog "    $sEdgeBase.jss is already here, so it is left alone"
-                }
-
-                # The key map. Same discipline as default.jkm: copy the factory
-                # file first if there is no user copy, so nothing it provides
-                # is lost, then replace only our own block.
-                if (-not (Test-Path $pathEdgeJkm)) {
-                    $sSharedEdgeJkm = $null
-                    if ($pathShared) {
-                        $sTry = Join-Path $pathShared "$sEdgeBase.jkm"
-                        if (Test-Path $sTry) { $sSharedEdgeJkm = $sTry }
-                    }
-                    if ($sSharedEdgeJkm) {
-                        Copy-Item $sSharedEdgeJkm $pathEdgeJkm -Force
-                        writeLog "    copied the factory $sEdgeBase.jkm into the user folder, so nothing is lost"
-                        $lManifest += "created|$sEdgeBase.jkm"
-                    } else {
-                        Set-Content -Path $pathEdgeJkm -Value @("[Virtual Keys]") -Encoding UTF8
-                        writeLog "    JAWS ships no $sEdgeBase.jkm, so a new one was started"
-                        $lManifest += "created|$sEdgeBase.jkm"
-                    }
-                } else {
-                    if (-not (Test-Path "$pathEdgeJkm.homerViewBackup")) {
-                        Copy-Item $pathEdgeJkm "$pathEdgeJkm.homerViewBackup" -Force
-                        writeLog "    backed up $sEdgeBase.jkm before changing it"
-                    }
-                    $iOld = removeOurBlock $pathEdgeJkm
-                    if ($iOld -gt 0) { writeLog "    removed $iOld line(s) written by an earlier release" }
-                    if ($lManifest -notcontains "created|$sEdgeBase.jkm") {
-                        $lManifest += "edited|$sEdgeBase.jkm"
-                    }
-                }
-                addToSection $pathEdgeJkm "[Virtual Keys]" $lEdgeVirtualKeys
-                writeLog "    added $($lEdgeVirtualKeys.Count) key(s) to [Virtual Keys] in $sEdgeBase.jkm"
-                writeLog "      these work only while Edge has focus, and nowhere else"
-            }
-
-            # What is in the file now, not what was written to it.
-            #
-            # Every step in this script reported success while the launch key
-            # was being deleted by the next step. A count of lines added is a
-            # record of an action; reading the key back is a record of an
-            # outcome, and only one of those is worth logging.
-            $iMissing = 0
-            if (Test-Path $pathUserJkm) {
-                $sFinal = Get-Content $pathUserJkm -Raw
-                foreach ($sKey in ($lCommonKeys + $lVirtualKeys)) {
-                    if (-not $sFinal.Contains($sKey)) {
-                        writeLog "    ERROR: $sKey is not in $sBase.jkm after writing it"
-                        $iMissing += 1
-                    }
-                }
-                # WHEN IT SAYS SOMETHING IS MISSING, SHOW WHAT IS THERE.
-                #
-                # It reported all seven common keys missing from a file whose
-                # common keys were plainly working, so either the write or the
-                # reading of it is wrong and the message alone cannot say which.
-                # Printing our own lines out of the file settles it in one run:
-                # if they are listed here, the check is at fault; if they are
-                # not, the write is.
-                if ($iMissing -gt 0) {
-                    writeLog "    what is actually in $sBase.jkm, our lines only:"
-                    $iShown = 0
-                    foreach ($sLine in (Get-Content $pathUserJkm)) {
-                        if ($sLine -match '^\s*\[') {
-                            writeLog "      $sLine"
-                            continue
-                        }
-                        foreach ($sKey in ($lCommonKeys + $lVirtualKeys)) {
-                            $sScript = ($sKey -split "=")[1]
-                            if ($sLine -like "*$sScript*") {
-                                writeLog "      $sLine"
-                                $iShown += 1
-                                break
-                            }
-                        }
-                    }
-                    writeLog "    $iShown of our lines are in the file"
-                }
-            } else {
-                writeLog "    ERROR: $sBase.jkm is not there at all after writing it"
-                $iMissing += 1
-            }
-            if ($iMissing -gt 0) {
-                $iFailed += 1
-            } else {
-                writeLog "    all $(($lCommonKeys + $lVirtualKeys).Count) keys read back correctly from $sBase.jkm"
-                $iDone += 1
-            }
-        }
 
         if ($lManifest.Count -gt 0) {
             Set-Content -Path $pathManifest -Value ($lManifest | Select-Object -Unique) -Encoding UTF8
@@ -890,9 +862,12 @@ if ($iFailed -gt 0) {
     exit 1
 }
 if (-not $bUndo) {
-    writeLog "RESTART JAWS, then try Alt+JAWSKey+H from anywhere, Alt+JAWSKey+F10 for"
-    writeLog "the menu, and Alt+Shift+H for every key."
+    writeLog "RESTART JAWS. Then press Alt+Control+H, which is a Windows shortcut"
+    writeLog "key on the HomerView desktop icon and works whatever has focus."
+    writeLog "Every other key works while the browser is in front: Alt+JAWSKey+F10"
+    writeLog "for the menu, Alt+Shift+H for every key."
     writeLog "With HomerView's browser focused, Insert+Q says which scripts are loaded."
-    writeLog "To put everything back: chainJawsScripts -bUndo"
+    writeLog "Nothing outside the browser was changed: no default.jss, no default.jkm,"
+    writeLog "no MyExtensions. To put back what was written: chainJawsScripts -bUndo"
 }
 exit 0

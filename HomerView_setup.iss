@@ -215,6 +215,31 @@ Name: "{group}\HomerView developer notes"; Filename: "{app}\Developer.htm"
 Name: "{group}\Install the HomerView add-on in NVDA"; Filename: "{app}\build\{#AddonFile}"; WorkingDir: "{app}\build"
 Name: "{group}\Uninstall HomerView"; Filename: "{uninstallexe}"
 
+; THE ONE KEY THAT WORKS WHEN THE BROWSER IS NOT IN FRONT, and the reason
+; HomerView can now say it changes no default screen reader setting at all.
+;
+; Every other HomerView key lives with the browser: on JAWS in the browser's
+; own key map, on NVDA on the browse mode class. None of them exists outside
+; it. That leaves exactly one thing unreachable -- starting the browser, or
+; coming back to it from another program -- and this is it.
+;
+; A WINDOWS SHORTCUT KEY RATHER THAN A SCREEN READER BINDING, because it has
+; to work whichever screen reader is running, or none. HomerView.exe
+; reconnects to a running HomerView browser and raises its window, asks for a
+; window if the process is alive without one, and starts the browser
+; otherwise. So the same icon serves JAWS and NVDA equally.
+;
+; ON THE DESKTOP, AND NOT OPTIONAL. Windows only honours a shortcut key on a
+; .lnk that sits on the desktop or in the Start menu, so a shortcut the user
+; can decline is a key that sometimes does not exist. The Start menu entries
+; above deliberately carry no HotKey: the same key on two shortcuts is a
+; conflict, not a fallback.
+;
+; If Alt+Control+H is silent, something else has registered it as a global
+; hotkey and wins. The shortcut's key can be changed in its properties, and
+; the guide says so.
+Name: "{autodesktop}\HomerView"; Filename: "{app}\HomerView.exe"; Parameters: "launch"; WorkingDir: "{app}"; HotKey: "ctrl+alt+h"; Comment: "Open HomerView, or come back to it. Alt+Control+H."
+
 [Run]
 ; Back to the shell, which is what worked, plus the one flag that was missing.
 ;

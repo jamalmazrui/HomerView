@@ -268,9 +268,13 @@ because selecting a whole page and copying it takes the browser’s
 selection, which drags in the navigation and the footers.</p>
 <h2 id="getting-started">Getting started</h2>
 <h3 id="starting-homerview">Starting HomerView</h3>
-<p><strong>Alt+JAWSKey+H</strong> / <strong>NVDA+Alt+H</strong> launches
-HomerView’s Edge window, or reconnects to it if it is already
-running.</p>
+<p><strong>Alt+Control+H</strong> opens the HomerView browser window.
+Press it again later and it takes you back. The key sits on the
+HomerView icon on your desktop. It is a Windows key, not a screen reader
+key. So it works with JAWS, with NVDA, and with neither.</p>
+<p>Every other HomerView key works while that window is in front.
+Elsewhere the key does nothing here. Your own program gets it
+instead</p>
 <h3 id="the-alternate-menu">The Alternate Menu</h3>
 <p><strong>Alt+JAWSKey+F10</strong> / <strong>NVDA+Alt+F10</strong>
 opens a list of every command, each with its key beside it. This is the
@@ -554,10 +558,29 @@ new window, as EdSharp does on the same key.</li>
 </ul></li>
 <li><strong>Launch HomerView</strong>
 <ul>
-<li>NVDA: Alt+NVDA+H</li>
-<li>JAWS: Alt+JAWSKey+H</li>
-<li>Launches or reconnects the HomerView copy of Microsoft Edge. H for
-HomerView, and it works anywhere because nothing is running yet.</li>
+<li>Both: Alt+Control+H, the desktop shortcut</li>
+<li>Opens the HomerView browser window, or takes you back to it. The key
+is on the desktop icon. It is a Windows key, not a screen reader key. So
+it works with JAWS, with NVDA, and with neither.</li>
+</ul></li>
+</ul>
+<h4 id="changing-how-homerview-behaves">Changing how HomerView
+behaves</h4>
+<ul>
+<li><strong>Choose Browser</strong>
+<ul>
+<li>NVDA: Alt+Shift+B</li>
+<li>JAWS: Alt+Shift+B</li>
+<li>Lists the browsers on this computer. Pick the one HomerView should
+use. Edge, Chrome, Brave and Vivaldi all work. B for Browser.</li>
+</ul></li>
+<li><strong>HomerView Settings</strong>
+<ul>
+<li>NVDA: Alt+Shift+S</li>
+<li>JAWS: Alt+Shift+S</li>
+<li>Opens the settings file in a text editor. Every HomerView preference
+is in it, and a note beside each one says what it does. S for
+Settings.</li>
 </ul></li>
 </ul>
 <h4 id="reading-the-documentation">Reading the documentation</h4>
@@ -1203,7 +1226,7 @@ uses for its recent files.</li>
 </ul>
 <h2 id="troubleshooting">Troubleshooting</h2>
 <p><strong>A command says the browser is not running.</strong> Press
-Alt+JAWSKey+H / NVDA+Alt+H to launch or reconnect.</p>
+Alt+Control+H to launch or reconnect.</p>
 <p><strong>A key does nothing.</strong> Open the Alternate Menu and run
 the command from there. If it works from the menu, the key is being
 taken by something else. Report it with the log attached.</p>

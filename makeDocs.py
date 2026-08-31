@@ -71,24 +71,35 @@ def writeHotkeys():
     return sum(1 for s in lLines if s.startswith("- **"))
 
 
-def writeGuideSection():
-    """Replace the command section of HomerView.md with a fresh one."""
-    pathGuide = pathlib.Path("HomerView.md")
-    sGuide = pathGuide.read_text(encoding="utf-8-sig")
-    sStart = "# Every command\n"
-    sEnd = "\n# Opening documents"
-    iStart, iEnd = sGuide.index(sStart), sGuide.index(sEnd)
-    lLines = [
-        "# Every command", "",
-        "Every command HomerView has, grouped by what you are trying to do and",
-        "sorted by name inside each group. Where the key is not obvious, the",
-        "description says why it is that key.", "",
-        "The same list is also a file of its own, Hotkeys.md, so you can keep it",
-        "open beside your work. Alt+Shift+H builds it inside HomerView.", "",
-    ]
-    lLines += commandLines(2)
-    pathGuide.write_text(sGuide[:iStart] + "\n".join(lLines) + sGuide[iEnd:], encoding="utf-8")
-    return sum(1 for s in lLines if s.startswith("- **"))
+def checkGuideSection():
+    """Say whether the guide's hotkey section still names every command.
+
+    IT USED TO REWRITE THAT SECTION, AND THAT WAS WRONG TWICE OVER.
+
+    First, the anchors it cut between -- "# Every command" and "# Opening
+    documents" -- were the headings the guide had when this was written. The
+    guide was later restructured to the house rule, h2 for a topic category
+    and h3 for a topic, and neither string existed any more. So this raised
+    ValueError, and the guide silently stopped being regenerated while
+    Hotkeys.md went on being correct.
+
+    Second, and the reason it is not simply repaired: THE GUIDE SAYS MORE THAN
+    THE TABLE KNOWS. Its hotkey section gives the NVDA key AND the JAWS key for
+    every command, and the command table holds only NVDA gestures. Rewriting
+    the section from the table would have quietly deleted every JAWS key in the
+    guide, which is the opposite of the parity the guide exists to describe.
+
+    So it checks instead. Anything in the table and not in the guide is named
+    here, and adding it is a two-minute job that only a person can do, because
+    only a person knows the JAWS key.
+    """
+    sGuide = pathlib.Path("HomerView.md").read_text(encoding="utf-8-sig")
+    lMissing = []
+    for _sTitle, lEntries in c.grouped():
+        for _sScript, dEntry in lEntries:
+            if ("**" + dEntry["name"] + "**") not in sGuide:
+                lMissing.append(dEntry["name"])
+    return lMissing
 
 
 def grade(sText):
@@ -116,10 +127,27 @@ def grade(sText):
 
 if __name__ == "__main__":
     print(f"Hotkeys.md: {writeHotkeys()} commands")
-    print(f"HomerView.md command section: {writeGuideSection()} commands")
+    lMissing = checkGuideSection()
+    if lMissing:
+        print(f"HomerView.md does not mention {len(lMissing)} command(s):")
+        for sName in lMissing:
+            print(f"  {sName}")
+    else:
+        print("HomerView.md mentions every command in the table.")
     print()
+    # MATCHED WITHOUT REGARD TO CASE, because the file on disk is README.md
+    # while the setup script and this list both say ReadMe.md. Windows does
+    # not care and neither does the installer; a case-sensitive filesystem
+    # does, and this then stopped with a file-not-found on a name that was
+    # plainly there. Worth settling one day with git mv; worth not failing
+    # over meanwhile.
+    dOnDisk = {p.name.lower(): p for p in pathlib.Path(".").glob("*.md")}
     for sName in ("ReadMe", "HomerView", "Developer", "History", "Announce", "Hotkeys"):
-        sText = pathlib.Path(f"{sName}.md").read_text(encoding="utf-8-sig")
+        pathDocument = dOnDisk.get(sName.lower() + ".md")
+        if pathDocument is None:
+            print(f"  {sName + '.md':16} is not here")
+            continue
+        sText = pathDocument.read_text(encoding="utf-8-sig")
         nGrade = grade(sText)
         sFlag = "" if nGrade <= 9.0 else "   ABOVE NINTH GRADE"
         print(f"  {sName + '.md':16} {len(re.findall(r'[A-Za-z]+', sText)):>5} words, "

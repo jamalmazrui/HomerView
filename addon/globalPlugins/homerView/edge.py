@@ -26,7 +26,7 @@ import time
 import winreg
 from pathlib import Path
 
-from . import logger
+from . import browsers, logger
 from . import startPage
 from .logger import abbreviate, homerLog, logError, logSection
 
@@ -157,41 +157,42 @@ class EdgeManager:
     def pathPortFile(self):
         return self.pathProfile / portFileName
 
-    def findEdge(self):
-        pathRegistered = self.findRegisteredEdge()
-        if pathRegistered:
-            homerLog.info(f"Edge located through App Paths: {pathRegistered}")
-            return pathRegistered
-        lCandidates = [
-            Path(os.environ.get("PROGRAMFILES(X86)", "")) / "Microsoft" / "Edge" / "Application" / "msedge.exe",
-            Path(os.environ.get("PROGRAMFILES", "")) / "Microsoft" / "Edge" / "Application" / "msedge.exe",
-            Path(os.environ.get("LOCALAPPDATA", "")) / "Microsoft" / "Edge" / "Application" / "msedge.exe",
-        ]
-        for pathCandidate in lCandidates:
-            bFound = pathCandidate.is_file()
-            homerLog.debug(f"Edge candidate {pathCandidate}: {'found' if bFound else 'absent'}")
-            if bFound:
-                homerLog.info(f"Edge located by path: {pathCandidate}")
-                return pathCandidate
+    def findBrowser(self):
+        """The executable HomerView launches, whichever browser that is.
+
+        THE CHOICE COMES FIRST, AND IT IS A SETTING RATHER THAN A SEARCH. When
+        somebody has chosen a browser, that is the browser, and a fallback that
+        quietly started a different one would be worse than an error: the keys
+        JAWS binds are named after the chosen browser's script set, so starting
+        another means a window in which none of them work.
+
+        With nothing chosen, Edge is found exactly as it always was. That is
+        what every installation before the setting existed did, so an upgrade
+        changes nothing for anybody who does not want it changed.
+        """
+        sName, sPath = browsers.chosenBrowser()
+        if sPath:
+            homerLog.info(f"The chosen browser is {sName} at {sPath}")
+            return Path(sPath)
+        sRegistered = browsers.appPathsExecutable("msedge.exe")
+        if sRegistered:
+            homerLog.info(f"Edge located through App Paths: {sRegistered}")
+            return Path(sRegistered)
+        sFolder = browsers.folderExecutable("msedge.exe", ["Microsoft/Edge/Application"])
+        if sFolder:
+            homerLog.info(f"Edge located by path: {sFolder}")
+            return Path(sFolder)
         homerLog.error("Edge could not be located by any method")
         raise EdgeError(
-            "Microsoft Edge could not be found. Install Microsoft Edge or repair its Windows installation."
+            "Microsoft Edge could not be found. Install Microsoft Edge, repair its Windows "
+            "installation, or choose another browser with the Choose Browser command."
         )
 
-    def findRegisteredEdge(self):
-        for iHive in (winreg.HKEY_CURRENT_USER, winreg.HKEY_LOCAL_MACHINE):
-            sHive = dHiveNames.get(iHive, str(iHive))
-            try:
-                with winreg.OpenKey(iHive, appPathsKey) as key:
-                    sPath = winreg.QueryValueEx(key, "")[0]
-            except OSError as exception:
-                homerLog.debug(f"Edge App Paths lookup in {sHive} failed: {exception}")
-                continue
-            pathEdge = Path(sPath.strip('"'))
-            homerLog.debug(f"Edge App Paths value in {sHive}: {pathEdge}")
-            if pathEdge.is_file():
-                return pathEdge
-        return None
+    # The old name, kept because several call sites and the JAWS side's
+    # vocabulary still say Edge. One line beats renaming a word that appears
+    # in a hundred places and getting one of them wrong.
+    def findEdge(self):
+        return self.findBrowser()
 
     def recordBrowserProcess(self):
         """Remember which process this profile's browser is, for a later session.

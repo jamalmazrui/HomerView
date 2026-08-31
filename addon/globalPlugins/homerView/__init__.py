@@ -90,21 +90,34 @@ dOutsideBrowseMode = {
 # Commands defined in homerCommands are NOT here because they do not need to
 # be: they are bound to the browse-mode tree interceptor, which is NVDA's own
 # equivalent of [Virtual Keys] and already scopes them to a document.
-setBrowserScopedScripts = frozenset({
-    "script_downloadFiles",
-    "script_extractMainContent",
-    "script_listNames",
-    "script_openAnnouncement",
-    "script_openDeveloperNotes",
-    "script_openHotkeyDocument",
-    "script_openLog",
-    "script_openOtherFormat",
-    "script_openPageFolder",
-    "script_openQuickStart",
-    "script_reportAddressAnywhere",
-    "script_saveAs",
-    "script_submitForm",
-})
+# EVERY GLOBAL COMMAND IS NOW BROWSER SCOPED, AND THE LIST IS DERIVED RATHER
+# THAN TYPED. It used to be thirteen names written out here, which is a list
+# that drifts: a command added to the table and not to this set is a key that
+# fires in Word, and nothing would say so.
+#
+# WHY SCOPING RATHER THAN NOT BINDING AT ALL. NVDA offers two ways to keep a
+# key out of other programs: bind it on the browse mode class, or bind it
+# globally and refuse it when the focus is elsewhere. The first is the wrong
+# one here. Browse mode bindings do not fire in forms mode or in the address
+# bar, and these are exactly the commands that must -- opening a document,
+# saving the page, reporting the address. Refusing the key instead gives the
+# scope wanted, in every cursor mode, and NVDA passes the key on to whatever
+# has focus, which is what the JAWS side gets from an application key map.
+#
+# THE ONE THAT USED TO BE EXEMPT WAS LAUNCHING, and it is exempt no longer.
+# Starting the browser from outside the browser is now a Windows shortcut key,
+# Alt+Control+H, on the desktop icon the installer creates. So no HomerView key
+# does anything in any other program, on either screen reader.
+def _browserScopedScripts():
+    """The name of every command in the table, as NVDA spells a script."""
+    try:
+        return frozenset("script_" + s for s in commands.byScript())
+    except Exception:
+        logError("The command table could not be read, so no key will be scoped")
+        return frozenset()
+
+
+setBrowserScopedScripts = _browserScopedScripts()
 
 
 class GlobalPlugin(globalPluginHandler.GlobalPlugin):
@@ -116,6 +129,9 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         self._dSelfTest = {}
         self.iDocumentsMatched = 0
         self.iDocumentsSeen = 0
+        # The port file's modified time, last time a focus change looked at
+        # it. Stops one browser being probed on every focus event.
+        self._nPortFileSeen = 0
         self.setInterceptorsSeen = weakref.WeakSet()
         service.start()
         # Reattach silently to an Edge instance left running by an earlier NVDA
@@ -180,6 +196,10 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             (_("Look something up"), "Alt+Q, or Alt+NVDA+Q",
              _("Define a word, check the weather, find books, and more, with no account needed"),
              "webUtilities"),
+            (_("Choose browser"), "Alt+Shift+B",
+             _("Choose which Chromium browser HomerView drives"), "chooseBrowser"),
+            (_("HomerView settings"), "Alt+Shift+S",
+             _("Open the settings file, where every preference lives"), "openSettings"),
             (_("Self test"), "",
              _("Check that all three ways of reaching the browser are working"), "selfTest"),
         ):
@@ -451,6 +471,12 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         compare, and the name test is the best available answer; it is used
         only then, and only to decide whether a key is HomerView's, never to
         decide what to act on.
+
+        THAT FALLBACK USED TO SAY "msedge" IN SO MANY WORDS, which was wrong
+        in two directions once any Chromium browser could be the one: it
+        missed the chosen browser when that was Chrome, and it claimed an
+        ordinary Edge window when it was not. It now asks which browser was
+        chosen and compares against that.
         """
         try:
             focus = api.getFocusObject()
@@ -465,7 +491,23 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
                 return bMine
         except Exception:
             logError("The focused process could not be identified")
-        return self._focusAppName() == "msedge"
+        return self._focusAppName() == self._chosenBrowserName()
+
+    def _chosenBrowserName(self):
+        """The chosen browser's executable name, as NVDA spells an appName.
+
+        NVDA takes the application name from the executable without its
+        extension and in lower case, which is what the stem of the chosen
+        path gives. Edge when nothing has been chosen, which is what this
+        test compared against before there was a choice to make.
+        """
+        try:
+            _sName, sPath = browsers.chosenBrowser()
+            if sPath:
+                return os.path.splitext(os.path.basename(sPath))[0].lower()
+        except Exception:
+            logError("The chosen browser could not be read")
+        return "msedge"
 
     def _focusAppName(self):
         try:
@@ -487,9 +529,71 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             self._rememberForeignEdgePage(obj)
         except Exception:
             logError("Noting the foreign Edge page raised")
+        try:
+            self._attachToBrowserStartedElsewhere(obj)
+        except Exception:
+            logError("Looking for a browser started elsewhere raised")
         nextHandler()
 
+    def _attachToBrowserStartedElsewhere(self, obj):
+        """Notice a HomerView browser that something other than NVDA started.
+
+        THE DESKTOP SHORTCUT IS WHY THIS EXISTS. Alt+Control+H runs
+        HomerView.exe, which starts the browser or brings it back, and NVDA is
+        not involved. Without this, NVDA would not know that browser was there
+        until the next time it was asked to do something, and the first thing
+        the reader tries is usually a HomerView key, which would be refused
+        because the process is not recognised as HomerView's.
+
+        NVDA NEVER NEEDED TO BE THE ONE THAT STARTED IT. The protocol is a
+        local socket found through the port file, and the identity comes from
+        the browser itself through SystemInfo.getProcessInfo, so being the
+        parent process was never part of how any of this works. taskAttach
+        already reconnects to a browser left by an earlier NVDA session; this
+        is the same thing at a different moment.
+
+        WHERE THE COST IS KEPT DOWN, because a focus event fires constantly.
+        Four cheap tests come first, in order: already connected, no browser
+        in focus, this process is already known, and nothing new in the port
+        file since the last look. Only then is anything queued, and the queue
+        is what does the waiting -- nothing here touches the network, and
+        nothing here waits for anything.
+
+        This is deliberately NOT in the identity test. That one runs for every
+        object NVDA creates and must stay an integer set lookup with no
+        input or output of any kind.
+        """
+        if service.isConnected():
+            return
+        if self._focusAppName() != self._chosenBrowserName():
+            return
+        try:
+            iProcessId = getattr(obj, "processID", 0)
+        except Exception:
+            return
+        if iProcessId and iProcessId in service.setProcessIds:
+            return
+        # The port file is the evidence that a browser of ours is running. Its
+        # modified time is checked rather than its contents, so a browser that
+        # has come and gone is not probed twice for the same file.
+        try:
+            pathPort = service.edgeManager.pathPortFile
+            if not pathPort.is_file():
+                return
+            nStamp = pathPort.stat().st_mtime
+        except Exception:
+            return
+        if getattr(self, "_nPortFileSeen", 0) == nStamp:
+            return
+        self._nPortFileSeen = nStamp
+        homerLog.info(
+            "A browser of ours is in front and is not one HomerView started, "
+            "so an attach is queued"
+        )
+        service.submit("attach", service.taskAttach)
+
     def _rememberForeignEdgePage(self, obj):
+
         """Note the address of an Edge page that HomerView did not open.
 
         There is no way to give a running browser a debugging connection, so the
@@ -1203,6 +1307,42 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         else:
             # Translators: Reported when the clipboard would not take the file.
             ui.message(_("Clipboard refused"))
+
+    @script(
+        # Translators: Input help mode message for Choose Browser.
+        description=_("Choose which Chromium browser HomerView drives, from the ones installed here."),
+        category="HomerView",
+        gesture="kb:alt+shift+b",
+    )
+    def script_chooseBrowser(self, gesture):
+        homerLog.info("Command: choose the browser")
+        from . import browserDialog
+        from .homer import lbc
+
+        # AFTER THE SCRIPT RETURNS, which is the rule every dialog here
+        # follows. A dialog opened during a script leaves NVDA believing focus
+        # is still in the page, and the arrow keys go on driving the page
+        # underneath while the dialog sits open and silent.
+        lbc.afterScript(lambda: wx.CallAfter(browserDialog.chooseBrowser))
+
+    @script(
+        # Translators: Input help mode message for HomerView Settings.
+        description=_("Open the HomerView settings file, where every preference lives."),
+        category="HomerView",
+        gesture="kb:alt+shift+s",
+    )
+    def script_openSettings(self, gesture):
+        homerLog.info("Command: open the settings file")
+        from . import settings
+
+        pathSettings = settings.ensureSettings()
+        ui.message(str(pathSettings))
+        try:
+            os.startfile(str(pathSettings))
+        except OSError:
+            logError(f"The settings file could not be opened: {pathSettings}")
+            # Translators: Reported when Windows would not open the settings file.
+            ui.message(_("Windows would not open the settings file"))
 
     @script(
         # Translators: Input help mode message for Session Log.

@@ -211,178 +211,31 @@ function compileOne {
 function chainThroughUserDefault {
     param([string] $pathSettings, [string] $sVersion)
 
-    # MAKE HOMERVIEW LOAD EVEN WHERE THE USER HAS THEIR OWN default.jss.
+    # DELIBERATELY DOES NOTHING NOW, AND THE REASON IS THE WHOLE ARCHITECTURE.
     #
-    # HomerView is chained from MyExtensions, which the FACTORY default.jss
-    # chains. A machine with its OWN default.jss replaces that file -- so
-    # MyExtensions may be chained differently, twice, or not at all. On one
-    # tester's machine that meant every Alternate Menu command did nothing and
-    # the menu never remembered its last item (a set loaded twice keeps two
-    # sets of globals), while the same build worked perfectly elsewhere.
+    # This function used to read the user's own default.jss, classify it against
+    # the five shapes Doug Lee's chaining document names, and REWRITE IT so
+    # HomerView could be reached from the default chain. It worked, and it was
+    # a change to a file that governs the whole of JAWS.
     #
-    # THIS FOLLOWS DOUG LEE'S DOCUMENTED .chain PROCEDURE, including its safety
-    # checks, because he has maintained script chaining since 2009 and his
-    # rules exist for failures he has actually seen.
-    $pathJss = Join-Path $pathSettings "default.jss"
-    $pathJsb = Join-Path $pathSettings "default.jsb"
-
-    if (-not (Test-Path $pathJss) -and -not (Test-Path $pathJsb)) {
-        writeLog "    no user default script set here, so the factory one chains MyExtensions"
-        return $true
-    }
-
-    # DOUG'S FIRST RULE, AND IT IS A STOP: "If there is a .jsb file for this
-    # anchor base but no .jss file, stop! This generally means that a set of
-    # scripts is installed that already chained through this file but without
-    # allowing other script sets to do so."
-    if ((Test-Path $pathJsb) -and -not (Test-Path $pathJss)) {
-        writeLog "    STOP: this folder has default.jsb but NO default.jss."
-        writeLog "      Another script set has chained through it without leaving source,"
-        writeLog "      so nothing here can safely be added. HomerView's commands may not"
-        writeLog "      work in this JAWS version. The author of those scripts would have"
-        writeLog "      to help. Nothing has been changed."
-        return $false
-    }
-
-    # WHAT ACTUALLY HAS TO BE TRUE: THE CHAIN MUST REACH THE FACTORY DEFAULT.
+    # HomerView no longer needs to be in that chain at all. Every key it binds
+    # now lives in the browser's own key map, and the browser's own script file
+    # Uses HomerView.jsb directly. Nothing outside the browser ever has to
+    # resolve one of our names, so nothing outside the browser has to be
+    # touched: no user default.jss, no user default.jkm, no MyExtensions.
     #
-    # HomerView is chained from MyExtensions, and the FACTORY default.jsb chains
-    # MyExtensions. So a user default.jss that uses default.jsb ALREADY loads
-    # HomerView, and naming HomerView.jsb here as well would load it TWICE --
-    # two sets of globals, which is the exact fault being cured. Naming any of
-    # the three is enough; the file needs nothing added.
-    $sText = Get-Content $pathJss -Raw
-
-    # THE FILE'S OWN Use LINES, VERBATIM, BEFORE ANY DECISION IS MADE.
+    # THAT IS A CLAIM WORTH BEING ABLE TO MAKE PLAINLY -- HomerView changes no
+    # default script and no default key map -- and it stops being true the
+    # moment anything here writes to one. So this stays empty rather than being
+    # deleted, because a reader who finds the call site should find the reason
+    # here rather than in a commit message.
     #
-    # Which branch below fires depends entirely on what this file chains, and
-    # that is the one thing about a tester's machine that cannot be guessed
-    # from here. Printing the lines means ONE install answers it -- rather than
-    # another round trip to somebody who has already given up several evenings.
-    writeLog "    this folder has its own default.jss. Its use lines are:"
-    $iUse = 0
-    foreach ($sLine in (Get-Content $pathJss)) {
-        if ($sLine -match '(?i)^\s*use\s+"') {
-            writeLog "      $($sLine.Trim())"
-            $iUse += 1
-        }
-    }
-    if ($iUse -eq 0) { writeLog "      (none at all)" }
-
-    # The backup comes BEFORE any branch that could rewrite the file --
-    # every path below is reversible only because this ran first.
-    if (-not (Test-Path "$pathJss.homerViewBackup")) {
-        Copy-Item $pathJss "$pathJss.homerViewBackup" -Force
-        writeLog "    backed up default.jss before changing it"
-    }
-
-    $bAnchor = $sText -match '(?im)^\s*use\s+"default\.jsb"'
-    $bExtra = $sText -match '(?im)^\s*use\s+"(MyExtensions|HomerView)\.jsb"'
-
-    # LOADED TWICE IS WORSE THAN NOT LOADED, AND IT IS THE HARDER FAULT TO SEE.
-    #
-    # A tester's log PROVED HomerView was reachable: copySelection ran from a
-    # key and logged normally. So his chain was not broken. What failed was
-    # everything that REMEMBERS -- the menu forgot the item chosen a moment
-    # earlier. THAT IS THE SIGNATURE OF A SET LOADED TWICE: each copy keeps its
-    # own globals, so the copy that stores a value is not the copy that reads
-    # it back.
-    #
-    # The factory default.jsb already chains MyExtensions, which uses
-    # HomerView.jsb. A user default.jss that names default.jsb AND either of
-    # those brings HomerView in twice. The extra lines come out.
-    if ($bAnchor -and $bExtra) {
-        $lOut = @()
-        $iDropped = 0
-        foreach ($sLine in (Get-Content $pathJss)) {
-            if ($sLine -match '(?im)^\s*use\s+"(MyExtensions|HomerView)\.jsb"') {
-                writeLog "    removed a duplicate $($sLine.Trim()) from default.jss"
-                $iDropped += 1
-                continue
-            }
-            $lOut += $sLine
-        }
-        Set-Content -Path $pathJss -Value $lOut -Encoding UTF8
-        writeLog "    default.jss loaded HomerView TWICE, once through default.jsb and once"
-        writeLog "      directly. $iDropped line(s) removed, so it now loads once and its"
-        writeLog "      commands can remember what they store."
-        return (compileOne $sVersion $pathJss)
-    }
-    if ($bAnchor -or $bExtra) {
-        writeLog "    the user default.jss reaches HomerView once, through $(if ($bAnchor) { 'default.jsb' } else { 'MyExtensions or HomerView directly' })"
-        return $true
-    }
-
-
-    # WHAT KIND OF FILE IS IT? Doug distinguishes three, and the right action
-    # differs for each.
-    $bChainManager = $true
-    foreach ($sLine in (Get-Content $pathJss)) {
-        $sTrim = $sLine.Trim()
-        if ($sTrim -eq "" -or $sTrim.StartsWith(";")) { continue }
-        if ($sTrim -match '(?i)^use\s+"') { continue }
-        if ($sTrim -match '(?i)^(void\s+)?function\s+_?filler' -or $sTrim -match '(?i)^(endfunction|return)$') { continue }
-        $bChainManager = $false
-        break
-    }
-
-    if ($bChainManager) {
-        # The easy case: add one line above the filler function.
-        $lOut = @()
-        $bAdded = $false
-        foreach ($sLine in (Get-Content $pathJss)) {
-            if (-not $bAdded -and $sLine.Trim() -match '(?i)^(void\s+)?function\s') {
-                $lOut += 'Use "default.jsb" ; 1'
-                $lOut += ""
-                $bAdded = $true
-            }
-            $lOut += $sLine
-        }
-        if (-not $bAdded) { $lOut += 'Use "default.jsb" ; 1' }
-        Set-Content -Path $pathJss -Value $lOut -Encoding UTF8
-        # PRIORITY 1, WHICH DOUG RESERVES FOR A SET THAT MUST COME LAST in the
-        # search order, just under the shared anchor -- exactly right for the
-        # factory scripts, which everything else should be able to override.
-        writeLog "    this chain never reached the factory default, so it does now"
-        writeLog "      (HomerView loads through it, via MyExtensions, rather than twice)"
-    } else {
-        # A COPY OF THE SHARED FILE, OR SOMEBODY'S OWN WORK. Either way it is
-        # moved aside and loaded back through a Use line, which is exactly what
-        # Doug's procedure does -- it keeps whatever is in it while letting
-        # other script sets chain too.
-        $sHeld = "homerViewUserDefault"
-        $pathHeld = Join-Path $pathSettings "$sHeld.jss"
-        Move-Item $pathJss $pathHeld -Force
-        writeLog "    moved the existing default.jss aside as $sHeld.jss and kept it in the chain"
-        $lNew = @(
-            "; Written by the HomerView installer.",
-            ";",
-            "; The factory default scripts first, then whatever was in this folder's own",
-            "; default.jss, which is now $sHeld.jss. Every script set that was here",
-            "; still loads; this file only lets them share.",
-            ";",
-            "; HOMERVIEW IS DELIBERATELY NOT NAMED HERE. The factory default.jsb chains",
-            "; MyExtensions.jsb, and MyExtensions already uses HomerView.jsb -- so adding",
-            "; a Use line for it as well would load HomerView TWICE, and a script set",
-            "; loaded twice keeps TWO SETS OF GLOBALS. That is the very fault this file",
-            "; exists to cure: a menu that forgets the item chosen a moment ago, because",
-            "; the copy that stored it is not the copy that reads it back.",
-            ";",
-            "; To undo by hand: delete this file and $sHeld.jss, rename",
-            "; default.jss.homerViewBackup back to default.jss, and recompile it.",
-            'Use "default.jsb"',
-            "Use `"$sHeld.jsb`" ; 4",
-            "",
-            "; A function is required, or the file will not compile.",
-            "void function homerViewChainFiller ()",
-            "return",
-            "EndFunction"
-        )
-        Set-Content -Path $pathJss -Value $lNew -Encoding UTF8
-        # The moved file must be compiled before anything can use it.
-        compileOne $sVersion $pathHeld | Out-Null
-    }
-    return (compileOne $sVersion $pathJss)
+    # reportUserDefault, which runs just before this, still SAYS what is in the
+    # folder. Reading is not changing, and knowing that a machine carries its
+    # own default script set still explains a great deal when something behaves
+    # differently there.
+    writeLog "    default.jss is left alone here; HomerView loads from the browser's own script file"
+    return $true
 }
 
 function reportUserDefault {

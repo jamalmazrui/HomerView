@@ -50,8 +50,13 @@ footers.
 
 ### Starting HomerView
 
-**Alt+JAWSKey+H** / **NVDA+Alt+H** launches HomerView's Edge window, or
-reconnects to it if it is already running.
+**Alt+Control+H** opens the HomerView browser window. Press it again later and
+it takes you back. The key sits on the HomerView icon on your desktop. It is a
+Windows key, not a screen reader key. So it works with JAWS, with NVDA, and
+with neither.
+
+Every other HomerView key works while that window is in front. Elsewhere the
+key does nothing here. Your own program gets it instead
 
 ### The Alternate Menu
 
@@ -339,9 +344,19 @@ on. Each entry gives the NVDA key and the JAWS key.
     - JAWS: Alt+Shift+H
     - Display this list of command names, hot keys, and descriptions in a new window, as EdSharp does on the same key.
 - **Launch HomerView**
-    - NVDA: Alt+NVDA+H
-    - JAWS: Alt+JAWSKey+H
-    - Launches or reconnects the HomerView copy of Microsoft Edge. H for HomerView, and it works anywhere because nothing is running yet.
+    - Both: Alt+Control+H, the desktop shortcut
+    - Opens the HomerView browser window, or takes you back to it. The key is on the desktop icon. It is a Windows key, not a screen reader key. So it works with JAWS, with NVDA, and with neither.
+
+#### Changing how HomerView behaves
+
+- **Choose Browser**
+    - NVDA: Alt+Shift+B
+    - JAWS: Alt+Shift+B
+    - Lists the browsers on this computer. Pick the one HomerView should use. Edge, Chrome, Brave and Vivaldi all work. B for Browser.
+- **HomerView Settings**
+    - NVDA: Alt+Shift+S
+    - JAWS: Alt+Shift+S
+    - Opens the settings file in a text editor. Every HomerView preference is in it, and a note beside each one says what it does. S for Settings.
 
 #### Reading the documentation
 
@@ -734,7 +749,7 @@ on. Each entry gives the NVDA key and the JAWS key.
 
 ## Troubleshooting
 
-**A command says the browser is not running.** Press Alt+JAWSKey+H / NVDA+Alt+H
+**A command says the browser is not running.** Press Alt+Control+H
 to launch or reconnect.
 
 **A key does nothing.** Open the Alternate Menu and run the command from there.

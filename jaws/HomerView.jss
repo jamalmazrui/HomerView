@@ -1695,6 +1695,26 @@ EndScript
 
 
 ; Opens HomerView's guide. Control+F1, the key the NVDA side uses.
+Script hVOpenSettings ()
+Var
+    int iExit,
+    string sAnswer,
+    string sFile
+hVLogLine ("hVOpenSettings started")
+SayMessage (OT_STATUS, "HomerView Settings")
+Let sAnswer = hVCallBridge ("settingsFile", "")
+Let sFile = hVXmlValue (sAnswer, "/root/value")
+If sFile == "" Then
+    SayMessage (OT_MESSAGE, "The settings file could not be found")
+    Return
+EndIf
+; OPENED OUTSIDE HOMERVIEW ON PURPOSE, unlike the guides. This is a file to
+; EDIT, and the browser can only show it.
+Let iExit = hVShellRun ("cmd.exe /c start \"\" " + hVStringQuote (sFile), 0, False)
+SayMessage (OT_MESSAGE, sFile)
+EndScript
+
+
 Script hVOpenUserGuide ()
 Var
     int iExit,
@@ -1866,6 +1886,61 @@ If hVXmlValue (sAnswer, "/root/error") != "" Then
     Return
 EndIf
 SayMessage (OT_MESSAGE, hVXmlValue (sAnswer, "/root/value"))
+EndScript
+
+
+Script hVChooseBrowser ()
+Var
+    int iChoice,
+    int iWhich,
+    string sAnswer,
+    string sItems,
+    string sList,
+    string sRecord
+hVLogLine ("hVChooseBrowser started")
+SayMessage (OT_STATUS, "Choose Browser")
+; NO BROWSER IS NEEDED FOR THIS ONE, and the helper knows it. Choosing a
+; browser is exactly what somebody does when no browser will start, so
+; refusing it for want of one would refuse the cure with the symptom.
+Let sAnswer = hVCallBridge ("browsers", "")
+If hVXmlValue (sAnswer, "/root/error") != "" Then
+    hVSayOrShow (hVXmlValue (sAnswer, "/root/error"))
+    Return
+EndIf
+Let sList = hVXmlValue (sAnswer, "/root/value")
+If sList == "" Then
+    SayMessage (OT_MESSAGE, "No Chromium browser could be found on this computer")
+    Return
+EndIf
+; The name is offered; the path travels with it and is never read aloud. A
+; path spoken character by character is noise where a name would do.
+Let iWhich = 1
+Let sRecord = Builtin::StringSegment (sList, "\n", iWhich)
+While sRecord != ""
+    If iWhich == 1 Then
+        Let sItems = Builtin::StringSegment (sRecord, "\t", 1)
+    Else
+        Let sItems = sItems + "\7" + Builtin::StringSegment (sRecord, "\t", 1)
+    EndIf
+    Let iWhich = iWhich + 1
+    Let sRecord = Builtin::StringSegment (sList, "\n", iWhich)
+EndWhile
+Let iChoice = hVDialogPick ("HomerView Browser", sItems)
+If iChoice == 0 Then
+    Return
+EndIf
+Let sRecord = Builtin::StringSegment (sList, "\n", iChoice)
+SayMessage (OT_STATUS, "Setting the browser and moving the keys")
+; THE WHOLE RECORD IS PASSED BACK, name and path together, so neither side has
+; to take the line apart and put it together again. The helper writes the
+; setting and then runs chainJawsScripts, which binds these keys inside the new
+; browser and takes them out of the old one.
+Let sAnswer = hVCallBridge ("setBrowser", sRecord)
+If hVXmlValue (sAnswer, "/root/error") != "" Then
+    hVSayOrShow (hVXmlValue (sAnswer, "/root/error"))
+    Return
+EndIf
+hVSayOrShow (hVXmlValue (sAnswer, "/root/value"))
 EndScript
 
 
@@ -2638,6 +2713,8 @@ Let iAdded = UserBufferAddLink ("  Alt+JAWSKey+F10 Alternate Menu, every command
 Let iAdded = UserBufferAddLink ("  Alt+JAWSKey+A   Check the page with axe and save a report", "hVHomerViewLink (\"hVCheckAccessibility\")", "Check Accessibility with axe")
 Let iAdded = UserBufferAddLink ("  Alt+JAWSKey+D   Close a cookie banner or consent wall", "hVHomerViewLink (\"hVDismissDialog\")", "Dismiss Dialog")
 Let iAdded = UserBufferAddLink ("  Alt+Shift+H     This summary", "hVHomerViewLink (\"hVHotKeyHelp\")", "Hotkey Summary")
+Let iAdded = UserBufferAddLink ("  Alt+Shift+B     Choose which browser HomerView drives", "hVHomerViewLink (\"hVChooseBrowser\")", "Choose Browser")
+Let iAdded = UserBufferAddLink ("  Alt+Shift+S     Open the settings file", "hVHomerViewLink (\"hVOpenSettings\")", "HomerView Settings")
 Let iAdded = UserBufferAddLink ("  Shift+F4        Say the names of the open tabs", "hVHomerViewLink (\"hVSayTabNames\")", "Tab Names")
 Let iAdded = UserBufferAddLink ("  Alt+JAWSKey+L   Copy the log file to the clipboard", "hVHomerViewLink (\"hVCopyLogToClipboard\")", "Log to Clipboard")
 Let iAdded = UserBufferAddLink ("  Alt+JAWSKey+Q   Say what HomerView knows about itself", "hVHomerViewLink (\"hVSayDiagnostics\")", "Diagnostics")
@@ -2735,6 +2812,7 @@ Let sTable = "About HomerView, Which build is loaded and where everything lives.
     + "\7" + "Append Clipboard, Adds the clipboard to the end of a text file. (Control+Shift+Apostrophe)\thVAppendClipboard\tA"
     + "\7" + "Check Accessibility with axe, Tests the page with Deque axe-core and saves a report. (Alt+JAWSKey+A)\thVCheckAccessibility\tP"
     + "\7" + "Check Accessibility with IBM, Runs IBM Equal Access and saves every format to Downloads. (Alt+JAWSKey+I)\thVCheckAccessibilityIbm\tP"
+    + "\7" + "Choose Browser, Chooses which Chromium browser HomerView drives. (Alt+Shift+B)\thVChooseBrowser\tA"
     + "\7" + "Clear Clipboard, Empties the clipboard so an append starts afresh. (Alt+Shift+Apostrophe)\thVClearClipboard\tA"
     + "\7" + "Complete Selection, Selects from where F8 was pressed to here. (Shift+F8)\thVCompleteSelection\tP"
     + "\7" + "Copy All, Puts the whole page on the clipboard. (Control+F8)\thVCopyAll\tP"
@@ -2752,6 +2830,7 @@ Let sTable = "About HomerView, Which build is loaded and where everything lives.
     + "\7" + "Forward Find with Regular Expression, Searches forward for a pattern. (Control+F3)\thVFindByPattern\tP"
     + "\7" + "Go to Start of Selection, Moves back to where you began a selection, so you can hear the start again before completing it with Shift+F8. (Alt+Shift+F8)\thVGoToSelectionStart\tP"
     + "\7" + "History of Changes, What changed in each release. (Shift+F1)\thVShowHistory\tA"
+    + "\7" + "HomerView Settings, Opens the settings file, where every preference lives. (Alt+Shift+S)\thVOpenSettings\tA"
     + "\7" + "Hot Key Help, Lists every HomerView command and its key. (Alt+Shift+H)\thVHotKeyHelp\tA"
     + "\7" + "Jump to Probable Main, Moves to the main content, whether the page declares it or not. (Shift+Q)\thVMoveToProbableMain\tP"
     + "\7" + "Launch HomerView, Launches or reconnects HomerView's copy of Microsoft Edge. (Alt+JAWSKey+H)\thVLaunchHomerView\tA"

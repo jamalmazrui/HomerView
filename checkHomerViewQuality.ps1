@@ -567,6 +567,55 @@ function checkThirteen {
     }
 }
 
+function checkSeventeen {
+    param ([string] $sCs, [string] $sBrowsersPy)
+    writeLog "CHECK 17  the two browser tables agree"
+    reportNote "the same list of browsers is written in Python for NVDA and in C# for JAWS, and neither compiler can see the other"
+    # WHY THERE ARE TWO. The JAWS side has no Python, and the NVDA add-on must
+    # not depend on the program being installed beside it, since it can be
+    # installed on its own from the .nvda-addon file. So each side finds
+    # browsers for itself, and two copies of a list is exactly the shape that
+    # drifts. This is the standing rule of this project: where two languages
+    # agree on something by convention rather than by compilation, write the
+    # check.
+    if ($null -eq $sCs -or $null -eq $sBrowsersPy) {
+        reportFail "one of the two files could not be read"
+        return
+    }
+    $lPython = New-Object System.Collections.ArrayList
+    foreach ($oMatch in ([regex]'\("([^"]+)",\s*"([^"]+\.exe)"').Matches($sBrowsersPy)) {
+        [void] $lPython.Add($oMatch.Groups[1].Value + " -> " + $oMatch.Groups[2].Value)
+    }
+    $iStart = $sCs.IndexOf("private static string[,] KnownBrowsers()")
+    if ($iStart -lt 0) {
+        reportFail "KnownBrowsers was not found in HomerView.cs"
+        return
+    }
+    $iEnd = $sCs.IndexOf("};", $iStart)
+    if ($iEnd -lt 0) { $iEnd = $sCs.Length - 1 }
+    $sTable = $sCs.Substring($iStart, $iEnd - $iStart)
+    $lSharp = New-Object System.Collections.ArrayList
+    foreach ($oMatch in ([regex]'\{\s*"([^"]+)",\s*"([^"]+\.exe)"').Matches($sTable)) {
+        [void] $lSharp.Add($oMatch.Groups[1].Value + " -> " + $oMatch.Groups[2].Value)
+    }
+    reportNote ("browsers named in browsers.py: " + $lPython.Count)
+    reportNote ("browsers named in HomerView.cs: " + $lSharp.Count)
+    if ($lPython.Count -eq 0 -or $lSharp.Count -eq 0) {
+        reportFail "one of the two tables came back empty, so they cannot be compared"
+        return
+    }
+    foreach ($sEntry in $lPython) {
+        if (-not $lSharp.Contains($sEntry)) {
+            reportFail ($sEntry + " is in browsers.py and not in HomerView.cs")
+        }
+    }
+    foreach ($sEntry in $lSharp) {
+        if (-not $lPython.Contains($sEntry)) {
+            reportFail ($sEntry + " is in HomerView.cs and not in browsers.py")
+        }
+    }
+}
+
 function checkSixteen {
     param ($oMenu)
     writeLog "CHECK 16  no menu command name contains another"
@@ -806,6 +855,7 @@ $sJkm = readText $sPathJkm
 $sJsd = readText $sPathJsd
 $sCs  = readText $sPathCs
 $sChain = readText (Join-Path $sRoot "chainJawsScripts.ps1")
+$sBrowsersPy = readText (Join-Path $sRoot "addon\globalPlugins\homerView\browsers.py")
 
 if ($null -eq $sJss) {
     writeLog "jaws\HomerView.jss could not be read, so nothing further can be checked."
@@ -839,7 +889,8 @@ $lChecks = @(
     { checkThirteen $aJss $sCs },
     { checkFourteen $aJss $sChain $lKeys },
     { checkFifteen  $aJss $lScripts $lFuncs },
-    { checkSixteen  $oMenu })
+    { checkSixteen  $oMenu },
+    { checkSeventeen $sCs $sBrowsersPy })
 
 foreach ($oCheck in $lChecks) {
     $iBefore = $script:iFail

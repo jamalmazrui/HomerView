@@ -530,6 +530,27 @@ def main():
             return 1
         say("")
 
+    # THE SURVEY IS NOW STALE, AND ACTING ON IT COST A RUN ON 31 AUGUST 2026.
+    # The commit above was the whole outstanding change set, and that set
+    # included every file a folder sweep had already moved away. Committing
+    # those deletions untracked eleven of the twelve files the survey had just
+    # listed for untracking, so eleven git rm --cached calls then failed with
+    # "pathspec did not match any files" -- and the script counted none of
+    # them, wrote a .gitignore line for each, and finished saying it had
+    # untracked twelve. The outcome was right and the report was not.
+    #
+    # So the lists are worked out again against the repository as it now is.
+    # A survey describes; only a fresh reading may be acted on.
+    if bDirty and (lBelong or lStray):
+        lTracked, lStrayNow = surveyTracked(setNeeded)
+        lBelongNow, lNotOurs = surveyWorkingTree(setNeeded)
+        if len(lStrayNow) != len(lStray) or len(lBelongNow) != len(lBelong):
+            say("The commit changed what is left to do, so the plan is read again:")
+            say(f"  untrack {len(lStray)} was the plan, {len(lStrayNow)} still needs it")
+            say(f"  add {len(lBelong)} was the plan, {len(lBelongNow)} still needs it")
+            say("")
+        lStray, lBelong = lStrayNow, lBelongNow
+
     if lBelong:
         say(f"Adding {len(lBelong)} files the repository was missing.")
         for sPath in lBelong:
@@ -537,23 +558,59 @@ def main():
         say("")
 
     if lStray:
-        say(f"Untracking {len(lStray)} files. They stay on disk.")
+        if len(lStray) == 1:
+            say("Untracking 1 file. It stays on disk.")
+        else:
+            say(f"Untracking {len(lStray)} files. They stay on disk.")
+        lUntracked = []
         for sPath in lStray:
-            run(["git", "rm", "--cached", "-q", "--", sPath])
+            result = run(["git", "rm", "--cached", "-q", "--", sPath])
+            if result and not result.returncode:
+                lUntracked.append(sPath)
+            else:
+                say(f"    {sPath} was already untracked, so there was nothing to do")
+        say(f"  {len(lUntracked)} untracked, "
+            f"{len(lStray) - len(lUntracked)} already were.")
+        # Only what was actually untracked earns a line. A pattern for a file
+        # that is in neither the repository nor the folder is noise in a file
+        # somebody has to read.
         pathIgnore = os.path.join(pathRoot, ".gitignore")
         sExisting = ""
         if os.path.exists(pathIgnore):
             with open(pathIgnore, encoding="utf-8") as fileIgnore:
                 sExisting = fileIgnore.read()
-        lAdd = [s for s in lStray if s not in sExisting]
+        # git itself is asked whether a path is already ignored, rather than
+        # the file being searched for the name. build/HomerView.nvda-addon
+        # is covered by the build/ line and does not need one of its own,
+        # and a plain text search cannot see that.
+        lAdd = []
+        for sPath in lUntracked:
+            if not os.path.exists(os.path.join(pathRoot, sPath)):
+                continue
+            if sPath in sExisting:
+                continue
+            result = subprocess.run(["git", "check-ignore", "-q", "--", sPath],
+                                    cwd=pathRoot, capture_output=True)
+            if result.returncode == 0:
+                say(f"    {sPath} is already covered by a line in .gitignore")
+                continue
+            lAdd.append(sPath)
         if lAdd:
             with open(pathIgnore, "a", encoding="utf-8", newline="\n") as fileIgnore:
                 fileIgnore.write(
                     "\n# Untracked by tidyRepo: development files that reached the\n"
                     "# repository through git add -A. They are still on disk.\n")
+                # A LEADING SLASH, because a .gitignore pattern with no
+                # slash in it matches at EVERY level. Without one, a bare
+                # HomerView.jss written for the stale root copy also
+                # matches jaws/HomerView.jss, which is the live script
+                # set. That happened on 31 August 2026 and only did no
+                # harm because those files were already tracked.
                 for sPath in sorted(lAdd):
-                    fileIgnore.write(sPath + "\n")
-            say(f"  added {len(lAdd)} patterns to .gitignore")
+                    fileIgnore.write("/" + sPath.lstrip("/") + "\n")
+            say(f"  added {len(lAdd)} name(s) to .gitignore")
+        else:
+            say("  nothing to add to .gitignore")
         run(["git", "add", ".gitignore"])
         say("")
 

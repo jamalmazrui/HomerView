@@ -210,7 +210,19 @@ function buildBridge {
     # error, killing the script before it can log why. csc writes its errors
     # to stdout so this has not bitten here, but the trap is identical.
     $ErrorActionPreference = "Continue"
-    $sOutput = & $pathCompiler /nologo /target:exe /platform:x64 `
+    # WINEXE, NOT EXE, AND THE REASON IS THE DESKTOP SHORTCUT.
+    #
+    # HomerView.exe is now the target of a .lnk carrying Alt+Control+H, and a
+    # console program started from a shortcut puts a black window on the
+    # screen and a button on the taskbar before it does anything. Nothing is
+    # lost by removing the console: every answer this program gives is
+    # written to a FILE, which is what the JAWS scripts read, and everything
+    # else goes to its log. Console.Error.WriteLine still compiles and simply
+    # goes nowhere.
+    #
+    # The one thing that changes is below: PowerShell does not wait for a
+    # windows program the way it waits for a console one.
+    $sOutput = & $pathCompiler /nologo /target:winexe /platform:x64 `
         /reference:System.Windows.Forms.dll `
         /reference:System.Runtime.Serialization.dll `
         /reference:System.Xml.dll `
@@ -231,7 +243,13 @@ function buildBridge {
     # finding here rather than from a JAWS script that got no answer.
     $pathProbe = Join-Path $env:TEMP "HomerViewProbe.txt"
     if (Test-Path $pathProbe) { Remove-Item $pathProbe -Force }
-    & $pathBridge "tabs" $pathProbe 2>&1 | Out-Null
+    # START-PROCESS -WAIT, BECAUSE THE PROGRAM IS NOW A WINDOWS ONE.
+    # PowerShell waits for a console program to exit before carrying on; for
+    # a windows program it does not, so the call operator would return at
+    # once and the test below would read a file that had not been written
+    # yet -- a probe that fails only sometimes, which is the worst kind.
+    Start-Process -FilePath $pathBridge -ArgumentList @("tabs", $pathProbe) `
+        -WindowStyle Hidden -Wait
     if (Test-Path $pathProbe) {
         writeLog "It runs and answers. (An error about connecting is expected here:"
         writeLog "HomerView's browser is not running during a build.)"

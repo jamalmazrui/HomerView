@@ -58,7 +58,21 @@ if ((Test-Path (Join-Path $pathAddon "homerView")) -or
 }
 
 $sMessage += $sBreak + "The full log is:" + $sBreak + "  " + $pathLog + $sBreak
-$sMessage += $sBreak + "To start HomerView, press Alt+JAWS+H in JAWS, or Alt+NVDA+H in NVDA."
+# THE LAST THING THE READER HEARS, so it has to be the key that actually
+# works. It said Alt+JAWS+H and Alt+NVDA+H until 31 August 2026, which were
+# right while HomerView bound a key in every application. It no longer does:
+# every screen reader key is now scoped to the browser, and starting the
+# browser from anywhere else is a Windows shortcut key on the desktop icon.
+#
+# Worth noticing that nothing failed here. The installer was correct, the
+# keys were correct, and the one sentence a first-time user reads was wrong.
+# A message is as much a part of the product as the code it describes.
+$sMessage += $sBreak + "To start HomerView, press Alt+Control+H. That is a Windows" + $sBreak
+$sMessage += "shortcut key on the HomerView icon on your desktop, so it works" + $sBreak
+$sMessage += "whichever screen reader you use." + $sBreak
+$sMessage += $sBreak + "Every other HomerView key works while that browser window is in" + $sBreak
+$sMessage += "front, and does nothing in any other program." + $sBreak
+$sMessage += $sBreak + "In JAWS, restart JAWS first." + $sBreak
 
 Add-Type -AssemblyName System.Windows.Forms | Out-Null
 [System.Windows.Forms.MessageBox]::Show($sMessage, "HomerView Setup Results",

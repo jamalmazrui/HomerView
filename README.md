@@ -43,7 +43,7 @@ version and when it was installed.
 Throughout this file, JAWS and NVDA name each screen reader's own modifier
 key, which may be Insert or Caps Lock, whichever you have set.
 
-**Alt+Control+H** opens a HomerView browser window on a start page. It is a
+**Alt+Control+Shift+H** opens a HomerView browser window on a start page. It is a
 separate browser profile, so your ordinary browsing is untouched. The same key
 later brings you back to that window rather than opening a second one.
 
@@ -63,7 +63,7 @@ and Vivaldi all work.
 
 ### The one key to remember
 
-**Alt+JAWS+F10** (JAWS) or **Alt+NVDA+F10** (NVDA) opens the Alternate Menu.
+**Alt+JAWS+F10** (JAWS) or **Alt+F10** (NVDA) opens the Alternate Menu.
 Every command is on it, in alphabetical order, with its key beside it, and only
 the commands that apply where you are. Nothing is hidden behind a keystroke you
 must know in advance.
@@ -82,7 +82,7 @@ Open any article, then:
 3. **Alt+L**, with the cursor on a link — say what is at the other end without
    going there: what kind of thing, how big, and whether the address leads
    somewhere other than it appears.
-4. **Alt+JAWS+A** (JAWS) or **Alt+NVDA+A** (NVDA) — check the page with axe and
+4. **Alt+Shift+A** (JAWS) or **Alt+Shift+A** (NVDA) — check the page with axe and
    save a readable report to Downloads, opening it in a tab. **Alt+JAWS+I** or
    **Alt+NVDA+I** does the same with IBM's engine.
 5. **Alt+Shift+W** — offer every file the page points at, by kind, and fetch the

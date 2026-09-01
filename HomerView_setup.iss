@@ -235,10 +235,25 @@ Name: "{group}\Uninstall HomerView"; Filename: "{uninstallexe}"
 ; above deliberately carry no HotKey: the same key on two shortcuts is a
 ; conflict, not a fallback.
 ;
-; If Alt+Control+H is silent, something else has registered it as a global
+; WHY ALT+CONTROL+SHIFT+H AND NOT ALT+CONTROL+H. Alt+Control+H was the first
+; choice and it was already taken, by HomerScribe's own desktop shortcut. Two
+; .lnk files claiming one shortcut key is not an error anywhere: Windows gives
+; it to one of them and says nothing about the other, so the symptom is the
+; wrong program opening, or nothing opening, with no message either way.
+;
+; Alt+Control+Shift+letter is the same reserved family and is a place the other
+; Homer tools are not. Inno takes shift here: a bug in 6.4.0 needed it written
+; as Shift rather than Shift+, and 6.4.1 fixed that.
+;
+; AFTER CHANGING A SHORTCUT KEY, WINDOWS MAY HOLD THE OLD ONE until the user
+; logs off or restarts. Inno's own documentation warns of it. So if HomerScribe
+; still does not answer Alt+Control+H straight after this installs, that is why,
+; and a log off settles it.
+;
+; If Alt+Control+Shift+H is silent, something else has registered it as a global
 ; hotkey and wins. The shortcut's key can be changed in its properties, and
 ; the guide says so.
-Name: "{autodesktop}\HomerView"; Filename: "{app}\HomerView.exe"; Parameters: "launch"; WorkingDir: "{app}"; HotKey: "ctrl+alt+h"; Comment: "Open HomerView, or come back to it. Alt+Control+H."
+Name: "{autodesktop}\HomerView"; Filename: "{app}\HomerView.exe"; Parameters: "launch"; WorkingDir: "{app}"; HotKey: "ctrl+alt+shift+h"; Comment: "Open HomerView, or come back to it. Alt+Control+Shift+H."
 
 [Run]
 ; Back to the shell, which is what worked, plus the one flag that was missing.

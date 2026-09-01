@@ -203,7 +203,7 @@ def chooseBrowser():
         "",
         # Translators: Told to the user after changing the browser.
         _("Close the HomerView browser window if one is open, then press "
-          "Alt+Control+H to start the new one."),
+          "Alt+Control+Shift+H to start the new one."),
     ]
     if bJaws:
         lLines.append("")

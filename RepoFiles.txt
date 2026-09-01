@@ -46,6 +46,13 @@ checkParity.py
 
 # The sources the build compiles, and the scripts the installer runs.
 HomerView.cs
+
+# The shared Homer classes, compiled into HomerView.exe beside HomerView.cs.
+# COPIES, and meant to stay byte identical to the ones in the other Homer
+# projects: a fix made in one is copied to the others unread, exactly as
+# homerPolicy.py is. Nothing in them names HomerView.
+homer\Inix.cs
+homer\Web.cs
 HomerView_setup.iss
 chainJawsScripts.cmd
 chainJawsScripts.ps1

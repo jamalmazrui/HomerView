@@ -567,6 +567,62 @@ function checkThirteen {
     }
 }
 
+function checkEighteen {
+    param ([string] $sCs, [string] $sRoot)
+    writeLog "CHECK 18  the shared Homer classes are there, and nothing duplicates them"
+    reportNote "HomerView.cs calls into Homer.Web and Homer.InixCodec; a copy of that logic growing back here is the fault this watches for"
+    # WHAT THIS IS WRITTEN AGAINST, and it had already happened three times.
+    # HomerView.cs had THREE hand-written Content-Disposition parsers and no
+    # two of them agreed: one dropped the closing quote, one kept it, none
+    # handled the RFC 5987 filename* form. It also carried its own MIME to
+    # extension table, and forty lines that edited an .inix file by hand.
+    #
+    # None of that was a bug on the day it was written. Each one grew because
+    # the nearest code did not quite fit and writing five lines was quicker
+    # than looking. So the check is not "is this correct" but "is this here at
+    # all", which is the only form the question can take.
+    foreach ($sName in @("Inix.cs", "Web.cs")) {
+        $sPath = Join-Path $sRoot "homer\$sName"
+        if (Test-Path $sPath) {
+            reportNote ("homer\" + $sName + " is here, " + (Get-Item $sPath).Length + " bytes")
+        } else {
+            reportFail ("homer\" + $sName + " is missing, and HomerView.cs calls into it")
+        }
+    }
+    if ($null -eq $sCs) { reportFail "HomerView.cs could not be read"; return }
+
+    # ASKED AS "IS THE SHARED ONE USED", NOT "IS A DUPLICATE ABSENT".
+    #
+    # The first draft of this check searched for the text of the things it had
+    # just removed, and it FAILED A CORRECT FILE THREE TIMES OVER: on a
+    # content type to HUMAN DESCRIPTION map, which is a different table for a
+    # different purpose; on the OOXML content types inside the spreadsheet
+    # writer, which are part of the file format; and on the words
+    # "[Preferences]" inside the comment explaining the change. A checker that
+    # cries wolf is worse than none, and this project has said so before.
+    #
+    # A positive test cannot be fooled that way. If the call is here, the work
+    # is being done by the shared class, whatever else the file contains.
+    foreach ($oExpected in @(
+        @("Web.fileFromDisposition", "reads a Content-Disposition header"),
+        @("Web.mimeToExt", "turns a content type into an extension"),
+        @("InixCodec.writeValue", "writes a value to the settings file"))) {
+        if ($sCs -match [regex]::Escape($oExpected[0])) {
+            reportNote ("HomerView.cs calls " + $oExpected[0] + ", which " + $oExpected[1])
+        } else {
+            reportFail ("HomerView.cs no longer calls " + $oExpected[0] +
+                ", so something else now " + $oExpected[1])
+        }
+    }
+
+    # And one negative, kept because it is precise. A C# switch over content
+    # types is the exact shape of the table that was removed, and neither the
+    # description map nor the JavaScript injected into the page matches it.
+    if ($sCs -match '(?m)^\s*case\s+"application/') {
+        reportFail "HomerView.cs has a switch over content types again; Homer.Web.mimeToExt is the shared one"
+    }
+}
+
 function checkSeventeen {
     param ([string] $sCs, [string] $sBrowsersPy)
     writeLog "CHECK 17  the two browser tables agree"
@@ -905,7 +961,8 @@ $lChecks = @(
     { checkFourteen $aJss $sChain $lKeys },
     { checkFifteen  $aJss $lScripts $lFuncs },
     { checkSixteen  $oMenu },
-    { checkSeventeen $sCs $sBrowsersPy })
+    { checkSeventeen $sCs $sBrowsersPy },
+    { checkEighteen $sCs $sRoot })
 
 foreach ($oCheck in $lChecks) {
     $iBefore = $script:iFail

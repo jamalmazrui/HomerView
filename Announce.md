@@ -65,7 +65,7 @@ profile, so your ordinary browsing is untouched.
 - [HomerView project on GitHub](https://github.com/JamalMazrui/HomerView)
 
 Run the installer and tick the box for the screen reader you use; it offers
-whichever it finds. Then press **Alt+JAWS+H** in JAWS, or **Alt+NVDA+H** in
+whichever it finds. Then press **Alt+Control+Shift+H** in JAWS, or **Alt+Control+Shift+H** in
 NVDA (the JAWS and NVDA modifier keys may be Insert or Caps Lock, whichever
 you have set). From there the menu key lists every command, and hot key help
 lists every key.

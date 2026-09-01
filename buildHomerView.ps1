@@ -209,10 +209,39 @@ function buildBridge {
     # "Stop" turns a native program's first stderr line into a TERMINATING
     # error, killing the script before it can log why. csc writes its errors
     # to stdout so this has not bitten here, but the trap is identical.
+    # THE SHARED HOMER CLASSES ARE COMPILED IN, NOT REFERENCED.
+    #
+    # They are C# sources rather than a library, which suits this build: csc
+    # is the whole toolchain here, there is no package manager, and a source
+    # file cannot get out of step with the binary beside it. They are in the
+    # same namespace, Homer, as this program, so nothing needs a using line.
+    #
+    # WHAT THEY REPLACED, and why the duplication was worth removing. Three
+    # separate Content-Disposition parsers had grown in HomerView.cs and no
+    # two of them agreed; a MIME-to-extension table had been written out a
+    # second time; and forty lines edited an .inix file by hand. All of that
+    # is one call each now, into code EdSharp and the other Homer tools use.
+    #
+    # MISSING ONES ARE NAMED RATHER THAN SKIPPED. A shared class that quietly
+    # is not there produces a compile error a hundred lines long about
+    # undefined names, and the real cause -- one absent file -- appears
+    # nowhere in it.
+    $lShared = @()
+    foreach ($sName in @("Inix.cs", "Web.cs")) {
+        $pathShared = Join-Path $pathRoot "homer\$sName"
+        if (Test-Path $pathShared) {
+            $lShared += $pathShared
+            writeLog "  shared class: homer\$sName"
+        } else {
+            writeLog "ERROR: homer\$sName is missing, and HomerView.cs calls into it."
+            exit 1
+        }
+    }
+
     $ErrorActionPreference = "Continue"
     # WINEXE, NOT EXE, AND THE REASON IS THE DESKTOP SHORTCUT.
     #
-    # HomerView.exe is now the target of a .lnk carrying Alt+Control+H, and a
+    # HomerView.exe is now the target of a .lnk carrying Alt+Control+Shift+H, and a
     # console program started from a shortcut puts a black window on the
     # screen and a button on the taskbar before it does anything. Nothing is
     # lost by removing the console: every answer this program gives is
@@ -227,7 +256,7 @@ function buildBridge {
         /reference:System.Runtime.Serialization.dll `
         /reference:System.Xml.dll `
         /reference:System.IO.Compression.dll `
-        "/out:$pathBridge" $pathSource 2>&1 | Out-String
+        "/out:$pathBridge" $pathSource $lShared 2>&1 | Out-String
     $iExit = $LASTEXITCODE
     $ErrorActionPreference = "Stop"
     foreach ($sLine in ($sOutput -split "`n")) {

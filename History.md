@@ -7,6 +7,37 @@ What changed, newest first, written the way you would tell somebody rather than
 as a list of commit messages. The reasoning behind each change is in the code,
 where it belongs. This is the short version.
 
+## The same keys on JAWS and NVDA, and one fewer key to hold down
+
+HomerView's commands used to need your screen reader's own key as well: Alt,
+Insert, and a letter on JAWS, or Alt, NVDA, and a letter on NVDA. That was
+three keys for one command, and a different three depending on which screen
+reader you use.
+
+The extra key was there for a good reason that no longer applies. Those
+commands used to be bound in a place that made them work in every program on
+the computer, so they had to keep out of everything's way. They now live with
+the browser and do nothing in any other program, so they only need to keep out
+of the browser's way.
+
+So they are now **Alt+Shift** and a letter, the same on both screen readers:
+
+- **Alt+Shift+A** checks the page with axe
+- **Alt+Shift+E** checks it with IBM Equal Access
+- **Alt+Shift+C** finds who to tell about the site
+- **Alt+Shift+D** dismisses a dialog covering the page
+- **Alt+Shift+L** puts the log on the clipboard
+- **Alt+Shift+R** reports diagnostics
+- **Alt+F10** opens the Alternate Menu, where every command is
+
+Alt+Shift rather than plain Alt, because a web page can put its own shortcuts
+on Alt and a letter. Alt+Shift leaves those alone.
+
+Two commands were renamed so their key would make sense. "Check Accessibility
+with IBM" is now "Check with Equal Access", which is IBM's own
+name for the engine, so E stands for something. "Diagnostics" is now "Report
+Diagnostics", because D was already taken by Dismiss Dialog.
+
 ## Every key now belongs to the browser
 
 HomerView no longer changes any of your screen reader's own settings.
@@ -21,12 +52,16 @@ Now every key lives in the browser's own key map and script file, so the keys
 do not exist in any other program. On NVDA every command does nothing outside
 the HomerView browser and the key is passed on to whatever you are using.
 
-**Alt+Control+H starts HomerView from anywhere.** That is a Windows shortcut
-key on the HomerView icon the installer puts on your desktop, so it works
-whichever screen reader you use, and whether or not one is running. Press it
-and HomerView opens, or comes back to the window you already had. If it does
-nothing, another program has taken that key; you can change it in the
-shortcut's properties.
+**Alt+Control+Shift+H starts HomerView from anywhere.** That is a Windows
+shortcut key on the HomerView icon the installer puts on your desktop, so it
+works whichever screen reader you use, and whether or not one is running. Press
+it and HomerView opens, or comes back to the window you already had.
+
+It has three modifiers because Alt+Control+H is HomerScribe's key. Two
+shortcuts claiming one key is not an error: Windows gives it to one of them and
+says nothing, so the wrong program opens and nothing explains why. If
+Alt+Control+Shift+H does nothing, another program has taken it too, and you can
+change the key in the shortcut's properties.
 
 ## HomerView works with any Chromium browser
 
@@ -43,7 +78,7 @@ choice is kept along with every other preference. Each value has a comment
 beside it saying what it does.
 
 Changing the browser also moves the JAWS keys into the new browser and takes
-them out of the old one. Close the browser window, press Alt+Control+H, and
+them out of the old one. Close the browser window, press Alt+Control+Shift+H, and
 restart JAWS.
 
 ## Version 1.48.5 — 15 August 2026
@@ -61,7 +96,7 @@ report says so.
 
 It had been buried inside Report Accessibility on the NVDA side, so a reader who
 simply wanted an address had to run a whole accessibility scan to get one. It is
-now **Alt+NVDA+C** and **Alt+JAWSKey+C**.
+now **Alt+Shift+C** and **Alt+Shift+C**.
 
 ### One folder for each page
 

@@ -106,7 +106,7 @@ dOutsideBrowseMode = {
 #
 # THE ONE THAT USED TO BE EXEMPT WAS LAUNCHING, and it is exempt no longer.
 # Starting the browser from outside the browser is now a Windows shortcut key,
-# Alt+Control+H, on the desktop icon the installer creates. So no HomerView key
+# Alt+Control+Shift+H, on the desktop icon the installer creates. So no HomerView key
 # does anything in any other program, on either screen reader.
 def _browserScopedScripts():
     """The name of every command in the table, as NVDA spells a script."""
@@ -146,9 +146,9 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
     def _publishCommands(self):
         """Make the global commands visible in the Alternate Menu."""
         for sName, sGesture, sDescription, sScript in (
-            (_("Launch HomerView Edge"), "Alt+NVDA+H",
+            (_("Launch HomerView Edge"), "Alt+Control+Shift+H",
              _("Launch or reconnect the HomerView instance of Microsoft Edge"), "launchHomerView"),
-            (_("Accessibility report"), "Alt+NVDA+A",
+            (_("Accessibility report"), "Alt+Shift+A",
              _("Test the page and find how to report the problems to the publisher"), "accessibilityReport"),
             (_("Page explorer"), "Y, or Alt+NVDA+E",
              _("Summarise the page structure and its visual aspects"), "explorePage"),
@@ -158,7 +158,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
              _("List the file types linked from the page and download the ones you choose"), "downloadFiles"),
             (_("Page folder"), "Alt+Shift+F",
              _("Open this page's folder in File Explorer, to browse what was saved"), "openPageFolder"),
-            (_("Dismiss browser dialog"), "Alt+NVDA+D",
+            (_("Dismiss browser dialog"), "Alt+Shift+D",
              _("Close a Microsoft Edge dialog that is blocking the window"), "dismissDialog"),
             (_("Connection status"), "",
              _("Report whether HomerView is connected to Microsoft Edge"), "reportConnection"),
@@ -173,7 +173,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             (_("Recently opened"), "",
              _("List the pages and documents opened in HomerView, so you can find one again"),
              "recentPages"),
-            (_("Alternate menu"), "Alt+NVDA+F10",
+            (_("Alternate menu"), "Alt+F10",
              _("List every HomerView command in one alphabetical list"), "alternateMenu"),
             (_("Report the page address"), "Alt+A, or Alt+NVDA+U",
              _("Report the web address of the HomerView page, from anywhere in the window"),
@@ -538,7 +538,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
     def _attachToBrowserStartedElsewhere(self, obj):
         """Notice a HomerView browser that something other than NVDA started.
 
-        THE DESKTOP SHORTCUT IS WHY THIS EXISTS. Alt+Control+H runs
+        THE DESKTOP SHORTCUT IS WHY THIS EXISTS. Alt+Control+Shift+H runs
         HomerView.exe, which starts the browser or brings it back, and NVDA is
         not involved. Without this, NVDA would not know that browser was there
         until the next time it was asked to do something, and the first thing
@@ -673,7 +673,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         # Translators: Input help mode message for Launch HomerView.
         description=_("Launches or reconnects the HomerView copy of Microsoft Edge. H for HomerView, and it works anywhere because nothing is running yet."),
         category="HomerView",
-        gesture="kb:NVDA+alt+h",
+        gesture="kb:alt+control+shift+h",
     )
     def script_launchHomerView(self, gesture):
         homerLog.info("Command: launch or reconnect")
@@ -709,7 +709,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         # Translators: Input help mode message for Dismiss Dialog.
         description=_("Closes a browser dialog that is blocking the window. D for Dismiss, and it works anywhere because a dialog is what has the focus."),
         category="HomerView",
-        gesture="kb:NVDA+alt+d",
+        gesture="kb:alt+shift+d",
     )
     def script_dismissDialog(self, gesture):
         homerLog.info("Command: dismiss a blocking dialog")
@@ -773,7 +773,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             "lives at."
         ),
         category="HomerView",
-        gesture="kb:NVDA+alt+c",
+        gesture="kb:alt+shift+c",
     )
     def script_findContacts(self, gesture):
         homerLog.info("Command: find contacts")
@@ -937,7 +937,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         # Translators: Input help mode message for Alternate Menu.
         description=_("Present all commands in a single, alphabetized list. F10 opens a menu bar in Windows, and this is the menu HomerView has instead."),
         category="HomerView",
-        gesture="kb:NVDA+alt+f10",
+        gesture="kb:alt+f10",
     )
     def script_alternateMenu(self, gesture):
         """The menu, on one key that always works.
@@ -1002,7 +1002,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         homerLog.info("Command: open another format")
         if not service.isConnected():
             # Translators: Reported when HomerView has no connection.
-            ui.message(_("Not started. Press Alt+NVDA+H"))
+            ui.message(_("Not started. Press Alt+Control+Shift+H"))
             return
         def onPath(sPath):
             if not sPath:
@@ -1143,7 +1143,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         homerLog.info("Command: report the page address, from anywhere")
         if not service.isConnected():
             # Translators: Reported when HomerView has no connection.
-            ui.message(_("Not started. Press Alt+NVDA+H"))
+            ui.message(_("Not started. Press Alt+Control+Shift+H"))
             return
         service.submit(
             "activePageUrl",
@@ -1171,7 +1171,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         homerLog.info("Command: open Copilot")
         if not service.isConnected():
             # Translators: Reported when HomerView has no connection.
-            ui.message(_("Not started. Press Alt+NVDA+H"))
+            ui.message(_("Not started. Press Alt+Control+Shift+H"))
             return
         # Translators: Reported while Copilot is opened.
         ui.message(_("Opening Copilot"))
@@ -1244,7 +1244,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         }
         if not service.isConnected():
             self._dSelfTest[_("The page through the DevTools Protocol")] = (
-                [("Result", "HomerView is not connected. Press Alt+NVDA+H first.")], False
+                [("Result", "HomerView is not connected. Press Alt+Control+Shift+H first.")], False
             )
             self._showSelfTest(None)
             return
@@ -1287,7 +1287,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
                       "attaches it to an email rather than typing its name into one. "
                       "L for Log."),
         category="HomerView",
-        gesture="kb:control+shift+l",
+        gesture="kb:alt+shift+l",
     )
     def script_logToClipboard(self, gesture):
         """Put the log on the clipboard as a file rather than as its name."""
@@ -1627,7 +1627,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
                 # Translators: Reported when the window is open but unusable.
                 ui.message(_(
                     "HomerView window opened, but its connection is gone, so commands will "
-                    "not work. Close it and press Alt+NVDA+H again."))
+                    "not work. Close it and press Alt+Control+Shift+H again."))
             else:
                 # Translators: Reported when an existing window was brought forward.
                 ui.message(_("HomerView"))
@@ -1644,7 +1644,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             ui.message(
                 _(
                     "Microsoft Edge is showing a dialog that may block the address "
-                    "bar. Press Alt+NVDA+D to close it."
+                    "bar. Press Alt+Shift+D to close it."
                 )
             )
             return

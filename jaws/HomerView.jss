@@ -1183,7 +1183,7 @@ SayMessage (OT_MESSAGE, hVXmlValue (sAnswer, "/root/value"))
 EndScript
 
 
-; Runs IBM's Equal Access checker and saves the results. Alt+JAWSKey+I.
+; Runs IBM's Equal Access checker and saves the results. Alt+Shift+E.
 ;
 ; A SECOND ENGINE, NOT A REPLACEMENT. axe checks WCAG; IBM's unified ruleset
 ; folds EN 301 549 and Section 508 in with it, which is the superset several
@@ -1261,8 +1261,8 @@ SayMessage (OT_MESSAGE, "Complete Selection, "
 EndScript
 
 
-; Checks the page for accessibility problems. Alt+JAWSKey+A.
-; Checks the page for accessibility problems. Alt+JAWSKey+A, the key the NVDA
+; Checks the page for accessibility problems. Alt+Shift+A.
+; Checks the page for accessibility problems. Alt+Shift+A, the key the NVDA
 ; side uses. Not Alt+A, which on the NVDA side says the address.
 ;
 ; The same standards and the same four outcomes the NVDA side asks for: WCAG
@@ -1297,12 +1297,13 @@ EndIf
 EndScript
 
 
-; Puts HomerView's JAWS log on the clipboard. Alt+JAWSKey+L.
+; Puts HomerView's JAWS log on the clipboard. Alt+Shift+L.
 ;
 ; MOVED OFF JAWSKey+L, which was written into the key map, read back
 ; correctly, and never once fired. Something else has that key and finding
 ; out what is a longer road than taking a key of the same shape as the five
-; Alt+JAWSKey ones that demonstrably work.
+; Alt+JAWSKey ones that demonstrably work. (The modifier itself is gone now:
+; the keys live in the browser's key map and are Alt+Shift+letter.)
 ;
 ; As a FILE first, so Control+V in the body of an Outlook message attaches it,
 ; and as the path in plain text if that is refused.
@@ -1457,7 +1458,7 @@ EndIf
 EndScript
 
 
-; Closes whatever is covering the page. Alt+JAWSKey+D.
+; Closes whatever is covering the page. Alt+Shift+D.
 ;
 ; Cookie banners, newsletter offers and sign-in walls are not part of the page
 ; and are rarely reachable by the keys that would dismiss them. This closes any
@@ -1607,7 +1608,7 @@ EndScript
 
 
 ; Moves to the probable main content of a page that declares none.
-; Alt+JAWSKey+Q.
+; Alt+Shift+R.
 ;
 ; JAWS already moves to a declared main region with Q, so this is the case Q
 ; cannot serve: about half the web names no main region at all. It weighs every
@@ -2428,11 +2429,11 @@ hVSayVirtual ("HomerView " + c_sVersion + " for JAWS"
     + "\r\n" + "Installed " + c_sInstalled
     + "\r\n\r\n" + "Program: " + c_sAppFolder
     + "\r\n" + "Log: " + c_sLogFile
-    + "\r\n\r\n" + "Alt+JAWSKey+F10 opens the menu. Alt+Shift+H lists every key.")
+    + "\r\n\r\n" + "Alt+F10 opens the menu. Alt+Shift+H lists every key.")
 EndScript
 
 
-; Finds whoever can be told about this site. Alt+JAWSKey+C.
+; Finds whoever can be told about this site. Alt+Shift+C.
 ;
 ; A COMMAND OF ITS OWN, not a section inside an accessibility report. "Who do I
 ; tell" is asked at other times than "what is wrong with this page", and
@@ -2708,16 +2709,16 @@ Let iAdded = Builtin::UserBufferAddText ("")
 Let iAdded = Builtin::UserBufferAddText ("In JAWS Keyboard Help, JAWSKey+1, press any key below to hear what it does.")
 Let iAdded = Builtin::UserBufferAddText ("")
 Let iAdded = Builtin::UserBufferAddText ("Anywhere:")
-Let iAdded = UserBufferAddLink ("  Alt+JAWSKey+H   Launch or return to HomerView", "hVHomerViewLink (\"hVLaunchHomerView\")", "Launch HomerView")
-Let iAdded = UserBufferAddLink ("  Alt+JAWSKey+F10 Alternate Menu, every command in one list", "hVHomerViewLink (\"hVShowHomerViewMenu\")", "Alternate Menu")
-Let iAdded = UserBufferAddLink ("  Alt+JAWSKey+A   Check the page with axe and save a report", "hVHomerViewLink (\"hVCheckAccessibility\")", "Check Accessibility with axe")
-Let iAdded = UserBufferAddLink ("  Alt+JAWSKey+D   Close a cookie banner or consent wall", "hVHomerViewLink (\"hVDismissDialog\")", "Dismiss Dialog")
+Let iAdded = UserBufferAddLink ("  Alt+Control+Shift+H  Launch or return to HomerView", "hVHomerViewLink (\"hVLaunchHomerView\")", "Launch HomerView")
+Let iAdded = UserBufferAddLink ("  Alt+F10 Alternate Menu, every command in one list", "hVHomerViewLink (\"hVShowHomerViewMenu\")", "Alternate Menu")
+Let iAdded = UserBufferAddLink ("  Alt+Shift+A         Check the page with axe and save a report", "hVHomerViewLink (\"hVCheckAccessibility\")", "Check Accessibility with axe")
+Let iAdded = UserBufferAddLink ("  Alt+Shift+D         Close a cookie banner or consent wall", "hVHomerViewLink (\"hVDismissDialog\")", "Dismiss Dialog")
 Let iAdded = UserBufferAddLink ("  Alt+Shift+H     This summary", "hVHomerViewLink (\"hVHotKeyHelp\")", "Hotkey Summary")
 Let iAdded = UserBufferAddLink ("  Alt+Shift+B     Choose which browser HomerView drives", "hVHomerViewLink (\"hVChooseBrowser\")", "Choose Browser")
 Let iAdded = UserBufferAddLink ("  Alt+Shift+S     Open the settings file", "hVHomerViewLink (\"hVOpenSettings\")", "HomerView Settings")
 Let iAdded = UserBufferAddLink ("  Shift+F4        Say the names of the open tabs", "hVHomerViewLink (\"hVSayTabNames\")", "Tab Names")
-Let iAdded = UserBufferAddLink ("  Alt+JAWSKey+L   Copy the log file to the clipboard", "hVHomerViewLink (\"hVCopyLogToClipboard\")", "Log to Clipboard")
-Let iAdded = UserBufferAddLink ("  Alt+JAWSKey+Q   Say what HomerView knows about itself", "hVHomerViewLink (\"hVSayDiagnostics\")", "Diagnostics")
+Let iAdded = UserBufferAddLink ("  Alt+Shift+L         Copy the log file to the clipboard", "hVHomerViewLink (\"hVCopyLogToClipboard\")", "Log to Clipboard")
+Let iAdded = UserBufferAddLink ("  Alt+Shift+R         Say what HomerView knows about itself", "hVHomerViewLink (\"hVSayDiagnostics\")", "Diagnostics")
 Let iAdded = Builtin::UserBufferAddText ("")
 Let iAdded = Builtin::UserBufferAddText ("On a web page:")
 Let iAdded = UserBufferAddLink ("  Shift+Q         Move to the main content, declared or not", "hVHomerViewLink (\"hVMoveToProbableMain\")", "Jump to Probable Main")
@@ -2758,8 +2759,8 @@ Let iAdded = UserBufferAddLink ("  Alt+C           Add it to what is on the clip
 Let iAdded = UserBufferAddLink ("  Control+F8      Put the whole page on the clipboard", "hVHomerViewLink (\"hVCopyAll\")", "Copy All")
 Let iAdded = UserBufferAddLink ("  Alt+F8          Speak the whole page, cursor unmoved", "hVHomerViewLink (\"hVReadAll\")", "Read All")
 Let iAdded = UserBufferAddLink ("  Alt+N           List the names, places and dates", "hVHomerViewLink (\"hVListNames\")", "List Names")
-Let iAdded = UserBufferAddLink ("  Alt+JAWSKey+C   Find who to tell about this site", "hVHomerViewLink (\"hVFindContacts\")", "Find Contacts")
-Let iAdded = UserBufferAddLink ("  Alt+JAWSKey+I   Check the page with IBM Equal Access", "hVHomerViewLink (\"hVCheckAccessibilityIbm\")", "Check Accessibility with IBM")
+Let iAdded = UserBufferAddLink ("  Alt+Shift+C         Find who to tell about this site", "hVHomerViewLink (\"hVFindContacts\")", "Find Contacts")
+Let iAdded = UserBufferAddLink ("  Alt+Shift+E         Check the page with IBM Equal Access", "hVHomerViewLink (\"hVCheckAccessibilityIbm\")", "Check Accessibility with IBM")
 Let iAdded = Builtin::UserBufferAddText ("")
 Let iAdded = Builtin::UserBufferAddText ("On the Alternate Menu only:")
 Let iAdded = UserBufferAddLink ("  The open tabs, by name and address", "hVHomerViewLink (\"hVListTabs\")", "Tab List")
@@ -2774,7 +2775,7 @@ hVLogLine ("hVHotKeyHelp: last add " + Builtin::IntToString (iAdded) + ", activa
 EndScript
 
 
-; The Alternate Menu, on Alt+JAWSKey+F10, the key it has on the NVDA side.
+; The Alternate Menu, on Alt+F10, the key it has on the NVDA side.
 ;
 ; Every command in one list, whether or not it has a key of its own. Silence is
 ; the worst failure mode this project has: a command out of scope is
@@ -2810,8 +2811,8 @@ Var
 ; needed at all. FSDN documents it with a worked example.
 Let sTable = "About HomerView, Which build is loaded and where everything lives. (Alt+F1)\thVShowAbout\tA"
     + "\7" + "Append Clipboard, Adds the clipboard to the end of a text file. (Control+Shift+Apostrophe)\thVAppendClipboard\tA"
-    + "\7" + "Check Accessibility with axe, Tests the page with Deque axe-core and saves a report. (Alt+JAWSKey+A)\thVCheckAccessibility\tP"
-    + "\7" + "Check Accessibility with IBM, Runs IBM Equal Access and saves every format to Downloads. (Alt+JAWSKey+I)\thVCheckAccessibilityIbm\tP"
+    + "\7" + "Check Accessibility with axe, Tests the page with Deque axe-core and saves a report. (Alt+Shift+A)\thVCheckAccessibility\tP"
+    + "\7" + "Check with Equal Access, Runs IBM Equal Access and saves every format to Downloads. (Alt+Shift+E)\thVCheckAccessibilityIbm\tP"
     + "\7" + "Choose Browser, Chooses which Chromium browser HomerView drives. (Alt+Shift+B)\thVChooseBrowser\tA"
     + "\7" + "Clear Clipboard, Empties the clipboard so an append starts afresh. (Alt+Shift+Apostrophe)\thVClearClipboard\tA"
     + "\7" + "Complete Selection, Selects from where F8 was pressed to here. (Shift+F8)\thVCompleteSelection\tP"
@@ -2819,12 +2820,11 @@ Let sTable = "About HomerView, Which build is loaded and where everything lives.
     + "\7" + "Copy Append, Adds the selection or the line to what is on the clipboard. (Alt+C)\thVCopyAppend\tA"
     + "\7" + "Copy Selection, Copies the selection, or the line under the cursor. (Control+C)\thVCopySelection\tP"
     + "\7" + "Developer Notes, Notes for anyone working on HomerView itself. (Control+Shift+F1)\thVOpenDeveloperNotes\tA"
-    + "\7" + "Diagnostics, Says whether the helper, the log folder and the start page are where they should be. (Alt+JAWSKey+Q)\thVSayDiagnostics\tA"
-    + "\7" + "Dismiss Dialog, Closes a cookie banner, newsletter offer or consent wall that Escape will not. (Alt+JAWSKey+D)\thVDismissDialog\tA"
+    + "\7" + "Dismiss Dialog, Closes a cookie banner, newsletter offer or consent wall that Escape will not. (Alt+Shift+D)\thVDismissDialog\tA"
     + "\7" + "Elevate Version, Checks for a newer HomerView and installs it. (Control+F11)\thVElevateVersion\tA"
     + "\7" + "Extract Main Content, Extracts the readable part of the page into a tab of its own. (Shift+F9)\thVExtractMainContent\tP"
     + "\7" + "Extract with Regular Expression, Gathers every match for reading. (Control+Shift+E)\thVExtractByPattern\tP"
-    + "\7" + "Find Contacts, Finds who to tell about this site: email, accessibility statement, contact pages. (Alt+JAWSKey+C)\thVFindContacts\tP"
+    + "\7" + "Find Contacts, Finds who to tell about this site: email, accessibility statement, contact pages. (Alt+Shift+C)\thVFindContacts\tP"
     + "\7" + "Forward Find Again, The next match of whichever find was done last. (F3)\thVFindNext\tP"
     + "\7" + "Forward Find at Cursor, Searches forward for the word under the cursor, or the selected text, without asking you to type it. (Alt+F3)\thVFindWordAtCursor\tP"
     + "\7" + "Forward Find with Regular Expression, Searches forward for a pattern. (Control+F3)\thVFindByPattern\tP"
@@ -2833,10 +2833,10 @@ Let sTable = "About HomerView, Which build is loaded and where everything lives.
     + "\7" + "HomerView Settings, Opens the settings file, where every preference lives. (Alt+Shift+S)\thVOpenSettings\tA"
     + "\7" + "Hot Key Help, Lists every HomerView command and its key. (Alt+Shift+H)\thVHotKeyHelp\tA"
     + "\7" + "Jump to Probable Main, Moves to the main content, whether the page declares it or not. (Shift+Q)\thVMoveToProbableMain\tP"
-    + "\7" + "Launch HomerView, Launches or reconnects HomerView's copy of Microsoft Edge. (Alt+JAWSKey+H)\thVLaunchHomerView\tA"
+    + "\7" + "Launch HomerView, Launches or reconnects HomerView's copy of Microsoft Edge. (Alt+Control+Shift+H)\thVLaunchHomerView\tA"
     + "\7" + "Link Target, Says where the link under the cursor goes and shows its address. (Alt+L)\thVDescribeLinkTarget\tP"
     + "\7" + "List Names, Lists the people, places, organisations and dates a page mentions. (Alt+N)\thVListNames\tP"
-    + "\7" + "Log to Clipboard, Puts the HomerView log on the clipboard, ready to attach to a message. (Alt+JAWSKey+L)\thVCopyLogToClipboard\tA"
+    + "\7" + "Log to Clipboard, Puts the HomerView log on the clipboard, ready to attach to a message. (Alt+Shift+L)\thVCopyLogToClipboard\tA"
     + "\7" + "Open Document, Opens a Word file, PDF, ebook or spreadsheet as a page. (Control+O)\thVOpenDocument\tA"
     + "\7" + "Page Folder, Opens this page's folder in File Explorer, to browse what was saved from it. (Alt+Shift+F)\thVOpenPageFolder\tP"
     + "\7" + "Page Links to Clipboard, Copies the text and address of every link on the page. (Alt+Shift+P)\thVCopyPageLinks\tP"
@@ -2844,6 +2844,7 @@ Let sTable = "About HomerView, Which build is loaded and where everything lives.
     + "\7" + "Quick Start, The short introduction to HomerView. (Alt+Shift+F1)\thVOpenQuickStart\tA"
     + "\7" + "Read All, Speaks the whole page from the top without moving the cursor. (Alt+F8)\thVReadAll\tP"
     + "\7" + "Recent Pages, Opens a page you had open recently. (Alt+R)\thVRecentPages\tA"
+    + "\7" + "Report Diagnostics, Says whether the helper, the log folder and the start page are where they should be. (Alt+Shift+R)\thVSayDiagnostics\tA"
     + "\7" + "Reverse Find Again, The previous match of whichever find was done last. (Shift+F3)\thVFindPrevious\tP"
     + "\7" + "Reverse Find at Cursor, Searches backward for the word under the cursor, or the selected text, without asking you to type it. (Alt+Shift+F3)\thVFindWordAtCursorBackwards\tP"
     + "\7" + "Reverse Find for Text, Searches backwards for text, which JAWS has no key for. (Control+Shift+F)\thVFindBackwards\tP"

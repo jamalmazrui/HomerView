@@ -837,10 +837,15 @@ namespace Homer
                 // A file that will be saved rather than shown.
                 if (sDisposition.ToLowerInvariant().Contains("attachment"))
                 {
-                    Match match = Regex.Match(sDisposition,
-                        "filename\\*?=(?:UTF-8'')?\"?([^\";]+)", RegexOptions.IgnoreCase);
-                    if (match.Success)
-                        lLines.Add("saved as " + Uri.UnescapeDataString(match.Groups[1].Value));
+                    // Homer.Web parses the header, because there were THREE
+                    // hand-written parsers for it in this file and no two of
+                    // them agreed. One dropped the closing quote, one kept it,
+                    // and none handled the RFC 5987 filename* form that carries
+                    // a character set. The shared one handles all of it, and a
+                    // fix made there is a fix in every Homer program.
+                    string sSaved = Web.fileFromDisposition(sDisposition);
+                    if (sSaved != "")
+                        lLines.Add("saved as " + sSaved);
                 }
 
                 // Where it actually ends up.
@@ -1424,47 +1429,23 @@ namespace Homer
             if (!File.Exists(sPath))
                 return "There is no program at " + sPath + ".";
 
+            // WRITTEN BY Homer.InixCodec RATHER THAN BY HAND, and the hand
+            // written version this replaced is a good argument for the class.
+            // It read the whole file, matched two keys by prefix, worked out
+            // where [Preferences] began so a value could be inserted under it,
+            // and wrote the lot back -- forty lines to change two values, none
+            // of it aware of a multi-line value, a quoted key, or a section
+            // named in a different case.
+            //
+            // InixCodec.writeValue does the same job and keeps the file as the
+            // reader left it: comments, blank lines and ordering preserved, the
+            // changed value changed in place rather than moved to the bottom.
+            // It is the same codec the NVDA side uses through inix.py, so both
+            // halves of HomerView now read and write this file the same way.
             string sFile = SettingsFilePath();
-            var lLines = new List<string>();
-            if (File.Exists(sFile))
-                lLines.AddRange(File.ReadAllLines(sFile));
-            else
-                lLines.Add("[Preferences]");
-            bool bName = false, bPath = false;
-            for (int i = 0; i < lLines.Count; i++)
-            {
-                string sTrimmed = lLines[i].TrimStart();
-                if (sTrimmed.StartsWith("browser=", StringComparison.OrdinalIgnoreCase))
-                {
-                    lLines[i] = "browser=" + sName;
-                    bName = true;
-                }
-                else if (sTrimmed.StartsWith("browserPath=", StringComparison.OrdinalIgnoreCase))
-                {
-                    lLines[i] = "browserPath=" + sPath;
-                    bPath = true;
-                }
-            }
-            if (!bName || !bPath)
-            {
-                // Under [Preferences] if there is one, because a value written
-                // above the first section heading belongs to the implicit
-                // Global section and would not be found where it is looked for.
-                int iWhere = lLines.Count;
-                for (int i = 0; i < lLines.Count; i++)
-                {
-                    if (lLines[i].Trim().Equals("[Preferences]", StringComparison.OrdinalIgnoreCase))
-                    {
-                        iWhere = i + 1;
-                        break;
-                    }
-                }
-                var lAdded = new List<string>();
-                if (!bName) lAdded.Add("browser=" + sName);
-                if (!bPath) lAdded.Add("browserPath=" + sPath);
-                lLines.InsertRange(iWhere, lAdded);
-            }
-            File.WriteAllLines(sFile, lLines.ToArray(), new UTF8Encoding(true));
+            if (!InixCodec.writeValue(sFile, "Preferences", "browser", sName) ||
+                !InixCodec.writeValue(sFile, "Preferences", "browserPath", sPath))
+                return "The settings file could not be written.";
             Log("  the browser is now " + sName + " at " + sPath);
 
             // AND THE KEYS HAVE TO MOVE WITH IT. JAWS names an application
@@ -1480,7 +1461,7 @@ namespace Homer
             if (!File.Exists(sChain))
             {
                 Log("  chainJawsScripts is not installed, so no JAWS key was rebound");
-                return sName + " will be used. Close the browser and press Alt+Control+H.";
+                return sName + " will be used. Close the browser and press Alt+Control+Shift+H.";
             }
             try
             {
@@ -1499,7 +1480,7 @@ namespace Homer
                 Log("  chainJawsScripts could not be run: " + exception.Message);
                 return sName + " will be used, but the JAWS keys could not be rebound.";
             }
-            return sName + " will be used. Close the browser, press Alt+Control+H, "
+            return sName + " will be used. Close the browser, press Alt+Control+Shift+H, "
                  + "and restart JAWS so its keys move to the new browser.";
         }
 
@@ -3159,10 +3140,9 @@ namespace Homer
                             // A server may also name the file outright, which
                             // beats guessing from the type.
                             string sDisposition = oReply.Headers["Content-Disposition"] ?? "";
-                            var oMatch = Regex.Match(sDisposition, "filename\\*?=\\\"?([^\\\";]+)");
-                            if (oMatch.Success)
+                            string sNamed = Web.fileFromDisposition(sDisposition);
+                            if (sNamed != "")
                             {
-                                string sNamed = oMatch.Groups[1].Value.Trim();
                                 int iDot = sNamed.LastIndexOf('.');
                                 if (iDot > 0 && iDot < sNamed.Length - 1)
                                     sType = "name:" + sNamed.Substring(iDot + 1).ToLowerInvariant();
@@ -3184,37 +3164,20 @@ namespace Homer
         /// </summary>
         private static string ExtensionForType(string sType)
         {
+            // THE MAP ITSELF IS Homer.Web's, NOT OURS. A content type to file
+            // extension table is exactly the sort of thing every Homer program
+            // ends up writing again, slightly differently, and then disagreeing
+            // about. This one lives in the shared toolkit and is the same list
+            // EdSharp and the downloader use, so a type added there is added
+            // here without anyone touching this file.
+            //
+            // ONE THING STAYS LOCAL, because it is not about content types at
+            // all. "name:" is HomerView's own convention for an extension the
+            // SERVER named outright in a Content-Disposition header, which
+            // beats guessing from the type and has no business in a MIME table.
             if (sType == null || sType == "") return "";
             if (sType.StartsWith("name:")) return sType.Substring(5);
-            switch (sType)
-            {
-                case "text/html": case "application/xhtml+xml": return "html";
-                case "text/plain": return "txt";
-                case "text/css": return "css";
-                case "text/csv": return "csv";
-                case "text/markdown": return "md";
-                case "application/javascript": case "text/javascript": return "js";
-                case "application/json": return "json";
-                case "application/xml": case "text/xml": return "xml";
-                case "application/pdf": return "pdf";
-                case "application/rtf": case "text/rtf": return "rtf";
-                case "application/epub+zip": return "epub";
-                case "application/zip": return "zip";
-                case "application/msword": return "doc";
-                case "application/vnd.openxmlformats-officedocument.wordprocessingml.document": return "docx";
-                case "application/vnd.ms-excel": return "xls";
-                case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": return "xlsx";
-                case "application/vnd.ms-powerpoint": return "ppt";
-                case "application/vnd.openxmlformats-officedocument.presentationml.presentation": return "pptx";
-                case "image/jpeg": return "jpg";
-                case "image/png": return "png";
-                case "image/gif": return "gif";
-                case "image/svg+xml": return "svg";
-                case "image/webp": return "webp";
-                case "audio/mpeg": return "mp3";
-                case "video/mp4": return "mp4";
-                default: return "";
-            }
+            return Web.mimeToExt(sType);
         }
 
         /// <summary>
@@ -3474,16 +3437,8 @@ namespace Homer
                     // the browser would have saved it as, and on a download
                     // link with no file name in the address it is the only name
                     // there is.
-                    string sName = "";
-                    string sDisposition = oResponse.Headers["Content-Disposition"];
-                    if (!string.IsNullOrEmpty(sDisposition))
-                    {
-                        Match match = Regex.Match(sDisposition,
-                            "filename\\*?=(?:UTF-8'')?\"?([^\";]+)\"?",
-                            RegexOptions.IgnoreCase);
-                        if (match.Success)
-                            sName = Path.GetFileName(match.Groups[1].Value.Trim());
-                    }
+                    string sName = Web.fileFromDisposition(
+                        oResponse.Headers["Content-Disposition"]);
                     if (sName == "")
                     {
                         try { sName = Path.GetFileName(new Uri(sUrl).LocalPath); }

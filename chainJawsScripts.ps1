@@ -35,7 +35,7 @@
 #   it wrong is the failure that needs Narrator started to recover from.
 #
 # THE ONE KEY THAT CANNOT BE SCOPED TO THE BROWSER is the one that starts it.
-# That is a Windows shortcut key, Alt+Control+H, set on a desktop shortcut by
+# That is a Windows shortcut key, Alt+Control+Shift+H, set on a desktop shortcut by
 # the installer. It runs HomerView.exe, which reconnects and raises the window
 # or starts the browser, so it involves no screen reader at all -- which is
 # why the same shortcut serves JAWS and NVDA.
@@ -318,18 +318,61 @@ writeLog ""
 # is no browser window to be in. The rest are browser commands and are bound in
 # the browser's own key map.
 $lCommonKeys = @(
-    "Alt+JAWSKey+A=hVCheckAccessibility",
-    "Alt+JAWSKey+C=hVFindContacts",
-    "Alt+JAWSKey+D=hVDismissDialog",
-    "Alt+JAWSKey+F10=hVShowHomerViewMenu",
-    "Alt+JAWSKey+H=hVLaunchHomerView",
-    "Alt+JAWSKey+I=hVCheckAccessibilityIbm",
+    # THE SCREEN READER MODIFIER IS GONE FROM ALL BUT NOTHING, AND ON PURPOSE.
+    #
+    # These used to be Alt+JAWSKey+letter, which is three keys for a command and
+    # a different three on NVDA, where the same command was Alt+NVDA+letter. The
+    # modifier was there because these keys used to live in default.jkm and had
+    # to be safe in EVERY program on the machine. They live in the browser's own
+    # key map now, so the only things they can collide with are the browser, the
+    # page, and each other.
+    #
+    # ALT+SHIFT+LETTER RATHER THAN ALT+LETTER, AND THIS IS THE WHOLE ANALYSIS.
+    # Chromium fires an HTML ACCESSKEY on Alt+letter. It does NOT on
+    # Alt+Shift+letter. These are [Common Keys], so they fire in the address bar
+    # and inside form fields too -- which is exactly where a page's accesskeys
+    # are most likely to exist and most likely to be wanted. Alt+Shift keeps the
+    # mnemonic letter and takes nothing from the page.
+    #
+    # WHAT EDGE ITSELF CLAIMS, from Microsoft's current list: Alt alone, Alt+D,
+    # Alt+E, Alt+F, Alt+Left, Alt+Right, Alt+Home, Alt+F4, Alt+Shift+B,
+    # Alt+Shift+I and Alt+Shift+T. Nothing else with Alt. JAWS, NVDA and Windows
+    # claim nothing at all on Alt+letter or Alt+function key.
+    #
+    # ONE DELIBERATE OVERRIDE: Alt+Shift+B is Edge's "focus the first item in
+    # the favorites bar". HomerView's browser runs on a profile of its own with
+    # no favorites bar worth focusing, the key is scoped to that window alone,
+    # and B is the only mnemonic Choose Browser has. Taken knowingly.
+    #
+    # TWO CANNOT BE SPELLED, AND WERE RENAMED RATHER THAN GIVEN AN ARBITRARY
+    # LETTER. "Check Accessibility with IBM" became "with Equal Access", which
+    # is IBM's own name for the engine and what the NVDA side already called it,
+    # so E is a real mnemonic. "Diagnostics" became "Report Diagnostics",
+    # because D was already Dismiss Dialog's only letter and R is a word in the
+    # command rather than a letter picked from the middle of one.
+    #
+    # ALT+F10 IS THE ONE THAT IS NOT A LETTER, and F10 is the menu key in
+    # Windows, which is a stronger association than any letter in "Alternate
+    # Menu" would be. Free of Edge, Windows, JAWS, NVDA and HomerView, and a
+    # function key can never be an accesskey.
+    #
+    # LAUNCH KEEPS THREE MODIFIERS ON PURPOSE. Alt+Control+Shift+H is the
+    # Windows shortcut key on the desktop icon, so binding the same key here
+    # means one key to learn rather than two, and it still works if that icon is
+    # ever deleted.
+    "Alt+Control+Shift+H=hVLaunchHomerView",
+    "Alt+F10=hVShowHomerViewMenu",
+    "Alt+Shift+A=hVCheckAccessibility",
     "Alt+Shift+B=hVChooseBrowser",
+    "Alt+Shift+C=hVFindContacts",
+    "Alt+Shift+D=hVDismissDialog",
+    "Alt+Shift+E=hVCheckAccessibilityIbm",
     "Alt+Shift+H=hVHotKeyHelp",
-    "Alt+Shift+S=hVOpenSettings",
-    "Alt+JAWSKey+L=hVCopyLogToClipboard",
-    "Alt+JAWSKey+Q=hVSayDiagnostics"
+    "Alt+Shift+L=hVCopyLogToClipboard",
+    "Alt+Shift+R=hVSayDiagnostics",
+    "Alt+Shift+S=hVOpenSettings"
 )
+
 
 # WHAT EDGE'S SETTINGS ARE ACTUALLY CALLED, discovered rather than assumed.
 #
@@ -643,7 +686,7 @@ foreach ($folderVersion in $lVersions) {
         #
         # THE ONE KEY THAT CANNOT LIVE HERE is launching, when the browser is
         # not running or not in front. That is now a Windows shortcut key,
-        # Alt+Control+H, on a desktop shortcut the installer creates. It runs
+        # Alt+Control+Shift+H, on a desktop shortcut the installer creates. It runs
         # HomerView.exe, which reconnects and raises the window or starts the
         # browser, so it needs no screen reader at all -- which is why one
         # shortcut serves JAWS and NVDA alike.
@@ -862,9 +905,9 @@ if ($iFailed -gt 0) {
     exit 1
 }
 if (-not $bUndo) {
-    writeLog "RESTART JAWS. Then press Alt+Control+H, which is a Windows shortcut"
+    writeLog "RESTART JAWS. Then press Alt+Control+Shift+H, which is a Windows shortcut"
     writeLog "key on the HomerView desktop icon and works whatever has focus."
-    writeLog "Every other key works while the browser is in front: Alt+JAWSKey+F10"
+    writeLog "Every other key works while the browser is in front: Alt+F10"
     writeLog "for the menu, Alt+Shift+H for every key."
     writeLog "With HomerView's browser focused, Insert+Q says which scripts are loaded."
     writeLog "Nothing outside the browser was changed: no default.jss, no default.jkm,"

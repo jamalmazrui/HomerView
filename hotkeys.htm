@@ -218,24 +218,28 @@ This file is here so you can keep it open beside your work.</p>
 itself, from the same source, so it is never out of date.</p>
 <h1 id="how-to-read-a-key">How to read a key</h1>
 <p>Modifiers come in alphabetical order: Alt, Control, NVDA, Shift. So
-Alt+NVDA+H, never NVDA+Alt+H. Key names are the ones JAWS uses, because
+Alt+NVDA+C, never NVDA+Alt+C. Key names are the ones JAWS uses, because
 most blind Windows users have read those for years, so Accent rather
 than Grave and SemiColon rather than semicolon.</p>
-<p>Where a command has two keys, the short one works inside a HomerView
-page and the long one works anywhere.</p>
-<p>A command with no key still runs, from the Alternate Menu on
-Alt+NVDA+F10. You can give it a key in NVDA’s Input Gestures dialog,
-under the HomerView category, where every command here can be
-changed.</p>
+<p>ALMOST EVERY KEY IS THE SAME ON JAWS AND NVDA NOW. The screen reader
+modifier is gone from all but a few, because these keys live in the
+browser’s own key map and do nothing in any other program, so they never
+needed to be safe everywhere on the machine.</p>
+<p>Alt+Shift+letter rather than Alt+letter, because a Chromium browser
+fires a page’s access key on Alt+letter and does not on
+Alt+Shift+letter.</p>
+<p>A command with no key still runs, from the Alternate Menu on Alt+F10.
+You can give it a key in NVDA’s Input Gestures dialog, under the
+HomerView category, where every command here can be changed.</p>
 <h1 id="starting-homerview">Starting HomerView</h1>
 <ul>
-<li><strong>Alternate Menu</strong>, Alt+NVDA+F10. Present all commands
-in a single, alphabetized list. F10 opens a menu bar in Windows, and
-this is the menu HomerView has instead.</li>
+<li><strong>Alternate Menu</strong>, Alt+F10. Present all commands in a
+single, alphabetized list. F10 opens a menu bar in Windows, and this is
+the menu HomerView has instead.</li>
 <li><strong>Hotkey Summary</strong>, Alt+Shift+H. Display this list of
 command names, hot keys, and descriptions in a new window, as EdSharp
 does on the same key.</li>
-<li><strong>Launch HomerView</strong>, Alt+NVDA+H. Launches or
+<li><strong>Launch HomerView</strong>, Alt+Control+Shift+H. Launches or
 reconnects the HomerView copy of Microsoft Edge. H for HomerView, and it
 works anywhere because nothing is running yet.</li>
 </ul>
@@ -251,9 +255,9 @@ and improvements.</li>
 every command, key and description. Hotkey Summary on Alt+Shift+H builds
 the same list from the program itself; this opens the copy that came
 with it.</li>
-<li><strong>Log to Clipboard</strong>, Control+Shift+L. Copy the
-HomerView log to the clipboard as a file, so Control+V attaches it to an
-email rather than typing its name into one. L for Log, beside the other
+<li><strong>Log to Clipboard</strong>, Alt+Shift+L. Copy the HomerView
+log to the clipboard as a file, so Control+V attaches it to an email
+rather than typing its name into one. L for Log, beside the other
 Control+Shift keys that put something somewhere.</li>
 <li><strong>Project Announcement</strong>, no key. Open the short
 description of HomerView, for passing on to somebody who has not met
@@ -407,9 +411,10 @@ be selected, so Shift need not be held while you move.</li>
 </ul>
 <h1 id="acting-on-the-page">Acting on the page</h1>
 <ul>
-<li><strong>Check Accessibility</strong>, Alt+NVDA+A. Tests the page for
-accessibility problems, asking which engine to use, and offers to report
-what it finds to whoever publishes the site. A for Accessibility.</li>
+<li><strong>Check Accessibility</strong>, Alt+Shift+A. Tests the page
+for accessibility problems, asking which engine to use, and offers to
+report what it finds to whoever publishes the site. A for
+Accessibility.</li>
 <li><strong>Check with Axe</strong>, no key. Tests the page with Deque’s
 axe-core engine. Offered by Check Accessibility.</li>
 <li><strong>Check with Equal Access</strong>, no key. Tests the page
@@ -417,14 +422,14 @@ with IBM’s Equal Access engine. Offered by Check Accessibility.</li>
 <li><strong>Consult Copilot</strong>, Alt+NVDA+C. Copies the page text
 and opens Edge’s Copilot sidebar, ready for a question. C for
 Copilot.</li>
-<li><strong>Dismiss Dialog</strong>, Alt+NVDA+D. Closes a browser dialog
-that is blocking the window. D for Dismiss, and it works anywhere
+<li><strong>Dismiss Dialog</strong>, Alt+Shift+D. Closes a browser
+dialog that is blocking the window. D for Dismiss, and it works anywhere
 because a dialog is what has the focus.</li>
 <li><strong>Extract Main Content</strong>, Shift+F9. Extracts the
 readable part of the page into a page of its own that you can search,
 save or send. F9 is Edge’s own reading view, and Shift+F9 is
 HomerView’s, which works on pages Edge will not.</li>
-<li><strong>Find Contacts</strong>, Alt+NVDA+C. Finds who to tell about
+<li><strong>Find Contacts</strong>, Alt+Shift+C. Finds who to tell about
 this site: email addresses, the accessibility statement, contact pages
 and social media. Looks at this page, the home page, and the addresses a
 statement usually lives at.</li>

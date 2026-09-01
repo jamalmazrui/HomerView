@@ -38,8 +38,8 @@ and says either that it names nothing of HomerView's or how many lines an
 older release left there — the claim is checked, not asserted.
 
 **The one key that cannot be scoped** is starting the browser when it is not
-running. That is a Windows shortcut key, `Alt+Control+H`, on a desktop
-shortcut the installer creates with `HotKey: "ctrl+alt+h"`. It runs
+running. That is a Windows shortcut key, `Alt+Control+Shift+H`, on a desktop
+shortcut the installer creates with `HotKey: "ctrl+alt+shift+h"`. It runs
 `HomerView.exe launch`, which reconnects and raises the window, asks for a
 window if the process is alive without one, or starts the browser. No screen
 reader is involved, which is why one shortcut serves JAWS and NVDA alike.
@@ -47,7 +47,7 @@ reader is involved, which is why one shortcut serves JAWS and NVDA alike.
 Windows only honours a shortcut key on a `.lnk` on the desktop or in the Start
 menu, so that shortcut is not optional, and the Start menu entries carry no
 `HotKey` — the same key on two shortcuts is a conflict, not a fallback. If
-Alt+Control+H is silent, something else has registered it as a global hotkey
+Alt+Control+Shift+H is silent, something else has registered it as a global hotkey
 and wins.
 
 `HomerView.exe` is now built `/target:winexe` so the shortcut does not flash a
@@ -160,6 +160,40 @@ tester. The ones worth knowing:
   non-empty string converts to true.
 - **In Inno, a line continuation ends at a comment.** Comments go above an
   entry, never inside it.
+
+## The shared Homer classes
+
+`homer\Inix.cs` and `homer\Web.cs` are copies of the shared Homer toolkit,
+compiled into HomerView.exe beside HomerView.cs. They are sources rather than a
+library, which suits this build: csc is the whole toolchain, there is no
+package manager, and a source file cannot get out of step with a binary beside
+it. They are in the same namespace, `Homer`, so nothing needs a `using` line.
+
+They replaced real duplication. HomerView.cs had **three** hand-written
+Content-Disposition parsers and no two agreed — one dropped the closing quote,
+one kept it, none handled the RFC 5987 `filename*` form. It carried its own
+MIME-to-extension table. And forty lines edited an `.inix` file by hand, with
+no idea about multi-line values or a section named in a different case. Each is
+now one call: `Web.fileFromDisposition`, `Web.mimeToExt`,
+`InixCodec.writeValue`.
+
+Treat them exactly as `homerPolicy.py` is treated: identical across projects, a
+fix made in one copied to the others unread, and nothing in them naming
+HomerView.
+
+Check 18 asks whether those three calls are still there rather than hunting for
+duplicates. Its first draft did hunt, and failed a correct file three times: on
+a content-type-to-description map, which is a different table for a different
+purpose; on the OOXML content types inside the spreadsheet writer, which are
+part of the file format; and on the words "[Preferences]" inside the comment
+explaining the change. A positive test cannot be fooled that way.
+
+Not adopted, and worth saying why. `Say.cs`, `Lbc.cs`, `KeyMap.cs` and
+`EdSharp.cs` are the WinForms half of a full application; the bridge is a
+helper with two file dialogs, and pulling in 800 KB of forms code for that is
+the wrong trade. `Version.cs` is generated for EdSharp and names its version,
+and HomerView already has version.txt. `inixVert.cs` declares a `Main`, which
+would collide with the bridge's own entry point.
 
 ## What belongs in the folder
 

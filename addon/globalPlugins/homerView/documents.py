@@ -90,7 +90,7 @@ def openDocument(sKey):
             return
         if not service.isConnected():
             # Translators: Reported when the browser is not running.
-            ui.message(_("Press Alt+NVDA+H first, so the document opens in HomerView"))
+            ui.message(_("Press Alt+Control+Shift+H first, so the document opens in HomerView"))
             return
         homerLog.info(f"Opening {sTitle} at {pathDocument}")
         service.openReportPage(pathDocument.as_uri())
@@ -142,7 +142,7 @@ def buildAboutText():
         lLines.append(f"  Connected on port {service.iPort}")
         lLines.append(f"  Browser process: {sorted(service.setProcessIds)}")
     else:
-        lLines.append("  Not connected. Press Alt+NVDA+H to start HomerView Edge.")
+        lLines.append("  Not connected. Press Alt+Control+Shift+H to start HomerView Edge.")
     lLines.extend(["", f"Project: {projectUrl}",
                    "Press Alt+F10 for every command, or Alt+Shift+H for the same list as a page."])
     return "\n".join(lLines)
@@ -179,7 +179,7 @@ def buildAbout():
         lParts.append(f"<li>Connected on port {service.iPort}</li>")
         lParts.append(f"<li>Browser process: {sorted(service.setProcessIds)}</li>")
     else:
-        lParts.append("<li>Not connected. Press Alt+NVDA+H to start HomerView Edge.</li>")
+        lParts.append("<li>Not connected. Press Alt+Control+Shift+H to start HomerView Edge.</li>")
     lParts.append("</ul>")
     lParts.append(
         f'<h2>More</h2><p><a href="{projectUrl}">{projectUrl}</a></p>'

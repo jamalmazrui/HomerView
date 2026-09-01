@@ -67,7 +67,7 @@ $sMessage += $sBreak + "The full log is:" + $sBreak + "  " + $pathLog + $sBreak
 # Worth noticing that nothing failed here. The installer was correct, the
 # keys were correct, and the one sentence a first-time user reads was wrong.
 # A message is as much a part of the product as the code it describes.
-$sMessage += $sBreak + "To start HomerView, press Alt+Control+H. That is a Windows" + $sBreak
+$sMessage += $sBreak + "To start HomerView, press Alt+Control+Shift+H. That is a Windows" + $sBreak
 $sMessage += "shortcut key on the HomerView icon on your desktop, so it works" + $sBreak
 $sMessage += "whichever screen reader you use." + $sBreak
 $sMessage += $sBreak + "Every other HomerView key works while that browser window is in" + $sBreak

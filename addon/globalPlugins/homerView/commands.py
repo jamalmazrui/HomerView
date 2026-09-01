@@ -67,10 +67,10 @@ page and the long one for everywhere else.
 # which is right for anything used once in a while.
 lCommands = [
     # --- Getting started, and finding your way about ---------------------
-    ("launchHomerView", "Launch HomerView", ["kb:NVDA+alt+h"],
+    ("launchHomerView", "Launch HomerView", ["kb:alt+control+shift+h"],
      "Launches or reconnects the HomerView copy of Microsoft Edge. "
      "H for HomerView, and it works anywhere because nothing is running yet."),
-    ("alternateMenu", "Alternate Menu", ["kb:NVDA+alt+f10"],
+    ("alternateMenu", "Alternate Menu", ["kb:alt+f10"],
      "Present all commands in a single, alphabetized list. F10 opens a menu bar "
      "in Windows, and this is the menu HomerView has instead."),
     ("hotkeySummary", "Hotkey Summary", ["kb:alt+shift+h"],
@@ -97,7 +97,7 @@ lCommands = [
     ("openAnnouncement", "Project Announcement", [],
      "Open the short description of HomerView, for passing on to somebody who has "
      "not met it."),
-    ("logToClipboard", "Log to Clipboard", ["kb:control+shift+l"],
+    ("logToClipboard", "Log to Clipboard", ["kb:alt+shift+l"],
      "Copy the HomerView log to the clipboard as a file, so Control+V attaches it "
      "to an email rather than typing its name into one. L for Log, beside the "
      "other Control+Shift keys that put something somewhere."),
@@ -274,7 +274,7 @@ lCommands = [
     ("actOnPage", "Invoke Script", ["kb:alt+i"],
      "Carries out instructions written in ordinary words, such as click sign in. "
      "I for Invoke."),
-    ("runAccessibilityCheck", "Check Accessibility", ["kb:NVDA+alt+a"],
+    ("runAccessibilityCheck", "Check Accessibility", ["kb:alt+shift+a"],
      "Tests the page for accessibility problems, asking which engine to use, and "
      "offers to report what it finds to whoever publishes the site. A for "
      "Accessibility."),
@@ -284,7 +284,7 @@ lCommands = [
     ("webUtilities", "Query Web", ["kb:alt+q", "kb:NVDA+alt+q"],
      "Looks something up using free services that need no account: a definition, "
      "a place, the weather, a book. Q for Query."),
-    ("dismissDialog", "Dismiss Dialog", ["kb:NVDA+alt+d"],
+    ("dismissDialog", "Dismiss Dialog", ["kb:alt+shift+d"],
      "Closes a browser dialog that is blocking the window. D for Dismiss, and it "
      "works anywhere because a dialog is what has the focus."),
 
@@ -332,7 +332,7 @@ lFolded = [
      "Lists the people, places, organisations and dates a page mentions, saved "
      "as Names.htm in the page's folder and opened. A rule-based engine reads "
      "the text, so it guesses; the report says so."),
-    ("findContacts", "Find Contacts", ["kb:NVDA+alt+c"],
+    ("findContacts", "Find Contacts", ["kb:alt+shift+c"],
      "Finds who to tell about this site: email addresses, the accessibility "
      "statement, contact pages and social media. Looks at this page, the home "
      "page, and the addresses a statement usually lives at."),

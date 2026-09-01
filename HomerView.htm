@@ -268,18 +268,18 @@ because selecting a whole page and copying it takes the browser’s
 selection, which drags in the navigation and the footers.</p>
 <h2 id="getting-started">Getting started</h2>
 <h3 id="starting-homerview">Starting HomerView</h3>
-<p><strong>Alt+Control+H</strong> opens the HomerView browser window.
-Press it again later and it takes you back. The key sits on the
+<p><strong>Alt+Control+Shift+H</strong> opens the HomerView browser
+window. Press it again later and it takes you back. The key sits on the
 HomerView icon on your desktop. It is a Windows key, not a screen reader
 key. So it works with JAWS, with NVDA, and with neither.</p>
 <p>Every other HomerView key works while that window is in front.
 Elsewhere the key does nothing here. Your own program gets it
 instead</p>
 <h3 id="the-alternate-menu">The Alternate Menu</h3>
-<p><strong>Alt+JAWSKey+F10</strong> / <strong>NVDA+Alt+F10</strong>
-opens a list of every command, each with its key beside it. This is the
-discovery surface: nothing in HomerView is hidden behind a keystroke you
-must already know. Arrow to a command and press Enter.</p>
+<p><strong>Alt+F10</strong> / <strong>Alt+F10</strong> opens a list of
+every command, each with its key beside it. This is the discovery
+surface: nothing in HomerView is hidden behind a keystroke you must
+already know. Arrow to a command and press Enter.</p>
 <h3 id="the-hotkey-summary">The Hotkey Summary</h3>
 <p><strong>Alt+Shift+H</strong> shows every command in a window where
 each key line is a link. Press Enter on a line to run that command. Its
@@ -384,8 +384,8 @@ request carries the browser’s own cookies, user agent and referrer, plus
 the Sec-Fetch headers a click produces. A file gated behind a sign-in
 comes to you as it would to a click.</p>
 <h3 id="checking-accessibility">Checking accessibility</h3>
-<p><strong>Alt+JAWSKey+A</strong> runs Deque’s axe-core over the page
-and writes a readable report to your Downloads folder as
+<p><strong>Alt+Shift+A</strong> runs Deque’s axe-core over the page and
+writes a readable report to your Downloads folder as
 <code>Axe-&lt;page title&gt;.htm</code>, then opens it.</p>
 <p>The report starts in plain language — how many problems, and the
 reminder that an automated tool finds roughly thirty to forty per cent
@@ -396,15 +396,15 @@ next steps, and then each problem with its WCAG criterion
 <strong>named</strong> and its conformance level given, up to five
 places each with the selector, the element and the engine’s own
 explanation.</p>
-<p><strong>Alt+JAWSKey+I</strong> runs IBM’s Equal Access engine
-instead. Its unified ruleset folds EN 301 549 and Section 508 in with
-WCAG, which is the superset several procurement regimes actually ask
-about. It writes four files — <code>IBM.json</code>,
-<code>IBM.csv</code>, <code>IBM.xlsx</code> and <code>IBM.htm</code> —
-into the same folder, and opens the HTML report.</p>
+<p><strong>Alt+Shift+E</strong> runs IBM’s Equal Access engine instead.
+Its unified ruleset folds EN 301 549 and Section 508 in with WCAG, which
+is the superset several procurement regimes actually ask about. It
+writes four files — <code>IBM.json</code>, <code>IBM.csv</code>,
+<code>IBM.xlsx</code> and <code>IBM.htm</code> — into the same folder,
+and opens the HTML report.</p>
 <p>Use both. They disagree usefully.</p>
 <h3 id="finding-who-to-tell">Finding who to tell</h3>
-<p><strong>Alt+JAWSKey+C</strong>, Find Contacts, answers the question
+<p><strong>Alt+Shift+C</strong>, Find Contacts, answers the question
 that follows an accessibility check: who do I tell?</p>
 <p>It looks in three places — the page in front of you, the site’s home
 page, because a contact link lives in a footer an article may not carry,
@@ -447,7 +447,7 @@ accessibility check, which is when they are actually wanted.</p>
 <p>Conversion needs pandoc or 2htm. HomerView looks for them where they
 usually live and says plainly when neither is there.</p>
 <h3 id="finding-who-to-tell-1">Finding who to tell</h3>
-<p><strong>Alt+NVDA+C</strong> / <strong>Alt+JAWSKey+C</strong>, Find
+<p><strong>Alt+Shift+C</strong> / <strong>Alt+Shift+C</strong>, Find
 Contacts, answers the question that follows an accessibility check.</p>
 <p>It looks in three places: the page in front of you, the site’s home
 page — because a contact link lives in a footer an article may not carry
@@ -520,8 +520,8 @@ browser profile.</li>
 <p>Everything HomerView does is logged: every command, every answer,
 every failure, in the order it happened.</p>
 <ul>
-<li><strong>Alt+JAWSKey+L</strong> / <strong>Control+Shift+L</strong>
-puts the log on the clipboard, ready to attach to a message.</li>
+<li><strong>Alt+Shift+L</strong> / <strong>Control+Shift+L</strong> puts
+the log on the clipboard, ready to attach to a message.</li>
 <li><strong>Alt+Control+F1</strong> opens the same log to read.</li>
 </ul>
 <h3 id="homerviews-own-documents">HomerView’s own documents</h3>
@@ -544,8 +544,8 @@ the JAWS key.</p>
 <ul>
 <li><strong>Alternate Menu</strong>
 <ul>
-<li>NVDA: Alt+NVDA+F10</li>
-<li>JAWS: Alt+JAWSKey+F10</li>
+<li>NVDA: Alt+F10</li>
+<li>JAWS: Alt+F10</li>
 <li>Present all commands in a single, alphabetized list. F10 opens a
 menu bar in Windows, and this is the menu HomerView has instead.</li>
 </ul></li>
@@ -558,7 +558,7 @@ new window, as EdSharp does on the same key.</li>
 </ul></li>
 <li><strong>Launch HomerView</strong>
 <ul>
-<li>Both: Alt+Control+H, the desktop shortcut</li>
+<li>Both: Alt+Control+Shift+H, the desktop shortcut</li>
 <li>Opens the HomerView browser window, or takes you back to it. The key
 is on the desktop icon. It is a Windows key, not a screen reader key. So
 it works with JAWS, with NVDA, and with neither.</li>
@@ -615,7 +615,7 @@ this opens the copy that came with it.</li>
 <li><strong>Log to Clipboard</strong>
 <ul>
 <li>NVDA: Control+Shift+L</li>
-<li>JAWS: Alt+JAWSKey+L</li>
+<li>JAWS: Alt+Shift+L</li>
 <li>Copy the HomerView log to the clipboard as a file, so Control+V
 attaches it to an email rather than typing its name into one. L for Log,
 beside the other Control+Shift keys that put something somewhere.</li>
@@ -1030,8 +1030,8 @@ held while you move.</li>
 <ul>
 <li><strong>Check Accessibility</strong>
 <ul>
-<li>NVDA: Alt+NVDA+A</li>
-<li>JAWS: Alt+JAWSKey+A</li>
+<li>NVDA: Alt+Shift+A</li>
+<li>JAWS: Alt+Shift+A</li>
 <li>Tests the page for accessibility problems, asking which engine to
 use, and offers to report what it finds to whoever publishes the site. A
 for Accessibility.</li>
@@ -1046,22 +1046,21 @@ Accessibility.</li>
 <li><strong>Check with Equal Access</strong>
 <ul>
 <li>NVDA: no key</li>
-<li>JAWS: Alt+JAWSKey+I (named “Check Accessibility with IBM”
-there)</li>
+<li>JAWS: Alt+Shift+E (named “Check with Equal Access” there)</li>
 <li>Tests the page with IBM’s Equal Access engine. Offered by Check
 Accessibility.</li>
 </ul></li>
 <li><strong>Consult Copilot</strong>
 <ul>
-<li>NVDA: Alt+NVDA+C</li>
+<li>NVDA: Alt+Shift+C</li>
 <li>JAWS: <strong>not yet on JAWS</strong></li>
 <li>Copies the page text and opens Edge’s Copilot sidebar, ready for a
 question. C for Copilot.</li>
 </ul></li>
 <li><strong>Dismiss Dialog</strong>
 <ul>
-<li>NVDA: Alt+NVDA+D</li>
-<li>JAWS: Alt+JAWSKey+D</li>
+<li>NVDA: Alt+Shift+D</li>
+<li>JAWS: Alt+Shift+D</li>
 <li>Closes a browser dialog that is blocking the window. D for Dismiss,
 and it works anywhere because a dialog is what has the focus.</li>
 </ul></li>
@@ -1075,8 +1074,8 @@ Shift+F9 is HomerView’s, which works on pages Edge will not.</li>
 </ul></li>
 <li><strong>Find Contacts</strong>
 <ul>
-<li>NVDA: Alt+NVDA+C</li>
-<li>JAWS: Alt+JAWSKey+C</li>
+<li>NVDA: Alt+Shift+C</li>
+<li>JAWS: Alt+Shift+C</li>
 <li>Finds who to tell about this site: email addresses, the
 accessibility statement, contact pages and social media.</li>
 </ul></li>
@@ -1226,7 +1225,7 @@ uses for its recent files.</li>
 </ul>
 <h2 id="troubleshooting">Troubleshooting</h2>
 <p><strong>A command says the browser is not running.</strong> Press
-Alt+Control+H to launch or reconnect.</p>
+Alt+Control+Shift+H to launch or reconnect.</p>
 <p><strong>A key does nothing.</strong> Open the Alternate Menu and run
 the command from there. If it works from the menu, the key is being
 taken by something else. Report it with the log attached.</p>

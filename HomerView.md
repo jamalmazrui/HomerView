@@ -50,7 +50,7 @@ footers.
 
 ### Starting HomerView
 
-**Alt+Control+H** opens the HomerView browser window. Press it again later and
+**Alt+Control+Shift+H** opens the HomerView browser window. Press it again later and
 it takes you back. The key sits on the HomerView icon on your desktop. It is a
 Windows key, not a screen reader key. So it works with JAWS, with NVDA, and
 with neither.
@@ -60,7 +60,7 @@ key does nothing here. Your own program gets it instead
 
 ### The Alternate Menu
 
-**Alt+JAWSKey+F10** / **NVDA+Alt+F10** opens a list of every command, each with
+**Alt+F10** / **Alt+F10** opens a list of every command, each with
 its key beside it. This is the discovery surface: nothing in HomerView is hidden
 behind a keystroke you must already know. Arrow to a command and press Enter.
 
@@ -176,7 +176,7 @@ to a click.
 
 ### Checking accessibility
 
-**Alt+JAWSKey+A** runs Deque's axe-core over the page and writes a readable
+**Alt+Shift+A** runs Deque's axe-core over the page and writes a readable
 report to your Downloads folder as `Axe-<page title>.htm`, then opens it.
 
 The report starts in plain language — how many problems, and the reminder that
@@ -187,7 +187,7 @@ three most common problems, the recommended next steps, and then each problem
 with its WCAG criterion **named** and its conformance level given, up to five
 places each with the selector, the element and the engine's own explanation.
 
-**Alt+JAWSKey+I** runs IBM's Equal Access engine instead. Its unified ruleset
+**Alt+Shift+E** runs IBM's Equal Access engine instead. Its unified ruleset
 folds EN 301 549 and Section 508 in with WCAG, which is the superset several
 procurement regimes actually ask about. It writes four files — `IBM.json`,
 `IBM.csv`, `IBM.xlsx` and `IBM.htm` — into the same folder, and opens the HTML
@@ -197,7 +197,7 @@ Use both. They disagree usefully.
 
 ### Finding who to tell
 
-**Alt+JAWSKey+C**, Find Contacts, answers the question that follows an
+**Alt+Shift+C**, Find Contacts, answers the question that follows an
 accessibility check: who do I tell?
 
 It looks in three places — the page in front of you, the site's home page,
@@ -246,7 +246,7 @@ live and says plainly when neither is there.
 
 ### Finding who to tell
 
-**Alt+NVDA+C** / **Alt+JAWSKey+C**, Find Contacts, answers the question that
+**Alt+Shift+C** / **Alt+Shift+C**, Find Contacts, answers the question that
 follows an accessibility check.
 
 It looks in three places: the page in front of you, the site's home page —
@@ -314,7 +314,7 @@ And elsewhere:
 Everything HomerView does is logged: every command, every answer, every failure,
 in the order it happened.
 
-- **Alt+JAWSKey+L** / **Control+Shift+L** puts the log on the clipboard, ready
+- **Alt+Shift+L** / **Control+Shift+L** puts the log on the clipboard, ready
   to attach to a message.
 - **Alt+Control+F1** opens the same log to read.
 
@@ -336,15 +336,15 @@ on. Each entry gives the NVDA key and the JAWS key.
 #### Starting HomerView
 
 - **Alternate Menu**
-    - NVDA: Alt+NVDA+F10
-    - JAWS: Alt+JAWSKey+F10
+    - NVDA: Alt+F10
+    - JAWS: Alt+F10
     - Present all commands in a single, alphabetized list. F10 opens a menu bar in Windows, and this is the menu HomerView has instead.
 - **Hotkey Summary**
     - NVDA: Alt+Shift+H
     - JAWS: Alt+Shift+H
     - Display this list of command names, hot keys, and descriptions in a new window, as EdSharp does on the same key.
 - **Launch HomerView**
-    - Both: Alt+Control+H, the desktop shortcut
+    - Both: Alt+Control+Shift+H, the desktop shortcut
     - Opens the HomerView browser window, or takes you back to it. The key is on the desktop icon. It is a Windows key, not a screen reader key. So it works with JAWS, with NVDA, and with neither.
 
 #### Changing how HomerView behaves
@@ -378,7 +378,7 @@ on. Each entry gives the NVDA key and the JAWS key.
     - Open the shipped list of every command, key and description. Hotkey Summary on Alt+Shift+H builds the same list from the program itself; this opens the copy that came with it.
 - **Log to Clipboard**
     - NVDA: Control+Shift+L
-    - JAWS: Alt+JAWSKey+L
+    - JAWS: Alt+Shift+L
     - Copy the HomerView log to the clipboard as a file, so Control+V attaches it to an email rather than typing its name into one. L for Log, beside the other Control+Shift keys that put something somewhere.
 - **Project Announcement**
     - NVDA: no key
@@ -630,8 +630,8 @@ on. Each entry gives the NVDA key and the JAWS key.
 #### Acting on the page
 
 - **Check Accessibility**
-    - NVDA: Alt+NVDA+A
-    - JAWS: Alt+JAWSKey+A
+    - NVDA: Alt+Shift+A
+    - JAWS: Alt+Shift+A
     - Tests the page for accessibility problems, asking which engine to use, and offers to report what it finds to whoever publishes the site. A for Accessibility.
 - **Check with Axe**
     - NVDA: no key
@@ -639,23 +639,23 @@ on. Each entry gives the NVDA key and the JAWS key.
     - Tests the page with Deque's axe-core engine. Offered by Check Accessibility.
 - **Check with Equal Access**
     - NVDA: no key
-    - JAWS: Alt+JAWSKey+I (named "Check Accessibility with IBM" there)
+    - JAWS: Alt+Shift+E (named "Check with Equal Access" there)
     - Tests the page with IBM's Equal Access engine. Offered by Check Accessibility.
 - **Consult Copilot**
-    - NVDA: Alt+NVDA+C
+    - NVDA: Alt+Shift+C
     - JAWS: **not yet on JAWS**
     - Copies the page text and opens Edge's Copilot sidebar, ready for a question. C for Copilot.
 - **Dismiss Dialog**
-    - NVDA: Alt+NVDA+D
-    - JAWS: Alt+JAWSKey+D
+    - NVDA: Alt+Shift+D
+    - JAWS: Alt+Shift+D
     - Closes a browser dialog that is blocking the window. D for Dismiss, and it works anywhere because a dialog is what has the focus.
 - **Extract Main Content**
     - NVDA: Shift+F9
     - JAWS: Shift+F9
     - Extracts the readable part of the page into a page of its own that you can search, save or send. F9 is Edge's own reading view, and Shift+F9 is HomerView's, which works on pages Edge will not.
 - **Find Contacts**
-    - NVDA: Alt+NVDA+C
-    - JAWS: Alt+JAWSKey+C
+    - NVDA: Alt+Shift+C
+    - JAWS: Alt+Shift+C
     - Finds who to tell about this site: email addresses, the accessibility statement, contact pages and social media.
 - **Invoke Script**
     - NVDA: Alt+I
@@ -749,7 +749,7 @@ on. Each entry gives the NVDA key and the JAWS key.
 
 ## Troubleshooting
 
-**A command says the browser is not running.** Press Alt+Control+H
+**A command says the browser is not running.** Press Alt+Control+Shift+H
 to launch or reconnect.
 
 **A key does nothing.** Open the Alternate Menu and run the command from there.

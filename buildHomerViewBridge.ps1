@@ -66,11 +66,25 @@ if (Test-Path $pathOutput) {
     writeLog "Removed the previous $pathOutput"
 }
 
-# winexe rather than exe, so the desktop shortcut that carries Alt+Control+H
+# winexe rather than exe, so the desktop shortcut that carries Alt+Control+Shift+H
 # does not put a console window on the screen. Every answer is written to a
 # file, so nothing is lost by having no console.
+# The shared Homer classes are compiled in beside HomerView.cs. Kept in step
+# with buildHomerView.ps1 by hand, which is one list in two places: if a
+# third shared class is added, both need it, and only this comment says so.
+$lShared = @()
+foreach ($sName in @("Inix.cs", "Web.cs")) {
+    $pathShared = Join-Path (Split-Path -Parent $pathSource) "homer\$sName"
+    if (-not (Test-Path $pathShared)) {
+        writeLog "ERROR: homer\$sName is missing, and HomerView.cs calls into it."
+        exit 1
+    }
+    $lShared += $pathShared
+    writeLog "Shared class: homer\$sName"
+}
+
 $lArguments = @("/nologo", "/target:winexe", "/platform:x64",
-    "/out:$pathOutput", $pathSource)
+    "/out:$pathOutput", $pathSource) + $lShared
 writeLog "Running: csc.exe $($lArguments -join ' ')"
 $sOutput = & $pathCompiler @lArguments 2>&1 | Out-String
 $iExit = $LASTEXITCODE

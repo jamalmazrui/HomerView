@@ -612,12 +612,48 @@ end;
 { never under the installation folder, because this installer requires          }
 { administrator rights and a standard user could not then write to the profile. }
 
-{ Every JAWS settings folder that an earlier HomerView wrote into.
+{ Whether a manifest was written by the CURRENT approach rather than the old one.
 
-  HOW AN OLD INSTALL IS RECOGNISED. The previous approach put HomerView's keys
-  into default.jkm and recorded every file it touched in homerViewChain.manifest
-  beside them. That manifest is the mark: where it exists, the old approach is
-  in place in that folder. }
+  THE MANIFEST ALONE IS NOT THE MARK, AND TREATING IT AS ONE ASKED THE SAME
+  QUESTION ON EVERY INSTALL. Both approaches write homerViewChain.manifest --
+  the old one to record what it changed in default.jkm and MyExtensions, the
+  current one to record the two files it writes for the browser. So the test
+  "a manifest exists" was true immediately after a successful install, and the
+  next install offered to remove scripts that were already the new ones. He
+  confirmed it repeatedly and it kept coming back, which is exactly what a
+  question with an answer that changes nothing looks like.
+
+  WHAT DISTINGUISHES THEM IS A LINE INSIDE. The current chainJawsScripts
+  records which browser the folder was set up for, as "browser|msedge" or
+  whatever that browser's settings are called. The old one never wrote such a
+  line, because there was no browser to record: the keys went into the default
+  key map. So the presence of that line means the manifest is current, and its
+  absence means it is not.
+
+  A manifest that cannot be read is treated as CURRENT, so a file this cannot
+  open never produces a prompt to remove something that may not be there. The
+  cost of being wrong that way is a stale key map; the cost of being wrong the
+  other way is asking the same question at every install forever. }
+function manifestIsCurrent(sPath: String): Boolean;
+var
+  lLines: TArrayOfString;
+  iLine: Integer;
+begin
+  Result := True;
+  if not LoadStringsFromFile(sPath, lLines) then
+    Exit;
+  for iLine := 0 to GetArrayLength(lLines) - 1 do
+  begin
+    if Pos('browser|', Trim(lLines[iLine])) = 1 then
+      Exit;
+  end;
+  Result := False;
+end;
+
+{ Every JAWS settings folder that an EARLIER HomerView wrote into, and no
+  folder that this one wrote into. See manifestIsCurrent above for how the
+  two are told apart, and why asking only whether the manifest exists was
+  wrong. }
 function foldersWithOldScripts(): String;
 var
   sRoot, sVersions, sYear, sLanguages, sLanguage, sFound: String;
@@ -643,7 +679,7 @@ begin
           if (oLanguage.Name = '.') or (oLanguage.Name = '..') then Continue;
           sLanguage := sLanguages + oLanguage.Name;
           sFound := sLanguage + '\homerViewChain.manifest';
-          if FileExists(sFound) then
+          if FileExists(sFound) and (not manifestIsCurrent(sFound)) then
             Result := Result + '  JAWS ' + oYear.Name + #13#10;
         until not FindNext(oLanguage);
       finally

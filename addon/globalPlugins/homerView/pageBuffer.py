@@ -129,7 +129,7 @@ dHomerGestures = {
     "kb:NVDA+alt+j": "moveToMainContent",
     "kb:NVDA+alt+l": "listAnyElements",
     "kb:NVDA+shift+f7": "listLinks",
-    "kb:alt+control+`": "togglePunctuation",
+    "kb:control+shift+`": "togglePunctuation",
     "kb:alt+shift+'": "clearClipboard",
     "kb:alt+shift+`": "speakSofter",
     "kb:alt+shift+f3": "findWordAtCursorBackwards",

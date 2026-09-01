@@ -459,6 +459,25 @@ function browserConfigName {
 
 # THE PAGE KEYS, WHICH GO IN [Virtual Keys] OF THE BROWSER'S OWN KEY MAP.
 #
+# NO ALT+CONTROL ANYWHERE IN THIS LIST, AND THAT IS A STANDING HOMER RULE
+# RATHER THAN A HOMERVIEW ONE. Windows reserves Alt+Control+key, and
+# Alt+Control+Shift+key, for the shortcut key on a .lnk file. Every Homer tool
+# that wants a key reachable from anywhere takes one of those, so no Homer
+# program may spend one on an ordinary binding: doing so would quietly take a
+# slot away from a desktop shortcut, and the collision shows up as the wrong
+# program opening with nothing to explain it. That is how Alt+Control+H turned
+# out to belong to HomerScribe.
+#
+# Session Log moved off Alt+Control+F1 for that reason and is Control+Shift+L,
+# L for Log, beside Alt+Shift+L which puts the log on the clipboard. Edge uses
+# Control+Shift+L for paste and go, which is address bar work; this binding is
+# in [Virtual Keys] and exists only while the virtual cursor is active, so the
+# two never meet.
+#
+# Launch is the one exception and is not one: Alt+Control+Shift+H IS the
+# desktop shortcut's key, so binding the same key here spends nothing and
+# means one key to learn rather than two.
+#
 # Two lists, and the split is by WHEN THE KEY IS SAFE rather than by what the
 # command does. [Virtual Keys] applies only while the virtual cursor is
 # active, so a plain letter here cannot type itself into a form field or the
@@ -470,7 +489,7 @@ function browserConfigName {
 # application key map could not resolve, one for keys still in default.jkm --
 # are gone with the approach that needed them.
 $lPageKeys = @(
-    "Alt+Control+F1=hVOpenSessionLog",
+    "Control+Shift+L=hVOpenSessionLog",
     "Alt+F1=hVShowAbout",
     "Alt+M=hVSayMetadata",
     "Alt+N=hVListNames",

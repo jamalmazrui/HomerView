@@ -417,7 +417,13 @@ namespace Homer
                     Directory.GetParent(ProfileFolder()).FullName, "logs");
                 try { Directory.CreateDirectory(sLogFolder); }
                 catch (Exception) { }
-                sOutputFile = Path.Combine(sLogFolder, "HomerViewShortcut.json");
+                // .XML, NOT .JSON, BECAUSE THAT IS WHAT IT HOLDS. Every answer
+                // this program writes is UTF-16 XML, which the JAWS scripts read
+                // with hVXmlValue. The first version of this line called it
+                // .json, after the answer file the scripts pass in, and a file
+                // whose name disagrees with its contents wastes the time of
+                // whoever opens it next.
+                sOutputFile = Path.Combine(sLogFolder, "HomerViewShortcut.xml");
             }
             string sArgument = lArguments.Length > 2 ? lArguments[2] : "";
 

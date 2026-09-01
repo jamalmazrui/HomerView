@@ -50,7 +50,7 @@ category, where every command here can be changed.
 - **Log to Clipboard**, Alt+Shift+L. Copy the HomerView log to the clipboard as a file, so Control+V attaches it to an email rather than typing its name into one. L for Log, beside the other Control+Shift keys that put something somewhere.
 - **Project Announcement**, no key. Open the short description of HomerView, for passing on to somebody who has not met it.
 - **Quick Start**, Alt+Shift+F1. Open the first ten minutes of HomerView, for somebody new to it.
-- **Session Log**, Alt+Control+F1. Open a copy of this session's log, for working out what went wrong.
+- **Session Log**, Control+Shift+L. Open a copy of this session's log, for working out what went wrong.
 - **User Guide**, Control+F1. Open Documentation in the HomerView window. F1 is help everywhere, but plain F1 opens Edge's own help and stays Edge's, so the family here takes F1 with a modifier.
 
 # Moving through a page
@@ -136,7 +136,7 @@ category, where every command here can be changed.
 - **Open Document**, Control+O. Opens a Word file, spreadsheet, slide deck, PDF or ebook, converting it to a page so every command here works on it. Control+O opens in every program; this one opens more.
 - **Query Web**, Alt+Q, or Alt+NVDA+Q. Looks something up using free services that need no account: a definition, a place, the weather, a book. Q for Query.
 - **Report Accessibility**, no key. Tests the page and writes a report addressed to whoever publishes the site. Reached by Check Accessibility once an engine is chosen.
-- **Save Page**, Control+S, or Alt+Control+S. Saves the page in any of nine formats. Control+S saves in every program; this one saves more ways.
+- **Save Page**, Control+S. Saves the page in any of nine formats. Control+S saves in every program; this one saves more ways.
 - **Submit Form**, Control+Enter. Submits the form you are filling in, from any field in it, so you need not find the button.
 - **Web Download**, Alt+Shift+W. Pick files to download from a web page, on the key EdSharp uses for it.
 
@@ -149,7 +149,7 @@ category, where every command here can be changed.
 # Adjusting the voice
 
 - **Speech Settings**, Shift+Accent. Reports the punctuation level, the rate and the volume.
-- **Toggle Punctuation**, Alt+Control+Accent. Toggle the voice between all and no punctuation.
+- **Toggle Punctuation**, Control+Shift+Accent. Toggle the voice between all and no punctuation.
 - **Voice Faster**, Control+Accent. Increase the voice rate. The accent key carries the whole speech family, as it does in EdSharp.
 - **Voice Louder**, Alt+Accent. Increase the voice volume.
 - **Voice Slower**, Control+Shift+Accent. Decrease the voice rate.

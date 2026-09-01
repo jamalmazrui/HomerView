@@ -101,7 +101,7 @@ lCommands = [
      "Copy the HomerView log to the clipboard as a file, so Control+V attaches it "
      "to an email rather than typing its name into one. L for Log, beside the "
      "other Control+Shift keys that put something somewhere."),
-    ("openLog", "Session Log", ["kb:alt+control+f1"],
+    ("openLog", "Session Log", ["kb:control+shift+l"],
      "Open a copy of this session's log, for working out what went wrong."),
 
     # --- Changing how HomerView behaves ----------------------------------
@@ -255,7 +255,7 @@ lCommands = [
      "Opens a Word file, spreadsheet, slide deck, PDF or ebook, converting it to a "
      "page so every command here works on it. Control+O opens in every program; "
      "this one opens more."),
-    ("saveAs", "Save Page", ["kb:control+s", "kb:control+alt+s"],
+    ("saveAs", "Save Page", ["kb:control+s"],
      "Saves the page in any of nine formats. Control+S saves in every program; "
      "this one saves more ways."),
     ("extractMainContent", "Extract Main Content", ["kb:shift+f9"],
@@ -308,7 +308,7 @@ lCommands = [
      "Increase the voice volume."),
     ("speakSofter", "Voice Softer", ["kb:alt+shift+`"],
      "Decrease the voice volume."),
-    ("togglePunctuation", "Toggle Punctuation", ["kb:alt+control+`"],
+    ("togglePunctuation", "Toggle Punctuation", ["kb:control+shift+`"],
      "Toggle the voice between all and no punctuation."),
     ("reportSpeechSettings", "Speech Settings", ["kb:shift+`"],
      "Reports the punctuation level, the rate and the volume."),

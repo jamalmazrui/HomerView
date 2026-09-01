@@ -316,7 +316,7 @@ in the order it happened.
 
 - **Alt+Shift+L** / **Control+Shift+L** puts the log on the clipboard, ready
   to attach to a message.
-- **Alt+Control+F1** opens the same log to read.
+- **Control+Shift+L** opens the same log to read.
 
 ### HomerView's own documents
 
@@ -389,8 +389,8 @@ on. Each entry gives the NVDA key and the JAWS key.
     - JAWS: Alt+Shift+F1
     - Open the first ten minutes of HomerView, for somebody new to it.
 - **Session Log**
-    - NVDA: Alt+Control+F1
-    - JAWS: Alt+Control+F1
+    - NVDA: Control+Shift+L
+    - JAWS: Control+Shift+L
     - Open a copy of this session's log, for working out what went wrong.
 - **User Guide**
     - NVDA: Control+F1

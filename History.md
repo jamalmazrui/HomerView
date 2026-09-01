@@ -7,6 +7,27 @@ What changed, newest first, written the way you would tell somebody rather than
 as a list of commit messages. The reasoning behind each change is in the code,
 where it belongs. This is the short version.
 
+## Alt and Control are left for your desktop shortcuts
+
+Windows lets you put a shortcut key on a desktop icon, and it always has Alt
+and Control in it. Every Homer tool takes one of those for opening itself, so
+no Homer program should spend one on an ordinary command. If it did, it would
+quietly take a key your desktop shortcut wanted, and nothing would tell you:
+the wrong program would open, or none would.
+
+So three keys moved:
+
+- **Session Log** is now **Control+Shift+L**, L for Log, beside Alt+Shift+L
+  which puts the log on the clipboard.
+- **Toggle Punctuation** on NVDA is now **Control+Shift+Accent**, with the two
+  volume keys that use the same accent key.
+- **Save Page** on NVDA is just **Control+S** now, the same as on JAWS. It had a
+  second key that is no longer needed.
+
+Opening HomerView is still **Alt+Control+Shift+H**, and that is the exception
+that proves the rule: it is the shortcut key on the desktop icon, so it is
+using the space rather than taking it.
+
 ## The same keys on JAWS and NVDA, and one fewer key to hold down
 
 HomerView's commands used to need your screen reader's own key as well: Alt,

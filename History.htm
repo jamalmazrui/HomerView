@@ -172,6 +172,9 @@
 </header>
 <nav id="TOC" role="doc-toc">
 <ul>
+<li><a href="#alt-and-control-are-left-for-your-desktop-shortcuts"
+id="toc-alt-and-control-are-left-for-your-desktop-shortcuts">Alt and
+Control are left for your desktop shortcuts</a></li>
 <li><a
 href="#the-same-keys-on-jaws-and-nvda-and-one-fewer-key-to-hold-down"
 id="toc-the-same-keys-on-jaws-and-nvda-and-one-fewer-key-to-hold-down">The
@@ -237,6 +240,29 @@ versions</a></li>
 <p>What changed, newest first, written the way you would tell somebody
 rather than as a list of commit messages. The reasoning behind each
 change is in the code, where it belongs. This is the short version.</p>
+<h2 id="alt-and-control-are-left-for-your-desktop-shortcuts">Alt and
+Control are left for your desktop shortcuts</h2>
+<p>Windows lets you put a shortcut key on a desktop icon, and it always
+has Alt and Control in it. Every Homer tool takes one of those for
+opening itself, so no Homer program should spend one on an ordinary
+command. If it did, it would quietly take a key your desktop shortcut
+wanted, and nothing would tell you: the wrong program would open, or
+none would.</p>
+<p>So three keys moved:</p>
+<ul>
+<li><strong>Session Log</strong> is now
+<strong>Control+Shift+L</strong>, L for Log, beside Alt+Shift+L which
+puts the log on the clipboard.</li>
+<li><strong>Toggle Punctuation</strong> on NVDA is now
+<strong>Control+Shift+Accent</strong>, with the two volume keys that use
+the same accent key.</li>
+<li><strong>Save Page</strong> on NVDA is just
+<strong>Control+S</strong> now, the same as on JAWS. It had a second key
+that is no longer needed.</li>
+</ul>
+<p>Opening HomerView is still <strong>Alt+Control+Shift+H</strong>, and
+that is the exception that proves the rule: it is the shortcut key on
+the desktop icon, so it is using the space rather than taking it.</p>
 <h2
 id="the-same-keys-on-jaws-and-nvda-and-one-fewer-key-to-hold-down">The
 same keys on JAWS and NVDA, and one fewer key to hold down</h2>

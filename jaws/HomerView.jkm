@@ -1,34 +1,80 @@
 ﻿; HomerView.jkm -- HomerView's keys, for reference
 
+
+
 ;
+
+
 
 ; NOT WHAT BINDS THEM, AND THE REASON IS WORTH KNOWING. JAWS loads an
 
+
+
 ; application key map NAMED AFTER THE EXECUTABLE. Nothing on this machine is
+
+
 
 ; called HomerView.exe, so this file is never read by JAWS at all. What binds
 
+
+
 ; these keys is chainJawsScripts, which writes them into a key map named after
+
+
 
 ; the BROWSER -- msedge.jkm, chrome.jkm, or whatever ConfigNames.ini says that
 
+
+
 ; browser's settings are called.
 
+
+
 ;
+
+
 
 ; This copy is kept so the keys have one readable home in the project, and
 
+
+
 ; check 14 compares it against chainJawsScripts so the two cannot drift.
 
+
+
 ;
+
+
 
 ; SECTIONS MATTER MORE THAN KEYS HERE, and both of these sections now live
 
+
+
 ; inside the BROWSER'S own key map, so both are scoped to the browser.
+
+
 
 ;
 
+
+
 ; 
+
+;
+
+; NO ALT+CONTROL IN THIS FILE EXCEPT LAUNCH, and that one is the desktop
+
+; shortcut's own key rather than a binding competing with it. Windows reserves
+
+; Alt+Control+key for the shortcut key on a .lnk, every Homer tool takes one,
+
+; and a program that spends one on an ordinary command quietly takes a slot
+
+; from a desktop shortcut. The collision is silent: the wrong program opens,
+
+; or none does, and nothing says why.
+
+
 
 [Common Keys]
 Alt+Control+Shift+H=hVLaunchHomerView
@@ -46,7 +92,6 @@ Alt+Shift+S=hVOpenSettings
 [Virtual Keys]
 Alt+Apostrophe=hVSayClipboard
 Alt+C=hVCopyAppend
-Alt+Control+F1=hVOpenSessionLog
 Alt+F1=hVShowAbout
 Alt+F3=hVFindWordAtCursor
 Alt+F8=hVReadAll
@@ -74,6 +119,7 @@ Control+Shift+E=hVExtractByPattern
 Control+Shift+F=hVFindBackwards
 Control+Shift+F1=hVOpenDeveloperNotes
 Control+Shift+F3=hVFindByPatternBackwards
+Control+Shift+L=hVOpenSessionLog
 Control+Shift+Y=hVYieldByPattern
 F3=hVFindNext
 F8=hVStartSelection

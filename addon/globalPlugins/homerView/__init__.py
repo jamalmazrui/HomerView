@@ -1027,7 +1027,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         # Translators: Input help mode message for Save Page.
         description=_("Saves the page in any of nine formats. Control+S saves in every program; this one saves more ways."),
         category="HomerView",
-        gestures=['kb:control+s', 'kb:control+alt+s'],
+        gestures=['kb:control+s'],
     )
     def script_saveAs(self, gesture):
         homerLog.info("Command: save as")
@@ -1348,7 +1348,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         # Translators: Input help mode message for Session Log.
         description=_("Open a copy of this session's log, for working out what went wrong."),
         category="HomerView",
-        gesture="kb:alt+control+f1",
+        gesture="kb:control+shift+l",
     )
     def script_openLog(self, gesture):
         homerLog.info("Command: open the log file")

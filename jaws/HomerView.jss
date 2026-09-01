@@ -2403,7 +2403,7 @@ hVOpenOwnDocument ("Announce.htm", "the project announcement")
 EndScript
 
 
-; This session's log, opened to read rather than copied to send. Alt+Control+F1.
+; This session's log, opened to read rather than copied to send. Control+Shift+L.
 Script hVOpenSessionLog ()
 Var
     int iExit,
@@ -2738,7 +2738,7 @@ Let iAdded = UserBufferAddLink ("  Control+F1      The HomerView guide", "hVHome
 Let iAdded = UserBufferAddLink ("  Alt+Shift+F1    The Quick Start", "hVHomerViewLink (\"hVOpenQuickStart\")", "Quick Start")
 Let iAdded = UserBufferAddLink ("  Shift+F1        What changed in each release", "hVHomerViewLink (\"hVShowHistory\")", "History of Changes")
 Let iAdded = UserBufferAddLink ("  Control+Shift+F1 Notes for developers", "hVHomerViewLink (\"hVOpenDeveloperNotes\")", "Developer Notes")
-Let iAdded = UserBufferAddLink ("  Alt+Control+F1  This session's log, to read", "hVHomerViewLink (\"hVOpenSessionLog\")", "Session Log")
+Let iAdded = UserBufferAddLink ("  Control+Shift+L  This session's log, to read", "hVHomerViewLink (\"hVOpenSessionLog\")", "Session Log")
 Let iAdded = UserBufferAddLink ("  Alt+F1          Which build is loaded", "hVHomerViewLink (\"hVShowAbout\")", "About HomerView")
 Let iAdded = UserBufferAddLink ("  Control+Shift+F Find backwards", "hVHomerViewLink (\"hVFindBackwards\")", "Reverse Find for Text")
 Let iAdded = UserBufferAddLink ("  Control+F3      Find forward with a pattern", "hVHomerViewLink (\"hVFindByPattern\")", "Forward Find with Regular Expression")
@@ -2853,7 +2853,7 @@ Let sTable = "About HomerView, Which build is loaded and where everything lives.
     + "\7" + "Save Page, Saves this page as html, Word, Markdown or an ebook. (Control+S)\thVSavePage\tP"
     + "\7" + "Say Clipboard, Says what is on the clipboard, paths or text. (Alt+Apostrophe)\thVSayClipboard\tA"
     + "\7" + "Say Metadata, Shows what the page says about itself. (Alt+M)\thVSayMetadata\tP"
-    + "\7" + "Session Log, Opens this session's log to read. (Alt+Control+F1)\thVOpenSessionLog\tA"
+    + "\7" + "Session Log, Opens this session's log to read. (Control+Shift+L)\thVOpenSessionLog\tA"
     + "\7" + "Start Selection, Marks where a selection begins, to be finished with Shift+F8. (F8)\thVStartSelection\tP"
     + "\7" + "Tab List, Lists the open tabs by name and address.\thVListTabs\tA"
     + "\7" + "Tab Names, Says the names of the open tabs without moving anywhere. (Shift+F4)\thVSayTabNames\tA"

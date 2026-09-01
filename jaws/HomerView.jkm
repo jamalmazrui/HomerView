@@ -1,27 +1,36 @@
 ﻿; HomerView.jkm -- HomerView's keys, for reference
 ;
-; NOT WHAT BINDS THEM. JAWS loads an application key map named after the
-; executable, and nothing on this machine is called HomerView.exe, so this file
-; is never read. The bindings are written into the user's own default.jkm by
-; chainJawsScripts, which copies the factory file first and adds to it. This
-; copy is kept so the keys have one readable home in the project.
+; NOT WHAT BINDS THEM, AND THE REASON IS WORTH KNOWING. JAWS loads an
+; application key map NAMED AFTER THE EXECUTABLE. Nothing on this machine is
+; called HomerView.exe, so this file is never read by JAWS at all. What binds
+; these keys is chainJawsScripts, which writes them into a key map named after
+; the BROWSER -- msedge.jkm, chrome.jkm, or whatever ConfigNames.ini says that
+; browser's settings are called.
 ;
-; SECTIONS MATTER MORE THAN KEYS HERE.
+; This copy is kept so the keys have one readable home in the project, and
+; check 14 compares it against chainJawsScripts so the two cannot drift.
 ;
-; [Common Keys] applies everywhere, in every application and every cursor mode.
-; Only commands that must work before HomerView is running belong there, plus
-; the few that are about HomerView itself rather than about a page.
+; SECTIONS MATTER MORE THAN KEYS HERE, and both of these sections now live
+; inside the BROWSER'S own key map, so both are scoped to the browser.
 ;
-; [Virtual Keys] applies while the VIRTUAL CURSOR is active, which for a web
-; page is most of the time. It is NOT the same as "while Edge is in front": in
-; the address bar or a form field these do not fire, and the key reaches the
-; browser instead.
+; [Common Keys] applies in any cursor mode while the browser is in front: the
+; address bar, a form field, focus mode. The commands that must answer from
+; any of those are here.
 ;
-; Scoping a command to the BROWSER -- every cursor mode, Edge only -- needs
-; more than an msedge.jkm: HomerView's scripts have to be CHAINED INTO EDGE'S
-; OWN SCRIPT SET, because Edge already has JAWS scripts and a key map naming
-; our commands cannot resolve them otherwise. That work is described in
-; chainJawsScripts and is not done yet.
+; [Virtual Keys] applies only while the VIRTUAL CURSOR is active. Plain
+; letters and single function keys belong here, because in a form field they
+; would type themselves.
+;
+; NOTHING OF HOMERVIEW'S IS IN default.jkm ANY MORE. It used to be, and
+; [Virtual Keys] there applies wherever a virtual cursor is active -- which
+; includes an Outlook message, a Word document and a PDF. Control+O in Outlook
+; was running HomerView's Open Document. Keys in the browser's own map do not
+; exist anywhere else.
+;
+; Alt+JAWSKey+H is here and starts or returns to the browser while the browser
+; is in front. Starting it from ANYWHERE ELSE is Alt+Control+H, a Windows
+; shortcut key on the desktop icon, which is in no key map at all because it
+; is not a screen reader command.
 
 [Common Keys]
 Alt+JAWSKey+A=hVCheckAccessibility
@@ -32,40 +41,42 @@ Alt+JAWSKey+H=hVLaunchHomerView
 Alt+JAWSKey+I=hVCheckAccessibilityIbm
 Alt+JAWSKey+L=hVCopyLogToClipboard
 Alt+JAWSKey+Q=hVSayDiagnostics
+Alt+Shift+B=hVChooseBrowser
 Alt+Shift+H=hVHotKeyHelp
+Alt+Shift+S=hVOpenSettings
 
 [Virtual Keys]
 Alt+Apostrophe=hVSayClipboard
 Alt+C=hVCopyAppend
 Alt+Control+F1=hVOpenSessionLog
 Alt+F1=hVShowAbout
+Alt+F3=hVFindWordAtCursor
 Alt+F8=hVReadAll
 Alt+L=hVDescribeLinkTarget
 Alt+M=hVSayMetadata
 Alt+N=hVListNames
-Alt+Shift+Apostrophe=hVClearClipboard
-Alt+Shift+F1=hVOpenQuickStart
-Alt+Shift+P=hVCopyPageLinks
-Alt+Shift+F=hVOpenPageFolder
-Alt+Shift+W=hVDownloadFiles
 Alt+R=hVRecentPages
-Control+F11=hVElevateVersion
-Alt+Shift+F8=hVGoToSelectionStart
-Alt+F3=hVFindWordAtCursor
+Alt+Shift+Apostrophe=hVClearClipboard
+Alt+Shift+F=hVOpenPageFolder
+Alt+Shift+F1=hVOpenQuickStart
 Alt+Shift+F3=hVFindWordAtCursorBackwards
+Alt+Shift+F8=hVGoToSelectionStart
+Alt+Shift+P=hVCopyPageLinks
+Alt+Shift+W=hVDownloadFiles
 Control+Apostrophe=hVSaveClipboard
 Control+C=hVCopySelection
 Control+F1=hVOpenUserGuide
+Control+F11=hVElevateVersion
 Control+F3=hVFindByPattern
 Control+F8=hVCopyAll
 Control+O=hVOpenDocument
 Control+S=hVSavePage
 Control+Shift+Apostrophe=hVAppendClipboard
 Control+Shift+E=hVExtractByPattern
-Control+Shift+Y=hVYieldByPattern
+Control+Shift+F=hVFindBackwards
 Control+Shift+F1=hVOpenDeveloperNotes
 Control+Shift+F3=hVFindByPatternBackwards
-Control+Shift+F=hVFindBackwards
+Control+Shift+Y=hVYieldByPattern
 F3=hVFindNext
 F8=hVStartSelection
 Shift+F1=hVShowHistory

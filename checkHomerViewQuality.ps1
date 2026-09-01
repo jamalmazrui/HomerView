@@ -665,7 +665,22 @@ function checkFourteen {
     $dChainSection = @{}
     $sSection = ""
     foreach ($sLine in (textLines $sChain)) {
+        # THE SECTION IS WORKED OUT FROM THE VARIABLE NAME, WHICH MEANS
+        # RENAMING A VARIABLE BLINDS THIS CHECK. That happened on 31 August
+        # 2026: $lVirtualKeys and $lBrowserKeys were removed when both lists
+        # moved into the browser's own key map, and the page list was renamed
+        # $lPageKeys. Nothing here matched it, so the section stayed on
+        # "Common Keys" for the whole file and THIRTY-NINE KEYS WERE REPORTED
+        # AS BOUND IN THE WRONG SECTION when every one of them was right.
+        #
+        # The same trap as the hV rename, which blinded the script checkers
+        # until they were taught the new names. ANY CHECKER THAT FINDS THINGS
+        # BY NAME HAS TO BE TOLD WHEN A NAME CHANGES, and the failure looks
+        # like a fault in the code rather than in the check.
+        #
+        # The old names are still matched, so this reads an older tree too.
         if ($sLine -match '\$lCommonKeys\s*=') { $sSection = "Common Keys" }
+        if ($sLine -match '\$lPageKeys\s*=') { $sSection = "Virtual Keys" }
         if ($sLine -match '\$lVirtualKeys\s*=') { $sSection = "Virtual Keys" }
         # A THIRD HOME FOR A KEY: the browser's own map, msedge.jkm, which
         # chainJawsScripts writes so that a page-level command works in any

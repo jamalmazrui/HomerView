@@ -567,6 +567,47 @@ function checkThirteen {
     }
 }
 
+function checkNineteen {
+    param ([string] $sChain)
+    writeLog "CHECK 19  the browser script file inherits the default script set"
+    reportNote "an application script file inherits default.jsb by SAYING SO, not by being loaded; leaving the line out costs every default JAWS command in the browser"
+    # WHAT THIS IS WRITTEN AGAINST, on 1 September 2026.
+    #
+    # chainJawsScripts wrote an msedge.jss that used HomerView.jsb and the
+    # factory browser binary, and not default.jsb. Everything compiled.
+    # Everything installed. Every one of the fifty keys HomerView binds worked.
+    # And Control+F in Edge answered "Unknown script call to virtual find".
+    #
+    # KEY MAPS FALL THROUGH; SCRIPT SETS DO NOT. Control+F is not in our key
+    # map, so JAWS read it from default.jkm and found VirtualFind, exactly as
+    # it should. VirtualFind lives in default.jsb, default.jsb was not loaded
+    # for Edge, and the name resolved to nothing. So it was never about Find:
+    # every default JAWS command in the browser was gone, and Control+F was
+    # simply the first one reached for.
+    #
+    # NOTHING ELSE COULD HAVE CAUGHT IT. The compiler is content, since a Use
+    # line names a file rather than the names inside it. The installer is
+    # content. The key read-back is content, because the keys really are in the
+    # file. It fails only when a person presses a key we did not bind, which is
+    # most of them, and only on a machine with the scripts loaded.
+    if ($null -eq $sChain) {
+        reportFail "chainJawsScripts.ps1 could not be read"
+        return
+    }
+    if ($sChain -match "Use\s+.{0,2}default\.jsb") {
+        reportNote "chainJawsScripts writes Use default.jsb into the browser script file"
+    } else {
+        reportFail "chainJawsScripts does not write Use default.jsb; every default JAWS command in the browser would stop working"
+    }
+    # And it has to come FIRST, because a later Use overrides an earlier one.
+    # HomerView's own scripts must be the last word, not the default set.
+    $iDefault = $sChain.IndexOf('Use "default.jsb"')
+    $iOurs = $sChain.IndexOf('Use "HomerView.jsb"')
+    if ($iDefault -ge 0 -and $iOurs -ge 0 -and $iDefault -gt $iOurs) {
+        reportFail "default.jsb is used after HomerView.jsb, so the default scripts would override ours"
+    }
+}
+
 function checkEighteen {
     param ([string] $sCs, [string] $sRoot)
     writeLog "CHECK 18  the shared Homer classes are there, and nothing duplicates them"
@@ -962,7 +1003,8 @@ $lChecks = @(
     { checkFifteen  $aJss $lScripts $lFuncs },
     { checkSixteen  $oMenu },
     { checkSeventeen $sCs $sBrowsersPy },
-    { checkEighteen $sCs $sRoot })
+    { checkEighteen $sCs $sRoot },
+    { checkNineteen $sChain })
 
 foreach ($oCheck in $lChecks) {
     $iBefore = $script:iFail

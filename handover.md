@@ -55,6 +55,34 @@ console. Nothing is lost: every answer is written to a file. PowerShell does
 not wait for a windows program, so the build's smoke test uses
 `Start-Process -Wait`.
 
+## The one that got away, and what it teaches
+
+On 1 September 2026 Control+F in Edge answered **"Unknown script call to
+virtual find"**. The cause: the `<browser>.jss` that `chainJawsScripts` writes
+used `HomerView.jsb` and the factory browser binary, and not `default.jsb`.
+
+**An application script file inherits the default script set by saying so, not
+by being loaded.** Every script file Freedom Scientific ships for an
+application begins with `Use "default.jsb"`. Ours did not.
+
+**Key maps fall through; script sets do not.** Control+F is not in our key map,
+so JAWS read it from `default.jkm` and found `VirtualFind` — exactly right.
+`VirtualFind` lives in `default.jsb`, which was not loaded for Edge, so the
+name resolved to nothing. It was never about Find: every default JAWS command
+in the browser was gone, and Control+F was simply the first one reached for.
+
+Nothing in the build could have caught it. The compiler is content, since a
+`Use` line names a file rather than the names inside it. The installer is
+content. The key read-back is content, because the keys really are in the file.
+It fails only when somebody presses a key we did not bind — which is most of
+them — and only on a machine with the scripts loaded.
+
+Check 19 now asserts the line is written, and that it comes before
+`Use "HomerView.jsb"`, since a later `Use` overrides an earlier one and our
+scripts must be the last word. `chainJawsScripts` also deletes and rewrites a
+`<browser>.jss` that the manifest says we created and that lacks the line, so
+the repair reaches machines already running the broken one.
+
 ## Any Chromium browser
 
 Which browser comes from `HomerView.inix` under `%APPDATA%`, as `browser` and

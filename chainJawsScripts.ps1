@@ -751,6 +751,23 @@ foreach ($folderVersion in $lVersions) {
         #
         # WRITTEN ONLY IF ABSENT, so a file somebody else made is never
         # overwritten.
+        # A FILE OF OURS FROM THE RELEASE THAT FORGOT default.jsb IS DELETED
+        # HERE, so the branch below writes a correct one. Done before the
+        # "does it exist" test rather than inside the "it exists" branch,
+        # because deleting it there would leave the folder with no script
+        # file at all and the run would report a failure it had caused.
+        #
+        # ONLY A FILE THE MANIFEST SAYS WE CREATED. One somebody else wrote is
+        # never replaced, only added to, and that is handled below.
+        if ((Test-Path $pathBrowserJss) -and ($lManifest -contains "created|$sConfigBase.jss")) {
+            $sCheck = Get-Content $pathBrowserJss -Raw
+            if ($sCheck -notmatch '(?im)^\s*use\s+"default\.jsb"') {
+                writeLog "    $sConfigBase.jss is ours and does not use default.jsb; rewriting it"
+                writeLog "      (that is what made Control+F answer 'unknown script call')"
+                Remove-Item $pathBrowserJss -Force -ErrorAction SilentlyContinue
+            }
+        }
+
         $bScriptsOk = $false
         $pathSharedBrowserJsb = ""
         if ($pathShared) {
@@ -759,6 +776,26 @@ foreach ($folderVersion in $lVersions) {
         }
         if (-not (Test-Path $pathBrowserJss)) {
             $lJss = @($c_sMarker)
+            # DEFAULT.JSB FIRST, AND LEAVING IT OUT BROKE EDGE.
+            #
+            # An application script file does not inherit the default script
+            # set by being loaded; it inherits it by SAYING SO. Every script
+            # file Freedom Scientific ships for an application begins with
+            # this line, and ours did not.
+            #
+            # WHAT THAT COST, on 1 September 2026: Control+F in Edge answered
+            # "Unknown script call to virtual find". Key maps DO fall
+            # through -- Control+F is not in our key map, so JAWS read it
+            # from default.jkm and found VirtualFind, exactly as it should.
+            # SCRIPTS DO NOT. VirtualFind lives in default.jsb, default.jsb
+            # was not loaded for Edge, and the name resolved to nothing.
+            #
+            # So the failure was never about Find. EVERY default JAWS command
+            # in the browser was gone, and Control+F was simply the first one
+            # he reached for. A missing Use line does not fail at compile
+            # time, does not fail at load time, and fails only when somebody
+            # presses a key we did not bind -- which is most of them.
+            $lJss += 'Use "default.jsb"'
             if ($pathSharedBrowserJsb) {
                 $lJss += "Use `"$sConfigBase.jsb`""
                 writeLog "    the factory $sConfigBase.jsb will be layered under HomerView's"

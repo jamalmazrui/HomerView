@@ -18,7 +18,7 @@ weights have been published, which is not the same thing as the service being
 open. None of them belong here under this rule.
 """
 
-startPageVersion = "18"
+startPageVersion = "26cf7d89"
 
 startPageText = """<!doctype html>
 <html lang="en">

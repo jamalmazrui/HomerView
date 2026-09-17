@@ -167,8 +167,38 @@ def writeStartPage():
     # file still parses and still works, which is exactly why it would have
     # gone unnoticed.
     sPage = sPage.replace("\r\n", "\n")
+
+    # THE VERSION IS THE CONTENT, NOT A NUMBER SOMEBODY REMEMBERS.
+    #
+    # The add-on rewrites the reader's copy of the page only when the
+    # version marker in it differs, and on 17 September 2026 the page was
+    # rewritten here while startPageVersion stayed at 18. So the marker
+    # matched, the copy was judged current, and the reader went on being
+    # shown a page describing keys that no longer existed.
+    #
+    # A hash of the page cannot be forgotten. Change any word and the
+    # version changes with it.
+    import hashlib
+    iStartText = sPage.index('startPageText = ')
+    sBody = sPage[iStartText:]
+    sVersion = hashlib.md5(sBody.encode("utf-8")).hexdigest()[:8]
+    sPage = reModule.sub(r'(?m)^startPageVersion = "[^"]*"',
+                         'startPageVersion = "' + sVersion + '"', sPage, count=1)
     with io.open(pathPage, "w", encoding="utf-8-sig", newline="\r\n") as oFile:
         oFile.write(sPage)
+
+    # AND THE SECOND COPY, WHICH IS THE ONE THE DESKTOP SHORTCUT SERVES.
+    #
+    # Start.htm at the top of the project is installed into Program Files
+    # and copied to the reader's folder by HomerView.exe. It is a separate
+    # file from startPage.py and nothing kept the two together, so fixing
+    # one left the other describing the old keys. It is rendered from the
+    # same text here, so there is one source and two outputs.
+    sRendered = sPage[sPage.index('startPageText = """') + len('startPageText = """'):]
+    sRendered = sRendered[:sRendered.index('"""')]
+    sRendered = sRendered.replace("{version}", sVersion)
+    with io.open("Start.htm", "w", encoding="utf-8-sig", newline="\r\n") as oFile:
+        oFile.write(sRendered.lstrip("\n"))
     return len(lRows)
 
 

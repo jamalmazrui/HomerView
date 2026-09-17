@@ -303,7 +303,38 @@ namespace Homer
                 // by a version whose data folder fell back to the log's parent.
                 // It is moved rather than ignored, because it is the page the
                 // add-on wrote and it belongs one level up.
-                if (!File.Exists(sStart))
+                // AND REPLACED WHEN THE INSTALLED ONE IS NEWER, not only when
+                // the reader has none.
+                //
+                // "Copy it if it is missing" left a start page from a previous
+                // release in place for ever. On 17 September 2026 that page was
+                // still naming J, Shift+J, Y and Alt+Y, keys that had not existed
+                // for weeks, and a rebuild and reinstall did not disturb it,
+                // because the file was present and that was the whole test.
+                //
+                // The NVDA add-on refreshes its copy by comparing a version
+                // marker. This side has no marker to read, and the file date is
+                // the answer it does have: an installer writes a newer file, so
+                // a newer file means a newer release.
+                bool bReplace = !File.Exists(sStart);
+                if (!bReplace)
+                {
+                    try
+                    {
+                        string sInstalled = Path.Combine(
+                            Path.GetDirectoryName(
+                                System.Reflection.Assembly.GetExecutingAssembly().Location),
+                            "Start.htm");
+                        if (File.Exists(sInstalled) &&
+                            File.GetLastWriteTimeUtc(sInstalled) > File.GetLastWriteTimeUtc(sStart))
+                        {
+                            bReplace = true;
+                            Log("  the installed start page is newer, so it replaces the copy");
+                        }
+                    }
+                    catch (Exception) { }
+                }
+                if (bReplace)
                 {
                     string sStray = Path.Combine(sFolder, "logs", "Start.htm");
                     try

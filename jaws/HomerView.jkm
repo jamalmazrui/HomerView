@@ -74,8 +74,6 @@
 
 ; or none does, and nothing says why.
 
-
-
 [Common Keys]
 Alt+Control+Shift+H=hVLaunchHomerView
 Alt+F10=hVShowHomerViewMenu
@@ -108,6 +106,7 @@ Alt+Shift+P=hVCopyPageLinks
 Alt+Shift+W=hVDownloadFiles
 Control+Apostrophe=hVSaveClipboard
 Control+C=hVCopySelection
+Control+F=hVFindForwards
 Control+F1=hVOpenUserGuide
 Control+F11=hVElevateVersion
 Control+F3=hVFindByPattern

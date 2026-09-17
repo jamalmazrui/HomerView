@@ -80,6 +80,8 @@ homerPolicy.py
 tidyRepo.py
 cleanDir.cmd
 cleanDir.py
+probeJawsScripts.cmd
+probeJawsScripts.ps1
 
 # Making the repository, and telling git what is text. Neither is
 # installed, and both are the repository's own business.

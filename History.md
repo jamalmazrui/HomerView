@@ -7,6 +7,45 @@ What changed, newest first, written the way you would tell somebody rather than
 as a list of commit messages. The reasoning behind each change is in the code,
 where it belongs. This is the short version.
 
+## More of HomerView works in an ordinary Edge window
+
+HomerView does two kinds of work. Some commands ask the page a question, and
+those need a browser HomerView started itself, with Alt+Control+Shift+H. The
+rest do not, and those should work wherever you are.
+
+Several groups of commands moved to the second kind:
+
+- **Open Document, on Control+O.** This converts a Word file, a PDF, an EPUB
+  and the rest into a web page you can read with headings and tables. None of
+  that ever needed HomerView's browser: the conversion happens on your
+  computer, and the result now opens in whatever browser you use. Same result,
+  fewer things that can go wrong.
+- **The documentation.** The user guide, the history, the developer notes, the
+  quick start, the announcement and the session log now open in your usual
+  browser when HomerView's own is not running.
+- **Copy All and Read All** fall back to your screen reader's own view of the
+  page. That view can miss content in a frame, or added late, so each says
+  which view it used.
+- **Page Links to Clipboard** falls back to the JAWS view of the page. It can
+  miss a link that is hidden or added late, so the heading says where the list
+  came from.
+- **Jump to Probable Main** moves to the page's main element, if it has one.
+  Most well built pages do. A page that marks its main content another way, or
+  not at all, still needs HomerView's browser.
+
+When a command really does need HomerView's browser, it now says one sentence
+and names the key: "This needs the HomerView browser. Press
+Alt+Control+Shift+H." That replaced fourteen different wordings, most of them
+"HomerView is not connected", which told you something was wrong and left you
+to work out what to do.
+
+The selection commands on F8 never needed HomerView's browser and still do
+not. Start Selection, Complete Selection, Copy Selection and Go to Start of
+Selection all work from what your screen reader already has.
+
+The user guide lists all three groups: the commands that work in full, the ones
+with a lesser route, and the ones that need HomerView's browser.
+
 ## Alt and Control are left for your desktop shortcuts
 
 Windows lets you put a shortcut key on a desktop icon, and it always has Alt

@@ -16,7 +16,7 @@ import wx
 
 from . import logger
 from . import paths
-from .logger import abbreviate, homerLog, logError, logSection, logThreadContext
+from .logger import abbreviate, homerLog, logError, logSection, logThreadContext, needsHomerView
 
 import addonHandler
 
@@ -1244,7 +1244,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         }
         if not service.isConnected():
             self._dSelfTest[_("The page through the DevTools Protocol")] = (
-                [("Result", "HomerView is not connected. Press Alt+Control+Shift+H first.")], False
+                [("Result", needsHomerView)], False
             )
             self._showSelfTest(None)
             return

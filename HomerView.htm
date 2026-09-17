@@ -220,6 +220,9 @@ go</a></li>
 <li><a href="#the-log" id="toc-the-log">The log</a></li>
 <li><a href="#homerviews-own-documents"
 id="toc-homerviews-own-documents">HomerView’s own documents</a></li>
+<li><a href="#what-needs-homerviews-own-browser"
+id="toc-what-needs-homerviews-own-browser">What needs HomerView’s own
+browser</a></li>
 <li><a href="#hotkeys" id="toc-hotkeys">Hotkeys</a></li>
 </ul></li>
 <li><a href="#troubleshooting"
@@ -535,6 +538,65 @@ lives</li>
 <li>The hotkey document and the project announcement are on the
 Alternate Menu</li>
 </ul>
+<h3 id="what-needs-homerviews-own-browser">What needs HomerView’s own
+browser</h3>
+<p>HomerView does two kinds of work, and it helps to know which is
+which.</p>
+<p>Most of it works in <strong>any Edge window</strong>. The finds. The
+selection commands. The Alternate Menu and the Hotkey Summary.
+Everything to do with the clipboard. The settings. All of the
+documentation. None of that asks the page a question, so none of it
+needs anything special.</p>
+<p>The rest asks the page a question, or acts on it. That work goes
+through the Chrome DevTools Protocol. The protocol only answers a
+browser that HomerView started itself. Press
+<strong>Alt+Control+Shift+H</strong> to get one. The HomerView icon on
+your desktop does the same thing.</p>
+<p>Press one of those commands in an ordinary Edge window and HomerView
+says so in one sentence, and names the key. It does not fail
+quietly.</p>
+<p><strong>These work in any Edge window, in full:</strong></p>
+<ul>
+<li>About HomerView, Alternate Menu, Hot Key Help, Report
+Diagnostics</li>
+<li>Append Clipboard, Clear Clipboard, Copy Append, Save Clipboard, Say
+Clipboard, Log to Clipboard</li>
+<li>Choose Browser, HomerView Settings</li>
+<li>Complete Selection, Copy Selection, Go to Start of Selection, Start
+Selection</li>
+<li>Developer Notes, History of Changes, Project Announcement, Quick
+Start, Session Log, User Guide</li>
+<li>Forward Find for Text, Forward Find Again, Reverse Find for Text,
+Reverse Find Again</li>
+<li>Launch HomerView, Link Target</li>
+<li><strong>Open Document.</strong> The file is converted the same way
+whatever browser you use, so this is the same result and not a lesser
+one.</li>
+</ul>
+<p><strong>These have a lesser route in any Edge window:</strong></p>
+<p>These read the page from your screen reader’s own view of it instead
+of from the browser. That view can miss content in a frame, or added
+after the page settled. Each one says which view it used, so you always
+know.</p>
+<ul>
+<li>Copy All, Read All</li>
+<li>Page Links to Clipboard</li>
+<li>Jump to Probable Main, which finds a main element but cannot
+guess</li>
+</ul>
+<p><strong>These need HomerView’s browser:</strong></p>
+<ul>
+<li>Check Accessibility with axe, Check with Equal Access</li>
+<li>Dismiss Dialog, Say Metadata</li>
+<li>Extract Main Content, Extract with Regular Expression, Yield with
+Pattern</li>
+<li>Find Contacts, List Names</li>
+<li>Forward Find at Cursor, Reverse Find at Cursor, Forward Find with
+Regular Expression, Reverse Find with Regular Expression</li>
+<li>Save Page, Page Folder, Web Download</li>
+<li>Recent Pages, Tab List, Tab Names</li>
+<li>Elevate Version</li>
+</ul>
 <h3 id="hotkeys">Hotkeys</h3>
 <p>This section is also available as a document of its own, Hotkeys.htm,
 and as the Hotkey Summary on <strong>Alt+Shift+H</strong>, where every
@@ -770,6 +832,14 @@ for it.</li>
 <li>JAWS: Control+F3</li>
 <li>Search forward for regular expression, which NVDA’s own find cannot
 do.</li>
+</ul></li>
+<li><strong>Forward Find</strong>
+<ul>
+<li>NVDA: Control+F</li>
+<li>JAWS: Control+F (named “Forward Find for Text” there)</li>
+<li>Search forward for a string. On JAWS this is the JAWS find dialog
+itself, reached from a HomerView script so that it works inside
+HomerView’s own browser window.</li>
 </ul></li>
 <li><strong>Reverse Find</strong>
 <ul>

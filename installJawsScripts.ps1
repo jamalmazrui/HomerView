@@ -278,36 +278,54 @@ function reportUserDefault {
 function holdEdgeScripts {
     param([string] $pathSettings)
 
-    # AN EDGE SCRIPT SET SHADOWS HOMERVIEW'S COMMANDS, SO IT IS MOVED ASIDE.
+    # THIS NOW ONLY LOOKS. IT USED TO MOVE FILES, AND BOTH THE MOVING AND MY
+    # FIRST EXPLANATION OF IT WERE WRONG.
     #
-    # A tester had msedge.jsb and msedge.JKM in his settings folder -- with no
-    # msedge.jss beside them, so not something he wrote. On his machine
-    # HomerView launched and its menu opened, and then NO COMMAND DID ANYTHING
-    # AND NOTHING WAS LOGGED, on a build that works everywhere else.
+    # WHAT IT DID. It renamed msedge.jsb, msedge.jkm and msedge.jss in the USER
+    # settings folder to .homerViewHeld on every install. That was added because
+    # a tester had a stray msedge.jsb with no .jss beside it which shadowed
+    # HomerView's commands, and on his machine moving it aside was right.
     #
-    # TWO DOCUMENTED RULES EXPLAIN THAT EXACTLY. Freedom Scientific's keystroke
-    # algorithm searches the APPLICATION key map FIRST while that application is
-    # focused, and looks for the script it names in the APPLICATION script file.
-    # And Vispero's own guidance says scripts in MyExtensions WITH THE SAME NAME
-    # as ones in an application script file WILL NEVER RUN. HomerView lives in
-    # MyExtensions, so inside Edge his copies won and ours never fired.
+    # WHAT I THEN CLAIMED, AND IT WAS WRONG. Chasing "Control+F fails in Edge
+    # and works in Chrome" on 1 September 2026 I said those files were JAWS's
+    # own Edge support. They are not. A factory script set lives in the FACTORY
+    # settings folder by definition; the ones here are HOMERVIEW'S OWN, written
+    # by chainJawsScripts on the previous install. So this function was moving
+    # our own files aside and chainJawsScripts was writing them again a second
+    # later: noise in the log, and nothing worse.
     #
-    # RENAMED, NEVER DELETED, AND RECORDED. If they turn out to be wanted, the
-    # names are one rename away and -bUndo puts them back. A .jsb without its
-    # .jss cannot be rebuilt, so deleting one would be unrecoverable.
-    foreach ($sName in @("msedge.jsb", "msedge.jkm", "msedge.jss", "msedge.jsd")) {
+    # SO IT IS NOT THE BUG, AND THE BUG IS STILL OPEN. What is known: a user
+    # msedge script set exists and a chrome one does not, and Control+F fails in
+    # Edge and works in Chrome. What is not known is which key map supplies
+    # Control+F and which script it names. probeJawsScripts answers that, and
+    # nothing further should be changed here until it has.
+    #
+    # LOOKING IS STILL WORTH DOING. A file here that is NOT ours -- no HomerView
+    # marker in a .jss, or a .jsb with no .jss beside it -- is the tester's case
+    # and is worth saying out loud, without touching it.
+    foreach ($sName in @("msedge.jsb", "msedge.jkm", "msedge.jss", "msedge.jsd",
+                         "chrome.jsb", "chrome.jkm", "chrome.jss", "chrome.jsd")) {
         $pathFound = Join-Path $pathSettings $sName
         if (-not (Test-Path $pathFound)) { continue }
-        $pathHeld = "$pathFound.homerViewHeld"
-        try {
-            if (Test-Path $pathHeld) { Remove-Item $pathHeld -Force }
-            Rename-Item -Path $pathFound -NewName "$sName.homerViewHeld" -Force
-            writeLog "    moved $sName aside to $sName.homerViewHeld"
-            writeLog "      An Edge script set here shadows HomerView's commands inside Edge."
-            writeLog "      Rename it back, or run this with -bUninstall, to restore it."
-        } catch {
-            writeLog "    $sName could not be moved aside: $($_.Exception.Message)"
-            writeLog "      HomerView's commands may do nothing while Edge is focused."
+        $sOwner = "not ours"
+        if ($sName -like "*.jss") {
+            if ((Get-Content $pathFound -Raw) -match "Added by HomerView") { $sOwner = "ours" }
+        } elseif (Test-Path ([System.IO.Path]::ChangeExtension($pathFound, "jss"))) {
+            $sOwner = "beside a .jss"
+        }
+        writeLog "    found $sName ($((Get-Item $pathFound).Length) bytes, $sOwner) -- left alone"
+    }
+    # And put back anything an earlier release moved aside, since those were our
+    # own files and leaving .homerViewHeld copies lying about helps nobody.
+    foreach ($sName in @("msedge.jsb", "msedge.jkm", "msedge.jss", "msedge.jsd")) {
+        $pathHeld = Join-Path $pathSettings "$sName.homerViewHeld"
+        if (-not (Test-Path $pathHeld)) { continue }
+        if (Test-Path (Join-Path $pathSettings $sName)) {
+            Remove-Item $pathHeld -Force -ErrorAction SilentlyContinue
+            writeLog "    removed the leftover $sName.homerViewHeld; the real file is here"
+        } else {
+            Rename-Item -Path $pathHeld -NewName $sName -Force -ErrorAction SilentlyContinue
+            writeLog "    put $sName back from $sName.homerViewHeld"
         }
     }
 }

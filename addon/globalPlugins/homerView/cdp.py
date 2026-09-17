@@ -18,7 +18,7 @@ import threading
 import time
 from urllib.request import urlopen
 
-from .logger import abbreviate, homerLog, logError
+from .logger import abbreviate, homerLog, logError, needsHomerView
 from .webSocket import WebSocketClient
 
 defaultCallTimeoutSeconds = 8.0
@@ -127,7 +127,7 @@ class CdpSession:
     def call(self, sMethod, dParams=None, sSessionId="", nTimeout=defaultCallTimeoutSeconds):
         webSocket = self.webSocket
         if not webSocket or webSocket.bClosed:
-            raise CdpError("HomerView is not connected to Edge")
+            raise CdpError(needsHomerView)
         pending = PendingCall(sMethod)
         with self.lockState:
             self.iNextId += 1

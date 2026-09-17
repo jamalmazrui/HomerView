@@ -567,44 +567,89 @@ function checkThirteen {
     }
 }
 
+function checkTwenty {
+    param ([string] $sInstall)
+    writeLog "CHECK 20  nothing moves the browser's own script set aside"
+    reportNote "JAWS's Edge support lives in the USER settings folder; renaming it removes it, and every reinstall did that again"
+    # WHAT THIS IS WRITTEN AGAINST, on 1 September 2026, and it is the worst
+    # fault this project has had.
+    #
+    # installJawsScripts renamed msedge.jsb, msedge.jkm and msedge.jss to
+    # .homerViewHeld on every install. That was added because a tester had a
+    # stray msedge.jsb that shadowed HomerView's commands, and on his machine
+    # it was the right answer. It was the wrong answer everywhere else: those
+    # files are JAWS'S OWN EDGE SUPPORT, and moving them aside removed it.
+    #
+    # The symptom was Control+F in Edge answering "Unknown script call to
+    # virtual find", and the same key working perfectly in Chrome -- because
+    # nothing here ever touched chrome.*. That difference is what identified it.
+    #
+    # HomerView does not need it any more either: it used to load from
+    # MyExtensions, which is documented never to override an application script
+    # file, so a rival Edge set won. It now loads from msedge.jss itself,
+    # layered over the factory scripts with a Use line, so the factory set is
+    # what it builds on rather than a rival.
+    if ($null -eq $sInstall) {
+        reportFail "installJawsScripts.ps1 could not be read"
+        return
+    }
+    if ($sInstall -match 'Rename-Item[^\r\n]*homerViewHeld') {
+        reportFail "installJawsScripts renames a browser file to .homerViewHeld; that removes JAWS's own browser support"
+    } else {
+        reportNote "nothing is renamed to .homerViewHeld"
+    }
+    if ($sInstall -match 'homerViewHeld' -and $sInstall -match 'PUT BACK') {
+        reportNote "files an earlier release moved aside are put back"
+    } else {
+        reportFail "there is no code to put back what an earlier release moved aside, so an upgraded machine stays broken"
+    }
+}
+
 function checkNineteen {
     param ([string] $sChain)
-    writeLog "CHECK 19  the browser script file inherits the default script set"
-    reportNote "an application script file inherits default.jsb by SAYING SO, not by being loaded; leaving the line out costs every default JAWS command in the browser"
-    # WHAT THIS IS WRITTEN AGAINST, on 1 September 2026.
+    writeLog "CHECK 19  the browser script file extends the browser's own script set"
+    reportNote "a user <browser>.jss must Use the FACTORY <browser>.jsb; that is how a factory application script set is extended rather than replaced"
+    # WHAT THIS IS WRITTEN AGAINST, and it took three attempts to get right.
     #
-    # chainJawsScripts wrote an msedge.jss that used HomerView.jsb and the
-    # factory browser binary, and not default.jsb. Everything compiled.
-    # Everything installed. Every one of the fifty keys HomerView binds worked.
-    # And Control+F in Edge answered "Unknown script call to virtual find".
+    # HomerView writes a user msedge.jss. JAWS loads it for Edge INSTEAD of the
+    # factory Edge script set, so unless that file names the factory binary,
+    # everything Freedom Scientific wrote for Edge is gone. The symptom was
+    # Control+F answering "Unknown script call to virtual find", and the same
+    # key working in Chrome -- because no chrome.jss of ours exists.
     #
-    # KEY MAPS FALL THROUGH; SCRIPT SETS DO NOT. Control+F is not in our key
-    # map, so JAWS read it from default.jkm and found VirtualFind, exactly as
-    # it should. VirtualFind lives in default.jsb, default.jsb was not loaded
-    # for Edge, and the name resolved to nothing. So it was never about Find:
-    # every default JAWS command in the browser was gone, and Control+F was
-    # simply the first one reached for.
+    # TWO WRONG ANSWERS CAME FIRST. That nothing was chained at all, fixed by
+    # adding Use "default.jsb", which did not help because the script behind
+    # Control+F belongs to the EDGE set and not the default one. Then that the
+    # installer was moving JAWS's own files aside, which it was not: those were
+    # HomerView's own from the previous install.
     #
-    # NOTHING ELSE COULD HAVE CAUGHT IT. The compiler is content, since a Use
-    # line names a file rather than the names inside it. The installer is
-    # content. The key read-back is content, because the keys really are in the
-    # file. It fails only when a person presses a key we did not bind, which is
-    # most of them, and only on a machine with the scripts loaded.
+    # Kelly at Vispero gave the answer when asked directly: Use "msedge.jsb".
+    #
+    # AND THE LINE MUST BE WRITTEN UNCONDITIONALLY. It used to be written only
+    # when a factory .jsb could be found in a settings folder, and
+    # probeJawsScripts showed there are no .jsb files in any settings folder --
+    # JAWS keeps them inside its own installation. So the test always failed,
+    # the line was never written, and an absence that proved nothing cost the
+    # Edge script set. JAWS resolves the name at load time; the build must not
+    # try to.
     if ($null -eq $sChain) {
         reportFail "chainJawsScripts.ps1 could not be read"
         return
     }
-    if ($sChain -match "Use\s+.{0,2}default\.jsb") {
-        reportNote "chainJawsScripts writes Use default.jsb into the browser script file"
+    if ($sChain -match 'lJss \+= "Use `"\$sConfigBase\.jsb`""') {
+        reportNote "chainJawsScripts writes Use <browser>.jsb into the browser script file"
     } else {
-        reportFail "chainJawsScripts does not write Use default.jsb; every default JAWS command in the browser would stop working"
+        reportFail "chainJawsScripts does not write Use <browser>.jsb; the browser's own script set would be replaced rather than extended"
     }
-    # And it has to come FIRST, because a later Use overrides an earlier one.
-    # HomerView's own scripts must be the last word, not the default set.
-    $iDefault = $sChain.IndexOf('Use "default.jsb"')
-    $iOurs = $sChain.IndexOf('Use "HomerView.jsb"')
-    if ($iDefault -ge 0 -and $iOurs -ge 0 -and $iDefault -gt $iOurs) {
-        reportFail "default.jsb is used after HomerView.jsb, so the default scripts would override ours"
+    # And it must not be guarded by a test for the file, for the reason above.
+    if ($sChain -match 'if \(\$pathSharedBrowserJsb\)') {
+        reportFail "the Use line is still conditional on finding a factory .jsb, which is never in a settings folder"
+    }
+    # Ours has to come last, since a later Use overrides an earlier one.
+    $iBrowser = $sChain.IndexOf('lJss += "Use `"$sConfigBase.jsb`""')
+    $iOurs = $sChain.IndexOf("lJss += 'Use ""HomerView.jsb""'")
+    if ($iBrowser -ge 0 -and $iOurs -ge 0 -and $iBrowser -gt $iOurs) {
+        reportFail "the browser's jsb is used after HomerView's, so its scripts would override ours"
     }
 }
 
@@ -968,6 +1013,7 @@ $sJsd = readText $sPathJsd
 $sCs  = readText $sPathCs
 $sChain = readText (Join-Path $sRoot "chainJawsScripts.ps1")
 $sBrowsersPy = readText (Join-Path $sRoot "addon\globalPlugins\homerView\browsers.py")
+$sInstall = readText (Join-Path $sRoot "installJawsScripts.ps1")
 
 if ($null -eq $sJss) {
     writeLog "jaws\HomerView.jss could not be read, so nothing further can be checked."
@@ -1004,7 +1050,8 @@ $lChecks = @(
     { checkSixteen  $oMenu },
     { checkSeventeen $sCs $sBrowsersPy },
     { checkEighteen $sCs $sRoot },
-    { checkNineteen $sChain })
+    { checkNineteen $sChain },
+    { checkTwenty $sInstall })
 
 foreach ($oCheck in $lChecks) {
     $iBefore = $script:iFail

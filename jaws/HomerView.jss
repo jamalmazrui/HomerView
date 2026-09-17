@@ -793,7 +793,144 @@ EndFunction
 ; characters. The helper takes it apart instead, where a runtime exists, and
 ; sends back the value alone. A failure arrives as a line beginning ERROR:,
 ; which one comparison finds.
+; One attribute of an XML element, or an empty string. Wrapped because reading a
+; missing attribute off a node is not something to write out four times.
+string Function hVAttribute (object oNode, string sName)
+Var object oAttribute
+Let oAttribute = oNode.attributes.getNamedItem (sName)
+If oAttribute == 0 Then
+    Return ""
+EndIf
+Return oAttribute.text
+EndFunction
+
+
+; The page's text from JAWS's own rendering, when the browser cannot be asked.
+;
+; SECOND BEST, AND SAID SO. The helper reads the DOM and gets what a sighted
+; reader would see; this reads the off screen model, which is JAWS's rendering
+; of it. On most pages they say nearly the same thing. On a page with content
+; in an iframe, or added after the page settled, JAWS's view is the poorer one.
+;
+; Worth having anyway. In an ordinary Edge window the choice is not between
+; this and the DOM, it is between this and nothing.
+string Function hVTextFromDocument ()
+Var
+    object oDoc,
+    string sText, string sXml
+Let sXml = GetDocumentXML ()
+If sXml == "" Then
+    hVLogLine ("textFromDocument: GetDocumentXML returned nothing")
+    Return ""
+EndIf
+Let oDoc = Builtin::CreateObjectEx (c_sXmlProgId, False)
+If oDoc.loadXML ("<root/>") == False Then
+    Let oDoc = Builtin::CreateObjectEx (c_sXmlProgIdAny, False)
+EndIf
+oDoc.async = False
+oDoc.resolveExternals = False
+If oDoc.loadXML (sXml) == False Then
+    hVLogLine ("textFromDocument: the document XML would not parse")
+    Return ""
+EndIf
+; Through a variable, because JSL will not take a COM property as a string
+; straight from the object. The compiler said so on JAWS 2024 and 2025 and
+; said nothing on 2026, which is why the build compiles against all three.
+Let sText = oDoc.documentElement.text
+hVLogLine ("textFromDocument: " + Builtin::IntToString (Builtin::StringLength (sText))
+    + " characters from the JAWS view")
+Return sText
+EndFunction
+
+
+; The page's links taken from JAWS's own rendering, when the browser cannot be
+
+; asked.
+;
+; WHY THIS IS SECOND CHOICE AND NOT FIRST. The comment in hVCopyPageLinks has
+; said for months that this was possible, and also why it is not as good: the
+; helper reads the DOM, and this reads the OFF SCREEN MODEL, which is JAWS's
+; own rendering of the page. The two can disagree about links that are hidden,
+; inside an iframe, or added after the page settled, and the DOM is the better
+; source. So the browser is still asked first.
+;
+; But "not as good" is not the same as "no use". In an ordinary Edge window
+; there is no browser to ask, and a list of most of the links beats the message
+; that the command needs a different browser.
+;
+; THE SHAPE OF THE DOCUMENT XML IS LEARNED FROM THE PAGE, NOT ASSUMED. The
+; element is Link, which hVCopyPageLinks already counts by name. The attribute
+; holding the address is read as href and then as HREF, and the first Link
+; element found is written to the log verbatim the first time this runs, so if
+; neither name is right the log says what the real one is instead of the
+; command quietly returning nothing.
+string Function hVLinksFromDocument ()
+Var
+    int iCount, int iIndex,
+    object oDoc, object oLink, object oLinks,
+    string sAddress, string sFirst, string sLine, string sList, string sText, string sXml
+Let sXml = GetDocumentXML ()
+If sXml == "" Then
+    hVLogLine ("linksFromDocument: GetDocumentXML returned nothing")
+    Return ""
+EndIf
+Let oDoc = Builtin::CreateObjectEx (c_sXmlProgId, False)
+If oDoc.loadXML ("<root/>") == False Then
+    Let oDoc = Builtin::CreateObjectEx (c_sXmlProgIdAny, False)
+EndIf
+oDoc.async = False
+oDoc.resolveExternals = False
+If oDoc.loadXML (sXml) == False Then
+    hVLogLine ("linksFromDocument: the document XML would not parse")
+    Return ""
+EndIf
+Let oLinks = oDoc.selectNodes ("//Link")
+Let iCount = oLinks.length
+hVLogLine ("linksFromDocument: " + Builtin::IntToString (iCount) + " Link element(s)")
+If iCount == 0 Then
+    Return ""
+EndIf
+Let iIndex = 0
+While iIndex < iCount
+    Let oLink = oLinks.item (iIndex)
+    If iIndex == 0 Then
+        ; THROUGH A STRING VARIABLE, because JSL will not concatenate a COM
+        ; property directly: the compiler answered "Parameter 1 to Function
+        ; hVLogLine should be of type string not int" on JAWS 2024 and 2025,
+        ; and said nothing at all on 2026. A line that compiles on the newest
+        ; version and not on the two before it is exactly why the build
+        ; compiles against every installed version rather than one.
+        Let sFirst = oLink.xml
+        hVLogLine ("  the first one reads: " + sFirst)
+    EndIf
+    Let sAddress = hVAttribute (oLink, "href")
+    If sAddress == "" Then
+        Let sAddress = hVAttribute (oLink, "HREF")
+    EndIf
+    Let sText = oLink.text
+    If sText == "" Then
+        Let sText = "(no text)"
+    EndIf
+    If sAddress != "" Then
+        Let sLine = sText + "\t" + sAddress
+        If sList == "" Then
+            Let sList = sLine
+        Else
+            Let sList = sList + "\n" + sLine
+        EndIf
+    EndIf
+    Let iIndex = iIndex + 1
+EndWhile
+If sList == "" Then
+    hVLogLine ("linksFromDocument: Link elements were found but none carried an address")
+    Return ""
+EndIf
+Return Builtin::IntToString (iCount) + " links, from the JAWS view of the page.\n\n" + sList
+EndFunction
+
+
 string Function hVRunScript (string sJavaScript)
+
 Var string sAnswer
 Let sAnswer = hVCallBridge ("evaluateText", sJavaScript)
 If sAnswer == "" Then
@@ -1171,12 +1308,25 @@ EndScript
 ; browser's selection rather than the text a reader sees, and on many pages
 ; brings back the navigation and the footers with it.
 Script hVCopyAll ()
-Var string sAnswer
+Var string sAnswer, string sText
 hVLogLine ("hVCopyAll started")
 SayMessage (OT_STATUS, "Copying")
 Let sAnswer = hVCallBridge ("copyAll", "")
 If hVXmlValue (sAnswer, "/root/error") != "" Then
-    SayMessage (OT_ERROR, hVXmlValue (sAnswer, "/root/error"))
+    ; THE CLIPBOARD IS REACHABLE WITHOUT A BROWSER, AND SO IS THE TEXT.
+    ; The helper copies from the DOM; this copies JAWS's own view of the
+    ; page, and says which one it did, because a reader who pastes it
+    ; somewhere ought to know where it came from.
+    Let sText = hVTextFromDocument ()
+    If sText == "" Then
+        SayMessage (OT_ERROR, hVXmlValue (sAnswer, "/root/error"))
+        Return
+    EndIf
+    Let sAnswer = hVCallBridge ("clipboardText", sText)
+    hVLogLine ("hVCopyAll: no HomerView browser, so JAWS's own view was copied")
+    SayMessage (OT_MESSAGE, "Copied "
+        + Builtin::IntToString (Builtin::StringLength (sText))
+        + " characters, from the JAWS view of the page.")
     Return
 EndIf
 SayMessage (OT_MESSAGE, hVXmlValue (sAnswer, "/root/value"))
@@ -1380,6 +1530,16 @@ Let sResult = hVRunScript (
     + "if (!l.length) return '';"
     + "return l.length + ' links.\\n\\n' + l.join('\\n');"
     + "})()")
+; NO BROWSER OF OURS IS NOT THE SAME AS NO LINKS. In an ordinary Edge window
+; the helper has nothing to ask, and the off screen model is still right
+; here. So the second best answer is given rather than a refusal, and it
+; says which one it is: the heading reads "from the JAWS view of the page".
+If sResult == "" Then
+    Let sResult = hVLinksFromDocument ()
+    If sResult != "" Then
+        hVLogLine ("hVCopyPageLinks: no HomerView browser, so JAWS's own view was used")
+    EndIf
+EndIf
 If sResult == "" Then
     SayMessage (OT_ERROR, "No links")
     Return
@@ -1658,8 +1818,42 @@ Let sResult = hVRunScript (
     + "elBest.setAttribute('data-homerviewmain', '1');"
     + "return elBest.innerText.replace(/\\s+/g, ' ').trim().slice(0, 90);"
     + "})()")
+; WITHOUT A BROWSER OF OURS, JAWS CAN STILL FIND A DECLARED MAIN.
+;
+; The clever half of this command -- scoring every block by how much text
+; it holds against how much of that text is links -- needs the page, and
+; the page is only reachable through the helper. But the COMMON half does
+; not: a page with a main element or role=main says so in its own markup,
+; and that lands in the off screen model like anything else.
+;
+; So a well built page still answers this key in an ordinary Edge window,
+; and only a page that has to be guessed at asks for HomerView's browser.
+; The two are told apart out loud, because a reader should know whether
+; the page declared its main content or something guessed.
+; BY TAG NAME ONLY, BECAUSE THE FOURTH PARAMETER IS AN INT.
+;
+; I wrote this to look for role="main" first and the compiler refused it:
+; "Parameter 4 to Function MoveToTagWithAttribute should be of type int
+; not string". So this function matches on an attribute NAME and cannot
+; match on its value -- which is what the working call below has always
+; shown, passing True there rather than a value.
+;
+; A main ELEMENT can still be found, and that is most pages that declare
+; their main content at all. A page that uses role="main" on a div, and
+; no main element, still needs HomerView's browser. Saying that plainly
+; beats a second guess at a signature the compiler has already corrected
+; once.
 If sResult == "" Then
-    SayMessage (OT_ERROR, "No main content found")
+    Let iMoved = Builtin::MoveToTagWithAttribute (S_TOP, "main", "", True)
+    If iMoved Then
+        hVLogLine ("hVMoveToProbableMain: no HomerView browser, moved to the declared main")
+        SayMessage (OT_MESSAGE, "Main content, as the page declares it")
+        SayLine ()
+        Return
+    EndIf
+    hVLogLine ("hVMoveToProbableMain: no HomerView browser and no declared main")
+    SayMessage (OT_ERROR, "This page does not say where its main content is. "
+        + "Press Alt+Control+Shift+H to let HomerView work it out.")
     Return
 EndIf
 ; The attribute is the bridge between the browser and the virtual cursor. The
@@ -2020,6 +2214,14 @@ If hVXmlValue (sAnswer, "/root/error") != "" Then
     Return
 EndIf
 Let sText = hVXmlValue (sAnswer, "/root/value")
+; NO BROWSER OF OURS IS NOT THE SAME AS NO TEXT.
+If sText == "" Then
+    Let sText = hVTextFromDocument ()
+    If sText != "" Then
+        hVLogLine ("hVReadAll: no HomerView browser, so JAWS's own view was read")
+        SayMessage (OT_STATUS, "Reading the JAWS view of the page")
+    EndIf
+EndIf
 If sText == "" Then
     SayMessage (OT_ERROR, "No text")
     Return
@@ -2230,6 +2432,44 @@ EndIf
 hVLogLine ("hVDownloadFiles: " + Builtin::IntToString (iGot) + " fetched, "
     + Builtin::IntToString (iFailed) + " failed")
 MessageBox (sSummary)
+EndScript
+
+
+; Searches forwards for text. Control+F.
+;
+; WHY THIS EXISTS, AND IT IS NOT BECAUSE JAWS'S FIND IS LACKING. Until now
+; Control+F was deliberately left to JAWS, and that was right while HomerView's
+; keys lived in the default key map. It stopped being right when they moved
+; into msedge.jkm.
+;
+; WHAT THE PROBE SHOWED, on 1 September 2026. Control+F is bound in NO key map
+; on this machine, and there are no factory .jkm, .jss or .jsb files in any
+; settings folder: JAWS's defaults live inside the installation, where nothing
+; can layer over them. And Freedom Scientific's own keystroke algorithm, quoted
+; in installJawsScripts, searches the APPLICATION key map first and looks for
+; the script it names IN THE APPLICATION SCRIPT FILE. So once msedge.jkm
+; existed, Control+F fell back to JAWS's own map, got a script name, and that
+; name was resolved against the Edge script set -- where it is not. The answer
+; was "Unknown script call to virtual find". In Chrome the same key worked,
+; because there is no chrome.jkm.
+;
+; WHY THIS WORKS WHEN Use "default.jsb" DID NOT. hVFindBackwards has always
+; worked in Edge, and the reason is one word: Builtin. JAWSFind is a BUILT-IN
+; FUNCTION, not a script in the default set, so it resolves whatever script set
+; is loaded. Binding Control+F to a script of ours that calls it gives the
+; reader JAWS's own find dialog, with JAWS's own wording and its own "not
+; found", from a script that is certainly loaded because every other HomerView
+; key already is.
+;
+; So this is not a replacement for JAWS's find. It IS JAWS's find, reached by a
+; route that survives having an application script set.
+Script hVFindForwards ()
+Var
+    int bFound
+hVLogLine ("hVFindForwards started")
+Let bFound = Builtin::JAWSFind (False)
+Let gsLastFindKind = "plain"
+hVLogLine ("hVFindForwards: JAWSFind answered " + Builtin::IntToString (bFound))
 EndScript
 
 
@@ -2740,6 +2980,7 @@ Let iAdded = UserBufferAddLink ("  Shift+F1        What changed in each release"
 Let iAdded = UserBufferAddLink ("  Control+Shift+F1 Notes for developers", "hVHomerViewLink (\"hVOpenDeveloperNotes\")", "Developer Notes")
 Let iAdded = UserBufferAddLink ("  Control+Shift+L  This session's log, to read", "hVHomerViewLink (\"hVOpenSessionLog\")", "Session Log")
 Let iAdded = UserBufferAddLink ("  Alt+F1          Which build is loaded", "hVHomerViewLink (\"hVShowAbout\")", "About HomerView")
+Let iAdded = UserBufferAddLink ("  Control+F        Find forwards", "hVHomerViewLink (\"hVFindForwards\")", "Forward Find for Text")
 Let iAdded = UserBufferAddLink ("  Control+Shift+F Find backwards", "hVHomerViewLink (\"hVFindBackwards\")", "Reverse Find for Text")
 Let iAdded = UserBufferAddLink ("  Control+F3      Find forward with a pattern", "hVHomerViewLink (\"hVFindByPattern\")", "Forward Find with Regular Expression")
 Let iAdded = UserBufferAddLink ("  Control+Shift+F3 Find backwards with a pattern", "hVHomerViewLink (\"hVFindByPatternBackwards\")", "Reverse Find with Regular Expression")
@@ -2827,6 +3068,7 @@ Let sTable = "About HomerView, Which build is loaded and where everything lives.
     + "\7" + "Find Contacts, Finds who to tell about this site: email, accessibility statement, contact pages. (Alt+Shift+C)\thVFindContacts\tP"
     + "\7" + "Forward Find Again, The next match of whichever find was done last. (F3)\thVFindNext\tP"
     + "\7" + "Forward Find at Cursor, Searches forward for the word under the cursor, or the selected text, without asking you to type it. (Alt+F3)\thVFindWordAtCursor\tP"
+    + "\7" + "Forward Find for Text, Searches forwards for text, using the JAWS find dialog. (Control+F)\thVFindForwards\tP"
     + "\7" + "Forward Find with Regular Expression, Searches forward for a pattern. (Control+F3)\thVFindByPattern\tP"
     + "\7" + "Go to Start of Selection, Moves back to where you began a selection, so you can hear the start again before completing it with Shift+F8. (Alt+Shift+F8)\thVGoToSelectionStart\tP"
     + "\7" + "History of Changes, What changed in each release. (Shift+F1)\thVShowHistory\tA"

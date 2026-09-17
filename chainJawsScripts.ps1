@@ -502,6 +502,7 @@ $lPageKeys = @(
     "Alt+F3=hVFindWordAtCursor",
     "Alt+Shift+F3=hVFindWordAtCursorBackwards",
     "Alt+Shift+F=hVOpenPageFolder",
+    "Control+F=hVFindForwards",
     "Control+F1=hVOpenUserGuide",
     "Control+F8=hVCopyAll",
     "Control+O=hVOpenDocument",
@@ -615,6 +616,24 @@ foreach ($folderVersion in $lVersions) {
                 if ($sAction -eq "browser") { continue }
                 $pathFile = Join-Path $pathUser $sName
                 if ($sAction -eq "created") {
+                    # THE MANIFEST SAYS WE MADE IT; THE FILE SAYS WHETHER IT
+                    # STILL IS. A source file that no longer carries our marker
+                    # has been replaced since -- on 1 September 2026 by JAWS's
+                    # own msedge.jss, put back after an earlier release had
+                    # moved it aside. Deleting that on the strength of a stale
+                    # manifest line would take out the factory Edge scripts,
+                    # which is the fault this release exists to undo. Our block
+                    # comes out of it instead.
+                    $bStillOurs = $true
+                    if (($pathFile -like "*.jss") -and (Test-Path $pathFile)) {
+                        $bStillOurs = ((Get-Content $pathFile -Raw) -match [regex]::Escape($c_sMarker))
+                    }
+                    if (-not $bStillOurs) {
+                        $iOut = removeOurBlock $pathFile
+                        writeLog "    $sName is no longer ours, so it was left in place"
+                        writeLog "      ($iOut line(s) of ours taken back out of it)"
+                        continue
+                    }
                     foreach ($sExtension in @("", ".jsb")) {
                         $pathGone = if ($sExtension) { [System.IO.Path]::ChangeExtension($pathFile, "jsb") } else { $pathFile }
                         if (Test-Path $pathGone) {
@@ -751,57 +770,64 @@ foreach ($folderVersion in $lVersions) {
         #
         # WRITTEN ONLY IF ABSENT, so a file somebody else made is never
         # overwritten.
-        # A FILE OF OURS FROM THE RELEASE THAT FORGOT default.jsb IS DELETED
-        # HERE, so the branch below writes a correct one. Done before the
-        # "does it exist" test rather than inside the "it exists" branch,
-        # because deleting it there would leave the folder with no script
-        # file at all and the run would report a failure it had caused.
+        # A FILE OF OURS FROM EITHER RELEASE THAT GOT THE Use LINE WRONG IS
+        # DELETED HERE, so the branch below writes a correct one. Two releases
+        # got it wrong in different ways: one wrote no Use but ours, the next
+        # wrote Use "default.jsb". The right line names the BROWSER's own jsb.
         #
-        # ONLY A FILE THE MANIFEST SAYS WE CREATED. One somebody else wrote is
-        # never replaced, only added to, and that is handled below.
-        if ((Test-Path $pathBrowserJss) -and ($lManifest -contains "created|$sConfigBase.jss")) {
+        # Done before the "does it exist" test rather than inside the "it
+        # exists" branch, because deleting it there would leave the folder with
+        # no script file at all and the run would report a failure it caused.
+        #
+        # JUDGED BY OUR MARKER IN THE FILE, not by the manifest, which can say
+        # "created" about a file that has since been replaced by somebody
+        # else's. A factory file never carries the marker.
+        if (Test-Path $pathBrowserJss) {
             $sCheck = Get-Content $pathBrowserJss -Raw
-            if ($sCheck -notmatch '(?im)^\s*use\s+"default\.jsb"') {
-                writeLog "    $sConfigBase.jss is ours and does not use default.jsb; rewriting it"
+            if (($sCheck -match [regex]::Escape($c_sMarker)) -and
+                ($sCheck -notmatch ('(?im)^\s*use\s+"' + [regex]::Escape($sConfigBase) + '\.jsb"'))) {
+                writeLog "    $sConfigBase.jss is ours and does not use $sConfigBase.jsb; rewriting it"
                 writeLog "      (that is what made Control+F answer 'unknown script call')"
                 Remove-Item $pathBrowserJss -Force -ErrorAction SilentlyContinue
             }
         }
-
         $bScriptsOk = $false
-        $pathSharedBrowserJsb = ""
-        if ($pathShared) {
-            $sTry = Join-Path $pathShared "$sConfigBase.jsb"
-            if (Test-Path $sTry) { $pathSharedBrowserJsb = $sTry }
+        # Only worth saying. JAWS keeps its script binaries inside its own
+        # installation, not in a settings folder, so not finding one here
+        # proves nothing -- and acting on that absence is what cost the Edge
+        # script set.
+        if ($pathShared -and (Test-Path (Join-Path $pathShared "$sConfigBase.jsb"))) {
+            writeLog "    a $sConfigBase.jsb is in the shared settings folder as well"
         }
         if (-not (Test-Path $pathBrowserJss)) {
             $lJss = @($c_sMarker)
-            # DEFAULT.JSB FIRST, AND LEAVING IT OUT BROKE EDGE.
+            # USE THE BROWSER'S OWN JSB. THIS IS THE LINE THAT WAS MISSING.
             #
-            # An application script file does not inherit the default script
-            # set by being loaded; it inherits it by SAYING SO. Every script
-            # file Freedom Scientific ships for an application begins with
-            # this line, and ours did not.
+            # Kelly at Vispero, asked directly how a user script set inherits an
+            # application's own scripts, gave the answer: the user msedge.jss
+            # should Use "msedge.jsb", not "default.jsb".
             #
-            # WHAT THAT COST, on 1 September 2026: Control+F in Edge answered
-            # "Unknown script call to virtual find". Key maps DO fall
-            # through -- Control+F is not in our key map, so JAWS read it
-            # from default.jkm and found VirtualFind, exactly as it should.
-            # SCRIPTS DO NOT. VirtualFind lives in default.jsb, default.jsb
-            # was not loaded for Edge, and the name resolved to nothing.
+            # That is the documented way to EXTEND a factory application script
+            # set rather than replace it. JAWS loads the user msedge.jsb for
+            # Edge, and that file Uses the factory msedge.jsb by name, so
+            # everything Freedom Scientific wrote for Edge is loaded first and
+            # ours goes on top.
             #
-            # So the failure was never about Find. EVERY default JAWS command
-            # in the browser was gone, and Control+F was simply the first one
-            # he reached for. A missing Use line does not fail at compile
-            # time, does not fail at load time, and fails only when somebody
-            # presses a key we did not bind -- which is most of them.
-            $lJss += 'Use "default.jsb"'
-            if ($pathSharedBrowserJsb) {
-                $lJss += "Use `"$sConfigBase.jsb`""
-                writeLog "    the factory $sConfigBase.jsb will be layered under HomerView's"
-            } else {
-                writeLog "    JAWS ships no $sConfigBase.jsb, so there is nothing to inherit"
-            }
+            # WHAT THIS EXPLAINS, and two wrong guesses of mine before it.
+            # Control+F answered "Unknown script call to virtual find" in Edge
+            # and worked in Chrome. The script behind Control+F is part of the
+            # EDGE script set, not the default one -- which is why
+            # Use "default.jsb" did not help, and why Chrome, having no
+            # chrome.jss of ours, was never affected.
+            #
+            # IT IS WRITTEN WHETHER OR NOT WE CAN SEE THE FILE. Every run has
+            # reported "JAWS ships no msedge.jsb" because it looked in the
+            # settings folders, and probeJawsScripts showed there are no .jsb
+            # files there at all: JAWS keeps them inside its own installation.
+            # So the absence proved nothing, and acting on it cost the Edge
+            # script set. JAWS resolves the name at load time; we do not have to.
+            $lJss += "Use `"$sConfigBase.jsb`""
+            writeLog "    layered over the factory $sConfigBase.jsb, which JAWS resolves at load time"
             $lJss += 'Use "HomerView.jsb"'
             $lJss += ""
             $lJss += "; A script file must define something, or it will not compile."

@@ -41,7 +41,7 @@ from scriptHandler import getLastScriptRepeatCount
 from . import clipboardTools
 from . import homerText
 from . import linkTarget
-from .logger import abbreviate, homerLog, logError, logSection
+from .logger import abbreviate, homerLog, logError, logSection, needsHomerView
 
 addonHandler.initTranslation()
 
@@ -576,7 +576,7 @@ def pageInformation(treeInterceptor):
 
     if not service.isConnected():
         # Translators: Reported when HomerView has no connection.
-        ui.message(_("HomerView is not connected"))
+        ui.message(needsHomerView)
         return
     # Translators: Reported while the page information is gathered.
     ui.message(_("Reading the page information"))
@@ -905,7 +905,7 @@ def _actOnPageNow():
 
     if not service.isConnected():
         # Translators: Reported when HomerView has no connection.
-        ui.message(_("HomerView is not connected"))
+        ui.message(needsHomerView)
         return
     def onPhrase(sPhrase):
         if not sPhrase or not sPhrase.strip():
@@ -1055,7 +1055,7 @@ def runAxeReport():
 
     if not service.isConnected():
         # Translators: Reported when HomerView has no connection.
-        ui.message(_("HomerView is not connected"))
+        ui.message(needsHomerView)
         return
     # Translators: Reported while the accessibility test runs.
     ui.message(_("Testing the page and looking for reporting channels"))
@@ -1084,7 +1084,7 @@ def runIbmChecker():
 
     if not service.isConnected():
         # Translators: Reported when HomerView has no connection.
-        ui.message(_("HomerView is not connected"))
+        ui.message(needsHomerView)
         return
     # Translators: Reported while the IBM engine runs.
     ui.message(_("Testing the page with the IBM engine"))
@@ -1261,7 +1261,7 @@ def explorePageFromBuffer():
 
     if not service.isConnected():
         # Translators: Reported when HomerView has no connection.
-        ui.message(_("HomerView is not connected"))
+        ui.message(needsHomerView)
         return
     # Translators: Reported while the page is summarised.
     ui.message(_("Exploring the page"))
@@ -1296,7 +1296,7 @@ def submitForm():
 
     if not service.isConnected():
         # Translators: Reported when HomerView has no connection.
-        ui.message(_("HomerView is not connected"))
+        ui.message(needsHomerView)
         return
     logSection("Command: submit the form")
     service.submit("submitForm", service.taskSubmitForm, reportSubmitted,
@@ -1700,7 +1700,7 @@ def chooseTab():
 
     if not service.isConnected():
         # Translators: Reported when HomerView has no connection.
-        ui.message(_("HomerView is not connected"))
+        ui.message(needsHomerView)
         return
     service.submit("gatherTabs", service.taskGatherTabs, _offerTabs,
                    lambda exception: ui.message(str(exception)))
@@ -1768,7 +1768,7 @@ def openPageFolder(treeInterceptor):
     try:
         if not service.isConnected():
             # Translators: Reported when HomerView has no connection.
-            ui.message(_("HomerView is not connected"))
+            ui.message(needsHomerView)
             return
         dTarget, sSessionId = service.cdpSession.findActivePageSession()
         sTitle = (dTarget.get("title", "") or dTarget.get("url", "")).strip()
@@ -1797,7 +1797,7 @@ def sayTabs():
 
     if not service.isConnected():
         # Translators: Reported when HomerView has no connection.
-        ui.message(_("HomerView is not connected"))
+        ui.message(needsHomerView)
         return
     service.submit("gatherTabs", service.taskGatherTabs, _speakTabs,
                    lambda exception: ui.message(str(exception)))
@@ -1829,7 +1829,7 @@ def closeOtherTabs():
 
     if not service.isConnected():
         # Translators: Reported when HomerView has no connection.
-        ui.message(_("HomerView is not connected"))
+        ui.message(needsHomerView)
         return
     service.submit("closeOtherTabs", service.taskCloseOtherTabs, _reportClosed,
                    lambda exception: ui.message(str(exception)))

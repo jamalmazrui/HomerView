@@ -167,3 +167,6 @@ hVChooseBrowser_Description=Press Alt+Shift+B. Chooses which Chromium browser Ho
 hVOpenSettings=HomerView Settings
 hVOpenSettings_Synopsis=Opens HomerView.inix, the file that holds every HomerView preference, in a text editor. A comment beside each value says what it does. S for Settings.
 hVOpenSettings_Description=Press Alt+Shift+S. Opens HomerView.inix, the file that holds every HomerView preference, in a text editor. A comment beside each value says what it does. S for Settings.
+hVFindForwards=Forward Find for Text
+hVFindForwards_Synopsis=Searches forwards for text, using the JAWS find dialog. It is JAWS's own find, reached through the built-in rather than through a script, so it works inside HomerView's browser where the default script set is not loaded. F for Find.
+hVFindForwards_Description=Press Control+F. Searches forwards for text, using the JAWS find dialog. It is JAWS's own find, reached through the built-in rather than through a script, so it works inside HomerView's browser where the default script set is not loaded. F for Find.

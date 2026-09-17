@@ -438,3 +438,22 @@ def stopSession():
 # The session opens as soon as this module is first imported, which happens
 # before any other HomerView module can log anything.
 startSession()
+
+
+# WHAT A COMMAND SAYS WHEN IT NEEDS THE HOMERVIEW BROWSER AND THERE IS NOT ONE.
+#
+# Most of HomerView works in any Edge window: the finds, the selection
+# commands, the menu, the hotkey summary, the documentation. What needs a
+# browser under HomerView's control is anything that asks the PAGE a question
+# or acts on it, because that travels over the DevTools protocol, and the
+# protocol needs a browser started with a debugging port on HomerView's own
+# profile.
+#
+# SO THE MESSAGE NAMES THE KEY. There were twelve wordings of this across the
+# add-on, most of them "HomerView is not connected", which tells a reader that
+# something is wrong and leaves them to work out what to do. One sentence that
+# says which key to press is the same length and actually helps.
+#
+# It is the same sentence the JAWS side speaks, word for word, because the two
+# halves should not describe the same situation differently.
+needsHomerView = "This needs the HomerView browser. Press Alt+Control+Shift+H."

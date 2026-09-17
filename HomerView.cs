@@ -457,6 +457,18 @@ namespace Homer
                     && sCommand != "clipboardadd" && sCommand != "pagefolder"
                     && sCommand != "openpage" && sCommand != "savedialog"
                     && sCommand != "opendialog"
+                    // OPENING A DOCUMENT NEEDS NO BROWSER OF OURS EITHER, and
+                    // it was refused here for want of one until 8 September
+                    // 2026. Look at what it does: pick a file, convert it to a
+                    // web page with pandoc or 2htm, show the result. Only the
+                    // last step wants a browser, and OpenPage now hands that to
+                    // the default one when ours is not running.
+                    //
+                    // So Control+O keeps working in an ordinary Edge window,
+                    // and it is the same result rather than a lesser one: the
+                    // conversion is identical and the reader gets the same
+                    // structured HTML, in whichever browser they use.
+                    && sCommand != "opendocument"
                     // Choosing a browser is exactly what somebody does when
                     // no browser will start, so refusing these for want of
                     // one would refuse the cure along with the symptom.
@@ -466,7 +478,7 @@ namespace Homer
                 {
                     Log("  no port file, so the browser is not running");
                     WriteResult(sOutputFile,
-                        XmlAnswer("{\"error\":\"Not running. Press the launch key.\"}"));
+                        XmlAnswer("{\"error\":\"" + c_sNeedsHomerView + "\"}"));
                     return 1;
                 }
                 switch (sCommand)
@@ -1300,6 +1312,28 @@ namespace Homer
         /// is one of the three control characters XML allows and cannot occur
         /// in a Windows path.
         /// </summary>
+        /// <summary>
+        /// WHAT A COMMAND SAYS WHEN IT NEEDS THE HOMERVIEW BROWSER AND THERE
+        /// IS NOT ONE.
+        ///
+        /// Most of HomerView works in any Edge window: the finds, the
+        /// selection commands, the menu, the hotkey summary, the
+        /// documentation. Those never reach this program at all. What needs a
+        /// browser under HomerView's control is anything that asks the PAGE a
+        /// question or acts on it, because that travels over the DevTools
+        /// protocol and the protocol needs a browser started with a debugging
+        /// port on HomerView's own profile.
+        ///
+        /// SO THE MESSAGE NAMES THE KEY. "Not running. Press the launch key."
+        /// told a reader that something was wrong and left them to work out
+        /// what to do about it. A message that says which key to press is the
+        /// same length and actually helps.
+        ///
+        /// One string, in one place, so every command says the same thing.
+        /// </summary>
+        private const string c_sNeedsHomerView =
+            "This needs the HomerView browser. Press Alt+Control+Shift+H.";
+
         private static string[,] KnownBrowsers()
         {
             return new string[,]
@@ -1523,7 +1557,35 @@ namespace Homer
                 sUrl = new Uri(Path.GetFullPath(sUrl)).AbsoluteUri;
             }
             if (!ReadPort())
-                return "{\"error\":\"Not running. Press the launch key.\"}";
+            {
+                // OPENED IN WHATEVER BROWSER THE USER HAS, RATHER THAN REFUSED.
+                //
+                // Six commands come through here and all six want the same
+                // thing: show the reader a file. The user guide, the history,
+                // the developer notes, the quick start, the announcement and
+                // the session log. None of them asks the page a question or
+                // acts on it, so none of them actually needs the DevTools
+                // protocol -- they were reaching for HomerView's browser only
+                // because it was the browser to hand.
+                //
+                // Refusing to show somebody the user guide because a browser
+                // is not running is the sort of thing that makes a program
+                // feel brittle. Windows opens the file in whatever browser
+                // they use, which is what they would have got anyway.
+                Log("  no HomerView browser, so opening in the default one");
+                try
+                {
+                    var oOpen = new ProcessStartInfo(sUrl);
+                    oOpen.UseShellExecute = true;
+                    Process.Start(oOpen);
+                    return "{\"value\":\"Opened in your usual browser.\"}";
+                }
+                catch (Exception exception)
+                {
+                    Log("  and the default browser refused it: " + exception.Message);
+                    return "{\"error\":\"" + c_sNeedsHomerView + "\"}";
+                }
+            }
             string sOutcome = OpenInTab(sUrl);
             if (sOutcome.StartsWith("but"))
                 return "{\"error\":\"It could not be opened in HomerView.\"}";

@@ -443,6 +443,37 @@ public static class InixCodec
         }
     }
 
+    // ONE VALUE OUT, THE COUNTERPART TO writeValue.
+    //
+    // There was a writeValue and no readValue, so every caller that wanted a
+    // single setting read the whole file, walked the sections, and matched the
+    // key itself -- which is the shape of code that ends up subtly different in
+    // each program, and the reason these classes are shared at all.
+    //
+    // Section and key are matched without regard to case, as .ini convention
+    // has it and as Section.get already does. The default is returned for a
+    // missing file, a missing section, a missing key, and for a key present
+    // with no value, because a caller asking for a setting wants a usable
+    // answer rather than four ways of saying no.
+    public static string readValue(string sPath, string sSection, string sKey, string sDefault)
+    {
+        try
+        {
+            foreach (Section oSection in read(sPath))
+            {
+                if (!string.Equals(oSection.Name, sSection, StringComparison.OrdinalIgnoreCase))
+                    continue;
+                string sFound = oSection.get(sKey);
+                if (sFound == null || sFound == "") return sDefault;
+                return sFound;
+            }
+        }
+        catch (Exception)
+        {
+        }
+        return sDefault;
+    }
+
     // writeValue: surgically set, replace, or remove ONE key in an
     // .inix file, preserving every comment and every other line --
     // unlike writeAsConfig, which rewrites the whole file and

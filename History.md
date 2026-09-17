@@ -7,6 +7,43 @@ What changed, newest first, written the way you would tell somebody rather than
 as a list of commit messages. The reasoning behind each change is in the code,
 where it belongs. This is the short version.
 
+## HomerView clears up after itself
+
+HomerView's own folder had grown to 861 MB in 9,349 files. Almost all of it
+was the browser's caches, which grow without limit, plus documents HomerView
+had converted for people to read weeks earlier.
+
+Now, each time HomerView starts, it clears what should not have survived:
+
+- Converted documents older than **7 days**. Change that with `temporaryDays`
+  in the settings file.
+- A browser cache that has passed 200 MB, and only while the browser is
+  closed. Bookmarks, settings and sign-ins are never touched.
+
+It clears at the start rather than at the end. A program that tidies up as it
+closes only tidies up when it closed properly, which is the time there was
+nothing to tidy. The leftovers come from the runs that ended badly.
+
+If a converted document is cleared, its entry in your recent pages list goes
+with it, so the list never offers a page that is not there.
+
+The user guide lists everything in that folder and says why each thing stays.
+
+## Control+F searches what your screen reader shows you
+
+In a browser window, Control+F normally opens the browser's own find bar. That
+bar searches the page the browser draws. Your screen reader builds a different
+view of the same page, made to be read and moved around, and that is the view
+you are actually in. Searching one and reading the other is a poor deal.
+
+In HomerView's browser, Control+F now runs your screen reader's own find. On
+JAWS that is the same find you get from Control+JAWS+F anywhere else, on the
+same key the rest of the world uses.
+
+This also fixes a fault where HomerView's keys in Edge answered "cannot find
+that script". HomerView's script file named the wrong file as the one to build
+on, and ended up naming itself, so none of its own commands could be found.
+
 ## More of HomerView works in an ordinary Edge window
 
 HomerView does two kinds of work. Some commands ask the page a question, and

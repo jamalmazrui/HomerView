@@ -519,6 +519,38 @@ per installation, holding the installation and every session since.</li>
 <li><strong>%LOCALAPPDATA%\HomerView\EdgeProfile</strong> — HomerView’s
 browser profile.</li>
 </ul>
+<h4 id="what-homerview-keeps-and-what-it-clears">What HomerView keeps,
+and what it clears</h4>
+<p>HomerView keeps a folder of its own under your local application
+data. Here is everything in it and why.</p>
+<p><strong>Kept:</strong></p>
+<ul>
+<li><strong>logs</strong> — what each part of HomerView did. A log is
+worth nothing the day after it is deleted, so these are rolled when they
+grow rather than removed.</li>
+<li><strong>EdgeProfile</strong> — the browser profile HomerView uses.
+It has to be separate: a Chromium browser will not open a control port
+on your everyday profile.</li>
+<li><strong>cache</strong> — files HomerView fetched once and would only
+fetch again.</li>
+<li><strong>recent.txt</strong> — your recent pages list.</li>
+<li><strong>Start.htm</strong> — the page HomerView opens with.</li>
+</ul>
+<p><strong>Cleared:</strong></p>
+<ul>
+<li><strong>temp</strong> — documents HomerView converted for you to
+read. These go after <strong>7 days</strong>. Set
+<code>temporaryDays</code> in the settings file to change that.</li>
+<li><strong>The browser’s caches</strong> — these grow without limit.
+HomerView clears one when it passes 200 MB, and only while the browser
+is closed. Your bookmarks, settings and sign-ins are never touched.</li>
+</ul>
+<p>The clearing happens when HomerView starts, not when it closes. A
+program that tidies up as it closes only tidies up when it closed
+properly, and that is the time there was nothing to tidy.</p>
+<p>If a converted document is cleared, its entry in the recent pages
+list goes at the same time, so the list never offers you a page that is
+no longer there.</p>
 <h3 id="the-log">The log</h3>
 <p>Everything HomerView does is logged: every command, every answer,
 every failure, in the order it happened.</p>
@@ -837,9 +869,10 @@ do.</li>
 <ul>
 <li>NVDA: Control+F</li>
 <li>JAWS: Control+F (named “Forward Find for Text” there)</li>
-<li>Search forward for a string. On JAWS this is the JAWS find dialog
-itself, reached from a HomerView script so that it works inside
-HomerView’s own browser window.</li>
+<li>Search forward for a string. This searches what your screen reader
+shows you, not what the browser’s own find bar searches. The two are not
+the same page: your screen reader builds its own view to make the page
+easier to read and move around, and that is the view you are in.</li>
 </ul></li>
 <li><strong>Reverse Find</strong>
 <ul>

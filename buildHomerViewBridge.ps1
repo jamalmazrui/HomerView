@@ -73,7 +73,7 @@ if (Test-Path $pathOutput) {
 # with buildHomerView.ps1 by hand, which is one list in two places: if a
 # third shared class is added, both need it, and only this comment says so.
 $lShared = @()
-foreach ($sName in @("Inix.cs", "Web.cs")) {
+foreach ($sName in @("Inix.cs", "Keys.cs", "Web.cs")) {
     $pathShared = Join-Path (Split-Path -Parent $pathSource) "homer\$sName"
     if (-not (Test-Path $pathShared)) {
         writeLog "ERROR: homer\$sName is missing, and HomerView.cs calls into it."

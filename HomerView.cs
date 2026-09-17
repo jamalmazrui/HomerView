@@ -73,6 +73,154 @@ namespace Homer
             return Path.Combine(ProfileFolder(), "DevToolsActivePort");
         }
 
+        /// <summary>
+        /// WHAT BELONGS IN %LOCALAPPDATA%\HomerView, DECIDED ON PURPOSE.
+        ///
+        /// On 17 September 2026 that folder held 861 MB in 9,349 files, and
+        /// most of it was there because nothing had ever been told to take it
+        /// away. So the contents are now a list rather than an accident:
+        ///
+        ///   logs\            kept. Every script and this program write there,
+        ///                    and a log is worth nothing the day after it is
+        ///                    deleted. Rolled by size, not removed.
+        ///   EdgeProfile\     kept. Chromium refuses a debugging port on the
+        ///                    default profile, so HomerView must have one of
+        ///                    its own. Its CACHES are another matter: see
+        ///                    below.
+        ///   cache\           kept. Fetched libraries such as Readability.js.
+        ///                    Small, re-fetchable, and pointless to re-fetch.
+        ///   recent.txt       kept. The recent pages list, and it is the
+        ///                    reader's, not ours to throw away.
+        ///   Start.htm        kept. The start page, in a folder the browser
+        ///                    can always read.
+        ///   temp\            NOT kept beyond its use. Converted documents
+        ///                    land here, and a document read three weeks ago
+        ///                    is not going to be read again.
+        ///
+        /// Anything else is a leftover, most likely from a crash, and this is
+        /// where it goes.
+        /// </summary>
+        private static string DataFolder()
+        {
+            return Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "HomerView");
+        }
+
+        /// <summary>
+        /// Clear what should not have survived, once per run, before anything
+        /// else happens.
+        ///
+        /// WHY AT STARTUP AND NOT AT EXIT. A program that tidies up as it
+        /// closes tidies up only when it closes properly, which is exactly the
+        /// case that needed no tidying. The leftovers come from the runs that
+        /// did not close properly, so the sweep belongs at the start of the
+        /// next one.
+        ///
+        /// NOTHING IS TOUCHED WHILE THE BROWSER IS RUNNING. Deleting a
+        /// Chromium cache under a live browser corrupts the profile, and the
+        /// port file is the evidence: if it is there and answers, the browser
+        /// is up and the profile is left entirely alone.
+        ///
+        /// A TEMPORARY FILE AND ITS ENTRY IN THE RECENT LIST GO TOGETHER. The
+        /// recent list points at converted documents in temp\, so removing one
+        /// without the other leaves a reader choosing a page that no longer
+        /// exists. They are done in the same pass for that reason.
+        /// </summary>
+        private static void TidyDataFolder()
+        {
+            string sRoot = DataFolder();
+            if (!Directory.Exists(sRoot)) return;
+            int iDays = 7;
+            try
+            {
+                string sSetting = InixCodec.readValue(SettingsFilePath(), "Preferences", "temporaryDays", "");
+                if (sSetting != "") int.TryParse(sSetting, out iDays);
+            }
+            catch (Exception) { }
+            if (iDays < 1) iDays = 1;
+            DateTime oCutoff = DateTime.Now.AddDays(-iDays);
+
+            // --- temp\, and the recent list that points into it -------------
+            var setGone = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            string sTemp = Path.Combine(sRoot, "temp");
+            if (Directory.Exists(sTemp))
+            {
+                foreach (string sFile in Directory.GetFiles(sTemp))
+                {
+                    try
+                    {
+                        if (File.GetLastWriteTime(sFile) >= oCutoff) continue;
+                        setGone.Add(Path.GetFileName(sFile));
+                        File.Delete(sFile);
+                        Log("  removed " + Path.GetFileName(sFile) + ", older than " + iDays + " days");
+                    }
+                    catch (Exception) { }
+                }
+            }
+            string sRecent = Path.Combine(sRoot, "recent.txt");
+            if (File.Exists(sRecent))
+            {
+                try
+                {
+                    var lKept = new List<string>();
+                    int iDropped = 0;
+                    foreach (string sLine in File.ReadAllLines(sRecent))
+                    {
+                        // Name, tab, address. An entry whose file has gone is
+                        // an entry that would fail if it were chosen.
+                        string sName = sLine.Split('\t')[0];
+                        if (setGone.Contains(sName)) { iDropped += 1; continue; }
+                        lKept.Add(sLine);
+                    }
+                    if (iDropped > 0)
+                    {
+                        File.WriteAllLines(sRecent, lKept.ToArray(), new UTF8Encoding(true));
+                        Log("  dropped " + iDropped + " recent entry(ies) whose file had gone");
+                    }
+                }
+                catch (Exception) { }
+            }
+
+            // --- the browser's caches, and only when it is not running ------
+            if (ReadPort())
+            {
+                Log("  the browser is running, so its profile is left alone");
+                return;
+            }
+            // Only the folders Chromium rebuilds from nothing. Never Bookmarks,
+            // Preferences, Login Data or anything else the reader would miss.
+            string sProfile = ProfileFolder();
+            foreach (string sRelative in new string[] {
+                @"Default\Cache", @"Default\Code Cache", @"Default\GPUCache",
+                @"Default\Service Worker\CacheStorage", @"Default\Service Worker\ScriptCache",
+                "GrShaderCache", "ShaderCache", "BrowserMetrics", "component_crx_cache" })
+            {
+                string sWhere = Path.Combine(sProfile, sRelative);
+                if (!Directory.Exists(sWhere)) continue;
+                long iBytes = 0;
+                try
+                {
+                    foreach (string sFile in Directory.GetFiles(sWhere, "*", SearchOption.AllDirectories))
+                        iBytes += new FileInfo(sFile).Length;
+                }
+                catch (Exception) { continue; }
+                // A budget rather than a broom. A cache doing its job is worth
+                // keeping; one that has grown past any use is not.
+                if (iBytes < 200L * 1024 * 1024) continue;
+                try
+                {
+                    Directory.Delete(sWhere, true);
+                    Log("  cleared " + sRelative + ", which had reached "
+                        + (iBytes / (1024 * 1024)) + " MB");
+                }
+                catch (Exception exception)
+                {
+                    Log("  " + sRelative + " could not be cleared: " + exception.Message);
+                }
+            }
+        }
+
         private static string ProfileFolder()
         {
             return Path.Combine(
@@ -395,6 +543,12 @@ namespace Homer
             }
 
             string sCommand = lArguments[0].ToLowerInvariant();
+
+            // ONCE PER RUN, BEFORE ANYTHING ELSE. Cheap when there is
+            // nothing to do, and it is the only moment at which the
+            // leftovers of a run that crashed are certainly not in use.
+            try { TidyDataFolder(); }
+            catch (Exception exception) { Log("Tidying raised: " + exception.Message); }
 
             // THE ANSWER FILE IS OPTIONAL NOW, BECAUSE OF THE DESKTOP
             // SHORTCUT. The JAWS scripts always pass one: they run this

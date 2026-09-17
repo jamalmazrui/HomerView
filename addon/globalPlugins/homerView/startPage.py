@@ -28,6 +28,7 @@ startPageText = """<!doctype html>
 <title>HomerView Start Page</title>
 </head>
 <body>
+<h1>HomerView Start Page</h1>
 <header>
 <p>HomerView start page</p>
 </header>
@@ -70,62 +71,31 @@ the point rather than a side effect.</li>
 </ul>
 </nav>
 <main>
-<h1>HomerView</h1>
 <p>This window belongs to HomerView. Press Control+L to type a web address.</p>
-<h2>Commands in a web page</h2>
+<!-- COMMANDS BEGIN. Written by makeDocs; do not edit between the markers. -->
+<h2>Commands</h2>
+<p>These work the same way whether you use JAWS or NVDA. Press Alt+F10
+for the full list, including the few that differ.</p>
 <ul>
-<li><strong>J</strong> jumps to the main content.</li>
-<li><strong>Shift+J</strong> finds the main content when the page declares none, by
-weighing every part of the page: the most text with the fewest links is what an article
-looks like. It always says that it inferred the answer rather than being told it.</li>
-<li><strong>Y</strong> summarises the structure of the page.</li>
-<li><strong>Alt+Y</strong> says how much text there is, and
-<strong>Control+Shift+Y</strong> counts how often a regular expression matches, which
-answers how many rather than where.</li>
-<li><strong>Alt+Shift+U</strong> asks what is at the link under the cursor without going
-there: whether it is a page or a file, how big, whether it still exists, and where it
-actually ends up.</li>
-<li><strong>Alt+A</strong> reports the web address. Twice spells it, three times copies it.</li>
-<li><strong>ScrollLock</strong> starts reading continuously, and stops it. One key for
-both.</li>
-<li><strong>Alt+F8</strong> reads the whole page without moving the cursor.
-<strong>Control+F8</strong> copies it.</li>
-<li><strong>Control+F</strong> finds text, not case sensitive. <strong>Control+F3</strong> finds a
-regular expression. <strong>F3</strong> repeats either.</li>
-<li><strong>Alt+W</strong> finds the next place the word at the cursor appears.</li>
-<li><strong>Alt+K</strong> tests the page for accessibility.</li>
-<li><strong>Control</strong> and <strong>Alt</strong> with the up and down arrows move by
-paragraph and by sentence.</li>
-<li><strong>F4</strong> lists the HomerView tabs and switches to the one you choose.
-<strong>Shift+F4</strong> just says their names. <strong>Control+Shift+F4</strong> closes
-the ones you are done with.</li>
-<li><strong>Control+F11</strong> checks for a newer HomerView and installs it.</li>
-<li><strong>F1</strong> opens the user guide, <strong>Alt+F1</strong> the About box, and
-<strong>Shift+F1</strong> the history of changes.</li>
-<li>The <strong>grave accent</strong> key adjusts speech.
-<strong>Alt+Control+Accent</strong> switches punctuation between all and none.
-<strong>Control+Accent</strong> and <strong>Control+Shift+Accent</strong> change the rate.
-<strong>Alt+Accent</strong> and <strong>Alt+Shift+Accent</strong> change the volume.
-<strong>Shift+Accent</strong> reports all three.</li>
+<li><strong>Choose Browser</strong>, Alt+Shift+B &mdash; Choose which Chromium browser HomerView drives, from the ones installed here.</li>
+<li><strong>Copy Append</strong>, Alt+C &mdash; Append selected text to clipboard, or append current line if no selection.</li>
+<li><strong>Dismiss Dialog</strong>, Alt+Shift+D &mdash; Closes a browser dialog that is blocking the window.</li>
+<li><strong>Find Contacts</strong>, Alt+Shift+C &mdash; Finds who to tell about this site: email addresses, the accessibility statement, contact pages and social media.</li>
+<li><strong>HomerView Settings</strong>, Alt+Shift+S &mdash; Open the settings file, HomerView.inix, in a text editor.</li>
+<li><strong>Launch HomerView</strong>, Alt+Control+Shift+H &mdash; Launches or reconnects the HomerView copy of Microsoft Edge.</li>
+<li><strong>Link Target</strong>, Alt+L &mdash; Ask what is actually at that link without going there: what kind of thing, how big, and whether it ends up where it claims.</li>
+<li><strong>List Names</strong>, Alt+N &mdash; Lists the people, places, organisations and dates a page mentions, saved as Names.htm in the page's folder and opened.</li>
+<li><strong>Log to Clipboard</strong>, Alt+Shift+L &mdash; Copy the HomerView log to the clipboard as a file, so Control+V attaches it to an email rather than typing its name into one.</li>
+<li><strong>Open Document</strong>, Control+O &mdash; Opens a Word file, spreadsheet, slide deck, PDF or ebook, converting it to a page so every command here works on it.</li>
+<li><strong>Page Folder</strong>, Alt+Shift+F &mdash; Open this page's folder in File Explorer, to browse what was saved from it.</li>
+<li><strong>Page Links to Clipboard</strong>, Alt+Shift+P &mdash; Copy every link address on the page to the clipboard, as EdSharp copies a path on the same key.</li>
+<li><strong>Recent Pages</strong>, Alt+R &mdash; Open a page from the list of those recently used, on the key EdSharp uses for its recent files.</li>
+<li><strong>Save Page</strong>, Control+S &mdash; Saves the page in any of nine formats.</li>
+<li><strong>Say Metadata</strong>, Alt+M &mdash; Says what the page claims about itself: author, publisher, date and licence.</li>
+<li><strong>Session Log</strong>, Control+Shift+L &mdash; Open a copy of this session's log, for working out what went wrong.</li>
+<li><strong>Web Download</strong>, Alt+Shift+W &mdash; Pick files to download from a web page, on the key EdSharp uses for it.</li>
 </ul>
-<h2>Commands anywhere</h2>
-<ul>
-<li><strong>Alt+Control+Shift+H</strong> launches HomerView Edge, or brings its window forward.</li>
-<li><strong>Alt+F10</strong> lists every command in one alphabetical list. It works
-everywhere, including before HomerView Edge is running, and it can start it for you.</li>
-
-<li><strong>Alt+NVDA+X</strong> extracts the readable part of the page and opens it as a
-page of its own, which you can search, save or send. Microsoft Edge has its own reading
-mode on <strong>F9</strong>, which HomerView leaves alone; it offers fewer pages but adds
-Edge's own reading tools, so the two are worth having together.</li>
-<li><strong>Alt+NVDA+W</strong> downloads files linked from the page.</li>
-<li><strong>Control+O</strong> opens a document of almost any format. Word, Excel,
-PowerPoint, PDF, rich text, OpenDocument, EPUB and Markdown are converted and read as
-web pages; everything the browser already opened, it still opens.</li>
-<li><strong>Control+S</strong> saves the page as a single file archive the way Edge does,
-or as a web page, Markdown, plain text, a Word document, a PDF, an image, or the
-accessibility tree.</li>
-</ul>
+<!-- COMMANDS END -->
 <h2>Documentation</h2>
 <p>These open in this window, where every HomerView command works on them. They
 are also in the Alternate Menu, on Alt+F10.</p>

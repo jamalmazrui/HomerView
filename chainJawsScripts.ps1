@@ -223,12 +223,30 @@ function findSharedSettings {
     } else {
         writeLog "    registry Target for JAWS $sVersion could not be read"
     }
+    # SCRIPTS, NOT SETTINGS, AND THAT IS WHERE EVERY SEARCH WENT WRONG.
+    #
+    # Run after run reported "JAWS ships no msedge.jsb" and an empty shared
+    # inventory, and the reason was not that the files are hidden inside the
+    # installation: it is that the factory script set lives in a SCRIPTS
+    # folder while this looked only in SETTINGS. default.jss, default.jkm and
+    # default.jsd are all in ProgramData\Freedom Scientific\JAWS\<version>\
+    # Scripts, which is where copies of them were finally taken from on
+    # 17 September 2026.
+    #
+    # Settings is still searched, and first, because ConfigNames.ini really is
+    # there. Both are looked in now rather than one being assumed.
     $lCandidates = @()
     if ($sTarget) {
         $lCandidates += (Join-Path $sTarget "Settings\$sLanguage")
         $lCandidates += (Join-Path $sTarget "Settings")
+        $lCandidates += (Join-Path $sTarget "Scripts\$sLanguage")
+        $lCandidates += (Join-Path $sTarget "Scripts")
     }
     $lCandidates += @(
+        (Join-Path $env:ProgramData "Freedom Scientific\JAWS\$sVersion\Scripts\$sLanguage"),
+        (Join-Path $env:ProgramData "Freedom Scientific\JAWS\$sVersion\Scripts"),
+        (Join-Path ${env:ProgramFiles} "Freedom Scientific\JAWS\$sVersion\Scripts\$sLanguage"),
+        (Join-Path ${env:ProgramFiles} "Freedom Scientific\JAWS\$sVersion\Scripts"),
         (Join-Path $env:ProgramData "Freedom Scientific\JAWS\$sVersion\Settings\$sLanguage"),
         (Join-Path ${env:ProgramFiles} "Freedom Scientific\JAWS\$sVersion\Settings\$sLanguage"),
         (Join-Path ${env:ProgramFiles(x86)} "Freedom Scientific\JAWS\$sVersion\Settings\$sLanguage"),
@@ -770,6 +788,14 @@ foreach ($folderVersion in $lVersions) {
         #
         # WRITTEN ONLY IF ABSENT, so a file somebody else made is never
         # overwritten.
+        # Whether JAWS ships a script set for this browser at all. Asked once,
+        # here, because both the repair below and the file written after it
+        # need the answer, and asking twice is how two answers appear.
+        $sFactoryJsbSeen = ""
+        if ($pathShared -and (Test-Path (Join-Path $pathShared "$sConfigBase.jsb"))) {
+            $sFactoryJsbSeen = Join-Path $pathShared "$sConfigBase.jsb"
+        }
+
         # A FILE OF OURS FROM EITHER RELEASE THAT GOT THE Use LINE WRONG IS
         # DELETED HERE, so the branch below writes a correct one. Two releases
         # got it wrong in different ways: one wrote no Use but ours, the next
@@ -784,8 +810,31 @@ foreach ($folderVersion in $lVersions) {
         # else's. A factory file never carries the marker.
         if (Test-Path $pathBrowserJss) {
             $sCheck = Get-Content $pathBrowserJss -Raw
-            if (($sCheck -match [regex]::Escape($c_sMarker)) -and
-                ($sCheck -notmatch ('(?im)^\s*use\s+"' + [regex]::Escape($sConfigBase) + '\.jsb"'))) {
+            # A FILE OF OURS THAT NAMES NO LAYER AT ALL, OR NAMES ITSELF.
+            # Three releases got this wrong in three ways: none at all, then
+            # default.jsb where a browser set existed, then the browser's own
+            # name where none existed, which pointed the file at itself.
+            # Either correct line is accepted; anything else is rewritten.
+            # HomerView.jsb IS NOT A LAYER, IT IS US.
+            #
+            # The first version of this test asked whether the file named any
+            # .jsb at all, and every file of ours names HomerView.jsb. So the
+            # test was true of exactly the files it was written to catch, the
+            # repair never fired, and the install reported "already here and
+            # already uses HomerView.jsb" about a file with no layer under it.
+            #
+            # A layer is a Use line naming something that is NOT ours -- and
+            # not this browser's own name either, unless JAWS really ships a
+            # binary by that name, because otherwise the file is naming its
+            # own compiled output.
+            $bLayered = $false
+            foreach ($oUse in ([regex]'(?im)^\s*use\s+"([^"]+)\.jsb"').Matches($sCheck)) {
+                $sNamed = $oUse.Groups[1].Value
+                if ($sNamed -ieq "HomerView") { continue }
+                if (($sNamed -ieq $sConfigBase) -and (-not $sFactoryJsbSeen)) { continue }
+                $bLayered = $true
+            }
+            if (($sCheck -match [regex]::Escape($c_sMarker)) -and (-not $bLayered)) {
                 writeLog "    $sConfigBase.jss is ours and does not use $sConfigBase.jsb; rewriting it"
                 writeLog "      (that is what made Control+F answer 'unknown script call')"
                 Remove-Item $pathBrowserJss -Force -ErrorAction SilentlyContinue
@@ -801,33 +850,36 @@ foreach ($folderVersion in $lVersions) {
         }
         if (-not (Test-Path $pathBrowserJss)) {
             $lJss = @($c_sMarker)
-            # USE THE BROWSER'S OWN JSB. THIS IS THE LINE THAT WAS MISSING.
+            # WHICH LAYER TO EXTEND, DECIDED BY LOOKING RATHER THAN ASSUMED.
             #
-            # Kelly at Vispero, asked directly how a user script set inherits an
-            # application's own scripts, gave the answer: the user msedge.jss
-            # should Use "msedge.jsb", not "default.jsb".
+            # Kelly at Vispero gave the rule: a user <app>.jss should Use the
+            # FACTORY <app>.jsb, so the application's own scripts are extended
+            # rather than replaced. That is right wherever a factory application
+            # script set exists.
             #
-            # That is the documented way to EXTEND a factory application script
-            # set rather than replace it. JAWS loads the user msedge.jsb for
-            # Edge, and that file Uses the factory msedge.jsb by name, so
-            # everything Freedom Scientific wrote for Edge is loaded first and
-            # ours goes on top.
+            # FOR EDGE ON THIS MACHINE THERE IS NONE. Copies of the machine-wide
+            # folders show default.jkm, default.jss and default.jsd and NO
+            # msedge.* of any kind. Edge runs on the default set alone.
             #
-            # WHAT THIS EXPLAINS, and two wrong guesses of mine before it.
-            # Control+F answered "Unknown script call to virtual find" in Edge
-            # and worked in Chrome. The script behind Control+F is part of the
-            # EDGE script set, not the default one -- which is why
-            # Use "default.jsb" did not help, and why Chrome, having no
-            # chrome.jss of ours, was never affected.
+            # SO WRITING Use "msedge.jsb" POINTED THE FILE AT ITSELF. msedge.jss
+            # compiles to msedge.jsb; naming that file inside it is a
+            # self-reference, HomerView.jsb never loaded behind it, and every
+            # HomerView key answered "cannot find that script" -- worse than the
+            # one key that started the hunt.
             #
-            # IT IS WRITTEN WHETHER OR NOT WE CAN SEE THE FILE. Every run has
-            # reported "JAWS ships no msedge.jsb" because it looked in the
-            # settings folders, and probeJawsScripts showed there are no .jsb
-            # files there at all: JAWS keeps them inside its own installation.
-            # So the absence proved nothing, and acting on it cost the Edge
-            # script set. JAWS resolves the name at load time; we do not have to.
-            $lJss += "Use `"$sConfigBase.jsb`""
-            writeLog "    layered over the factory $sConfigBase.jsb, which JAWS resolves at load time"
+            # The rule is kept and the assumption is dropped: extend the factory
+            # browser set WHEN THERE IS ONE, and the default set otherwise. That
+            # also generalises to Chrome, Brave and Vivaldi without another line,
+            # since the same question is asked about whichever browser is chosen.
+            $sFactoryJsb = $sFactoryJsbSeen
+            If ($sFactoryJsb) {
+                $lJss += "Use `"$sConfigBase.jsb`""
+                writeLog "    extending the factory $sConfigBase.jsb at $sFactoryJsb"
+            } else {
+                $lJss += 'Use "default.jsb"'
+                writeLog "    JAWS ships no $sConfigBase.jsb, so the default set is the layer to extend"
+                writeLog "      (naming $sConfigBase.jsb here would point this file at itself)"
+            }
             $lJss += 'Use "HomerView.jsb"'
             $lJss += ""
             $lJss += "; A script file must define something, or it will not compile."
@@ -921,6 +973,42 @@ foreach ($folderVersion in $lVersions) {
         }
         writeLog "      these work only while the browser has focus, and nowhere else"
         $lManifest += "browser|$sConfigBase"
+
+        # AND THE SCRIPT FILE READ BACK, NOT ASSUMED.
+        #
+        # The keys have been read back from the key map for weeks, on the rule
+        # that a count of lines written records an action while reading the
+        # file records an outcome. The script file had no such check, and on
+        # 17 September 2026 that cost a whole install: the run reported
+        # "msedge.jss is already here and already uses HomerView.jsb" and was
+        # perfectly correct, about a file with no layer under it at all.
+        #
+        # So the file is opened afterwards and its Use lines are logged. A file
+        # naming nothing but ours is a folder that will answer "cannot find
+        # that script" to every key, and it is counted as a failure here rather
+        # than discovered by pressing a key tomorrow.
+        if (Test-Path $pathBrowserJss) {
+            $sFinalJss = Get-Content $pathBrowserJss -Raw
+            $bLayerFound = $false
+            foreach ($oUse in ([regex]'(?im)^\s*use\s+"([^"]+)\.jsb"').Matches($sFinalJss)) {
+                $sNamed = $oUse.Groups[1].Value
+                writeLog "    $sConfigBase.jss uses $sNamed.jsb"
+                if ($sNamed -ieq "HomerView") { continue }
+                if (($sNamed -ieq $sConfigBase) -and (-not $sFactoryJsbSeen)) {
+                    writeLog "      WARNING: that is this file's own output, so it names itself"
+                    continue
+                }
+                $bLayerFound = $true
+            }
+            if (-not $bLayerFound) {
+                writeLog "    ERROR: $sConfigBase.jss names no layer under HomerView.jsb, so nothing"
+                writeLog "           of JAWS is loaded for this browser and every key will answer"
+                writeLog "           that the script cannot be found."
+                $iFailed += 1
+                writeLog ""
+                continue
+            }
+        }
 
         # What is in the file now, not what was written to it.
         #

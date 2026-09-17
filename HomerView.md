@@ -309,6 +309,36 @@ And elsewhere:
   holding the installation and every session since.
 - **%LOCALAPPDATA%\\HomerView\\EdgeProfile** — HomerView's browser profile.
 
+#### What HomerView keeps, and what it clears
+
+HomerView keeps a folder of its own under your local application data. Here is
+everything in it and why.
+
+**Kept:**
+
+- **logs** — what each part of HomerView did. A log is worth nothing the day
+  after it is deleted, so these are rolled when they grow rather than removed.
+- **EdgeProfile** — the browser profile HomerView uses. It has to be separate:
+  a Chromium browser will not open a control port on your everyday profile.
+- **cache** — files HomerView fetched once and would only fetch again.
+- **recent.txt** — your recent pages list.
+- **Start.htm** — the page HomerView opens with.
+
+**Cleared:**
+
+- **temp** — documents HomerView converted for you to read. These go after
+  **7 days**. Set `temporaryDays` in the settings file to change that.
+- **The browser's caches** — these grow without limit. HomerView clears one
+  when it passes 200 MB, and only while the browser is closed. Your bookmarks,
+  settings and sign-ins are never touched.
+
+The clearing happens when HomerView starts, not when it closes. A program that
+tidies up as it closes only tidies up when it closed properly, and that is the
+time there was nothing to tidy.
+
+If a converted document is cleared, its entry in the recent pages list goes at
+the same time, so the list never offers you a page that is no longer there.
+
 ### The log
 
 Everything HomerView does is logged: every command, every answer, every failure,
@@ -527,9 +557,10 @@ on. Each entry gives the NVDA key and the JAWS key.
 - **Forward Find**
     - NVDA: Control+F
     - JAWS: Control+F (named "Forward Find for Text" there)
-    - Search forward for a string. On JAWS this is the JAWS find dialog itself,
-      reached from a HomerView script so that it works inside HomerView's own
-      browser window.
+    - Search forward for a string. This searches what your screen reader shows
+      you, not what the browser's own find bar searches. The two are not the
+      same page: your screen reader builds its own view to make the page easier
+      to read and move around, and that is the view you are in.
 - **Reverse Find**
     - NVDA: Control+Shift+F
     - JAWS: Control+Shift+F (named "Reverse Find for Text" there)

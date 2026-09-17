@@ -605,51 +605,164 @@ function checkTwenty {
     }
 }
 
+function checkTwentyTwo {
+    param ([string] $sRoot)
+    writeLog "CHECK 22  the C# uses nothing newer than C# 5"
+    reportNote "the build compiles with Framework64\v4.0.30319\csc.exe, which is the LEGACY compiler and not Roslyn"
+    # WHY THIS EXISTS, from 17 September 2026.
+    #
+    # homer\Keys.cs was written with a local function -- a helper declared
+    # inside the method that uses it, which reads better than a private method
+    # beside it. Local functions are C# 7. The compiler this build uses is the
+    # one that ships with the .NET Framework, and it stops at C# 5.
+    #
+    # THE ERROR DOES NOT SAY THAT. It says "} expected" on the line, and then
+    # forty more complaints about methods needing return types, because once
+    # the parser loses the brace it misreads everything after it. Nothing in
+    # that output mentions a language version, so the reader is sent looking
+    # for an unbalanced brace that is not there.
+    #
+    # Inix.cs and Web.cs have always kept to C# 5 without anyone writing it
+    # down. Now it is written down, and checked.
+    $lFiles = @("HomerView.cs", "homer\Inix.cs", "homer\Keys.cs", "homer\Web.cs")
+    foreach ($sName in $lFiles) {
+        $sPath = Join-Path $sRoot $sName
+        if (-not (Test-Path $sPath)) { continue }
+        $sText = Get-Content $sPath -Raw
+        foreach ($oRule in @(
+            @('(?m)^\s{8,}(void|string|int|bool|double)\s+\w+\s*\([^)]*\)\s*$', 'a local function (C# 7)'),
+            # A STRING LITERAL BEGINS THERE, NOT A REGEX ENDS THERE. The
+            # first version of this rule matched any $ followed by a quote,
+            # and HomerView.cs contains "^wcag(\d)(\d)(\d+)$" -- a regex
+            # anchored at the end. It would have failed a correct file, which
+            # is the one thing a check must not do. An interpolation opens a
+            # literal, so what precedes it is a space, a bracket, a comma or
+            # an operator, never a closing bracket or a word character.
+            @('(?<![\w\)\]])\$"', 'an interpolated string (C# 6)'),
+            @('\?\.', 'a null-conditional operator (C# 6)'),
+            @('\bnameof\s*\(', 'nameof (C# 6)'),
+            @('\bout\s+var\b', 'an out variable (C# 7)'),
+            @('(?m)^\s*(public|private|internal)[^;{=]*=>', 'an expression-bodied member (C# 6)'))) {
+            $lFound = ([regex]$oRule[0]).Matches($sText)
+            if ($lFound.Count -gt 0) {
+                reportFail ("$sName uses " + $oRule[1] + ", " + $lFound.Count + " time(s); the build compiler stops at C# 5")
+            }
+        }
+    }
+    reportNote "checked HomerView.cs and the shared classes"
+}
+
+function checkTwentyOne {
+    param ([string] $sJss)
+    writeLog "CHECK 21  no HomerView name shadows a factory JAWS script or function"
+    reportNote "in JSL a user routine sharing a factory name REPLACES it, and calling that name from inside recurses into itself; Builtin:: escapes that for built-in functions and there is no escape for a factory script"
+    # WHY THIS IS WORTH A CHECK AND NOT A CONVENTION.
+    #
+    # The hV prefix exists so that nothing of ours can shadow a factory
+    # routine. That holds today: JAWS 2026's default.jss defines 1,082 scripts
+    # and 816 functions and not one begins with hV. It holds only while every
+    # name we write keeps the prefix, and the failure is silent: the shadowed
+    # factory routine simply stops being reachable, on somebody else's machine,
+    # in a program we never tested.
+    #
+    # Read from the FACTORY default.jss rather than a list kept here, because a
+    # list of a thousand names copied into this file would be wrong by the next
+    # JAWS release.
+    if ($null -eq $sJss) { reportFail "jaws\HomerView.jss could not be read"; return }
+    $lOurs = @()
+    foreach ($oMatch in ([regex]'(?im)^\s*(?:script|\w+\s+function)\s+(\w+)\s*\(').Matches($sJss)) {
+        [void] ($lOurs += $oMatch.Groups[1].Value)
+    }
+    $lUnprefixed = @($lOurs | Where-Object { $_ -notmatch '^hV' })
+    if ($lUnprefixed.Count -gt 0) {
+        foreach ($sName in $lUnprefixed) {
+            reportFail ("$sName is defined without the hV prefix, so it may shadow a factory routine")
+        }
+    } else {
+        reportNote ("all " + $lOurs.Count + " scripts and functions carry the hV prefix")
+    }
+
+    # And compare against the real factory file where one can be found.
+    $sFactory = $null
+    foreach ($sVersion in @("2026", "2025", "2024")) {
+        $sTarget = ""
+        try {
+            $sTarget = (Get-ItemProperty -Path "HKLM:\Software\Freedom Scientific\JAWS\$sVersion" `
+                -Name "Target" -ErrorAction Stop).Target
+        } catch {
+        }
+        if (-not $sTarget) { continue }
+        # SCRIPTS, NOT SETTINGS. This looked in Settings and reported that no
+        # factory default.jss could be located, on a machine that has three of
+        # them. They are in the Scripts folder, and in ProgramData as well as
+        # under the program folder.
+        foreach ($sWhere in @(
+            (Join-Path $sTarget "Scripts\enu\default.jss"),
+            (Join-Path $sTarget "Scripts\default.jss"),
+            (Join-Path $sTarget "Settings\enu\default.jss"),
+            (Join-Path $env:ProgramData "Freedom Scientific\JAWS\$sVersion\Scripts\enu\default.jss"),
+            (Join-Path $env:ProgramData "Freedom Scientific\JAWS\$sVersion\Scripts\default.jss"))) {
+            if (Test-Path $sWhere) { $sFactory = $sWhere; break }
+        }
+        if ($sFactory) { break }
+    }
+    if (-not $sFactory) {
+        reportNote "no factory default.jss could be located, so only the prefix was checked"
+        return
+    }
+    $sTheirs = Get-Content $sFactory -Raw
+    $setTheirs = @{}
+    foreach ($oMatch in ([regex]'(?im)^\s*(?:script|\w+\s+function)\s+(\w+)\s*\(').Matches($sTheirs)) {
+        $setTheirs[$oMatch.Groups[1].Value.ToLower()] = $true
+    }
+    reportNote ("compared against " + $setTheirs.Count + " names in " + $sFactory)
+    foreach ($sName in $lOurs) {
+        if ($setTheirs.ContainsKey($sName.ToLower())) {
+            reportFail ("$sName has the same name as a factory routine, which it would replace")
+        }
+    }
+}
+
 function checkNineteen {
     param ([string] $sChain)
-    writeLog "CHECK 19  the browser script file extends the browser's own script set"
-    reportNote "a user <browser>.jss must Use the FACTORY <browser>.jsb; that is how a factory application script set is extended rather than replaced"
-    # WHAT THIS IS WRITTEN AGAINST, and it took three attempts to get right.
+    writeLog "CHECK 19  the browser script file extends a layer that exists"
+    reportNote "a user <browser>.jss must Use the factory <browser>.jsb WHERE THERE IS ONE, and default.jsb otherwise; naming its own output points the file at itself"
+    # THREE WRONG ANSWERS CAME BEFORE THE RIGHT ONE, and each looked reasonable.
     #
-    # HomerView writes a user msedge.jss. JAWS loads it for Edge INSTEAD of the
-    # factory Edge script set, so unless that file names the factory binary,
-    # everything Freedom Scientific wrote for Edge is gone. The symptom was
-    # Control+F answering "Unknown script call to virtual find", and the same
-    # key working in Chrome -- because no chrome.jss of ours exists.
+    # First the file named no layer at all, so nothing of JAWS's was loaded
+    # behind ours. Then Use "default.jsb", on my guess that the default set was
+    # what was missing. Then Use "msedge.jsb", on Kelly at Vispero's rule that a
+    # user <app>.jss extends the factory <app>.jsb -- which is correct, and
+    # which assumes a factory <app>.jsb exists.
     #
-    # TWO WRONG ANSWERS CAME FIRST. That nothing was chained at all, fixed by
-    # adding Use "default.jsb", which did not help because the script behind
-    # Control+F belongs to the EDGE set and not the default one. Then that the
-    # installer was moving JAWS's own files aside, which it was not: those were
-    # HomerView's own from the previous install.
+    # FOR EDGE ON THIS MACHINE THERE IS NONE. Copies of the machine-wide folders
+    # show default.jkm, default.jss and default.jsd and no msedge.* at all. So
+    # msedge.jss named its own compiled output, the file used itself,
+    # HomerView.jsb never loaded behind it, and every HomerView key answered
+    # "cannot find that script".
     #
-    # Kelly at Vispero gave the answer when asked directly: Use "msedge.jsb".
-    #
-    # AND THE LINE MUST BE WRITTEN UNCONDITIONALLY. It used to be written only
-    # when a factory .jsb could be found in a settings folder, and
-    # probeJawsScripts showed there are no .jsb files in any settings folder --
-    # JAWS keeps them inside its own installation. So the test always failed,
-    # the line was never written, and an absence that proved nothing cost the
-    # Edge script set. JAWS resolves the name at load time; the build must not
-    # try to.
+    # The rule is kept and the assumption is dropped: look for the factory
+    # browser binary, extend it if it is there, extend the default set if it is
+    # not. That generalises to any browser without another line.
     if ($null -eq $sChain) {
         reportFail "chainJawsScripts.ps1 could not be read"
         return
     }
-    if ($sChain -match 'lJss \+= "Use `"\$sConfigBase\.jsb`""') {
-        reportNote "chainJawsScripts writes Use <browser>.jsb into the browser script file"
+    if ($sChain -match 'Test-Path \(Join-Path \$pathShared "\$sConfigBase\.jsb"\)') {
+        reportNote "chainJawsScripts looks for a factory browser binary before naming it"
     } else {
-        reportFail "chainJawsScripts does not write Use <browser>.jsb; the browser's own script set would be replaced rather than extended"
+        reportFail "chainJawsScripts does not look for a factory browser binary, so it is assuming one exists"
     }
-    # And it must not be guarded by a test for the file, for the reason above.
-    if ($sChain -match 'if \(\$pathSharedBrowserJsb\)') {
-        reportFail "the Use line is still conditional on finding a factory .jsb, which is never in a settings folder"
+    if ($sChain -match "lJss \+= 'Use ""default\.jsb""'") {
+        reportNote "chainJawsScripts falls back to the default set when JAWS ships no browser set"
+    } else {
+        reportFail "chainJawsScripts has no fallback to default.jsb; with no factory browser set the file would name itself"
     }
     # Ours has to come last, since a later Use overrides an earlier one.
-    $iBrowser = $sChain.IndexOf('lJss += "Use `"$sConfigBase.jsb`""')
     $iOurs = $sChain.IndexOf("lJss += 'Use ""HomerView.jsb""'")
-    if ($iBrowser -ge 0 -and $iOurs -ge 0 -and $iBrowser -gt $iOurs) {
-        reportFail "the browser's jsb is used after HomerView's, so its scripts would override ours"
+    $iDefault = $sChain.IndexOf("lJss += 'Use ""default.jsb""'")
+    if ($iOurs -ge 0 -and $iDefault -ge 0 -and $iDefault -gt $iOurs) {
+        reportFail "the default set is used after HomerView's, so its scripts would override ours"
     }
 }
 
@@ -1051,6 +1164,8 @@ $lChecks = @(
     { checkSeventeen $sCs $sBrowsersPy },
     { checkEighteen $sCs $sRoot },
     { checkNineteen $sChain },
+    { checkTwentyOne $sJss },
+    { checkTwentyTwo $sRoot },
     { checkTwenty $sInstall })
 
 foreach ($oCheck in $lChecks) {

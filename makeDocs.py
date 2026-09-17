@@ -7,6 +7,7 @@ The standalone file uses one heading level higher than the section inside the
 guide, because it is a document in its own right rather than part of one.
 """
 
+import io
 import pathlib
 import re
 import sys
@@ -75,7 +76,104 @@ def writeHotkeys():
     return sum(1 for s in lLines if s.startswith("- **"))
 
 
+def writeStartPage():
+    """Write the start page's command list from the two key tables.
+
+    WHY THIS IS GENERATED NOW. The list was prose inside startPage.py, and on
+    17 September 2026 it was describing a key scheme from several weeks
+    earlier: J and Shift+J for the main content, Y and Alt+Y for the yield
+    commands, Alt+K for the accessibility check. Every one of those had moved,
+    and the page a new reader sees first was the last thing telling the truth.
+
+    ONLY COMMANDS WITH THE SAME KEY ON BOTH SCREEN READERS. The start page is
+    the friendliest page HomerView has, and a line that has to explain that
+    JAWS uses one key and NVDA another is not friendly. A command whose keys
+    differ is left off entirely rather than hedged: it is still on the
+    Alternate Menu, which is where a reader looks for everything.
+
+    The JAWS keys come from chainJawsScripts and the NVDA keys from the command
+    table, so the page cannot drift from either.
+    """
+    import re as reModule
+
+    # NVDA keys, names and descriptions.
+    dNvda = {}
+    for sScript, dEntry in c.byScript().items():
+        if not dEntry["keys"]:
+            continue
+        dNvda[dEntry["name"]] = (dEntry["keys"][0].replace("kb:", ""), dEntry["description"])
+
+    # JAWS keys, by the script name the menu rows also use.
+    sChain = pathlib.Path("chainJawsScripts.ps1").read_text(encoding="utf-8-sig")
+    dJaws = {}
+    for oMatch in reModule.finditer(r'"([^"=]+)=(\w+)"', sChain):
+        dJaws[oMatch.group(2)] = oMatch.group(1)
+
+    # The menu rows tie a JAWS script to the command name both sides use.
+    sJss = pathlib.Path("jaws/HomerView.jss").read_text(encoding="utf-8-sig")
+    dNameOfScript = {}
+    for oMatch in reModule.finditer(r'"([^"\\]+?), [^"]*?\\t(hV\w+)\\t[PA]"', sJss):
+        dNameOfScript[oMatch.group(2)] = oMatch.group(1)
+
+    def canonical(sKey):
+        """The Homer spelling, so two notations can be compared at all."""
+        lParts = [p.strip() for p in sKey.split("+") if p.strip()]
+        dSame = {"ctrl": "Control", "control": "Control", "alt": "Alt",
+                 "shift": "Shift", "windows": "Windows", "win": "Windows"}
+        lModifiers, sMain = [], ""
+        for iPart, sPart in enumerate(lParts):
+            sLower = sPart.lower()
+            if iPart < len(lParts) - 1 and sLower in dSame:
+                lModifiers.append(dSame[sLower])
+            else:
+                sMain = sPart if len(sPart) > 1 else sPart.upper()
+        return "+".join(sorted(lModifiers) + [sMain])
+
+    lRows = []
+    for sScript, sJawsKey in dJaws.items():
+        sName = dNameOfScript.get(sScript)
+        if not sName or sName not in dNvda:
+            continue
+        sNvdaKey, sDescription = dNvda[sName]
+        if canonical(sJawsKey) != canonical(sNvdaKey):
+            continue
+        lRows.append((sName, canonical(sJawsKey), sDescription))
+    lRows.sort(key=lambda t: t[0].lower())
+
+    lLines = ["<h2>Commands</h2>",
+              "<p>These work the same way whether you use JAWS or NVDA. Press Alt+F10",
+              "for the full list, including the few that differ.</p>",
+              "<ul>"]
+    for sName, sKey, sDescription in lRows:
+        # THE FIRST SENTENCE ONLY. The command table's descriptions carry the
+        # reasoning behind a key as well as what it does, which belongs in the
+        # hotkey list and not on the page somebody meets first. A start page
+        # earns its place by being short.
+        sShort = sDescription.split(". ")[0].rstrip(".") + "."
+        lLines.append("<li><strong>%s</strong>, %s &mdash; %s</li>"
+                      % (sName, sKey, sShort))
+    lLines.append("</ul>")
+
+    pathPage = pathlib.Path("addon/globalPlugins/homerView/startPage.py")
+    sPage = pathPage.read_text(encoding="utf-8-sig")
+    sBegin = "<!-- COMMANDS BEGIN. Written by makeDocs; do not edit between the markers. -->"
+    sEnd = "<!-- COMMANDS END -->"
+    iStart = sPage.index(sBegin) + len(sBegin)
+    iFinish = sPage.index(sEnd)
+    sPage = sPage[:iStart] + "\r\n" + "\r\n".join(lLines) + "\r\n" + sPage[iFinish:]
+    # THE HOMER ENCODING, WRITTEN BACK DELIBERATELY. write_text uses the
+    # platform newline, which on a file read as CRLF and rewritten leaves a
+    # mixture: every generated line LF and every untouched line CRLF. The
+    # file still parses and still works, which is exactly why it would have
+    # gone unnoticed.
+    sPage = sPage.replace("\r\n", "\n")
+    with io.open(pathPage, "w", encoding="utf-8-sig", newline="\r\n") as oFile:
+        oFile.write(sPage)
+    return len(lRows)
+
+
 def checkGuideSection():
+
     """Say whether the guide's hotkey section still names every command.
 
     IT USED TO REWRITE THAT SECTION, AND THAT WAS WRONG TWICE OVER.
@@ -131,6 +229,7 @@ def grade(sText):
 
 if __name__ == "__main__":
     print(f"Hotkeys.md: {writeHotkeys()} commands")
+    print(f"Start page: {writeStartPage()} commands with the same key on both")
     lMissing = checkGuideSection()
     if lMissing:
         print(f"HomerView.md does not mention {len(lMissing)} command(s):")

@@ -2437,32 +2437,36 @@ EndScript
 
 ; Searches forwards for text. Control+F.
 ;
-; WHY THIS EXISTS, AND IT IS NOT BECAUSE JAWS'S FIND IS LACKING. Until now
-; Control+F was deliberately left to JAWS, and that was right while HomerView's
-; keys lived in the default key map. It stopped being right when they moved
-; into msedge.jkm.
+; WHAT THIS KEY IS FOR, settled from the factory files themselves.
 ;
-; WHAT THE PROBE SHOWED, on 1 September 2026. Control+F is bound in NO key map
-; on this machine, and there are no factory .jkm, .jss or .jsb files in any
-; settings folder: JAWS's defaults live inside the installation, where nothing
-; can layer over them. And Freedom Scientific's own keystroke algorithm, quoted
-; in installJawsScripts, searches the APPLICATION key map first and looks for
-; the script it names IN THE APPLICATION SCRIPT FILE. So once msedge.jkm
-; existed, Control+F fell back to JAWS's own map, got a script name, and that
-; name was resolved against the Edge script set -- where it is not. The answer
-; was "Unknown script call to virtual find". In Chrome the same key worked,
-; because there is no chrome.jkm.
+; The machine-wide default.jkm binds JAWS Find to Control+JAWSKey+F, and binds
+; Control+F to nothing at all. So in a browser without a script set of ours,
+; Control+F reaches the BROWSER and opens its own find bar. That bar searches
+; what the browser renders. It is not the virtual buffer, and the two are not
+; the same page: the buffer is the screen reader's own view, built to be read
+; and navigated, and it is the one a reader is actually in.
 ;
-; WHY THIS WORKS WHEN Use "default.jsb" DID NOT. hVFindBackwards has always
-; worked in Edge, and the reason is one word: Builtin. JAWSFind is a BUILT-IN
-; FUNCTION, not a script in the default set, so it resolves whatever script set
-; is loaded. Binding Control+F to a script of ours that calls it gives the
-; reader JAWS's own find dialog, with JAWS's own wording and its own "not
-; found", from a script that is certainly loaded because every other HomerView
-; key already is.
+; So Control+F belongs to the reader's find, not the browser's, and inside
+; HomerView's browser that is what it does.
 ;
-; So this is not a replacement for JAWS's find. It IS JAWS's find, reached by a
-; route that survives having an application script set.
+; WHY Builtin:: AND NOT THE FACTORY SCRIPT. default.jss holds both: a SCRIPT
+; called JAWSFind, which runs DoJAWSFind(false), and a BUILT-IN FUNCTION of the
+; same name. Naming the script would work only while the default script set is
+; loaded behind ours. The built-in is part of JAWS itself and answers whatever
+; is loaded, which is why hVFindBackwards has kept working through every
+; version of the layering argument. The more robust of two right answers.
+;
+; AND NEVER hV IN FRONT OF A FACTORY NAME. The prefix is ours. JAWSFind is
+; Vispero's, and it is written the way they wrote it.
+;
+; A NOTE ON SHADOWING, because it is the trap next door. In JSL a name resolves
+; within the loaded set, so a user routine sharing a factory name REPLACES it,
+; and calling that name from inside it recurses into itself rather than
+; reaching the factory version. Builtin:: escapes that for built-in functions;
+; for a factory SCRIPT there is no such escape and the only protection is not
+; to reuse the name. JAWS 2026's default.jss defines 1,082 scripts and 816
+; functions and not one of them begins with hV, which is what the prefix is
+; for. Check 21 keeps it that way.
 Script hVFindForwards ()
 Var
     int bFound

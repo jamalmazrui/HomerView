@@ -227,7 +227,7 @@ function buildBridge {
     # undefined names, and the real cause -- one absent file -- appears
     # nowhere in it.
     $lShared = @()
-    foreach ($sName in @("Inix.cs", "Web.cs")) {
+    foreach ($sName in @("Inix.cs", "Keys.cs", "Web.cs")) {
         $pathShared = Join-Path $pathRoot "homer\$sName"
         if (Test-Path $pathShared) {
             $lShared += $pathShared

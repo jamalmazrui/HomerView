@@ -52,6 +52,7 @@ HomerView.cs
 # projects: a fix made in one is copied to the others unread, exactly as
 # homerPolicy.py is. Nothing in them names HomerView.
 homer\Inix.cs
+homer\Keys.cs
 homer\Web.cs
 HomerView_setup.iss
 chainJawsScripts.cmd

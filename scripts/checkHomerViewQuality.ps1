@@ -314,7 +314,7 @@ function checkFour {
 function checkFive {
     param ([string] $sJsd, $lScripts)
     writeLog "CHECK 5  every .jsd entry names a real script, and every script has an entry"
-    if ($null -eq $sJsd) { reportFail "jaws\HomerView.jsd could not be read"; return }
+    if ($null -eq $sJsd) { reportFail "scripts\jaws\HomerView.jsd could not be read"; return }
     $lDoc = New-Object System.Collections.ArrayList
     foreach ($sLine in (textLines $sJsd)) {
         $sTrim = $sLine.Trim()
@@ -631,7 +631,7 @@ function checkTwentyOne {
     # Read from the FACTORY default.jss rather than a list kept here, because a
     # list of a thousand names copied into this file would be wrong by the next
     # JAWS release.
-    if ($null -eq $sJss) { reportFail "jaws\HomerView.jss could not be read"; return }
+    if ($null -eq $sJss) { reportFail "scripts\jaws\HomerView.jss could not be read"; return }
     $lOurs = @()
     foreach ($oMatch in ([regex]'(?im)^\s*(?:script|\w+\s+function)\s+(\w+)\s*\(').Matches($sJss)) {
         [void] ($lOurs += $oMatch.Groups[1].Value)
@@ -866,7 +866,7 @@ function checkSixteen {
 function checkFourteen {
     param ([string[]] $aLines, [string] $sChain, $lKeys)
     writeLog "CHECK 14  every place a key is written says the same thing"
-    reportNote "keys live in three files: jaws\HomerView.jkm, chainJawsScripts.ps1, and the Hotkey Summary"
+    reportNote "keys live in three files: scripts\jaws\HomerView.jkm, chainJawsScripts.ps1, and the Hotkey Summary"
     reportNote "chainJawsScripts is the one that actually binds; the .jkm is never read by JAWS at all"
     if ($null -eq $sChain) {
         reportFail "chainJawsScripts.ps1 could not be read, so the bindings could not be checked"
@@ -1041,7 +1041,11 @@ function checkFifteen {
 
 # --- driver ---
 
-if ($sRoot -eq "") { $sRoot = Split-Path -Parent $MyInvocation.MyCommand.Path }
+# In scripts\ since 26 September 2026: the project is one level up.
+if ($sRoot -eq "") {
+    $sHere = Split-Path -Parent $MyInvocation.MyCommand.Path
+    $sRoot = if ((Split-Path -Leaf $sHere) -ieq "scripts") { Split-Path -Parent $sHere } else { $sHere }
+}
 # Run on its own it keeps its own log beside itself. Run as a child of
 # checkJawsScripts it writes to the console only, and the parent puts every
 # line into its own log -- so there is ONE owner of the file and one copy of
@@ -1069,11 +1073,11 @@ writeLog ("working directory: " + (Get-Location).Path)
 writeLog ("command line:      " + ([string] $MyInvocation.Line).Trim())
 writeLog ""
 
-$sPathJss = Join-Path $sRoot "jaws\HomerView.jss"
-$sPathJkm = Join-Path $sRoot "jaws\HomerView.jkm"
-$sPathJsd = Join-Path $sRoot "jaws\HomerView.jsd"
+$sPathJss = Join-Path $sRoot "scripts\jaws\HomerView.jss"
+$sPathJkm = Join-Path $sRoot "scripts\jaws\HomerView.jkm"
+$sPathJsd = Join-Path $sRoot "scripts\jaws\HomerView.jsd"
 $sPathCs  = Join-Path $sRoot "HomerView.cs"
-$sPathChain = Join-Path $sRoot "chainJawsScripts.ps1"
+$sPathChain = Join-Path $sRoot "scripts\chainJawsScripts.ps1"
 
 foreach ($sPath in @($sPathJss, $sPathJkm, $sPathJsd, $sPathCs, $sPathChain)) {
     if (Test-Path -LiteralPath $sPath) {
@@ -1088,12 +1092,12 @@ $sJss = readText $sPathJss
 $sJkm = readText $sPathJkm
 $sJsd = readText $sPathJsd
 $sCs  = readText $sPathCs
-$sChain = readText (Join-Path $sRoot "chainJawsScripts.ps1")
+$sChain = readText (Join-Path $sRoot "scripts\chainJawsScripts.ps1")
 $sBrowsersPy = readText (Join-Path $sRoot "addon\globalPlugins\homerView\browsers.py")
-$sInstall = readText (Join-Path $sRoot "installJawsScripts.ps1")
+$sInstall = readText (Join-Path $sRoot "scripts\installJawsScripts.ps1")
 
 if ($null -eq $sJss) {
-    writeLog "jaws\HomerView.jss could not be read, so nothing further can be checked."
+    writeLog "scripts\jaws\HomerView.jss could not be read, so nothing further can be checked."
     writeLog "Pass the project folder as -sRoot if it is not the folder holding this script."
     exit 1
 }

@@ -25,7 +25,15 @@ param(
 
 $ErrorActionPreference = "Continue"
 
-$pathRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
+# THIS SCRIPT LIVES IN scripts\, and the project is one level up. Since
+# 26 September 2026 every HomerView tool script sits in scripts\ beside the
+# kit's, as the kit lays a project out -- in the project folder and in the
+# installation alike. $pathHere is where its sibling scripts are;
+# $pathRoot is the project or installation, where exec\, scripts\jaws,
+# help\ and the rest are found. A copy run from a flat older layout, not
+# in a folder called scripts, treats its own folder as both.
+$pathHere = Split-Path -Parent $MyInvocation.MyCommand.Path
+$pathRoot = if ((Split-Path -Leaf $pathHere) -ieq "scripts") { Split-Path -Parent $pathHere } else { $pathHere }
 # ONE runtime log, shared with the bridge and the scripts.
 #
 # There used to be four: two in C:\temp\HomerView from this script and its
@@ -151,7 +159,7 @@ function installPrebuiltJsb {
     #
     # IT IS ALSO SAID OUT LOUD. A script set that came from someone else's
     # compiler is a thing the reader should know about, not a silent substitute.
-    $pathPrebuilt = Join-Path $PSScriptRoot "jaws\HomerView.jsb"
+    $pathPrebuilt = Join-Path $pathRoot "scripts\jaws\HomerView.jsb"
     if (-not (Test-Path $pathPrebuilt)) {
         writeLog "    no prebuilt HomerView.jsb is available, so this version has none"
         return $false
@@ -425,7 +433,7 @@ writeLog "  uninstalling:      $bUninstall"
 # is what the compiler rejected release after release. This side knows both
 # answers already: the bridge was just put beside this file, and this runs as
 # the user whose temporary folder the answer goes in.
-$pathBridge = Join-Path $pathRoot "HomerView.exe"
+$pathBridge = Join-Path $pathRoot "exec\HomerView.exe"
 $pathAnswer = Join-Path $env:TEMP "HomerViewAnswer.json"
 $pathJawsLogFolder = Join-Path $env:LOCALAPPDATA "HomerView\logs"
 # Written into the scripts so the menu can say which copy JAWS has loaded.
@@ -539,7 +547,7 @@ foreach ($folderVersion in $lVersions) {
         # The script files.
         $bCopied = $true
         foreach ($sName in $lScripts) {
-            $pathSource = Join-Path $pathRoot "jaws\$sName"
+            $pathSource = Join-Path $pathRoot "scripts\jaws\$sName"
             if (-not (Test-Path $pathSource)) {
                 writeLog "    ERROR: $sName is missing from the installation"
                 $bCopied = $false
@@ -622,7 +630,7 @@ if ($iFailed -gt 0) {
 # in and puts the keys in the user's own copy of default.jkm. It used to be a
 # separate thing to remember to run. Anything a person has to remember to run
 # after an installer is a step that will one day be skipped.
-$pathChain = Join-Path $pathRoot "chainJawsScripts.ps1"
+$pathChain = Join-Path $pathHere "chainJawsScripts.ps1"
 if (-not (Test-Path $pathChain)) {
     writeLog "WARNING: chainJawsScripts.ps1 is not installed, so the keys were NOT bound."
     writeLog "         The scripts are compiled but JAWS will not load them."

@@ -1,7 +1,7 @@
 ﻿; accept.inix -- what "done" means for HomerView.
 ;
-; checkHomerApp runs these and records each command with its exit code in the
-; evidence report. tagRelease refuses to release while any of them fails.
+; check runs these and records each command with its exit code in the
+; evidence report. release refuses to publish while any of them fails.
 
 FileTask = accept
 
@@ -12,22 +12,22 @@ Expect = 0
 
 [check]
 Name = the bridge was produced
-Run = cmd /c if exist HomerView.exe (exit 0) else (exit 1)
+Run = cmd /c if exist exec\HomerView.exe (exit 0) else (exit 1)
 Expect = 0
 
 [check]
 Name = the NVDA add-on was produced
-Run = cmd /c if exist build\HomerView.nvda-addon (exit 0) else (exit 1)
+Run = cmd /c if exist exec\HomerView.nvda-addon (exit 0) else (exit 1)
 Expect = 0
 
 [check]
 Name = the installer was produced
-Run = cmd /c if exist HomerView_setup.exe (exit 0) else (exit 1)
+Run = cmd /c if exist exec\HomerView_setup.exe (exit 0) else (exit 1)
 Expect = 0
 
 [check]
 Name = the twenty agreement checks pass
-Run = checkHomerViewQuality.cmd
+Run = scripts\checkHomerViewQuality.cmd
 Expect = 0
 
 ; checkParity is a REPORT, not a gate. It measures how far the two readers

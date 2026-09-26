@@ -18,7 +18,7 @@ weights have been published, which is not the same thing as the service being
 open. None of them belong here under this rule.
 """
 
-startPageVersion = "26cf7d89"
+startPageVersion = "09f7a753"
 
 startPageText = """<!doctype html>
 <html lang="en">
@@ -77,10 +77,23 @@ the point rather than a side effect.</li>
 <p>These work the same way whether you use JAWS or NVDA. Press Alt+F10
 for the full list, including the few that differ.</p>
 <ul>
+<li><strong>About HomerView</strong>, Alt+F1 &mdash; Display version and release date, and where HomerView keeps its files.</li>
+<li><strong>Append Clipboard</strong>, Control+Shift+Apostrophe &mdash; Adds the clipboard to the end of a text file rather than replacing it.</li>
 <li><strong>Choose Browser</strong>, Alt+Shift+B &mdash; Choose which Chromium browser HomerView drives, from the ones installed here.</li>
+<li><strong>Clear Clipboard</strong>, Alt+Shift+Apostrophe &mdash; Empties the clipboard, so an append starts afresh.</li>
+<li><strong>Complete Selection</strong>, Shift+F8 &mdash; Select text from starting point to cursor.</li>
+<li><strong>Copy All</strong>, Control+F8 &mdash; Copy all text to clipboard.</li>
 <li><strong>Copy Append</strong>, Alt+C &mdash; Append selected text to clipboard, or append current line if no selection.</li>
+<li><strong>Developer Notes</strong>, Control+Shift+F1 &mdash; Open the notes on how HomerView is built and why.</li>
 <li><strong>Dismiss Dialog</strong>, Alt+Shift+D &mdash; Closes a browser dialog that is blocking the window.</li>
+<li><strong>Elevate Version</strong>, Control+F11 &mdash; Checks whether a newer HomerView exists and installs it.</li>
+<li><strong>Extract Main Content</strong>, Shift+F9 &mdash; Extracts the readable part of the page into a page of its own that you can search, save or send.</li>
 <li><strong>Find Contacts</strong>, Alt+Shift+C &mdash; Finds who to tell about this site: email addresses, the accessibility statement, contact pages and social media.</li>
+<li><strong>Forward Find Again</strong>, F3 &mdash; Search forward for next match, of whichever kind of find was used last.</li>
+<li><strong>Forward Find at Cursor</strong>, Alt+F3 &mdash; Search forward for chunk or selected text, on the key EdSharp uses for it.</li>
+<li><strong>Forward Find with Regular Expression</strong>, Control+F3 &mdash; Search forward for regular expression, which NVDA's own find cannot do.</li>
+<li><strong>Go to Start of Selection</strong>, Alt+Shift+F8 &mdash; Return to start position of selection.</li>
+<li><strong>History of Changes</strong>, Shift+F1 &mdash; Display list of fixes and improvements.</li>
 <li><strong>HomerView Settings</strong>, Alt+Shift+S &mdash; Open the settings file, HomerView.inix, in a text editor.</li>
 <li><strong>Launch HomerView</strong>, Alt+Control+Shift+H &mdash; Launches or reconnects the HomerView copy of Microsoft Edge.</li>
 <li><strong>Link Target</strong>, Alt+L &mdash; Ask what is actually at that link without going there: what kind of thing, how big, and whether it ends up where it claims.</li>
@@ -89,10 +102,20 @@ for the full list, including the few that differ.</p>
 <li><strong>Open Document</strong>, Control+O &mdash; Opens a Word file, spreadsheet, slide deck, PDF or ebook, converting it to a page so every command here works on it.</li>
 <li><strong>Page Folder</strong>, Alt+Shift+F &mdash; Open this page's folder in File Explorer, to browse what was saved from it.</li>
 <li><strong>Page Links to Clipboard</strong>, Alt+Shift+P &mdash; Copy every link address on the page to the clipboard, as EdSharp copies a path on the same key.</li>
+<li><strong>Quick Start</strong>, Alt+Shift+F1 &mdash; Open the first ten minutes of HomerView, for somebody new to it.</li>
+<li><strong>Read All</strong>, Alt+F8 &mdash; Say all text, without moving the cursor.</li>
 <li><strong>Recent Pages</strong>, Alt+R &mdash; Open a page from the list of those recently used, on the key EdSharp uses for its recent files.</li>
+<li><strong>Reverse Find Again</strong>, Shift+F3 &mdash; Search backward for previous match.</li>
+<li><strong>Reverse Find at Cursor</strong>, Alt+Shift+F3 &mdash; Search backward for chunk or selected text.</li>
+<li><strong>Reverse Find with Regular Expression</strong>, Control+Shift+F3 &mdash; Search backward for regular expression.</li>
+<li><strong>Save Clipboard</strong>, Control+Apostrophe &mdash; Saves the clipboard to a text file, proposing a name.</li>
 <li><strong>Save Page</strong>, Control+S &mdash; Saves the page in any of nine formats.</li>
+<li><strong>Say Clipboard</strong>, Alt+Apostrophe &mdash; Say clipboard text, or spell if repeated.</li>
 <li><strong>Say Metadata</strong>, Alt+M &mdash; Says what the page claims about itself: author, publisher, date and licence.</li>
 <li><strong>Session Log</strong>, Control+Shift+L &mdash; Open a copy of this session's log, for working out what went wrong.</li>
+<li><strong>Start Selection</strong>, F8 &mdash; Mark starting point of text to be selected, so Shift need not be held while you move.</li>
+<li><strong>Tab Names</strong>, Shift+F4 &mdash; Says the names of the open tabs without moving the keyboard anywhere.</li>
+<li><strong>User Guide</strong>, Control+F1 &mdash; Open Documentation in the HomerView window.</li>
 <li><strong>Web Download</strong>, Alt+Shift+W &mdash; Pick files to download from a web page, on the key EdSharp uses for it.</li>
 </ul>
 <!-- COMMANDS END -->

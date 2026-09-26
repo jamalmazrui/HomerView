@@ -1,5 +1,5 @@
 ﻿#!/usr/bin/env python3
-r"""checkHomerApp.py -- gather evidence about a Homer app, without looking at it.
+r"""check.py -- gather evidence about a Homer app, without looking at it.
 
 WHAT THIS IS FOR
 ================
@@ -23,10 +23,10 @@ worth nothing; a report that says what it did not look at is worth a great deal.
 
 USAGE
 
-    checkHomerApp                    check the app in this folder
-    checkHomerApp --path C:\JobDo    check another one
-    checkHomerApp --build            build it first, and count that as evidence
-    checkHomerApp --quiet            the report only, no console summary
+    check                    check the app in this folder
+    check --path C:\JobDo    check another one
+    check --build            build it first, and count that as evidence
+    check --quiet            the report only, no console summary
 
 WHAT IT CHECKS
 
@@ -144,8 +144,26 @@ def runCommand(lsArgs, sShell=""):
     logLine("RUN: " + (sShell or " ".join(lsArgs)))
     try:
         if sShell:
-            oResult = subprocess.run(sShell, shell=True, cwd=sRoot,
-                                     capture_output=True, text=True, timeout=900)
+            # A LINE THAT BEGINS "cmd /c" IS NOT WRAPPED IN A SECOND cmd /c.
+            #
+            # shell=True already runs the line through cmd /c. A line that
+            # itself begins with "cmd /c if exist X (exit 0) else (exit 1)" was
+            # therefore parsed twice, and the parentheses and the else came
+            # apart on the second pass: the answer was 1 whatever was true.
+            # EdSharp's seven acceptance checks and DbDo's nine all failed that
+            # way on 25 September, on lines that were correct.
+            #
+            # So such a line is handed to cmd once, with /s so that the outer
+            # quotes are stripped and nothing inside is re-parsed, and with
+            # shell=False so Python does not add a wrapper of its own.
+            import re as _re
+            oCmd = _re.match(r"\s*cmd(?:\.exe)?\s+/c\s+(.*)$", sShell, _re.I | _re.S)
+            if oCmd and os.name == "nt":
+                oResult = subprocess.run('cmd /s /c "' + oCmd.group(1).strip() + '"', shell=False, cwd=sRoot,
+                                         capture_output=True, text=True, timeout=900)
+            else:
+                oResult = subprocess.run(sShell, shell=True, cwd=sRoot,
+                                         capture_output=True, text=True, timeout=900)
         else:
             oResult = subprocess.run(lsArgs, cwd=sRoot,
                                      capture_output=True, text=True, timeout=900)
@@ -251,7 +269,7 @@ def isNamed(sRelative, lsNamed):
 
 def checkEncoding():
     # ONLY THE PROJECT'S OWN FILES, the ones RepoFiles.txt names. A stray in
-    # the folder is homerTidy's business; 54 of the 72 faults that refused a
+    # the folder is tidy's business; 54 of the 72 faults that refused a
     # release on 25 Sep 2026 were strays the project never named.
     lsNamed = namedByProject()
     lsWrong = []
@@ -326,7 +344,7 @@ def checkPublish():
         return finding("publish", "fail", "no RepoFiles.txt, so nothing names what may be pushed")
     if "THIS IS A WHITELIST" not in sGitignore:
         return finding("publish", "fail",
-                       ".gitignore is not the generated whitelist; run homerTidy --gitignore")
+                       ".gitignore is not the generated whitelist; run tidy --gitignore")
     return finding("publish", "pass", "RepoFiles.txt names the whitelist and .gitignore was generated from it")
 
 
@@ -373,6 +391,11 @@ def checkKeys():
         if isLibrary(sPath, sText): continue
         sText = codeLines(sText)
         sBase = os.path.basename(sPath)
+        # An ampersand in Python is not an access key unless the file builds
+        # WinForms controls (through pythonnet). An NVDA add-on's "&" is prose
+        # or an operator, and HomerView's eight source files were being read
+        # for trigger letters they cannot have.
+        bCaptions = sPath.lower().endswith(".cs") or "System.Windows.Forms" in sText
         # ALT+CONTROL IS FOR DESKTOP SHORTCUTS -- with one family excepted (25 Sep
         # 2026): the navigation keys. Alt+Control with an arrow, Home, End, Page
         # Up or Page Down moves a cursor inside a window and takes nothing from
@@ -397,6 +420,7 @@ def checkKeys():
         # compete, because a person never sees them at once.
         dByOwner = {}
         sMethod = "(file)"
+        if not bCaptions: sText = ""
         for sLine in sText.splitlines():
             oDef = re.match(r"\s{0,8}(?:public |private |internal |protected |static |override |virtual |async )+[\w<>\[\],\s\.]+?\s(\w+)\s*\(", sLine)
             if oDef: sMethod = oDef.group(1)
@@ -521,7 +545,7 @@ def writeReport():
         "",
         "# Evidence report: %s" % appName(),
         "",
-        "Written by checkHomerApp. Every line below rests on a command that ran,",
+        "Written by check. Every line below rests on a command that ran,",
         "and the command and its exit code are in the check log beside this report.",
         "",
         "## What was verified",
@@ -573,7 +597,7 @@ def main():
     if dArguments.path: sRoot = os.path.abspath(dArguments.path)
 
     oLog = open(sLogPath, "w", encoding="utf-8")
-    logLine("checkHomerApp started %s" % datetime.datetime.now().isoformat(" ", "seconds"))
+    logLine("check started %s" % datetime.datetime.now().isoformat(" ", "seconds"))
     logLine("Script: %s" % os.path.abspath(__file__))
     logLine("Python: %s" % sys.version.replace("\n", " "))
     logLine("Platform: %s" % platform.platform())

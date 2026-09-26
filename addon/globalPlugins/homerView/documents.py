@@ -54,6 +54,10 @@ def findInstalledDocument(sName):
     for sVariable in ("PROGRAMFILES", "PROGRAMFILES(X86)"):
         sRoot = os.environ.get(sVariable, "")
         if sRoot:
+            # help\ FIRST: the installed tree mirrors the project, and the
+            # documents moved there on 26 September 2026. The flat folder is
+            # kept after it so an older installation still finds its own.
+            lFolders.append(Path(sRoot) / "HomerView" / "help")
             lFolders.append(Path(sRoot) / "HomerView")
     lFolders.append(Path(__file__).resolve().parents[2])
     lFolders.append(Path(__file__).resolve().parents[2] / "doc" / "en")

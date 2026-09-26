@@ -1,4 +1,4 @@
-﻿# checkJawsScripts.ps1 -- compile jaws\HomerView.jss with every JAWS on this
+﻿# checkJawsScripts.ps1 -- compile scripts\jaws\HomerView.jss with every JAWS on this
 # machine, and say what each compiler said.
 #
 # This exists because of how the last several failures were found: build the
@@ -27,7 +27,15 @@
 
 $ErrorActionPreference = "Continue"
 
-$pathRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
+# THIS SCRIPT LIVES IN scripts\, and the project is one level up. Since
+# 26 September 2026 every HomerView tool script sits in scripts\ beside the
+# kit's, as the kit lays a project out -- in the project folder and in the
+# installation alike. $pathHere is where its sibling scripts are;
+# $pathRoot is the project or installation, where exec\, scripts\jaws,
+# help\ and the rest are found. A copy run from a flat older layout, not
+# in a folder called scripts, treats its own folder as both.
+$pathHere = Split-Path -Parent $MyInvocation.MyCommand.Path
+$pathRoot = if ((Split-Path -Leaf $pathHere) -ieq "scripts") { Split-Path -Parent $pathHere } else { $pathHere }
 $pathLog = Join-Path $pathRoot "checkJawsScripts.log"
 
 function writeLog {
@@ -49,8 +57,8 @@ writeLog "  working directory: $(Get-Location)"
 writeLog "  project root:      $pathRoot"
 writeLog "  command line:      $($MyInvocation.Line.Trim())"
 
-$pathSource = Join-Path $pathRoot "jaws\HomerView.jss"
-$pathBridge = Join-Path $pathRoot "HomerView.exe"
+$pathSource = Join-Path $pathRoot "scripts\jaws\HomerView.jss"
+$pathBridge = Join-Path $pathRoot "exec\HomerView.exe"
 $pathAnswer = Join-Path $env:TEMP "HomerViewAnswer.json"
 writeLog "  source:            $pathSource"
 writeLog "  bridge path used:  $pathBridge"
@@ -128,7 +136,7 @@ writeLog ""
 # here it writes to the console only and every line is folded into this log, so
 # a build still produces one file to read.
 $iQuality = 0
-$pathQuality = Join-Path $pathRoot "checkHomerViewQuality.ps1"
+$pathQuality = Join-Path $pathHere "checkHomerViewQuality.ps1"
 if (-not (Test-Path $pathQuality)) {
     writeLog "ERROR: checkHomerViewQuality.ps1 is not beside this script, so the ten"
     writeLog "       quality checks did not run. That is a missing file, not a pass."
@@ -229,7 +237,7 @@ foreach ($folderVersion in $lVersions) {
             $bGood = $true
             if ($sOutput -match '(?m)^.*\bError:') {
                 writeLog "    ERROR: the compiler rejected the source. The lines above say where,"
-                writeLog "           by line number in jaws\HomerView.jss."
+                writeLog "           by line number in scripts\jaws\HomerView.jss."
                 $bGood = $false
             }
             if ($bGood) {
@@ -259,7 +267,7 @@ foreach ($folderVersion in $lVersions) {
                         writeLog "    fingerprint $($sHash.Substring(0, 16))"
                         $script:lJsbHashes += $sHash
                         if (-not $script:pathKeptJsb) {
-                            $script:pathKeptJsb = Join-Path $pathRoot "jaws\HomerView.jsb"
+                            $script:pathKeptJsb = Join-Path $pathRoot "scripts\jaws\HomerView.jsb"
                             Copy-Item $pathCheckJsb $script:pathKeptJsb -Force
                             writeLog "    kept as the fallback build, from JAWS $($folderVersion.Name)"
                             $script:sKeptFrom = $folderVersion.Name
@@ -307,7 +315,7 @@ if ($iQuality -ne 0) {
     exit 1
 }
 if ($iBad -gt 0) {
-    writeLog "Fix jaws\HomerView.jss and run this again. It takes about a second per"
+    writeLog "Fix scripts\jaws\HomerView.jss and run this again. It takes about a second per"
     writeLog "version, so there is no reason to reach for the installer to find out."
     exit 1
 }

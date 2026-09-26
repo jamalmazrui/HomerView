@@ -46,7 +46,7 @@ Uninstallable=yes
 CreateUninstallRegKey=yes
 UninstallFilesDir={app}
 UninstallDisplayName={#AppName} {#AppVersion}
-UninstallDisplayIcon={app}\HomerView.exe
+UninstallDisplayIcon={app}\exec\HomerView.exe
 AppName={#AppName}
 AppVersion={#AppVersion}
 AppPublisher={#AppPublisher}
@@ -80,11 +80,21 @@ AllowNoIcons=yes
 UsePreviousAppDir=yes
 UsePreviousGroup=yes
 PrivilegesRequired=admin
+; PER-USER AREAS ON PURPOSE, WHICH IS WHAT THIS ACKNOWLEDGES. Inno warns on
+; every compile that an admin installer is touching {localappdata} and
+; {userappdata}. It is right that those resolve to the user who ran the
+; installer; that is exactly the user whose JAWS and NVDA settings, and whose
+; HomerView data, this is for. Installing for a different person by typing an
+; administrator's password on their account would reach the administrator's
+; folders, and the scripts are then installed by that person from the Start
+; menu. The warning had appeared in every build log, and a warning that is
+; always there hides the one that is new.
+UsedUserAreasWarning=no
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
-; tagRelease reads the version from this file's version resource and expects
+; release reads the version from this file's version resource and expects
 ; to find it in the repository root, so that is where it is written.
-OutputDir=C:\HomerView
+OutputDir=exec
 OutputBaseFilename=HomerView_setup
 Compression=lzma2
 SolidCompression=yes
@@ -113,30 +123,43 @@ FinishedLabel=Setup has installed [name/ver] on your computer.%n%nThe checked bo
 ; offered as a checkbox on the Finish page through the Run section below, which
 ; is one fewer wizard page than a task would need.
 
+; SOURCES ARE RELATIVE, AS THE KIT'S TEMPLATE WRITES THEM, and it matters more
+; than style. Inno resolves a relative Source against this script's own
+; folder, so nothing is lost. What was lost by writing C:\HomerView\ in
+; front of every one: the kit's tidy decides what belongs to a project
+; partly from these lines, and it compares the NAME. A Source line that
+; carries a drive and folder matches nothing, so on 25 September 2026 every
+; file named only here -- the six generated .htm documents -- was taken for
+; a stray draft and moved to notes\drafts, and the next build stopped with
+; "HomerView.htm does not exist".
+; THE DOCUMENTATION LIVES IN help\, AS THE KIT LAYS A PROJECT OUT, and it is
+; installed to {app}\help so the installed tree mirrors the project. ReadMe
+; and the licence stay at the top, where a person looks first. The old docs\
+; folder, a stale second copy of the same files, is not shipped any more.
 [Files]
 ; The add-on package, which is what the Run section hands to NVDA.
-Source: "C:\HomerView\build\{#AddonFile}"; DestDir: "{app}\build"; Flags: ignoreversion
+Source: "exec\{#AddonFile}"; DestDir: "{app}\exec"; Flags: ignoreversion
 
 ; Documentation, as Markdown and as a web page. The web page is what the
 ; Alternate Menu and the start page open, in the HomerView window.
-Source: "C:\HomerView\ReadMe.md"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\HomerView\ReadMe.htm"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\HomerView\HomerView.md"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\HomerView\HomerView.htm"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\HomerView\History.md"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\HomerView\History.htm"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\HomerView\Announce.md"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\HomerView\Announce.htm"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\HomerView\Hotkeys.md"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\HomerView\Hotkeys.htm"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\HomerView\Developer.md"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\HomerView\Developer.htm"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\HomerView\Hotkeys.inix"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\HomerView\LICENSE.md"; DestDir: "{app}"; DestName: "License.txt"; Flags: ignoreversion
+Source: "README.md"; DestDir: "{app}"; Flags: ignoreversion
+Source: "README.htm"; DestDir: "{app}"; Flags: ignoreversion
+Source: "help\HomerView.md"; DestDir: "{app}\help"; Flags: ignoreversion
+Source: "help\HomerView.htm"; DestDir: "{app}\help"; Flags: ignoreversion
+Source: "help\History.md"; DestDir: "{app}\help"; Flags: ignoreversion
+Source: "help\History.htm"; DestDir: "{app}\help"; Flags: ignoreversion
+Source: "help\Announce.md"; DestDir: "{app}\help"; Flags: ignoreversion
+Source: "help\Announce.htm"; DestDir: "{app}\help"; Flags: ignoreversion
+Source: "help\hotkeys.md"; DestDir: "{app}\help"; Flags: ignoreversion
+Source: "help\hotkeys.htm"; DestDir: "{app}\help"; Flags: ignoreversion
+Source: "help\Developer.md"; DestDir: "{app}\help"; Flags: ignoreversion
+Source: "help\Developer.htm"; DestDir: "{app}\help"; Flags: ignoreversion
+Source: "configs\Hotkeys.inix"; DestDir: "{app}\configs"; Flags: ignoreversion
+Source: "LICENSE.md"; DestDir: "{app}"; DestName: "License.txt"; Flags: ignoreversion
 
 ; Source, so the installed copy can be read and rebuilt.
-Source: "C:\HomerView\addon\*"; DestDir: "{app}\addon"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "C:\HomerView\HomerView_setup.iss"; DestDir: "{app}"; Flags: ignoreversion
+Source: "addon\*"; DestDir: "{app}\addon"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "HomerView_setup.iss"; DestDir: "{app}"; Flags: ignoreversion
 
 ; Build scripts only. The repository scripts, the sweep that tidies the
 ; development folder, and the two Git configuration files belong to that
@@ -148,60 +171,66 @@ Source: "C:\HomerView\HomerView_setup.iss"; DestDir: "{app}"; Flags: ignoreversi
 ; under this comment explaining why it should not be. It moves anything the
 ; project does not name, which is the last program that belongs in an
 ; installation folder.
-Source: "C:\HomerView\buildHomerView.cmd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\HomerView\buildHomerView.ps1"; DestDir: "{app}"; Flags: ignoreversion
+Source: "buildHomerView.cmd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "buildHomerView.ps1"; DestDir: "{app}"; Flags: ignoreversion
 
 ; The development plan, kept for its historical value.
-Source: "C:\HomerView\docs\*"; DestDir: "{app}\docs"; Flags: ignoreversion recursesubdirs createallsubdirs skipifsourcedoesntexist
 
 ; The converters, if they are sitting beside this script when it is compiled.
 ; The installation folder is the first place HomerView looks for either.
-Source: "C:\HomerView\2htm.exe"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "2htm.exe"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 ; pandoc is NOT packaged. It is about 220 megabytes, which GitHub refuses and
 ; which is a long download to impose on someone who may already have it or may
 ; never open an ebook. The Run section below offers to fetch it instead.
 ; The JAWS side. The bridge is the one piece JAWS scripting cannot supply for
 ; itself, and the scripts are copied into every JAWS version by the script
 ; below rather than by this section, because they must be compiled in place.
-Source: "C:\HomerView\HomerView.exe"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
-Source: "C:\HomerView\HomerView.cs"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
-Source: "C:\HomerView\jaws\*"; DestDir: "{app}\jaws"; Flags: ignoreversion skipifsourcedoesntexist
-Source: "C:\HomerView\installJawsScripts.ps1"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "exec\HomerView.exe"; DestDir: "{app}\exec"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "HomerView.cs"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "scripts\jaws\*"; DestDir: "{app}\scripts\jaws"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "scripts\installJawsScripts.ps1"; DestDir: "{app}\scripts"; Flags: ignoreversion skipifsourcedoesntexist
 ; THE PREBUILT SCRIPTS, used only when a machine's own scompile refuses the
 ; source. skipifsourcedoesntexist because a build made where no JAWS is
 ; installed cannot produce one, and that must not stop the installer being
 ; compiled.
-Source: "C:\HomerView\jaws\HomerView.jsb"; DestDir: "{app}\jaws"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "scripts\jaws\HomerView.jsb"; DestDir: "{app}\scripts\jaws"; Flags: ignoreversion skipifsourcedoesntexist
 ; The start page, built once by the build from the add-on's own generator so
 ; both screen readers show the same page and neither composes its own.
-Source: "C:\HomerView\Start.htm"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "templates\Start.htm"; DestDir: "{app}\templates"; Flags: ignoreversion skipifsourcedoesntexist
 ; The accessibility engines, fetched by the build so the first scan on a new
 ; machine does not wait on a CDN while JAWS is blocked.
-Source: "C:\HomerView\Axe.js"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
-Source: "C:\HomerView\Ace.js"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
-Source: "C:\HomerView\Nlp.js"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "Axe.js"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "Ace.js"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "Nlp.js"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 ; version.txt travels with the program so Elevate Version can tell which build
 ; is running. The #define above reads it at COMPILE time to set AppVersion;
 ; that does not put a copy beside the program, which is what the runtime needs.
-Source: "C:\HomerView\version.txt"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "version.txt"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 ; The Results box, shown after every finish-page step has run. It is not an
 ; option and has no checkbox: it always runs, and always last.
-Source: "C:\HomerView\summarizeSetup.cmd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\HomerView\summarizeSetup.ps1"; DestDir: "{app}"; Flags: ignoreversion
+Source: "scripts\summarizeSetup.cmd"; DestDir: "{app}\scripts"; Flags: ignoreversion
+Source: "scripts\summarizeSetup.ps1"; DestDir: "{app}\scripts"; Flags: ignoreversion
 ; version.txt travels with the program so Elevate Version can tell what is
 ; running without parsing it out of anything.
-Source: "C:\HomerView\version.txt"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
-Source: "C:\HomerView\installJawsScripts.cmd"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "version.txt"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "scripts\installJawsScripts.cmd"; DestDir: "{app}\scripts"; Flags: ignoreversion skipifsourcedoesntexist
 ; Run by installJawsScripts.ps1, not by hand. It writes the MyExtensions file
 ; that makes JAWS load our scripts at all, and puts the keys into the user's own
 ; copy of default.jkm.
-Source: "C:\HomerView\chainJawsScripts.ps1"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "scripts\chainJawsScripts.ps1"; DestDir: "{app}\scripts"; Flags: ignoreversion skipifsourcedoesntexist
+; AND ITS .cmd, WHICH WAS NEVER SHIPPED. Choose Browser rebinds the JAWS keys
+; inside the newly chosen browser by running chainJawsScripts.cmd -- from the
+; bridge on JAWS and from the add-on on NVDA -- and both look for the .cmd.
+; Only the .ps1 was installed, so on every installed copy the rebind quietly
+; did not happen and the keys stayed bound in the old browser. Found on
+; 26 September 2026 while moving the scripts, by mapping every caller.
+Source: "scripts\chainJawsScripts.cmd"; DestDir: "{app}\scripts"; Flags: ignoreversion skipifsourcedoesntexist
 ; One line, the version. Written by buildHomerView so the installed scripts and
 ; their log can say which build they came from without being told.
-Source: "C:\HomerView\version.txt"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "version.txt"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 
-Source: "C:\HomerView\installPandoc.cmd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\HomerView\installPandoc.ps1"; DestDir: "{app}"; Flags: ignoreversion
+Source: "scripts\installPandoc.cmd"; DestDir: "{app}\scripts"; Flags: ignoreversion
+Source: "scripts\installPandoc.ps1"; DestDir: "{app}\scripts"; Flags: ignoreversion
 
 [Icons]
 ; A Start Menu group is created only if the user asks for one, since
@@ -212,7 +241,7 @@ Name: "{group}\HomerView history of changes"; Filename: "{app}\History.htm"
 Name: "{group}\HomerView developer notes"; Filename: "{app}\Developer.htm"
 ; A shortcut runs as whoever double-clicks it, so this one can point at the
 ; add-on file directly and let the file association do its work.
-Name: "{group}\Install the HomerView add-on in NVDA"; Filename: "{app}\build\{#AddonFile}"; WorkingDir: "{app}\build"
+Name: "{group}\Install the HomerView add-on in NVDA"; Filename: "{app}\exec\{#AddonFile}"; WorkingDir: "{app}\exec"
 Name: "{group}\Uninstall HomerView"; Filename: "{uninstallexe}"
 
 ; THE ONE KEY THAT WORKS WHEN THE BROWSER IS NOT IN FRONT, and the reason
@@ -253,7 +282,7 @@ Name: "{group}\Uninstall HomerView"; Filename: "{uninstallexe}"
 ; If Alt+Control+Shift+H is silent, something else has registered it as a global
 ; hotkey and wins. The shortcut's key can be changed in its properties, and
 ; the guide says so.
-Name: "{autodesktop}\HomerView"; Filename: "{app}\HomerView.exe"; Parameters: "launch"; WorkingDir: "{app}"; HotKey: "ctrl+alt+shift+h"; Comment: "Open HomerView, or come back to it. Alt+Control+Shift+H."
+Name: "{autodesktop}\HomerView"; Filename: "{app}\exec\HomerView.exe"; Parameters: "launch"; WorkingDir: "{app}"; HotKey: "ctrl+alt+shift+h"; Comment: "Open HomerView, or come back to it. Alt+Control+Shift+H."
 
 [Run]
 ; Back to the shell, which is what worked, plus the one flag that was missing.
@@ -280,7 +309,13 @@ Name: "{autodesktop}\HomerView"; Filename: "{app}\HomerView.exe"; Parameters: "l
 ; So this is the original mechanism with the flag it always needed. If it fails
 ; again, the answer is not another mechanism: it is installing from the file,
 ; which the finish page now explains in every case.
-Filename: "{app}\build\{#AddonFile}"; Description: "Install the HomerView add-on in NVDA (recommended)"; Flags: postinstall shellexec skipifsilent runasoriginaluser nowait
+; OFFERED ONLY WHERE NVDA IS, AS THE JAWS LINE IS OFFERED ONLY WHERE JAWS IS.
+; Until 26 September 2026 this line had no Check, so a machine with JAWS alone
+; was offered, ticked, an NVDA add-on it could not install -- and a message
+; box on this page then warned that the ticked box would fail. An installer
+; offers the components this machine can use and nothing else. Someone who
+; installs NVDA later has the Start menu item for the add-on.
+Filename: "{app}\exec\{#AddonFile}"; Description: "Install the HomerView add-on in NVDA (recommended)"; Flags: postinstall shellexec skipifsilent runasoriginaluser nowait; Check: HaveNvda
 
 ; Pandoc, fetched rather than packaged, for the same reason HomerScribe fetches
 ; Ollama: it is far too large to ship and not everybody needs it.
@@ -335,14 +370,14 @@ Filename: "{app}\build\{#AddonFile}"; Description: "Install the HomerView add-on
 ; cannot sit inside the entry either: a line continuation ends at one.
 ; reader chose to continue. Removing before installing means the two sets
 ; never exist at once, so no key ever has two bindings.
-Filename: "{app}\installJawsScripts.cmd"; \
+Filename: "{app}\scripts\installJawsScripts.cmd"; \
   Parameters: "-bUninstall -bQuiet"; \
   WorkingDir: "{app}"; \
   StatusMsg: "Removing the older HomerView scripts for JAWS..."; \
   Flags: runasoriginaluser waituntilterminated runhidden; \
   Check: RemovingOldScripts
 
-Filename: "{app}\installJawsScripts.cmd"; \
+Filename: "{app}\scripts\installJawsScripts.cmd"; \
   Parameters: "-sVersion {#AppVersion} -bQuiet"; \
   WorkingDir: "{app}"; \
   Description: "Install the HomerView scripts for JAWS (recommended)"; \
@@ -361,18 +396,29 @@ Filename: "{app}\installJawsScripts.cmd"; \
 ; So this entry runs the JAWS step when, and only when, the wizard is silent.
 ; runhidden because there is no window worth showing, and -bQuiet so the
 ; wrapper does not stop at "press any key" that nobody is there to press.
-Filename: "{app}\installJawsScripts.cmd"; \
+Filename: "{app}\scripts\installJawsScripts.cmd"; \
   Parameters: "-sVersion {#AppVersion} -bQuiet"; \
   WorkingDir: "{app}"; \
   Flags: runhidden runasoriginaluser waituntilterminated; \
   Check: JawsAndSilent
 
-Filename: "{cmd}"; \
-  Parameters: "/c """"{app}\installPandoc.cmd"""""; \
-  WorkingDir: "{app}"; \
-  Description: "Install pandoc, for reading ebooks, Markdown and OpenDocument text (about 220 MB)"; \
-  Flags: postinstall skipifsilent runascurrentuser; \
-  Check: NeedPandoc
+; PANDOC IN THE KIT'S THREE SHAPES: "Install pandoc <version>" ticked when it
+; is absent, "Update pandoc from <old> to <new>" ticked when a newer one exists,
+; "Reinstall pandoc <version>" unticked when it is current. So Enter installs
+; what is missing, updates what is stale, and reinstalls nothing. Run directly,
+; not through {cmd} with doubled quotes, which the kit found fails silently.
+Filename: "{app}\scripts\installPandoc.cmd"; Parameters: "noPause"; \
+  WorkingDir: "{app}\scripts"; Description: "{code:labelPandoc}"; \
+  Flags: postinstall skipifsilent runascurrentuser waituntilterminated; \
+  Check: isInstallPandoc
+Filename: "{app}\scripts\installPandoc.cmd"; Parameters: "noPause"; \
+  WorkingDir: "{app}\scripts"; Description: "{code:labelPandoc}"; \
+  Flags: postinstall skipifsilent runascurrentuser waituntilterminated; \
+  Check: isUpdatePandoc
+Filename: "{app}\scripts\installPandoc.cmd"; Parameters: "noPause"; \
+  WorkingDir: "{app}\scripts"; Description: "{code:labelPandoc}"; \
+  Flags: postinstall skipifsilent runascurrentuser waituntilterminated unchecked; \
+  Check: isReinstallPandoc
 
 [UninstallRun]
 ; Take the JAWS scripts back out. Ours to remove, since we put them there, and
@@ -389,7 +435,7 @@ Filename: "{cmd}"; \
 ; deletes that folder a moment later -- so a removal that went wrong would erase
 ; the only record of how. The removal log goes to the temporary folder instead,
 ; where it outlives the program and can still be sent.
-Filename: "{app}\installJawsScripts.cmd"; \
+Filename: "{app}\scripts\installJawsScripts.cmd"; \
   Parameters: "-bUninstall -pathLogFile ""{%TEMP}\HomerViewUninstall.log"""; \
   WorkingDir: "{app}"; \
   Flags: runhidden waituntilterminated skipifdoesntexist; \
@@ -410,30 +456,72 @@ Filename: "{code:GetNvdaPath}"; \
   Check: HaveNvda
 
 [UninstallDelete]
-; EVERYTHING HOMERVIEW MADE, not only what it installed.
-;
-; The program folder is Inno's to clear. These are the places HomerView wrote to
-; while it ran: its own data folder holds the log, the cached engines, the
-; extracted pages and the whole Edge profile, and none of it means anything once
-; the program is gone. Downloads are deliberately NOT touched -- reports and
-; fetched files are the user's, and an uninstaller that deletes a person's
-; Downloads folder has badly overstepped.
-Type: filesandordirs; Name: "{localappdata}\HomerView"
+; ONLY WHAT HOMERVIEW MADE FOR ITSELF, NEVER THE WHOLE FOLDER. The kit's rule:
+; a folder that may hold something the user made is never removed wholesale.
+; On 24 September 2026 a wholesale line deleted Whisper on every HomerScribe
+; upgrade. This one read "{localappdata}\HomerView" until 26 September, and
+; that folder holds two things that are the reader's: recent.txt, their list
+; of pages, and the browser profile, with every sign-in they made in
+; HomerView's window. Uninstalling to reinstall cleanly -- the usual first
+; step with a problem -- took both. So this names what HomerView made for its
+; own use, the same list TidyDataFolder in the bridge clears: the logs, the
+; fetched engines, the converted documents, its copy of the start page, and
+; the browser caches, which Chromium rebuilds from nothing. Downloads are
+; not touched either; reports and fetched files are the user's.
+Type: filesandordirs; Name: "{localappdata}\HomerView\logs"
+Type: filesandordirs; Name: "{localappdata}\HomerView\cache"
+Type: filesandordirs; Name: "{localappdata}\HomerView\temp"
+Type: files; Name: "{localappdata}\HomerView\Start.htm"
+Type: files; Name: "{localappdata}\HomerView\*.log"
+Type: filesandordirs; Name: "{localappdata}\HomerView\EdgeProfile\Default\Cache"
+Type: filesandordirs; Name: "{localappdata}\HomerView\EdgeProfile\Default\Code Cache"
+Type: filesandordirs; Name: "{localappdata}\HomerView\EdgeProfile\Default\GPUCache"
+Type: filesandordirs; Name: "{localappdata}\HomerView\EdgeProfile\Default\Service Worker\CacheStorage"
+Type: filesandordirs; Name: "{localappdata}\HomerView\EdgeProfile\GrShaderCache"
+Type: filesandordirs; Name: "{localappdata}\HomerView\EdgeProfile\ShaderCache"
 Type: files; Name: "{app}\HomerView.log"
 Type: files; Name: "{app}\HomerView.previous.log"
 Type: files; Name: "{app}\Axe.json"
 Type: files; Name: "{app}\Ace.json"
 Type: files; Name: "{app}\HomerView.db"
 Type: files; Name: "{app}\HomerView.jsonl"
+Type: files; Name: "{app}\templates\Start.htm"
 Type: files; Name: "{app}\Start.htm"
 Type: files; Name: "{app}\Axe.js"
 Type: files; Name: "{app}\Ace.js"
 Type: files; Name: "{app}\Nlp.js"
 Type: files; Name: "{app}\version.txt"
+; exec holds the binaries now, and build is kept on this list on purpose: an
+; installation made before 26 September 2026 still has one, and uninstalling
+; should take it too.
+Type: filesandordirs; Name: "{app}\exec"
 Type: filesandordirs; Name: "{app}\build"
 Type: filesandordirs; Name: "{app}\dist"
 
 [Code]
+
+{ THE KIT'S COMPONENT TABLE, included from inside [Code] as the kit requires:
+  an include that declared a [Code] section of its own would start a second
+  one, and this section's functions would replace its definitions rather than
+  add to them. HomerDev may live elsewhere; the build can say where with
+  /DHomerDev=, and C:\HomerDev is the standing default. }
+#ifndef HomerDev
+  #define HomerDev "C:\HomerDev"
+#endif
+#include HomerDev + "\Templates\HomerComponents.iss"
+
+{ PANDOC, THE ONE COMPONENT HOMERVIEW DEPENDS ON FROM OUTSIDE. Registered once
+  in InitializeSetup; everything the finish page and the results box say about
+  it comes from that one registration. It lives machine-wide, in its own
+  Program Files\Pandoc, shared by every Homer app -- until 26 September 2026
+  it was copied into this app's folder, where an upgrade could destroy it. }
+var
+  iPandoc: Integer;
+
+function labelPandoc(sParam: String): String;  begin Result := homerLabel(iPandoc); end;
+function isInstallPandoc(): Boolean;           begin Result := homerIs(iPandoc, 0); end;
+function isUpdatePandoc(): Boolean;            begin Result := homerIs(iPandoc, 1); end;
+function isReinstallPandoc(): Boolean;         begin Result := homerIs(iPandoc, 2); end;
 
 { ---------------------------------------------------------------------------
   Finding NVDA.
@@ -509,22 +597,6 @@ end;
   Its settings live under the user's roaming application data, one folder per
   version, and that folder is what JAWS actually loads scripts from. If it is
   not there, JAWS is not here, and the checkbox is not offered. }
-{ ---------------------------------------------------------------------------
-  Whether pandoc still needs fetching.
-
-  The task that offers it was shown on every reinstall, whether or not pandoc
-  was already sitting in the installation folder. The script it runs does check,
-  and exits saying so, but by then a person has already been offered a two
-  hundred megabyte download, ticked a box, watched a window open and closed it
-  again. An offer that is always declined by the program is an offer that should
-  not have been made.
-  --------------------------------------------------------------------------- }
-
-function NeedPandoc(): Boolean;
-begin
-  Result := not FileExists(ExpandConstant('{app}\pandoc.exe'));
-end;
-
 function HaveJaws(): Boolean;
 var
   sPath: String;
@@ -595,33 +667,6 @@ begin
   Result := GetNvdaPath('') <> '';
 end;
 
-{ If NVDA cannot be found, the checkbox on the last page will hand the file to
-  the shell, which is what failed for one user. Saying so before that happens
-  costs nothing and turns an access violation into an instruction. }
-procedure CurPageChanged(iCurPageID: Integer);
-var
-  sBreak, sMessage: String;
-begin
-  if (iCurPageID = wpFinished) and (not HaveNvda()) then
-  begin
-    { Held in a variable rather than written inline. Two rules govern every
-      line in this file, and both are enforced before Pascal is ever compiled.
-      A line must not begin with a hash, which the preprocessor reads as one of
-      its own directives; and a line must not begin with an opening bracket,
-      which the section parser reads as a section header. Neither rule cares
-      that the line sits inside a Pascal comment. Chr(13) and Chr(10) avoid the
-      first, and starting every comment line with a word avoids the second. }
-    sBreak := Chr(13) + Chr(10) + Chr(13) + Chr(10);
-    sMessage := 'NVDA was not found on this computer.' + sBreak +
-      'The HomerView files are installed, but the add-on still has to be given ' +
-      'to NVDA before any of its commands will work.' + sBreak +
-      'Install it from the file instead: open NVDA, choose Tools, then ' +
-      'Add-on Store, then Install from external source, and pick this file:' +
-      sBreak + ExpandConstant('{app}\build\{#AddonFile}') + sBreak +
-      'If NVDA is not installed at all, it is free from www.nvaccess.org.';
-    MsgBox(sMessage, mbInformation, MB_OK);
-  end;
-end;
 
 { The browser profile lives under the user's local application data folder,     }
 { never under the installation folder, because this installer requires          }
@@ -728,6 +773,8 @@ var
   sFolders: String;
 begin
   Result := True;
+  iPandoc := homerAdd('pandoc', 'JohnMacFarlane.Pandoc', 'pandoc',
+    '{commonpf}\Pandoc\pandoc.exe', 'reads ebooks and Markdown', 'Pandoc');
 
   { THE TWO APPROACHES MUST NOT BE MIXED, WHICH IS WHY THIS CAN CANCEL.
     An earlier HomerView put its keys in default.jkm, where they applied in
@@ -858,7 +905,7 @@ var
 begin
   try
     Exec(ExpandConstant('{cmd}'),
-      '/c ""' + ExpandConstant('{app}\summarizeSetup.cmd') + '" "' + sFolder + '""',
+      '/c ""' + ExpandConstant('{app}\scripts\summarizeSetup.cmd') + '" "' + sFolder + '""',
       ExpandConstant('{app}'), SW_HIDE, ewNoWait, iResult);
   except
   end;
@@ -888,13 +935,13 @@ begin
     + 'Logs:' + sBreak + '  ' + sLogFolder + sBreak + sBreak
     + 'Results' + sBreak;
 
-  { pandoc is decided before this point, so it can be reported here. The JAWS
-    and NVDA steps run from the finish page AFTER this text is handed over, so
-    the summary reports those. }
-  if FileExists(ExpandConstant('{app}\pandoc.exe')) then
-    sMessage := sMessage + '  pandoc: present. Ebooks and Markdown will open.' + sBreak
+  { pandoc is reported from the component table, which looks everywhere pandoc
+    can be -- Program Files, the PATH, winget -- rather than for a copy in this
+    app's folder, which is no longer where it goes. }
+  if homerIs(iPandoc, 0) then
+    sMessage := sMessage + '  pandoc: not installed yet. The finish page offers it.' + sBreak
   else
-    sMessage := sMessage + '  pandoc: not present. Ebooks and Markdown need it.' + sBreak;
+    sMessage := sMessage + '  pandoc: present. Ebooks and Markdown will open.' + sBreak;
   if not HaveJaws() then
     sMessage := sMessage + '  JAWS scripts: not offered, because JAWS was not found here.' + sBreak;
 

@@ -69,8 +69,19 @@ if not defined homerDev (
 )
 set "homerVer=0.0.0"
 if exist "!homerDev!\version.txt" set /p homerVer=<"!homerDev!\version.txt"
-set "kitNeeded=1.39.2"
-powershell -NoProfile -Command "if ([version]'!homerVer!' -lt [version]'!kitNeeded!') { exit 1 } else { exit 0 }" >nul
+set "kitNeeded=1.42.0"
+rem TRIMMED BEFORE IT IS COMPARED. FileDir's build of 25 September stopped
+rem with "kit 1.40.1 is older than 1.40.1": the kit's version.txt carried a
+rem trailing space, [version] would not parse "1.40.1 ", PowerShell threw, and
+rem the non-zero exit was taken for "older". HomerScribe's log shows the same
+rem trailing space. A comparison that cannot tell a parse failure from an old
+rem kit is worse than none, so the two cases are told apart here.
+powershell -NoProfile -Command "$sHave = '!homerVer!'.Trim(); $sNeed = '!kitNeeded!'.Trim(); try { if ([version]$sHave -lt [version]$sNeed) { exit 1 } else { exit 0 } } catch { Write-Host ('The kit version could not be read: ' + $sHave); exit 2 }"
+if errorlevel 2 (
+  echo The kit's version.txt at !homerDev! does not hold a version number.
+  echo ERROR: unreadable kit version "!homerVer!">> "%log%"
+  exit /b 1
+)
 if errorlevel 1 (
   echo %app% needs HomerDev !kitNeeded! or later, and the kit is !homerVer!.
   echo Unzip HomerDev.zip into C:\HomerDev, then build again.
@@ -85,9 +96,13 @@ rem Only the modules HomerView.cs calls. The bridge is a console program
 rem with two file dialogs; it has no forms, so Lbc, Say, Elevate and Mdi
 rem would be dead weight in a 190 KB binary. Add a line when a call
 rem appears; the compiler names any that is missing.
-set "homerSources="
-set "homerSources=!homerSources! "!homerDev!\CSharp\Inix.cs""
-set "homerSources=!homerSources! "!homerDev!\CSharp\Web.cs""
+rem JOINED WITH SEMICOLONS, NOT QUOTED. The first version wrapped each path
+rem in quotes and passed the lot as one quoted PowerShell argument, and the
+rem inner quotes did not survive the cmd-to-PowerShell boundary: the engine
+rem received the paths bare, found no quotes to split on, compiled with no
+rem kit sources at all, and csc answered "InixCodec does not exist". A
+rem semicolon cannot appear in a Windows path, so it crosses intact.
+set "homerSources=!homerDev!\CSharp\Inix.cs;!homerDev!\CSharp\Web.cs"
 for %%F in ("!homerDev!\CSharp\Inix.cs" "!homerDev!\CSharp\Web.cs") do (
   if not exist %%F (
     echo The kit at !homerDev! has no %%~nxF, and HomerView.cs calls into it.
@@ -95,13 +110,16 @@ for %%F in ("!homerDev!\CSharp\Inix.cs" "!homerDev!\CSharp\Web.cs") do (
     exit /b 1
   )
 )
-echo Kit sources:!homerSources!>> "%log%"
+echo Kit sources: !homerSources!>> "%log%"
 
 rem ---- copies of the kit classes this app used to carry: gone --------
 for %%F in (homer\Inix.cs homer\Web.cs homer\Keys.cs) do (
   if exist "%%F" del /q "%%F" && echo Removed the local copy %%F>> "%log%"
 )
 if exist "homer" rd "homer" 2>nul
+rem docs\ was a second, stale copy of the documentation set. The set lives in
+rem help\ now, and one copy is the right number of copies.
+if exist "docs" rd /s /q "docs" && echo Removed the stale docs\ folder>> "%log%"
 
 rem ---- the compiler: Roslyn, or install it, or stop ----------------------
 set "csc="
@@ -131,18 +149,92 @@ echo Compiler: !csc!>> "%log%"
 
 rem ---- the kit's scripts this app carries, refreshed on every build --
 if not exist "scripts" mkdir "scripts"
-for %%F in (checkHomerApp.cmd checkHomerApp.py checkTutorial.cmd checkTutorial.py fixEncoding.cmd fixEncoding.py gitPush.cmd gitUnpushed.cmd gitUnpushed.py homerInstall.cmd homerTidy.cmd homerTidy.py installScreenReaderSupport.cmd makeTutorials.py buildTutorials.cmd buildTutorials.ps1 tagRelease.cmd tagRelease.ps1) do (
-  if exist "!homerDev!\scripts\%%F" copy /y "!homerDev!\scripts\%%F" scripts\ >nul && echo Refreshed scripts\%%F>> "%log%"
+rem ONLY THE KIT TOOLS HOMERVIEW USES. The kit offers every app the same set,
+rem and an app should carry what it needs rather than everything offered, as
+rem an installer offers only the components that app depends on -- the spell
+rem checker for EdSharp, Whisper for HomerScribe, pandoc here. Left out on
+rem purpose: installScreenReaderSupport, since installJawsScripts already does
+rem that job here and two tools for one job is how they drift; homerInstall,
+rem the common half of install scripts HomerView does not have; and the three
+rem tutorial tools, which come back the day HomerView has a tutorial.
+rem THE KIT RENAMED ITS SCRIPTS ON 26 SEPTEMBER 2026: homerTidy is tidy, gitPush
+rem is push, gitUnpushed is unpushed, checkHomerApp is check, tagRelease is
+rem release. A NAME THE KIT DOES NOT HAVE IS SAID, NOT SKIPPED: this loop used
+rem to copy "if exist", so after a rename every copy would quietly have been
+rem skipped and HomerView kept its stale old-named scripts with nothing in the
+rem log to say so.
+for %%F in (check.cmd check.py fixEncoding.cmd fixEncoding.py push.cmd release.cmd release.ps1 tidy.cmd tidy.py unpushed.cmd unpushed.py) do (
+  if exist "!homerDev!\scripts\%%F" (
+    copy /y "!homerDev!\scripts\%%F" scripts\ >nul && echo Refreshed scripts\%%F>> "%log%"
+  ) else (
+    echo NOT IN THE KIT: scripts\%%F. The kit at !homerDev! may be older than 1.42.0.>> "%log%"
+    echo The kit has no scripts\%%F. Update HomerDev to 1.42.0 or later.
+  )
 )
-rem Retired: one tool per job, and the kit's tool is the one.
-for %%F in (cleanDir.cmd cleanDir.py gitRelease.cmd homerPolicy.py installTools.cmd sayTutorial.cmd sayTutorial.py tidyRepo.cmd tidyRepo.py) do (
+rem Retired: one tool per job, and the kit's tool is the one. And a script-set
+rem leftover: HomerViewGlobal.jkm was the global key map from before the keys
+rem moved into the browser's own map. Nothing reads it, but scripts\jaws\* is
+rem shipped whole, so a dead file there would be installed on every machine.
+if exist "scripts\jaws\HomerViewGlobal.jkm" del /q "scripts\jaws\HomerViewGlobal.jkm" && echo Removed the dead scripts\jaws\HomerViewGlobal.jkm>> "%log%"
+for %%F in (buildTutorials.cmd buildTutorials.ps1 checkHomerApp.cmd checkHomerApp.py checkTutorial.cmd checkTutorial.py cleanDir.cmd cleanDir.py gitPush.cmd gitRelease.cmd gitUnpushed.cmd gitUnpushed.py homerInstall.cmd homerPolicy.py homerTidy.cmd homerTidy.py installScreenReaderSupport.cmd installTools.cmd makeTutorials.py sayTutorial.cmd sayTutorial.py tagRelease.cmd tagRelease.ps1 tidyRepo.cmd tidyRepo.py) do (
   if exist "scripts\%%F" del /q "scripts\%%F" && echo Removed retired scripts\%%F>> "%log%"
   if exist "%%F" del /q "%%F" && echo Removed retired %%F from the root>> "%log%"
 )
 
+rem ---- the JAWS set moved from jaws\ to scripts\jaws on 26 September 2026 ------
+rem CARRIED ACROSS, NOT ONLY WARNED ABOUT. Unzipping adds and replaces but
+rem never moves, so a delivery that moves a folder brings only the files it
+rem happens to contain. On 26 September scripts\jaws held HomerView.jss alone,
+rem because that was the one file a later delivery carried, while .jkm and
+rem .jsd sat in the old jaws\ -- and the quality check, now reading the new
+rem place, reported every command as undocumented. A file missing from the
+rem new place is taken from the old; a file already there is newer and stays.
+if exist "jaws" (
+  if not exist "scripts\jaws" mkdir "scripts\jaws"
+  for %%F in (jaws\*.*) do (
+    if not exist "scripts\jaws\%%~nxF" (
+      move /y "%%F" "scripts\jaws\" >nul && echo Carried jaws\%%~nxF across to scripts\jaws>> "%log%"
+    )
+  )
+  rem AND THEN RETIRED, ONCE NOTHING IN IT IS UNIQUE. Warning about it on
+  rem every build was not enough: four builds in a row said it and it stayed.
+  rem Every file it still holds now has a copy in scripts\jaws, carried or
+  rem newer, so moving the folder to notes\ loses nothing and can be undone.
+  set "bUnique="
+  for %%F in (jaws\*.*) do if not exist "scripts\jaws\%%~nxF" set "bUnique=1"
+  if not defined bUnique (
+    if not exist "notes" mkdir "notes"
+    if exist "notes\jaws" rd /s /q "notes\jaws"
+    move "jaws" "notes\jaws" >nul && echo Moved the old jaws\ to notes\jaws; scripts\jaws has every file>> "%log%"
+  )
+)
+rem build\ held only build output, all of which exec\ now holds, so it goes
+rem the same way once exec\ exists.
+if exist "build" if exist "exec" (
+  if not exist "notes" mkdir "notes"
+  if exist "notes\build" rd /s /q "notes\build"
+  move "build" "notes\build" >nul && echo Moved the old build\ to notes\build; exec\ holds the output now>> "%log%"
+)
+
+rem ---- HomerView's own tools moved into scripts\ on 26 September 2026 -------
+rem Unzipping adds and replaces but never removes, so the old copies at the
+rem root would stay, work, and drift -- and a person running one by habit
+rem would get the old version. Each is removed only once its replacement in
+rem scripts\ is actually there.
+for %%N in (chainJawsScripts checkHomerViewQuality checkJawsScripts checkParity createHomerViewRepo installJawsScripts installPandoc makeDocs probeJawsScripts summarizeSetup) do (
+  for %%E in (cmd ps1 py) do (
+    if exist "%%N.%%E" if exist "scripts\%%N.%%E" del /q "%%N.%%E" && echo Removed the root copy %%N.%%E; it lives in scripts\ now>> "%log%"
+  )
+)
+
 rem ---- the Homer encoding, before anything is compiled -----------------
+rem AN EXPLICIT ARGUMENT, ALWAYS. The kit's lesson of 25 September: %* is not
+rem reset by a bare call, and a tool called with none inherits the caller's.
+rem On this build's first run the call below reached fixEncoding with a
+rem stray "*" and cmd tried to run it as a program. Every tool ignores
+rem dash-arguments it does not know, so -build is safe to pass to all.
 if exist "scripts\fixEncoding.cmd" (
-  call "scripts\fixEncoding.cmd" >> "%log%" 2>&1
+  call "scripts\fixEncoding.cmd" -build >> "%log%" 2>&1
   echo Encoding: fixEncoding exit code !errorlevel!>> "%log%"
 )
 

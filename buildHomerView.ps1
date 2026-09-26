@@ -1,6 +1,6 @@
 ﻿# buildHomerView.ps1
-# Builds everything a release needs, in the order tagRelease expects:
-# the add-on package, then the installer whose version resource tagRelease reads.
+# Builds everything a release needs, in the order release expects:
+# the add-on package, then the installer whose version resource release reads.
 # Writes buildHomerView.log beside itself.
 
 # HANDED IN BY buildHomerView.cmd, WHICH CARRIES THE KIT CONTRACT. This
@@ -68,8 +68,22 @@ function checkSetupScript {
         foreach ($sLine in $lLines) {
             if ($sLine -match 'Source:\s*"([^"]+)"' -and $sLine -notmatch 'skipifsourcedoesntexist') {
                 $sSource = $Matches[1]
+                # BUILD OUTPUT IS NOT CHECKED HERE, because it does not exist yet.
+                # exec\ holds what steps 3, 4 and 5 produce, and this runs at step
+                # 1. With build\ the add-on happened to survive from the previous
+                # run, so the check passed by accident; the first build into a
+                # fresh exec\ stopped on "exec\HomerView.nvda-addon does not
+                # exist". The installer compile at step 5 is the right place to
+                # find a missing binary, and it does.
+                if ($sSource -match '^exec\\') { continue }
                 if ($sSource -notmatch '\*') {
                     $sResolved = $sSource -replace '\{#AddonFile\}', 'HomerView.nvda-addon'
+                    # Relative to the project, as the kit's installers are written.
+                    # The absolute C:\HomerView\ prefix went on 25 September 2026;
+                    # a relative name is resolved here the way Inno resolves it.
+                    if (-not [System.IO.Path]::IsPathRooted($sResolved)) {
+                        $sResolved = Join-Path $pathRoot $sResolved
+                    }
                     if (-not (Test-Path $sResolved)) {
                         writeLog "ERROR: the setup script references $sResolved, which does not exist."
                         $iProblems += 1
@@ -189,7 +203,12 @@ function buildBridge {
     # Compiled with csc.exe from the .NET Framework, which is on every Windows
     # machine already, so this needs no Visual Studio and no NuGet.
     $pathSource = Join-Path $pathRoot "HomerView.cs"
-    $pathBridge = Join-Path $pathRoot "HomerView.exe"
+    # exec\ HOLDS EVERY BUILT BINARY, as the kit lays a project out: the
+    # bridge, the add-on and the installer, none of them in git. The compiler
+    # will not create the folder it writes into, so it is made here first.
+    $pathExec = Join-Path $pathRoot "exec"
+    if (-not (Test-Path $pathExec)) { New-Item -ItemType Directory -Path $pathExec | Out-Null }
+    $pathBridge = Join-Path $pathExec "HomerView.exe"
     if (-not (Test-Path $pathSource)) {
         writeLog "HomerView.cs is not here, so the JAWS bridge is skipped."
         writeLog "The NVDA add-on does not need it; only the JAWS scripts do."
@@ -199,6 +218,22 @@ function buildBridge {
     if (-not $pathCompiler) {
         $pathCompiler = Join-Path $env:WINDIR "Microsoft.NET\Framework64\v4.0.30319\csc.exe"
         writeLog "  no compiler was handed in, so the .NET Framework one is used"
+    }
+    # A PROGRAM THAT IS RUNNING CANNOT BE OVERWRITTEN, and the compiler's
+    # way of saying so is a CS2012 about a file in use, buried in its output.
+    # FileDir's build says "FileDir.exe is running" and stops; so does this.
+    # The bridge lives for one command, so this is rare -- but a command
+    # waiting on a browser that never answers holds the file open for the
+    # whole of its timeout.
+    $pathBridgeOut = Join-Path $pathRoot "exec\HomerView.exe"
+    if (Test-Path $pathBridgeOut) {
+        foreach ($oProcess in (Get-Process -Name "HomerView" -ErrorAction SilentlyContinue)) {
+            if ($oProcess.Path -and ($oProcess.Path -ieq $pathBridgeOut)) {
+                writeLog "ERROR: HomerView.exe is running (process $($oProcess.Id)), so it cannot be rebuilt."
+                writeLog "       Wait for the command it is serving to finish, or end it, and build again."
+                exit 1
+            }
+        }
     }
     if (-not (Test-Path $pathCompiler)) {
         writeLog "ERROR: the compiler was not found at $pathCompiler."
@@ -255,11 +290,24 @@ function buildBridge {
     # nowhere in it.
     $lShared = @()
     if ($sHomerSources) {
-        # THE KIT'S OWN FILES, named by the wrapper. Split on the quotes the
-        # wrapper put round each path, since a kit path has spaces in it.
-        foreach ($oMatch in ([regex]'"([^"]+)"').Matches($sHomerSources)) {
-            $lShared += $oMatch.Groups[1].Value
-            writeLog "  kit source: $($oMatch.Groups[1].Value)"
+        # THE KIT'S OWN FILES, named by the wrapper, semicolon-joined. The
+        # first version split on quotes, and the quotes had been stripped at
+        # the cmd-to-PowerShell boundary, so nothing was found and the bridge
+        # was compiled with no kit at all. A list that comes in empty is now a
+        # failure here, not a compiler error forty lines later.
+        foreach ($sOne in $sHomerSources.Split(";")) {
+            $sOne = $sOne.Trim().Trim('"')
+            if (-not $sOne) { continue }
+            if (-not (Test-Path $sOne)) {
+                writeLog "ERROR: kit source not found: $sOne"
+                exit 1
+            }
+            $lShared += $sOne
+            writeLog "  kit source: $sOne"
+        }
+        if ($lShared.Count -eq 0) {
+            writeLog "ERROR: the wrapper named kit sources but none could be read from: $sHomerSources"
+            exit 1
         }
     } else {
         foreach ($sName in @("Inix.cs", "Web.cs")) {
@@ -339,28 +387,45 @@ function buildAddon {
     # identical files with different names in one folder invites the wrong one
     # being picked up. The version is in the manifest, which is what NVDA reads.
     $pathAddon = Join-Path $pathRoot "addon"
-    $pathBuild = Join-Path $pathRoot "build"
+    $pathBuild = Join-Path $pathRoot "exec"
     # What went in, gathered rather than announced line by line.
     $script:lIncluded = New-Object System.Collections.ArrayList
 
     # THE PATCH NUMBER IS RAISED HERE, AND THIS CLOSES A REAL GAP.
     #
-    # tagRelease tells the reader "BuildHomerView.cmd takes a NEW version every
+    # release tells the reader "BuildHomerView.cmd takes a NEW version every
     # time it runs, and skips any number that is already released." THAT WAS
     # NOT TRUE: the build only ever READ the version from manifest.ini, so a
     # whole day's work could be built at a number already published, and
-    # tagRelease would rightly refuse to publish it -- looking like a failure
+    # release would rightly refuse to publish it -- looking like a failure
     # when it was doing its job.
     #
     # A build that produces a distinct artefact should carry a distinct number.
     # Only the LAST component moves, so setting 1.49.0 by hand in manifest.ini
     # still works and is still the way to mark anything bigger than a fix.
     $pathManifest = Join-Path $pathAddon "manifest.ini"
+    $pathVersion = Join-Path $pathRoot "version.txt"
+    # version.txt IS THE SOURCE OF TRUTH, AS THE KIT HAS IT. The add-on's
+    # manifest.ini used to be, and version.txt was written FROM it at the
+    # end. The kit turns that round: version.txt holds one line and is never
+    # pushed; the build steps it and writes every other place the number
+    # appears from it -- here manifest.ini, and the installer, which reads
+    # version.txt itself at compile time. One number, one file, and
+    # release reads it back out of the built installer so the tag cannot
+    # disagree with what was built.
+    #
+    # SEEDED FROM manifest.ini WHEN ABSENT, not from 1.0.0 as the template
+    # does: HomerView is past 1.48, and a fresh clone that reset it would
+    # publish a release number older than every installed copy.
     $sVersion = ""
-    foreach ($sLine in Get-Content $pathManifest) {
-        if ($sLine -match '^\s*version\s*=\s*"([^"]+)"') {
-            $sVersion = $Matches[1]
+    if (Test-Path $pathVersion) {
+        $sVersion = (Get-Content $pathVersion -Raw).Trim()
+    }
+    if (-not $sVersion) {
+        foreach ($sLine in Get-Content $pathManifest) {
+            if ($sLine -match '^\s*version\s*=\s*"([^"]+)"') { $sVersion = $Matches[1] }
         }
+        writeLog "No version.txt, so the version was taken from manifest.ini: $sVersion"
     }
     # nobump KEEPS THE NUMBER, as the kit's builds do. A rebuild that changes
     # nothing a user would notice should not spend a release number.
@@ -369,11 +434,7 @@ function buildAddon {
     } elseif ($sVersion -match '^(.*)\.(\d+)$') {
         $sWas = $sVersion
         $sVersion = "$($Matches[1]).$([int]$Matches[2] + 1)"
-        $lManifestLines = Get-Content $pathManifest | ForEach-Object {
-            if ($_ -match '^\s*version\s*=') { "version = `"$sVersion`"" } else { $_ }
-        }
-        Set-Content -Path $pathManifest -Value $lManifestLines -Encoding UTF8
-        writeLog "Version raised from $sWas to $sVersion in manifest.ini"
+        writeLog "Version: $sWas -> $sVersion"
     } else {
         writeLog "WARNING: the version '$sVersion' does not end in a number, so it was left alone."
     }
@@ -389,8 +450,13 @@ function buildAddon {
     # JAWS log's header said "HomerView unknown". The installer passes it as a
     # parameter too, and this is the belt to that pair of braces: a parameter
     # can go astray between four programs, a file in the folder cannot.
-    Set-Content -Path (Join-Path $pathRoot "version.txt") -Value $sVersion -Encoding ASCII -NoNewline
-    writeLog "Wrote version.txt"
+    Set-Content -Path $pathVersion -Value $sVersion -Encoding ASCII -NoNewline
+    # And manifest.ini EVERY build, bumped or not, so the two cannot drift.
+    $lManifestLines = Get-Content $pathManifest | ForEach-Object {
+        if ($_ -match '^\s*version\s*=') { "version = `"$sVersion`"" } else { $_ }
+    }
+    Set-Content -Path $pathManifest -Value $lManifestLines -Encoding UTF8
+    writeLog "Wrote version.txt and manifest.ini for $sVersion"
 
     # THE TWO ACCESSIBILITY ENGINES, FETCHED ONCE AT BUILD TIME.
     #
@@ -462,7 +528,7 @@ function buildAddon {
     # generated HERE from the add-on's own generator and installed beside the
     # program. One source, one file, both screen readers.
     try {
-        $pathStartPage = Join-Path $pathRoot "Start.htm"
+        $pathStartPage = Join-Path $pathRoot "templates\Start.htm"
         $pathGenerator = Join-Path $pathAddon "globalPlugins\homerView\startPage.py"
         if (Test-Path $pathGenerator) {
             $sPython = (Get-Command python -ErrorAction SilentlyContinue).Source
@@ -499,9 +565,23 @@ function buildAddon {
         # its old name behind and that old name is then packaged. HomerView.htm
         # survived the rename to HomerView.htm exactly this way.
         $pathDocs = Join-Path $pathAddon "doc\en"
+        # FILLED FROM help\ ON EVERY BUILD, not kept as a fourth copy. The
+        # add-on carries its documents so NVDA's add-on manager can show them,
+        # and until 26 September 2026 those were checked-in copies that
+        # drifted from the real ones. Now help\ is the source, README comes
+        # from the top, and readme.html -- an .html duplicate of README.htm
+        # -- is no longer expected at all.
+        if (-not (Test-Path $pathDocs)) { New-Item -ItemType Directory -Path $pathDocs | Out-Null }
+        foreach ($sDoc in @("Announce", "Developer", "History", "HomerView", "hotkeys")) {
+            $pathFrom = Join-Path $pathRoot "help\$sDoc.htm"
+            if (Test-Path $pathFrom) { Copy-Item $pathFrom (Join-Path $pathDocs "$sDoc.htm") -Force }
+        }
+        $pathReadme = Join-Path $pathRoot "README.htm"
+        if (Test-Path $pathReadme) { Copy-Item $pathReadme (Join-Path $pathDocs "README.htm") -Force }
+        writeLog "Refreshed the add-on documents from help\"
         if (Test-Path $pathDocs) {
             $lExpected = @("Announce.htm", "HomerView.htm", "Developer.htm", "History.htm",
-                "ReadMe.htm", "Hotkeys.htm", "readme.html")
+                "README.htm", "hotkeys.htm")
             foreach ($fileDoc in (Get-ChildItem -Path $pathDocs -File)) {
                 if ($lExpected -notcontains $fileDoc.Name) {
                     Remove-Item $fileDoc.FullName -Force
@@ -557,6 +637,84 @@ writeLog ""
 # announced it was checking the setup script. A check nobody can act on is not
 # a check, and the whole point of these is to stop a bad script reaching Inno
 # Setup, which reports a line number and four words.
+# THE DOCUMENTS, MADE FROM THEIR MARKDOWN BEFORE ANYTHING IS CHECKED.
+#
+# Every .md in the documentation set has a .htm beside it, and both are
+# delivered -- that is the standing rule. The .htm files were being made by
+# hand, on whichever machine last had pandoc to hand, and committed. So they
+# could go missing without anything noticing until the installer asked for
+# one: on 25 September 2026 homerTidy took all six for stray drafts, moved
+# them to notes\drafts, and the next build stopped at "HomerView.htm does not
+# exist".
+#
+# A generated file is regenerated, not mourned. This makes each .htm from its
+# .md with the same pandoc call the kit's builds use, and only when the .md is
+# newer or the .htm is absent, so a build that changed no document costs
+# nothing here. pandoc is found on the PATH or at the standard machine-wide
+# install, which is where installPandoc.cmd puts it.
+function buildDocuments {
+    $pathPandoc = ""
+    $oCommand = Get-Command pandoc -ErrorAction SilentlyContinue
+    if ($oCommand) { $pathPandoc = $oCommand.Source }
+    if (-not $pathPandoc) {
+        foreach ($sTry in @((Join-Path ${env:ProgramFiles} "Pandoc\pandoc.exe"),
+                            (Join-Path $env:LOCALAPPDATA "Pandoc\pandoc.exe"),
+                            (Join-Path $pathRoot "pandoc.exe"))) {
+            if (Test-Path $sTry) { $pathPandoc = $sTry; break }
+        }
+    }
+    if (-not $pathPandoc) {
+        writeLog "WARNING: pandoc was not found, so no .htm was made from a .md."
+        writeLog "         Run installPandoc.cmd; the installer needs every .htm the .iss names."
+        return
+    }
+    writeLog "Documents: pandoc at $pathPandoc"
+    $iMade = 0
+    # README at the top, everything else in help\, as the kit lays it out.
+    foreach ($sName in @("Announce", "Developer", "History", "HomerView", "README", "hotkeys")) {
+        $sWhere = if ($sName -eq "README") { $pathRoot } else { Join-Path $pathRoot "help" }
+        $pathMd = Join-Path $sWhere "$sName.md"
+        $pathHtm = Join-Path $sWhere "$sName.htm"
+        if (-not (Test-Path $pathMd)) { continue }
+        $bMake = -not (Test-Path $pathHtm)
+        if (-not $bMake) {
+            $bMake = (Get-Item $pathMd).LastWriteTimeUtc -gt (Get-Item $pathHtm).LastWriteTimeUtc
+        }
+        if (-not $bMake) { continue }
+        $sOut = & $pathPandoc -s --toc --toc-depth=3 $pathMd -o $pathHtm 2>&1 | Out-String
+        if ($LASTEXITCODE -ne 0) {
+            writeLog "ERROR: pandoc failed on $sName.md: $($sOut.Trim())"
+            exit 1
+        }
+        # Pandoc writes neither the byte order mark nor CRLF; the Homer encoding
+        # is put on afterwards, as fixEncoding would, so the file is right the
+        # moment it exists rather than after the next build.
+        $sText = [System.IO.File]::ReadAllText($pathHtm)
+        $sText = $sText -replace "`r`n", "`n" -replace "`n", "`r`n"
+        [System.IO.File]::WriteAllText($pathHtm, $sText, (New-Object System.Text.UTF8Encoding($true)))
+        writeLog "  made $sName.htm from $sName.md"
+        $iMade += 1
+    }
+    writeLog "Documents: $iMade made, the rest already current"
+}
+
+writeLog "Step 0 of 5: the documents"
+# makeDocs FIRST: it writes help\hotkeys.md, configs\Hotkeys.inix, the start
+# page and its command list from the two key tables, and those are what
+# pandoc then turns into .htm. Run by hand until 26 September 2026, which is
+# how Hotkeys.inix came to list keys that no longer existed.
+$pathMakeDocs = Join-Path $pathRoot "scripts\makeDocs.py"
+if (Test-Path $pathMakeDocs) {
+    $sOut = & python $pathMakeDocs 2>&1 | Out-String
+    if ($LASTEXITCODE -ne 0) {
+        writeLog "ERROR: makeDocs failed:"
+        foreach ($sLine in ($sOut -split "`n")) { if ($sLine.Trim()) { writeLog "    $($sLine.Trim())" } }
+        exit 1
+    }
+    foreach ($sLine in ($sOut -split "`n")) { if ($sLine.Trim()) { writeLog "  makeDocs: $($sLine.Trim())" } }
+}
+buildDocuments
+writeLog ""
 writeLog "Step 1 of 5: checking the setup script and the sources"
 writeLog "Checking HomerView_setup.iss"
 checkSetupScript
@@ -567,11 +725,23 @@ checkSetupScript
 # root were read by nobody, and the root HomerView.jss had been left behind at
 # an older and broken revision. Anyone opening the one in the root would have
 # been reading a file that no build and no installer had touched for days.
+# The old build\ folder is the same story: exec\ holds the add-on now.
+if (Test-Path (Join-Path $pathRoot "build")) {
+    writeLog "WARNING: a build\ folder is still in the project root. Built output lives"
+    writeLog "         in exec\ now; tidy will move the old one to notes."
+}
+# AND THE OLD jaws\ FOLDER ITSELF, since the set moved to scripts\jaws on
+# 26 September 2026. A copy left at the old place is the same trap one
+# level down: read by nobody, and the first thing a reader opens.
+if (Test-Path (Join-Path $pathRoot "jaws")) {
+    writeLog "WARNING: a jaws\ folder is still in the project root. The script set lives"
+    writeLog "         in scripts\jaws\ now; tidy will move the old one to notes."
+}
 foreach ($sStray in @("HomerView.jss", "HomerView.jkm", "HomerView.jsd", "HomerViewGlobal.jkm")) {
     $pathStray = Join-Path $pathRoot $sStray
     if (Test-Path $pathStray) {
-        writeLog "WARNING: $sStray is in the project root as well as in jaws\, and only the"
-        writeLog "         one in jaws\ is built and shipped. Delete the root copy."
+        writeLog "WARNING: $sStray is in the project root as well as in scripts\jaws\, and only the"
+        writeLog "         one in scripts\jaws\ is built and shipped. Delete the root copy."
     }
 }
 writeLog ""
@@ -587,7 +757,7 @@ writeLog ""
 #
 # It does not stop the build. The NVDA add-on is unaffected by the state of the
 # JAWS scripts, and an installer worth testing should still be produced. What
-# it does is make the build finish with a failure, so that tagRelease does not
+# it does is make the build finish with a failure, so that release does not
 # run on a release whose JAWS half does not compile.
 # THE POWERSHELL WE SHIP IS PARSED HERE, NOT ON A TESTER'S MACHINE.
 #
@@ -599,7 +769,7 @@ writeLog ""
 #
 # PowerShell's own parser answers this in a moment. Nothing is executed.
 writeLog "Step 1b of 5: parsing the PowerShell that the installer runs"
-foreach ($sName in @("chainJawsScripts.ps1", "installJawsScripts.ps1", "checkJawsScripts.ps1")) {
+foreach ($sName in @("scripts\chainJawsScripts.ps1", "scripts\installJawsScripts.ps1", "scripts\checkJawsScripts.ps1")) {
     $pathScript = Join-Path $pathRoot $sName
     if (-not (Test-Path $pathScript)) {
         writeLog "  $sName is not here, so it was not parsed."
@@ -621,7 +791,7 @@ foreach ($sName in @("chainJawsScripts.ps1", "installJawsScripts.ps1", "checkJaw
 
 writeLog "Step 2 of 5: checking that the JAWS scripts compile"
 $script:bJawsFailed = $false
-$pathCheck = Join-Path $pathRoot "checkJawsScripts.ps1"
+$pathCheck = Join-Path $pathRoot "scripts\checkJawsScripts.ps1"
 if (-not (Test-Path $pathCheck)) {
     writeLog "WARNING: checkJawsScripts.ps1 is not here, so the JAWS scripts were not checked."
 } else {
@@ -689,7 +859,7 @@ buildAddon
 
 # Even on success, record what the add-on build produced, so this log alone
 # answers the ordinary questions: how many files, and how big.
-$pathBuilt = Join-Path $pathRoot "build\HomerView.nvda-addon"
+$pathBuilt = Join-Path $pathRoot "exec\HomerView.nvda-addon"
 if (Test-Path $pathBuilt) {
     $nAddonSize = [math]::Round((Get-Item $pathBuilt).Length / 1KB)
     writeLog "The add-on is $nAddonSize KB."
@@ -735,7 +905,21 @@ writeLog "Step 5 of 5: compiling the installer"
 $sOutput = ""
 try {
     $ErrorActionPreference = "Continue"
-    $sOutput = & $pathCompiler (Join-Path $pathRoot "HomerView_setup.iss") 2>&1 | Out-String
+    # THE KIT'S FOLDER, TOLD TO THE INSTALLER. HomerView_setup.iss includes the
+    # kit's HomerComponents.iss, and defaults to C:\HomerDev; when the wrapper
+    # found the kit somewhere else, that is where the include must come from.
+    # The kit folder is two levels above any of its C# sources.
+    $lInnoArguments = @()
+    if ($sHomerSources) {
+        $sFirst = $sHomerSources.Split(";")[0].Trim().Trim('"')
+        if ($sFirst) {
+            $sKit = Split-Path -Parent (Split-Path -Parent $sFirst)
+            $lInnoArguments += "/DHomerDev=$sKit"
+            writeLog "  telling the installer the kit is at $sKit"
+        }
+    }
+    $lInnoArguments += (Join-Path $pathRoot "HomerView_setup.iss")
+    $sOutput = & $pathCompiler @lInnoArguments 2>&1 | Out-String
     $iExit = $LASTEXITCODE
 } finally {
     $ErrorActionPreference = "Stop"
@@ -754,7 +938,7 @@ foreach ($sLine in ($lLines | Select-Object -Last 3)) {
     writeLog "    $($sLine.Trim())"
 }
 
-$pathInstaller = Join-Path $pathRoot "HomerView_setup.exe"
+$pathInstaller = Join-Path $pathRoot "exec\HomerView_setup.exe"
 if (-not (Test-Path $pathInstaller)) {
     writeLog "ERROR: HomerView_setup.exe was not produced. Check OutputDir in the setup script."
     exit 1
@@ -782,7 +966,7 @@ writeLog "The add-on and the installer both say $sVersion."
 
 # Every module the add-on imports must be inside it. A module left out builds
 # cleanly and fails on the user's machine at the moment they press the key.
-$pathBuiltAddon = Join-Path $pathRoot "build\HomerView.nvda-addon"
+$pathBuiltAddon = Join-Path $pathRoot "exec\HomerView.nvda-addon"
 if (-not (Test-Path $pathBuiltAddon)) {
     writeLog "ERROR: $pathBuiltAddon was not built."
     exit 1
@@ -826,11 +1010,11 @@ try {
 
 if ($script:bJawsFailed) {
     writeLog "The add-on and the installer were built, and can be installed and tested."
-    writeLog "The JAWS scripts did not compile, so this build is NOT ready for tagRelease."
+    writeLog "The JAWS scripts did not compile, so this build is NOT ready for release."
     writeLog "buildHomerView finished with a failure"
     exit 1
 }
-writeLog "Ready for tagRelease."
+writeLog "Ready for release."
 writeLog "buildHomerView finished"
 # EXPLICIT, so the exit code cannot be inherited from the last native
 # command that happened to run. His routine keys off it.

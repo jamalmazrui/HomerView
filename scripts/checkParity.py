@@ -17,9 +17,14 @@ import io, os, re, sys
 
 # Paths relative to THIS FILE, so it runs from anywhere -- including from the
 # project root by double-clicking it, which is how it will actually be used.
-sHere = os.path.dirname(os.path.abspath(__file__))
+# In scripts\ since 26 September 2026, so the project is one level up. The
+# log still goes beside this script, which is the project's logs rule's
+# exception for a tool that predates it.
+sScriptFolder = os.path.dirname(os.path.abspath(__file__))
+sHere = (os.path.dirname(sScriptFolder)
+         if os.path.basename(sScriptFolder).lower() == "scripts" else sScriptFolder)
 cmds = io.open(os.path.join(sHere, "addon", "globalPlugins", "homerView", "commands.py"), encoding="utf-8-sig", newline="").read()
-jss = io.open(os.path.join(sHere, "jaws", "HomerView.jss"), encoding="utf-8-sig", newline="").read()
+jss = io.open(os.path.join(sHere, "scripts", "jaws", "HomerView.jss"), encoding="utf-8-sig", newline="").read()
 i = jss.index('Let sTable = "')
 jaws = set()
 for k, l in enumerate(jss[i:].split("\r\n")):
@@ -77,7 +82,8 @@ for g in gaps:
     say("   " + g)
 
 # The log goes beside the script, as every script in this project does.
-pathLog = os.path.join(sHere, "checkParity.log")
+pathLog = os.path.join(sHere, "logs", "checkParity.log")
+os.makedirs(os.path.dirname(pathLog), exist_ok=True)
 with io.open(pathLog, "w", encoding="utf-8", newline="") as oFile:
     oFile.write("checkParity\r\n")
     oFile.write("  script:  %s\r\n" % os.path.abspath(__file__))

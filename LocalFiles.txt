@@ -5,10 +5,8 @@
 # never pushed. One path or pattern a line; a trailing slash means a folder.
 #
 # Build output. Made by buildHomerView, never committed.
-HomerView.exe
-HomerView_setup.exe
-jaws/HomerView.jsb
-build/
+exec/
+scripts/jaws/HomerView.jsb
 version.txt
 
 # Fetched at build time and large: the two accessibility engines, the
@@ -25,3 +23,10 @@ logs/
 
 # Working material, kept but not carried.
 notes/
+
+# The kit's release script. By standing rule it and its log stay out of git in
+# every repository: it is the separate tagRelease project's, refreshed here.
+scripts/release.cmd
+scripts/release.ps1
+scripts/tagRelease.cmd
+scripts/tagRelease.ps1

@@ -141,7 +141,7 @@ def rewriteJawsKeys(sBrowserPath):
     """
     from . import paths
 
-    pathScript = paths.findSharedFile("chainJawsScripts.cmd")
+    pathScript = paths.findSharedFile("scripts\\chainJawsScripts.cmd") or paths.findSharedFile("chainJawsScripts.cmd")
     if not pathScript:
         homerLog.info("chainJawsScripts is not installed here, so there are no JAWS keys to rewrite")
         return False, ""

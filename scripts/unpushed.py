@@ -1,12 +1,12 @@
 ﻿#!/usr/bin/env python3
-"""gitUnpushed.py -- undo the commits that have not been pushed, keeping every file.
+"""unpushed.py -- undo the commits that have not been pushed, keeping every file.
 
 WHEN IT IS FOR. A tidy or a hand commit has swept something into the
 repository that should never go there -- fetched voices, a model, a build's
 output -- and the push was stopped, or has not happened yet. The commit is
 only local. This puts the branch back to what the remote has, leaves every
 file on disk exactly as it is, and unstages everything, so the next commit
-can be made properly (homerTidy, with RepoFiles.txt in place, makes it).
+can be made properly (tidy, with RepoFiles.txt in place, makes it).
 
 WHAT IT REFUSES. If every local commit is already on the remote there is
 nothing to undo, and it says so. It never rewrites what has been pushed.
@@ -60,7 +60,7 @@ def main():
     os.makedirs(sLogDir, exist_ok=True)
     sLogPath = os.path.join(sLogDir, "%s-unpushed-%s.log" % (os.path.basename(sRoot), datetime.datetime.now().strftime("%Y%m%d-%H%M%S")))
     oLog = open(sLogPath, "w", encoding="utf-8")
-    logLine("gitUnpushed started %s" % datetime.datetime.now().isoformat(" ", "seconds"))
+    logLine("unpushed started %s" % datetime.datetime.now().isoformat(" ", "seconds"))
     logLine("Script: %s" % os.path.abspath(__file__))
     logLine("Python: %s" % sys.version.replace("\n", " "))
     logLine("Platform: %s" % platform.platform())
@@ -89,7 +89,7 @@ def main():
         say("The reset failed. Nothing was changed; the log has the message.")
         return 1
     say("Undone. Every file is as it was, nothing is staged, and %s is back at %s." % (sBranch, sUpstream))
-    say("Run homerTidy --do-it to make the commit properly; it needs RepoFiles.txt.")
+    say("Run tidy --do-it to make the commit properly; it needs RepoFiles.txt.")
     say("Log: " + sLogPath)
     logLine("Finished %s" % datetime.datetime.now().isoformat(" ", "seconds"))
     return 0

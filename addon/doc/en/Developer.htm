@@ -236,8 +236,16 @@ builds the NVDA add-on, and runs Inno Setup over
 <h3 id="requirements">Requirements</h3>
 <ul>
 <li>Windows 10 or later</li>
-<li>.NET Framework 4.8 (<code>csc.exe</code> from the framework folder;
-no SDK needed)</li>
+<li>The Homer Development Kit at <code>C:\HomerDev</code>, version
+1.39.2 or later. HomerView compiles against the kit’s
+<code>CSharp\Inix.cs</code> and <code>Web.cs</code> rather than carrying
+copies, and refreshes the kit’s tools into <code>scripts\</code> on
+every build.</li>
+<li>A Roslyn C# compiler: Visual Studio or the free Build Tools. The
+kit’s classes use C# beyond version 5, which the compiler under
+<code>Microsoft.NET\Framework64</code> does not have.
+<code>buildHomerView.cmd</code> looks for Roslyn and installs Build
+Tools with winget if none is found.</li>
 <li>Inno Setup 6</li>
 <li>JAWS 2024 or later installed, for <code>scompile.exe</code></li>
 <li>PowerShell 5.1</li>

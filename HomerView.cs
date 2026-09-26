@@ -100,6 +100,31 @@ namespace Homer
         /// Anything else is a leftover, most likely from a crash, and this is
         /// where it goes.
         /// </summary>
+        /// <summary>
+        /// The installation folder: where Start.htm, version.txt, the fetched
+        /// engines and chainJawsScripts.cmd live.
+        ///
+        /// NOT THE FOLDER THE EXE IS IN. Since 26 September 2026 the binary
+        /// sits in exec\ beneath the installation, as the kit lays every Homer
+        /// app out, so its neighbours are one level up. Six places in this
+        /// file used to join a name to the exe's own folder; they all come
+        /// here now, and this is the only place that knows about exec\.
+        ///
+        /// A copy run from somewhere else -- the project root during a build,
+        /// say, where the exe is also in exec\ -- resolves the same way. A
+        /// copy that is NOT in a folder called exec, which is any installation
+        /// made before this date, is treated as flat, so an old layout keeps
+        /// working until it is upgraded.
+        /// </summary>
+        private static string AppFolder()
+        {
+            string sExeFolder = Path.GetDirectoryName(
+                System.Reflection.Assembly.GetExecutingAssembly().Location);
+            if (string.Equals(Path.GetFileName(sExeFolder), "exec", StringComparison.OrdinalIgnoreCase))
+                return Path.GetDirectoryName(sExeFolder);
+            return sExeFolder;
+        }
+
         private static string DataFolder()
         {
             return Path.Combine(
@@ -322,9 +347,8 @@ namespace Homer
                     try
                     {
                         string sInstalled = Path.Combine(
-                            Path.GetDirectoryName(
-                                System.Reflection.Assembly.GetExecutingAssembly().Location),
-                            "Start.htm");
+                            AppFolder(),
+                            "templates", "Start.htm");
                         if (File.Exists(sInstalled) &&
                             File.GetLastWriteTimeUtc(sInstalled) > File.GetLastWriteTimeUtc(sStart))
                         {
@@ -361,9 +385,8 @@ namespace Homer
                             // so.
                             Directory.CreateDirectory(sFolder);
                             string sShipped = Path.Combine(
-                                Path.GetDirectoryName(
-                                    System.Reflection.Assembly.GetExecutingAssembly().Location),
-                                "Start.htm");
+                                AppFolder(),
+                                "templates", "Start.htm");
                             if (File.Exists(sShipped))
                             {
                                 File.Copy(sShipped, sStart, true);
@@ -1680,9 +1703,8 @@ namespace Homer
             // one still has all of them. chainJawsScripts does the whole of
             // it, including removing the previous browser's files.
             string sChain = Path.Combine(
-                Path.GetDirectoryName(
-                    System.Reflection.Assembly.GetExecutingAssembly().Location),
-                "chainJawsScripts.cmd");
+                AppFolder(),
+                "scripts", "chainJawsScripts.cmd");
             if (!File.Exists(sChain))
             {
                 Log("  chainJawsScripts is not installed, so no JAWS key was rebound");
@@ -1880,8 +1902,7 @@ namespace Homer
                 try
                 {
                     string sShipped = Path.Combine(
-                        Path.GetDirectoryName(
-                            System.Reflection.Assembly.GetExecutingAssembly().Location),
+                        AppFolder(),
                         sCacheName == sAxeCacheName ? "Axe.js"
                             : sCacheName == sNlpCacheName ? "Nlp.js" : "Ace.js");
                     if (File.Exists(sShipped) && new FileInfo(sShipped).Length > iSmallest)
@@ -2896,8 +2917,7 @@ namespace Homer
         private static string FindConverter(string sName)
         {
             var lCandidates = new List<string>();
-            string sHere = Path.GetDirectoryName(
-                System.Reflection.Assembly.GetExecutingAssembly().Location);
+            string sHere = AppFolder();
             lCandidates.Add(Path.Combine(sHere, sName));
             foreach (string sVariable in new string[] {
                 "PROGRAMFILES", "PROGRAMFILES(X86)", "LOCALAPPDATA" })
@@ -4983,8 +5003,7 @@ namespace Homer
             try
             {
                 string sFile = Path.Combine(
-                    Path.GetDirectoryName(
-                        System.Reflection.Assembly.GetExecutingAssembly().Location),
+                    AppFolder(),
                     "version.txt");
                 if (File.Exists(sFile)) sRunning = File.ReadAllText(sFile).Trim();
             }

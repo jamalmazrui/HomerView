@@ -956,7 +956,7 @@ Var
     int iExit,
     string sAnswer
 hVLogLine ("openOwnDocument asked for " + sFile)
-Let sAnswer = hVCallBridge ("openPage", c_sAppFolder + "\\" + sFile)
+Let sAnswer = hVCallBridge ("openPage", c_sAppFolder + "\\help\\" + sFile)
 If hVXmlValue (sAnswer, "/root/value") != "" Then
     SayMessage (OT_STATUS, "Opening " + sWhat)
     Return
@@ -965,7 +965,7 @@ EndIf
 ; worse than one in the wrong window, and these are what somebody reaches for
 ; when nothing else is working.
 hVLogLine ("openOwnDocument: falling back to the default browser")
-Let iExit = hVShellRun ("cmd.exe /c start \"\" " + hVStringQuote (c_sAppFolder + "\\" + sFile), 0, False)
+Let iExit = hVShellRun ("cmd.exe /c start \"\" " + hVStringQuote (c_sAppFolder + "\\help\\" + sFile), 0, False)
 SayMessage (OT_STATUS, "Opening outside HomerView")
 EndFunction
 
@@ -1925,13 +1925,13 @@ hVLogLine ("hVOpenUserGuide started")
 ; The shell is kept only for the case where the browser is not running at all,
 ; because a guide that will not open is worse than a guide in the wrong window,
 ; and the guide is exactly what somebody reaches for when nothing else works.
-Let sAnswer = hVCallBridge ("openPage", c_sAppFolder + "\\HomerView.htm")
+Let sAnswer = hVCallBridge ("openPage", c_sAppFolder + "\\help\\HomerView.htm")
 If hVXmlValue (sAnswer, "/root/value") != "" Then
     SayMessage (OT_STATUS, "Opening the guide")
     Return
 EndIf
 hVLogLine ("hVOpenUserGuide: falling back to the default browser")
-Let iExit = hVShellRun ("cmd.exe /c start \"\" " + hVStringQuote (c_sAppFolder + "\\HomerView.htm"), 0, False)
+Let iExit = hVShellRun ("cmd.exe /c start \"\" " + hVStringQuote (c_sAppFolder + "\\help\\HomerView.htm"), 0, False)
 SayMessage (OT_STATUS, "Opening outside HomerView")
 EndScript
 
@@ -2908,7 +2908,7 @@ If oFileSystem.FolderExists (oFileSystem.GetParentFolderName (c_sLogFile)) Then
 Else
     Let sText = sText + "THE LOG FOLDER IS MISSING at " + c_sLogFile + ". "
 EndIf
-If oFileSystem.FileExists (c_sAppFolder + "\\Start.htm") Then
+If oFileSystem.FileExists (c_sAppFolder + "\\templates\\Start.htm") Then
     Let sText = sText + "The start page is installed. "
 Else
     Let sText = sText + "The start page is NOT installed in " + c_sAppFolder + ". "

@@ -10,7 +10,7 @@ The two screen readers do the same things: the same commands, the same
 answers, the same pages. Keys differ only where the two screen readers themselves
 differ, so this file gives both keys only where they are not the same.
 
-This is the short version. The full guide is HomerView.htm, which **Control+F1**
+This is the short version. The full guide is help\HomerView.htm, which **Control+F1**
 opens from inside HomerView.
 
 ## What it is for
@@ -105,11 +105,11 @@ log or the helper — the first thing to try if nothing else responds.
 ## What is in the box
 
 - **ReadMe.htm** — this file.
-- **HomerView.htm** — the full guide and reference, including a tutorial.
+- **help\HomerView.htm** — the full guide and reference, including a tutorial.
 - **Hotkeys.htm** — every key, for both screen readers.
-- **History.htm** — what changed in each release.
-- **Developer.htm** — how to rebuild from source.
-- **Announce.htm** — what the project is for.
+- **help\History.htm** — what changed in each release.
+- **help\Developer.htm** — how to rebuild from source.
+- **help\Announce.htm** — what the project is for.
 
 Each is on the Alternate Menu, and most have a key of their own.
 

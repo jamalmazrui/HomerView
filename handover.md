@@ -223,6 +223,64 @@ must move with it** — the lesson HomerScribe paid for:
   and the three-group finish page.
 - The first spoken walk, `help\Tutorial_00_Overview.inix`.
 
+**What the first build against the kit taught (25 September, kit 1.40.1):**
+
+- The kit contract itself worked first time: kit found, Roslyn found in Build
+  Tools, eighteen scripts refreshed, `fixEncoding` ran over 72 files.
+- **HomerView's installer named every file by absolute path**,
+  `C:\HomerView\...`, and `homerTidy` compares names. So nothing the `.iss`
+  named counted as belonging, and the six generated `.htm` files — named
+  nowhere else — were moved to `notes\drafts`. The next build stopped at
+  "HomerView.htm does not exist". All 39 `Source:` lines are relative now, as
+  the kit's template writes them; the build's own Source check resolves a
+  relative name the way Inno does; and the `.htm` files are named in
+  `RepoFiles.txt` because both forms are delivered and committed.
+- **The build now makes each `.htm` from its `.md`** (Step 0), only when the
+  `.md` is newer or the `.htm` is missing. A generated file is regenerated,
+  not mourned.
+- **Every tool called from the build gets an explicit `-build`.** A bare
+  `call` inherits the caller's `%*`, and the first run reached `fixEncoding`
+  with a stray `*` that cmd tried to run.
+- Worth raising in the kit: `fixEncoding` "fixed" all fifteen scripts it had
+  just refreshed from `C:\HomerDev\scripts`, so the kit's own copies are not
+  in the Homer encoding and will churn on every app's build until they are.
+  And `homerTidy.namedByInstaller` would be more robust comparing the file
+  name of an absolute `Source:` as well as the whole string.
+
+**From the sibling apps' logs of the same sweep, applied:**
+
+- **`version.txt` is now the source of truth**, as the kit has it and as
+  HomerScribe's log shows ("Version: 1.0.249 -> 1.0.250"). It used to be the
+  other way round, with `manifest.ini` the source and `version.txt` written
+  from it. Now the build steps `version.txt` and writes `manifest.ini` from
+  it every build, bumped or not, so the two cannot drift; the installer
+  already read `version.txt` at compile time. Absent, it is seeded from
+  `manifest.ini`, never from the template's 1.0.0.
+- **A running `HomerView.exe` is refused plainly** before the compile, as
+  FileDir's build refuses ("FileDir.exe is running"), instead of surfacing as
+  a CS2012 about a file in use.
+- Already right: a failed CDN fetch of an engine warns and ships the copy
+  already here (EdSharp's build hit a 404 on the NVDA controller client).
+
+**Kit-level, not HomerView's to fix:** the stray `*` after `fixEncoding`
+appears in HomerScribe's log word for word, so it is in the kit's tool;
+`checkHomerDev` itself reports `CSharp\Web.cs`, `Say.cs` and `inixVert.cs`
+and most of `help\` with LF line endings, which is why every app's build
+"fixes" the fifteen scripts it just refreshed.
+
+**Second build against the kit (25 September, 21:43):** Step 0 made two
+documents, Step 1 passed with relative Source lines, the JAWS scripts
+compiled byte-identically on three versions, quality checks 0 problems — and
+Step 3 failed with `InixCodec does not exist`. The kit sources never reached
+the compiler: the wrapper passed them as one quoted argument with quotes
+round each path, and the inner quotes did not survive the cmd-to-PowerShell
+boundary. Now semicolon-joined, split by the engine, each path checked, and
+an empty list is a named failure rather than a compiler error forty lines
+on. FileDir's log from the same sweep showed "kit 1.40.1 is older than
+1.40.1" — a trailing space in the kit's `version.txt` that `[version]` would
+not parse — so the wrapper's comparison now trims and tells a parse failure
+from an old kit.
+
 **Two things to watch on the first build against the kit:** `HomerView.cs`
 calls `InixCodec.readValue`, which was added to HomerView's copy of
 `Inix.cs` on 17 September; if the kit's `Inix.cs` lacks it, the compiler

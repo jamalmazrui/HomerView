@@ -33,7 +33,15 @@ param(
 )
 
 $ErrorActionPreference = "Continue"
-$pathRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
+# THIS SCRIPT LIVES IN scripts\, and the project is one level up. Since
+# 26 September 2026 every HomerView tool script sits in scripts\ beside the
+# kit's, as the kit lays a project out -- in the project folder and in the
+# installation alike. $pathHere is where its sibling scripts are;
+# $pathRoot is the project or installation, where exec\, scripts\jaws,
+# help\ and the rest are found. A copy run from a flat older layout, not
+# in a folder called scripts, treats its own folder as both.
+$pathHere = Split-Path -Parent $MyInvocation.MyCommand.Path
+$pathRoot = if ((Split-Path -Leaf $pathHere) -ieq "scripts") { Split-Path -Parent $pathHere } else { $pathHere }
 if (-not $pathLogFile) { $pathLogFile = Join-Path $pathRoot "probeJawsScripts.log" }
 $script:lReport = @()
 

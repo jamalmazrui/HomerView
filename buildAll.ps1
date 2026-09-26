@@ -1,6 +1,6 @@
 ﻿# buildAll.ps1
-# Builds everything a release needs, in the order tagRelease expects:
-# the add-on package, then the installer whose version resource tagRelease reads.
+# Builds everything a release needs, in the order release expects:
+# the add-on package, then the installer whose version resource release reads.
 # Writes buildAll.log beside itself.
 
 $ErrorActionPreference = "Stop"
@@ -47,14 +47,14 @@ writeLog "Step 2 of 2: compiling the installer"
 & $pathCompiler (Join-Path $pathRoot "HomerView_setup.iss")
 if ($LASTEXITCODE -ne 0) { writeLog "ERROR: the installer did not compile"; exit 1 }
 
-$pathInstaller = Join-Path $pathRoot "HomerView_setup.exe"
+$pathInstaller = Join-Path $pathRoot "exec\HomerView_setup.exe"
 if (-not (Test-Path $pathInstaller)) {
     writeLog "ERROR: HomerView_setup.exe was not produced. Check OutputDir in the setup script."
     exit 1
 }
 $sVersion = (Get-Item $pathInstaller).VersionInfo.FileVersion
 writeLog "Built HomerView_setup.exe, version $sVersion, $([math]::Round((Get-Item $pathInstaller).Length/1MB,1)) MB"
-writeLog "Ready for tagRelease."
+writeLog "Ready for release."
 writeLog "buildAll finished"
 
 # --- Check the setup script before anyone compiles it -----------------------

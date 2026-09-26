@@ -100,6 +100,7 @@ help\History.htm
 help\HomerView.md
 help\HomerView.htm
 LICENSE.md
+License.htm
 README.md
 README.htm
 help\hotkeys.md

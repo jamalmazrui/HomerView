@@ -420,12 +420,22 @@ def checkNaming():
     return finding("naming", "pass", "0 accessible names repeat a caption")
 
 
-def desktopShortcutLetter():
-    """The letter of the app's own desktop shortcut, from its installer's
-    HotKey (Alt+Ctrl+F or Alt+Control+F), lower case; "" when there is none."""
+def normalizeKey(sKey):
+    """A key combination as a comparable string: modifiers sorted, lower case,
+    Ctrl and Control alike -- "Ctrl+Alt+Shift+H" and "alt+control+shift+h"
+    both become "alt+control+shift+h"."""
+    lsParts = [s.strip().lower() for s in sKey.replace(" ", "").split("+") if s.strip()]
+    if not lsParts: return ""
+    lsParts = ["control" if s == "ctrl" else s for s in lsParts]
+    return "+".join(sorted(lsParts[:-1]) + [lsParts[-1]])
+
+
+def desktopShortcut():
+    """The app's own desktop shortcut from its installer -- a #define HotKey
+    or a HotKey: on an [Icons] line -- normalized; "" when there is none."""
     for sIss in glob.glob(os.path.join(sRoot, "*_setup.iss")):
-        oMatch = re.search(r"(?im)^\s*(?:#define\s+(?:s?HotKey)\s+\"|HotKey\s*[:=]\s*\"?)(?:Alt\+Ctrl|Alt\+Control|Ctrl\+Alt|Control\+Alt)\+(\w)\b", readText(sIss))
-        if oMatch: return oMatch.group(1).lower()
+        oMatch = re.search(r"(?im)(?:#define\s+s?HotKey\s+\"|\bHotKey\s*[:=]\s*\"?)((?:alt|ctrl|control|shift)(?:\+(?:alt|ctrl|control|shift))*\+\w+)", readText(sIss))
+        if oMatch: return normalizeKey(oMatch.group(1))
     return ""
 
 
@@ -460,12 +470,24 @@ def checkKeys():
         # Alt+Control+D opens DbDo -- is the sanctioned use and is not in source.
         c_lsNavigation = ("arrow", "arrows", "up", "down", "left", "right", "home", "end",
                           "pageup", "pagedown", "uparrow", "downarrow", "leftarrow", "rightarrow")
-        for sKey in re.findall(r"\b(?:Alt\+Control|Control\+Alt)\+\w+", sText):
+        # THE WHOLE COMBINATION IS READ (1.43.18): Alt+Control+Shift+H, not
+        # "Alt+Control+Shift" with Shift taken for the key. And in Python the
+        # keys are the gestures NVDA binds -- "kb:alt+control+shift+h" --
+        # rather than every mention in a message or a docstring: HomerView
+        # tells its user "Press Alt+Control+Shift+H" in eight places, and a
+        # docstring still named a key the add-on no longer binds.
+        if sPath.lower().endswith(".py"):
+            lsCombos = ["+".join(p.capitalize() for p in s.split("+"))
+                        for s in re.findall(r"(?i)\bkb:((?:alt\+control|control\+alt)(?:\+shift)?\+[^\"'\s,\]]+)", sText)]
+        else:
+            lsCombos = re.findall(r"\b(?:Alt\+Control|Control\+Alt)(?:\+Shift)?\+\w+", sText)
+        for sKey in lsCombos:
             if sKey.rsplit("+", 1)[1].lower() in c_lsNavigation: continue
             # The app's own desktop shortcut, as its installer declares it,
             # is the sanctioned use: FileDir's Hotkeys.inix lists Alt+Control+F
-            # because that is how FileDir is opened.
-            if sKey.rsplit("+", 1)[1].lower() == desktopShortcutLetter(): continue
+            # because that is how FileDir is opened, and HomerView's NVDA
+            # add-on binds Alt+Control+Shift+H, its own shortcut's key.
+            if normalizeKey(sKey) == desktopShortcut(): continue
             lsBad.append("%s: %s is reserved for Windows desktop shortcuts" % (sBase, sKey))
         # ACCESS LETTERS COMPETE ONLY WHERE THEY ARE PRESSED.
         #

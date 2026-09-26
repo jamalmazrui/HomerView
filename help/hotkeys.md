@@ -1,4 +1,4 @@
----
+﻿---
 title: HomerView Hotkeys
 subtitle: Every command, its key, and why that key
 author: Jamal Mazrui

@@ -117,7 +117,11 @@ def writeHotkeys():
         "category, where every command here can be changed.", "",
     ]
     lLines += commandLines(1)
-    pathlib.Path("help/hotkeys.md").write_text("\n".join(lLines) + "\n", encoding="utf-8")
+    # THE HOMER ENCODING (26 September 2026): a byte order mark and CRLF. The kit's
+    # check refused a release over hotkeys.md, which this wrote as bare UTF-8 after
+    # fixEncoding had already run.
+    with io.open("help/hotkeys.md", "w", encoding="utf-8-sig", newline="\r\n") as oFile:
+        oFile.write("\n".join(lLines) + "\n")
     return sum(1 for s in lLines if s.startswith("- **"))
 
 

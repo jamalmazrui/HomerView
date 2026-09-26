@@ -12,6 +12,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0checkHomerViewQual
 set iExit=%errorlevel%
 echo.
 if "%iExit%"=="0" (echo No problems were found.) else (echo Problems were found. See checkHomerViewQuality.log beside this script.)
-<nul set /p "=Press any key to close this window."
-pause >nul
+rem NO "Press any key" (26 September 2026). The kit's check runs this as one
+rem of HomerView's acceptance checks, with its output captured, and a pause
+rem there waited unseen until the release was stopped by hand.
 exit /b %iExit%

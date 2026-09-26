@@ -139,9 +139,27 @@ def finding(sName, sVerdict, sEvidence):
     return True
 
 
+def sayConsoleRunning(sCommand):
+    """One short console line for a command about to run."""
+    try:
+        print("  running: " + sCommand[:100], flush=True)
+    except Exception:
+        pass
+    return True
+
+
 def runCommand(lsArgs, sShell=""):
-    """Run a command, log it with its exit code, return (iCode, sOutput)."""
+    """Run a command, log it with its exit code, return (iCode, sOutput).
+
+    NOTHING IS WAITED FOR FROM THE KEYBOARD (1.43.17). A command's input is
+    empty, so a "pause" or a prompt in it returns at once rather than waiting
+    unseen: HomerView's checkHomerViewQuality.cmd ends with "Press any key",
+    its output was captured, and its release sat silent until it was stopped
+    by hand. The console names each command as it starts, so a long one is
+    seen to be running.
+    """
     logLine("RUN: " + (sShell or " ".join(lsArgs)))
+    sayConsoleRunning(sShell or " ".join(lsArgs))
     try:
         if sShell:
             # A LINE THAT BEGINS "cmd /c" IS NOT WRAPPED IN A SECOND cmd /c.
@@ -160,13 +178,16 @@ def runCommand(lsArgs, sShell=""):
             oCmd = _re.match(r"\s*cmd(?:\.exe)?\s+/c\s+(.*)$", sShell, _re.I | _re.S)
             if oCmd and os.name == "nt":
                 oResult = subprocess.run('cmd /s /c "' + oCmd.group(1).strip() + '"', shell=False, cwd=sRoot,
-                                         capture_output=True, text=True, timeout=900)
+                                         capture_output=True, text=True, timeout=900,
+                                         stdin=subprocess.DEVNULL)
             else:
                 oResult = subprocess.run(sShell, shell=True, cwd=sRoot,
-                                         capture_output=True, text=True, timeout=900)
+                                         capture_output=True, text=True, timeout=900,
+                                         stdin=subprocess.DEVNULL)
         else:
             oResult = subprocess.run(lsArgs, cwd=sRoot,
-                                     capture_output=True, text=True, timeout=900)
+                                     capture_output=True, text=True, timeout=900,
+                                         stdin=subprocess.DEVNULL)
     except Exception as oError:
         logLine("RUN FAILED: %s" % oError)
         return (1, str(oError))

@@ -21,8 +21,8 @@ Run = cmd /c if exist exec\HomerView.nvda-addon (exit 0) else (exit 1)
 Expect = 0
 
 [check]
-Name = the installer was produced
-Run = cmd /c if exist exec\HomerView_setup.exe (exit 0) else (exit 1)
+Name = the installer was produced, at the top of the project where release looks
+Run = cmd /c if exist HomerView_setup.exe (exit 0) else (exit 1)
 Expect = 0
 
 [check]

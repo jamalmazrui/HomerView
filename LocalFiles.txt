@@ -1,0 +1,27 @@
+﻿# LocalFiles.txt -- what belongs to HomerView on this disk, but never in the
+# repository.
+#
+# homerTidy keeps these where they are and writes each line into .gitignore as
+# never pushed. One path or pattern a line; a trailing slash means a folder.
+#
+# Build output. Made by buildHomerView, never committed.
+HomerView.exe
+HomerView_setup.exe
+jaws/HomerView.jsb
+build/
+version.txt
+
+# Fetched at build time and large: the two accessibility engines, the
+# language engine, and the converters.
+Axe.js
+Ace.js
+Nlp.js
+2htm.exe
+pandoc.exe
+
+# Every run of anything writes its own log here.
+logs/
+*.log
+
+# Working material, kept but not carried.
+notes/

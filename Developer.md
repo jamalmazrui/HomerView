@@ -49,7 +49,14 @@ The build fails if the quality checks fail. That is deliberate.
 ### Requirements
 
 - Windows 10 or later
-- .NET Framework 4.8 (`csc.exe` from the framework folder; no SDK needed)
+- The Homer Development Kit at `C:\HomerDev`, version 1.39.2 or later.
+  HomerView compiles against the kit's `CSharp\Inix.cs` and `Web.cs` rather
+  than carrying copies, and refreshes the kit's tools into `scripts\` on
+  every build.
+- A Roslyn C# compiler: Visual Studio or the free Build Tools. The kit's
+  classes use C# beyond version 5, which the compiler under
+  `Microsoft.NET\Framework64` does not have. `buildHomerView.cmd` looks for
+  Roslyn and installs Build Tools with winget if none is found.
 - Inno Setup 6
 - JAWS 2024 or later installed, for `scompile.exe`
 - PowerShell 5.1

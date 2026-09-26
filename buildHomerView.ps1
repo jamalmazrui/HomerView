@@ -3,10 +3,34 @@
 # the add-on package, then the installer whose version resource tagRelease reads.
 # Writes buildHomerView.log beside itself.
 
+# HANDED IN BY buildHomerView.cmd, WHICH CARRIES THE KIT CONTRACT. This
+# engine used to choose its own compiler (the legacy one under
+# Microsoft.NET\Framework64) and its own shared sources (copies in homer\).
+# Both are now decided by the wrapper from the Homer Development Kit, and
+# handed in: the compiler must be Roslyn, since the kit's classes use C#
+# beyond version 5, and the sources are the kit's own files rather than
+# copies that drift. Run without the wrapper, the old choices still apply,
+# so a direct run of this file does what it always did.
+param(
+    [string] $pathCompiler = "",
+    [string] $sHomerSources = "",
+    [string] $pathLogFile = "",
+    [string] $sBump = "bump"
+)
+
 $ErrorActionPreference = "Stop"
 
 $pathRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
-$pathLog = Join-Path $pathRoot "buildHomerView.log"
+# ONE LOG PER SESSION, IN logs\, SHARED WITH THE WRAPPER. The wrapper opens
+# HomerView-build-<stamp>.log and passes its path; this appends. Run alone,
+# the same name is made here so the convention holds either way.
+if ($pathLogFile) {
+    $pathLog = $pathLogFile
+} else {
+    $pathLogs = Join-Path $pathRoot "logs"
+    if (-not (Test-Path $pathLogs)) { New-Item -ItemType Directory -Path $pathLogs | Out-Null }
+    $pathLog = Join-Path $pathLogs ("HomerView-build-" + (Get-Date -Format "yyyyMMdd-HHmmss") + ".log")
+}
 
 function writeLog {
     param([string] $sMessage)
@@ -15,7 +39,7 @@ function writeLog {
     Add-Content -Path $pathLog -Value $sStamped -Encoding UTF8
 }
 
-Set-Content -Path $pathLog -Value "" -Encoding UTF8
+if (-not $pathLogFile) { Set-Content -Path $pathLog -Value "" -Encoding UTF8 }
 function checkSetupScript {
     # Everything Inno Setup will reject, found before Inno Setup sees it. Its
     # own report is a line number and four words, which is enough to find the
@@ -172,12 +196,15 @@ function buildBridge {
         return
     }
 
-    $pathCompiler = Join-Path $env:WINDIR "Microsoft.NET\Framework64\v4.0.30319\csc.exe"
+    if (-not $pathCompiler) {
+        $pathCompiler = Join-Path $env:WINDIR "Microsoft.NET\Framework64\v4.0.30319\csc.exe"
+        writeLog "  no compiler was handed in, so the .NET Framework one is used"
+    }
     if (-not (Test-Path $pathCompiler)) {
-        writeLog "ERROR: the .NET Framework compiler was not found at $pathCompiler."
-        writeLog "       That file ships with Windows, so something is unusual here."
+        writeLog "ERROR: the compiler was not found at $pathCompiler."
         exit 1
     }
+    writeLog "  compiler: $pathCompiler"
 
     if (Test-Path $pathBridge) {
         Remove-Item $pathBridge -Force
@@ -227,14 +254,24 @@ function buildBridge {
     # undefined names, and the real cause -- one absent file -- appears
     # nowhere in it.
     $lShared = @()
-    foreach ($sName in @("Inix.cs", "Keys.cs", "Web.cs")) {
-        $pathShared = Join-Path $pathRoot "homer\$sName"
-        if (Test-Path $pathShared) {
-            $lShared += $pathShared
-            writeLog "  shared class: homer\$sName"
-        } else {
-            writeLog "ERROR: homer\$sName is missing, and HomerView.cs calls into it."
-            exit 1
+    if ($sHomerSources) {
+        # THE KIT'S OWN FILES, named by the wrapper. Split on the quotes the
+        # wrapper put round each path, since a kit path has spaces in it.
+        foreach ($oMatch in ([regex]'"([^"]+)"').Matches($sHomerSources)) {
+            $lShared += $oMatch.Groups[1].Value
+            writeLog "  kit source: $($oMatch.Groups[1].Value)"
+        }
+    } else {
+        foreach ($sName in @("Inix.cs", "Web.cs")) {
+            $pathShared = Join-Path $pathRoot "homer\$sName"
+            if (Test-Path $pathShared) {
+                $lShared += $pathShared
+                writeLog "  shared class: homer\$sName (no kit was handed in)"
+            } else {
+                writeLog "ERROR: no kit sources were handed in and homer\$sName is not here."
+                writeLog "       Run buildHomerView.cmd, which finds the Homer Development Kit."
+                exit 1
+            }
         }
     }
 
@@ -325,7 +362,11 @@ function buildAddon {
             $sVersion = $Matches[1]
         }
     }
-    if ($sVersion -match '^(.*)\.(\d+)$') {
+    # nobump KEEPS THE NUMBER, as the kit's builds do. A rebuild that changes
+    # nothing a user would notice should not spend a release number.
+    if ($sBump -eq "nobump") {
+        writeLog "Version kept at $sVersion (nobump)"
+    } elseif ($sVersion -match '^(.*)\.(\d+)$') {
         $sWas = $sVersion
         $sVersion = "$($Matches[1]).$([int]$Matches[2] + 1)"
         $lManifestLines = Get-Content $pathManifest | ForEach-Object {

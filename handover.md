@@ -189,39 +189,46 @@ tester. The ones worth knowing:
 - **In Inno, a line continuation ends at a comment.** Comments go above an
   entry, never inside it.
 
-## The shared Homer classes
+## The Homer Development Kit
 
-`homer\Inix.cs` and `homer\Web.cs` are copies of the shared Homer toolkit,
-compiled into HomerView.exe beside HomerView.cs. They are sources rather than a
-library, which suits this build: csc is the whole toolchain, there is no
-package manager, and a source file cannot get out of step with a binary beside
-it. They are in the same namespace, `Homer`, so nothing needs a `using` line.
+Since 25 September 2026 HomerView builds on the kit at `C:\HomerDev`,
+version 1.39.2 or later, following `HomerDev_update.md`. What that means
+here, and what it does not yet mean:
 
-They replaced real duplication. HomerView.cs had **three** hand-written
-Content-Disposition parsers and no two agreed — one dropped the closing quote,
-one kept it, none handled the RFC 5987 `filename*` form. It carried its own
-MIME-to-extension table. And forty lines edited an `.inix` file by hand, with
-no idea about multi-line values or a section named in a different case. Each is
-now one call: `Web.fileFromDisposition`, `Web.mimeToExt`,
-`InixCodec.writeValue`.
+**Done in this pass, without moving any file:**
 
-Treat them exactly as `homerPolicy.py` is treated: identical across projects, a
-fix made in one copied to the others unread, and nothing in them naming
-HomerView.
+- `buildHomerView.cmd` carries the kit contract: finds the kit, checks
+  `kitNeeded`, compiles against `C:\HomerDev\CSharp\Inix.cs` and `Web.cs`,
+  refreshes the kit's tools into `scripts\`, retires `cleanDir`, `tidyRepo`
+  and `homerPolicy`, runs `fixEncoding`, and writes one log per session in
+  `logs\HomerView-build-<stamp>.log`. `buildHomerView.ps1` is still the
+  engine — it does five things no template build does — and now takes the
+  compiler and the sources from the wrapper instead of choosing them.
+- The local copies in `homer\` are deleted by the build and no longer named
+  in `RepoFiles.txt`. `Keys.cs` is superseded by the kit's `KeyName.cs`.
+- **Roslyn is required.** The kit's classes use modern C#, so the legacy
+  `csc.exe` cannot compile them. Check 22, which forbade anything past C# 5,
+  is retired; the wrapper finds Roslyn or installs Build Tools with winget.
+- `LocalFiles.txt` and `accept.inix` exist in the kit's shape.
 
-Check 18 asks whether those three calls are still there rather than hunting for
-duplicates. Its first draft did hunt, and failed a correct file three times: on
-a content-type-to-description map, which is a different table for a different
-purpose; on the OOXML content types inside the spreadsheet writer, which are
-part of the file format; and on the words "[Preferences]" inside the comment
-explaining the change. A positive test cannot be fooled that way.
+**Deliberately not done yet, because every path that names a moved file
+must move with it** — the lesson HomerScribe paid for:
 
-Not adopted, and worth saying why. `Say.cs`, `Lbc.cs`, `KeyMap.cs` and
-`EdSharp.cs` are the WinForms half of a full application; the bridge is a
-helper with two file dialogs, and pulling in 800 KB of forms code for that is
-the wrong trade. `Version.cs` is generated for EdSharp and names its version,
-and HomerView already has version.txt. `inixVert.cs` declares a `Main`, which
-would collide with the bridge's own entry point.
+- The folder layout: `docs\` and the root documents to `help\`, `jaws\` to
+  `scripts\jaws`, `build\` and the binaries to `exec\`. That touches every
+  `Source:` line in the `.iss`, `chainJawsScripts`, `installJawsScripts`,
+  `paths.py`'s shared-folder search, `makeDocs`, and the checks. One pass,
+  with a map, and `checkHomerApp` at the end.
+- The installer rewritten from `_APP__setup.iss` with `HomerComponents.iss`
+  and the three-group finish page.
+- The first spoken walk, `help\Tutorial_00_Overview.inix`.
+
+**Two things to watch on the first build against the kit:** `HomerView.cs`
+calls `InixCodec.readValue`, which was added to HomerView's copy of
+`Inix.cs` on 17 September; if the kit's `Inix.cs` lacks it, the compiler
+will say so and it is a one-method addition to the kit. And `homerTidy` now
+replaces `cleanDir`; run it as `scripts\homerTidy` (plan) then `--do-it`.
+
 
 ## What belongs in the folder
 

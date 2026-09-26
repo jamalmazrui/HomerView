@@ -47,13 +47,16 @@ checkParity.py
 # The sources the build compiles, and the scripts the installer runs.
 HomerView.cs
 
-# The shared Homer classes, compiled into HomerView.exe beside HomerView.cs.
-# COPIES, and meant to stay byte identical to the ones in the other Homer
-# projects: a fix made in one is copied to the others unread, exactly as
-# homerPolicy.py is. Nothing in them names HomerView.
-homer\Inix.cs
-homer\Keys.cs
-homer\Web.cs
+# THE SHARED HOMER CLASSES ARE NOT HERE, AND THAT IS THE POINT. HomerView
+# compiles against C:\HomerDev\CSharp, the kit's own files, since
+# 25 September 2026. The copies it used to carry in homer\ had drifted from
+# the kit's by then; the build deletes any that reappear.
+
+# The kit's tools, refreshed into scripts\ on every build, and the two
+# lists that decide what git carries.
+scripts\
+LocalFiles.txt
+accept.inix
 HomerView_setup.iss
 chainJawsScripts.cmd
 chainJawsScripts.ps1
@@ -77,10 +80,6 @@ makeDocs.py
 # Tools projects, and the two sweeps that apply it. Both import
 # homerPolicy rather than describing it; cleanDir.ps1 described it and
 # emptied the folder on 31 August 2026, and is gone.
-homerPolicy.py
-tidyRepo.py
-cleanDir.cmd
-cleanDir.py
 probeJawsScripts.cmd
 probeJawsScripts.ps1
 

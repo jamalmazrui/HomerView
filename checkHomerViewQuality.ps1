@@ -605,52 +605,15 @@ function checkTwenty {
     }
 }
 
-function checkTwentyTwo {
-    param ([string] $sRoot)
-    writeLog "CHECK 22  the C# uses nothing newer than C# 5"
-    reportNote "the build compiles with Framework64\v4.0.30319\csc.exe, which is the LEGACY compiler and not Roslyn"
-    # WHY THIS EXISTS, from 17 September 2026.
-    #
-    # homer\Keys.cs was written with a local function -- a helper declared
-    # inside the method that uses it, which reads better than a private method
-    # beside it. Local functions are C# 7. The compiler this build uses is the
-    # one that ships with the .NET Framework, and it stops at C# 5.
-    #
-    # THE ERROR DOES NOT SAY THAT. It says "} expected" on the line, and then
-    # forty more complaints about methods needing return types, because once
-    # the parser loses the brace it misreads everything after it. Nothing in
-    # that output mentions a language version, so the reader is sent looking
-    # for an unbalanced brace that is not there.
-    #
-    # Inix.cs and Web.cs have always kept to C# 5 without anyone writing it
-    # down. Now it is written down, and checked.
-    $lFiles = @("HomerView.cs", "homer\Inix.cs", "homer\Keys.cs", "homer\Web.cs")
-    foreach ($sName in $lFiles) {
-        $sPath = Join-Path $sRoot $sName
-        if (-not (Test-Path $sPath)) { continue }
-        $sText = Get-Content $sPath -Raw
-        foreach ($oRule in @(
-            @('(?m)^\s{8,}(void|string|int|bool|double)\s+\w+\s*\([^)]*\)\s*$', 'a local function (C# 7)'),
-            # A STRING LITERAL BEGINS THERE, NOT A REGEX ENDS THERE. The
-            # first version of this rule matched any $ followed by a quote,
-            # and HomerView.cs contains "^wcag(\d)(\d)(\d+)$" -- a regex
-            # anchored at the end. It would have failed a correct file, which
-            # is the one thing a check must not do. An interpolation opens a
-            # literal, so what precedes it is a space, a bracket, a comma or
-            # an operator, never a closing bracket or a word character.
-            @('(?<![\w\)\]])\$"', 'an interpolated string (C# 6)'),
-            @('\?\.', 'a null-conditional operator (C# 6)'),
-            @('\bnameof\s*\(', 'nameof (C# 6)'),
-            @('\bout\s+var\b', 'an out variable (C# 7)'),
-            @('(?m)^\s*(public|private|internal)[^;{=]*=>', 'an expression-bodied member (C# 6)'))) {
-            $lFound = ([regex]$oRule[0]).Matches($sText)
-            if ($lFound.Count -gt 0) {
-                reportFail ("$sName uses " + $oRule[1] + ", " + $lFound.Count + " time(s); the build compiler stops at C# 5")
-            }
-        }
-    }
-    reportNote "checked HomerView.cs and the shared classes"
-}
+# CHECK 22 IS RETIRED, AND THE REASON IS WORTH KEEPING. It forbade any C#
+# construct newer than version 5, because the build compiled with the
+# legacy csc.exe under Microsoft.NET\Framework64, which stops there. On
+# 25 September 2026 HomerView moved to compiling against the Homer
+# Development Kit's own sources, and those use modern C#, so the rule
+# inverted: the COMPILER must be Roslyn, and buildHomerView.cmd finds or
+# installs one. A check that the sources stay old would now fail every
+# correct build.
+
 
 function checkTwentyOne {
     param ([string] $sJss)
@@ -768,7 +731,7 @@ function checkNineteen {
 
 function checkEighteen {
     param ([string] $sCs, [string] $sRoot)
-    writeLog "CHECK 18  the shared Homer classes are there, and nothing duplicates them"
+    writeLog "CHECK 18  HomerView calls the kit's classes and carries no copy of them"
     reportNote "HomerView.cs calls into Homer.Web and Homer.InixCodec; a copy of that logic growing back here is the fault this watches for"
     # WHAT THIS IS WRITTEN AGAINST, and it had already happened three times.
     # HomerView.cs had THREE hand-written Content-Disposition parsers and no
@@ -780,12 +743,13 @@ function checkEighteen {
     # the nearest code did not quite fit and writing five lines was quicker
     # than looking. So the check is not "is this correct" but "is this here at
     # all", which is the only form the question can take.
-    foreach ($sName in @("Inix.cs", "Web.cs")) {
-        $sPath = Join-Path $sRoot "homer\$sName"
-        if (Test-Path $sPath) {
-            reportNote ("homer\" + $sName + " is here, " + (Get-Item $sPath).Length + " bytes")
-        } else {
-            reportFail ("homer\" + $sName + " is missing, and HomerView.cs calls into it")
+    # THE SHARED CLASSES ARE THE KIT'S, NOT COPIES HERE. A copy in homer\ is
+    # now the fault this looks for: it means somebody has drifted from the
+    # kit again, and the build deletes it. What is checked is that the calls
+    # into the kit are still made, below.
+    foreach ($sName in @("Inix.cs", "Keys.cs", "Web.cs")) {
+        if (Test-Path (Join-Path $sRoot "homer\$sName")) {
+            reportFail ("homer\" + $sName + " is a local copy; HomerView compiles against C:\HomerDev\CSharp now")
         }
     }
     if ($null -eq $sCs) { reportFail "HomerView.cs could not be read"; return }
@@ -1165,7 +1129,6 @@ $lChecks = @(
     { checkEighteen $sCs $sRoot },
     { checkNineteen $sChain },
     { checkTwentyOne $sJss },
-    { checkTwentyTwo $sRoot },
     { checkTwenty $sInstall })
 
 foreach ($oCheck in $lChecks) {

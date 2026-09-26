@@ -1,14 +1,15 @@
 @echo off
 rem tidy.cmd -- tidy a Homer Tools project: the folder and the repository,
-rem in one pass. It replaces tidy and tidy, which asked the same
+rem in one pass. It replaces two older scripts, which asked the same
 rem question of two places and could disagree about the answer.
 rem
-rem Running it does nothing but look and report. Run it again with --do-it to
-rem carry the plan out.
+rem It carries its plan out in the same run. A stray is moved into notes,
+rem which is on this disk and never in git, so nothing it takes is lost; the
+rem log names every move. (--do-it, from when a first run only planned, is
+rem still accepted and changes nothing.)
 rem
-rem     tidy                      survey and print the plan
-rem     tidy --do-it              carry it out
-rem     tidy --do-it --no-push    carry it out locally, do not push
+rem     tidy                      tidy the folder and the repository
+rem     tidy --no-push            tidy, committing locally; do not push
 rem     tidy --folder-only        leave git alone
 rem     tidy --repo-only          leave the folder alone
 rem     tidy --path C:\EdSharp    another project, without changing directory
@@ -28,6 +29,6 @@ if errorlevel 1 (
     endlocal
     exit /b 1
 )
-python "%~dp0homerTidy.py" %*
+python "%~dp0tidy.py" %*
 set exitCode=%errorlevel%
 endlocal & exit /b %exitCode%

@@ -30,6 +30,6 @@ if errorlevel 1 (
     endlocal
     exit /b 1
 )
-python "%~dp0checkHomerApp.py" %*
+python "%~dp0check.py" %*
 set exitCode=%errorlevel%
 endlocal & exit /b %exitCode%

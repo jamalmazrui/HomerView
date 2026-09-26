@@ -65,15 +65,15 @@ if errorlevel 1 (
 if not exist "%CD%\RepoFiles.txt" (
   echo No RepoFiles.txt here, so nothing was staged: without it, "git add -A" would
   echo take everything in the folder. RepoFiles.txt names what the repository
-  echo carries; add it and run push again. tidy --do-it makes the first commit.
+  echo carries; add it and run push again. tidy makes the first commit.
   echo NO RepoFiles.txt: stopped before staging>> "%log%"
   endlocal & exit /b 1
 )
 
 rem The whitelist is rewritten on every push, so RepoFiles.txt and .gitignore
 rem cannot drift apart, and a line just added to the list counts now.
-if exist "%~dp0homerTidy.cmd" (
-  call "%~dp0homerTidy.cmd" --gitignore >> "%log%" 2>&1
+if exist "%~dp0tidy.cmd" (
+  call "%~dp0tidy.cmd" --gitignore >> "%log%" 2>&1
   if errorlevel 1 echo WARN: the whitelist .gitignore could not be rewritten; see the log.
 )
 
@@ -109,6 +109,10 @@ if errorlevel 1 (
   echo PUSH FAILED>> "%log%"
   endlocal & exit /b 1
 )
+rem ORIGIN FOLLOWS A MOVE (1.42.1): when GitHub says the repository moved,
+rem point origin at the new location once, so it stops saying so. Placed
+rem after the push failure check, which must see git push's own errorlevel.
+powershell -NoProfile -Command "$l = @(Get-Content -LiteralPath '%log%'); for ($i = 0; $i -lt $l.Count - 1; $i++) { if ($l[$i] -match 'This repository moved') { $u = ($l[$i + 1] -replace '^remote:\s*', '').Trim(); if ($u -match '^https://') { git remote set-url origin $u; 'Origin now points at ' + $u }; break } }" >> "%log%" 2>&1
 git status --short --branch
 >> "%log%" echo push finished %date% %time%
 echo Pushed: %message%

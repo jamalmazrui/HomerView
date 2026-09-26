@@ -183,12 +183,19 @@ def appName():
 
 
 def sourceFiles():
+    """The project's own .cs and .py files: those RepoFiles.txt names, when it
+    exists. A leftover in the folder -- EdSharp's pre-kit Samples folder, its
+    fruitBasket.cs still on disk though no longer tracked -- is tidy's
+    business, as it is for the encoding check (1.43.11)."""
+    lsNamed = namedByProject()
     lsFiles = []
     for sDirPath, lsDirs, lsNames in os.walk(sRoot):
         lsDirs[:] = [s for s in lsDirs if s.lower() not in c_lsSkipFolders]
         for sName in sorted(lsNames):
             if sName.lower().endswith((".cs", ".py")):
-                lsFiles.append(os.path.join(sDirPath, sName))
+                sPath = os.path.join(sDirPath, sName)
+                if lsNamed is not None and not isNamed(os.path.relpath(sPath, sRoot), lsNamed): continue
+                lsFiles.append(sPath)
     return lsFiles
 
 
@@ -272,6 +279,14 @@ def checkEncoding():
     # the folder is tidy's business; 54 of the 72 faults that refused a
     # release on 25 Sep 2026 were strays the project never named.
     lsNamed = namedByProject()
+    # KeepEncoding.txt names other people's files, which keep the encoding
+    # they came with; fixEncoding leaves them alone, so the check does too.
+    lsKeep = []
+    sKeepPath = os.path.join(sRoot, "KeepEncoding.txt")
+    if os.path.isfile(sKeepPath):
+        for sLine in readText(sKeepPath).splitlines():
+            sLine = sLine.strip()
+            if sLine and not sLine.startswith(("#", ";")): lsKeep.append(sLine.replace("\\", "/").lower().lstrip("/"))
     lsWrong = []
     iChecked = 0
     for sDirPath, lsDirs, lsNames in os.walk(sRoot):
@@ -281,6 +296,7 @@ def checkEncoding():
             if not sName.lower().endswith(c_lsTextExt): continue
             sPath = os.path.join(sDirPath, sName)
             if lsNamed is not None and not isNamed(os.path.relpath(sPath, sRoot), lsNamed): continue
+            if lsKeep and isNamed(os.path.relpath(sPath, sRoot), lsKeep): continue
             sShown = os.path.relpath(sPath, sRoot).replace(os.sep, "/")
             try:
                 binData = open(sPath, "rb").read()
@@ -383,10 +399,30 @@ def checkNaming():
     return finding("naming", "pass", "0 accessible names repeat a caption")
 
 
+def desktopShortcutLetter():
+    """The letter of the app's own desktop shortcut, from its installer's
+    HotKey (Alt+Ctrl+F or Alt+Control+F), lower case; "" when there is none."""
+    for sIss in glob.glob(os.path.join(sRoot, "*_setup.iss")):
+        oMatch = re.search(r"(?im)^\s*(?:#define\s+(?:s?HotKey)\s+\"|HotKey\s*[:=]\s*\"?)(?:Alt\+Ctrl|Alt\+Control|Ctrl\+Alt|Control\+Alt)\+(\w)\b", readText(sIss))
+        if oMatch: return oMatch.group(1).lower()
+    return ""
+
+
+# Words that can stand where a declaration's type does but begin a statement.
+c_lsNotTypes = ("await", "case", "catch", "else", "for", "foreach", "if", "lock", "new", "return",
+                "sizeof", "switch", "throw", "typeof", "using", "while", "yield")
+
+
 def checkKeys():
     """Alt+Control is reserved, and one dialog must not claim a letter twice."""
     lsBad = []
-    for sPath in sourceFiles() + glob.glob(os.path.join(sRoot, "*.inix")):
+    # The project's own .inix files only, as for the sources: FileDir's
+    # pre-kit Hotkeys.inix at the top, superseded by configs\Hotkeys.inix,
+    # still named keys the program no longer has (1.43.15).
+    lsNamedInix = namedByProject()
+    lsInix = [s for s in glob.glob(os.path.join(sRoot, "*.inix"))
+              if lsNamedInix is None or isNamed(os.path.relpath(s, sRoot), lsNamedInix)]
+    for sPath in sourceFiles() + lsInix:
         sText = readText(sPath)
         if isLibrary(sPath, sText): continue
         sText = codeLines(sText)
@@ -405,6 +441,10 @@ def checkKeys():
                           "pageup", "pagedown", "uparrow", "downarrow", "leftarrow", "rightarrow")
         for sKey in re.findall(r"\b(?:Alt\+Control|Control\+Alt)\+\w+", sText):
             if sKey.rsplit("+", 1)[1].lower() in c_lsNavigation: continue
+            # The app's own desktop shortcut, as its installer declares it,
+            # is the sanctioned use: FileDir's Hotkeys.inix lists Alt+Control+F
+            # because that is how FileDir is opened.
+            if sKey.rsplit("+", 1)[1].lower() == desktopShortcutLetter(): continue
             lsBad.append("%s: %s is reserved for Windows desktop shortcuts" % (sBase, sKey))
         # ACCESS LETTERS COMPETE ONLY WHERE THEY ARE PRESSED.
         #
@@ -423,22 +463,58 @@ def checkKeys():
         if not bCaptions: sText = ""
         for sLine in sText.splitlines():
             oDef = re.match(r"\s{0,8}(?:public |private |internal |protected |static |override |virtual |async )+[\w<>\[\],\s\.]+?\s(\w+)\s*\(", sLine)
+            # A PYTHON FUNCTION IS A WINDOW'S BUILDER TOO (1.43.0). Only a def at
+            # the left margin starts a new owner: a nested def is a handler
+            # inside the dialog being built, and its captions belong with it.
+            # Without this, all of urlCheck.py's 7,000 lines were one owner.
+            if not oDef: oDef = re.match(r"(?:async )?def (\w+)\s*\(", sLine)
+            # A METHOD WITH NO MODIFIER STARTS AN OWNER TOO (1.43.14). FileDir
+            # declares its handlers as "void menuEditRename_Click(object sender,
+            # EventArgs e) {" at the left margin, with no public or private, and
+            # none of them was seen: every caption after Delete_Recycle was
+            # counted as Delete_Recycle's, 39 false "claimed twice" in one file.
+            # A type and a name before "(", with no "=" ahead of it and not a
+            # statement keyword, is a declaration.
+            if not oDef:
+                oDecl = re.match(r"\s{0,8}([\w<>\[\],\.]+)\s+(\w+)\s*\(", sLine)
+                if oDecl and oDecl.group(1) not in c_lsNotTypes and "=" not in sLine[:oDecl.end()]:
+                    oDef = re.match(r"\s{0,8}[\w<>\[\],\.]+\s+(\w+)\s*\(", sLine)
             if oDef: sMethod = oDef.group(1)
             # A CAPTION IS SHORT. An ampersand inside a sentence of help text is
             # prose that happens to hold the character; a control's caption is
             # a few words. Only strings of forty characters or fewer are read
             # as captions, so prose stops being counted as trigger letters.
-            for oHit in re.finditer(r'(?:\b\w+\(\s*(\w+)\s*,\s*)?"(?=[^"]{0,40}")[^"&]*&([A-Za-z])', sLine):
+            # An HTML entity -- &amp; &lt; &nbsp; -- is not a trigger letter
+            # (1.43.0): a program that writes HTML reports is full of them.
+            # A MENU ITEM'S VARIABLE NAMES ITS MENU (1.43.14). FileDir builds its
+            # whole menu bar in one constructor with menuEditTagAll =
+            # menu_Helper("Tag &All", ...) and menuHelpAbout =
+            # menu_Helper("&About", ...): Tag All and About are in different
+            # menus, and counting them in one owner made 16 false clashes. An
+            # assignment to menuEdit... or miEdit... puts the caption in the
+            # Edit menu; to menuEdit itself, on the menu bar.
+            sLineOwner = ""
+            oAssign = re.match(r"\s*(?:[\w<>\[\]]+\s+)?(?:this\.)?(menu|mi)([A-Z][a-z0-9]+)(\w*)\s*=", sLine)
+            if oAssign:
+                sLineOwner = "menu bar" if oAssign.group(3) == "" else "menu " + oAssign.group(2)
+            # THE SAME CAPTION TWICE IS ONE CLAIM (1.43.14). Code that shows
+            # ButtonDialog(..., {"&No", "&Yes"}) and then tests case "&No" or
+            # sChoice == "&User" names one button several times; only two
+            # DIFFERENT captions with one letter compete. Each letter keeps the
+            # set of captions that claim it.
+            for oHit in re.finditer(r'(?:\b\w+\(\s*(\w+)\s*,\s*)?"(?=([^"]{0,40})")[^"&]*&(?![A-Za-z]+;|#\d+;)([A-Za-z])', sLine):
                 # The first argument names a menu only when it looks like one --
                 # miFile, menuMain. A title or a prompt passed first, such as
                 # promptText(sTitle, "&Question"), is not a container, and two
                 # dialogs that both take sTitle are two dialogs.
                 sArg = oHit.group(1) or ""
-                sOwner = sArg if re.match(r"(mi|menu|m)[A-Z]", sArg) or sArg.lower().startswith("menu") else sMethod
-                dByOwner.setdefault(sOwner, {})
-                dByOwner[sOwner][oHit.group(2).lower()] = dByOwner[sOwner].get(oHit.group(2).lower(), 0) + 1
+                sOwner = sArg if re.match(r"(mi|menu|m)[A-Z]", sArg) or sArg.lower().startswith("menu") else (sLineOwner or sMethod)
+                sLetter = oHit.group(3).lower()
+                sCaption = oHit.group(2).replace("&", "").strip().lower()
+                dByOwner.setdefault(sOwner, {}).setdefault(sLetter, set()).add(sCaption)
         for sOwner in sorted(dByOwner):
-            for sLetter, iCount in sorted(dByOwner[sOwner].items()):
+            for sLetter, setCaptions in sorted(dByOwner[sOwner].items()):
+                iCount = len(setCaptions)
                 if iCount > 1:
                     lsBad.append("%s: the access key %s is claimed %d times in %s"
                                  % (sBase, sLetter, iCount, sOwner))
@@ -467,14 +543,37 @@ def checkBuild(bBuild):
     return finding("build", "fail", "%s returned %d; its own log has the compiler output" % (sScript, iCode))
 
 
+def isWindowed(sPath):
+    """True when the executable's PE header names the Windows GUI subsystem."""
+    try:
+        binHead = open(sPath, "rb").read(4096)
+        iPe = int.from_bytes(binHead[0x3C:0x40], "little")
+        if binHead[iPe:iPe + 4] != b"PE\0\0": return False
+        # The optional header follows the 20-byte file header; Subsystem sits
+        # at the same offset, 68, in both the 32-bit and 64-bit forms.
+        iSubsystem = int.from_bytes(binHead[iPe + 24 + 68:iPe + 24 + 70], "little")
+        return iSubsystem == 2
+    except Exception:
+        return False
+
+
 def checkSmoke(bBuild):
     if not bBuild:
         return finding("smoke", "skip", "not asked for; comes with --build")
-    lsExe = [s for s in glob.glob(os.path.join(sRoot, "*.exe"))
+    # THE PROGRAM LIVES IN exec (the Homer layout, 21 Sep 2026); an app not yet
+    # moved keeps it at the top. exec is looked in first, so a stale top-level
+    # copy left from before the move is never the one tested.
+    lsExe = [s for s in glob.glob(os.path.join(sRoot, "exec", "*.exe")) + glob.glob(os.path.join(sRoot, "*.exe"))
              if not s.lower().endswith("_setup.exe")]
     if not lsExe:
         return finding("smoke", "skip", "no executable here to start")
-    sExe = os.path.basename(lsExe[0])
+    sExe = os.path.relpath(lsExe[0], sRoot)
+    # A WINDOWED PROGRAM IS NOT STARTED (1.43.4). It has no console to answer
+    # --help on; started here it opens its window and waits for a person, and
+    # the check sat for its full fifteen-minute timeout before calling that a
+    # failure. The PE header says which kind a program is.
+    if isWindowed(lsExe[0]):
+        return finding("smoke", "skip", "%s is a windowed program, so it is started by hand, not here" % sExe)
     iCode, sOut = runCommand([], sShell='"%s" --help' % sExe)
     if iCode == 0 and sOut.strip():
         return finding("smoke", "pass", "%s --help returned 0 and wrote %s" %

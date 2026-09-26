@@ -1,7 +1,7 @@
 ﻿# LocalFiles.txt -- what belongs to HomerView on this disk, but never in the
 # repository.
 #
-# homerTidy keeps these where they are and writes each line into .gitignore as
+# scripts\tidy keeps these where they are and writes each line into .gitignore as
 # never pushed. One path or pattern a line; a trailing slash means a folder.
 #
 # Build output. Made by buildHomerView, never committed.
@@ -30,3 +30,10 @@ scripts/release.cmd
 scripts/release.ps1
 scripts/tagRelease.cmd
 scripts/tagRelease.ps1
+
+# Built at the top of the project, where scripts\release looks for it.
+HomerView_setup.exe
+
+# The one-time repository bootstrap stays on this disk.
+scripts/createHomerViewRepo.cmd
+scripts/createHomerViewRepo.ps1

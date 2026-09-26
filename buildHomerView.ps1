@@ -938,7 +938,11 @@ foreach ($sLine in ($lLines | Select-Object -Last 3)) {
     writeLog "    $($sLine.Trim())"
 }
 
-$pathInstaller = Join-Path $pathRoot "exec\HomerView_setup.exe"
+# AT THE TOP OF THE PROJECT (OutputDir=.), where scripts\release looks. A copy
+# an older build left in exec is removed, so there is one installer to find.
+$pathInstaller = Join-Path $pathRoot "HomerView_setup.exe"
+$pathOldInstaller = Join-Path $pathRoot "exec\HomerView_setup.exe"
+if (Test-Path $pathOldInstaller) { Remove-Item -LiteralPath $pathOldInstaller -Force; writeLog "Removed the old exec\HomerView_setup.exe" }
 if (-not (Test-Path $pathInstaller)) {
     writeLog "ERROR: HomerView_setup.exe was not produced. Check OutputDir in the setup script."
     exit 1

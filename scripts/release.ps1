@@ -40,57 +40,31 @@
 #                  URL is right even if the GitHub repo name differs in case
 #                  from the local folder.
 #
-# VERSION HANDLING (this is what makes F11 / Elevate Version work)
+# VERSION HANDLING. The build assigns the version: build<App>.cmd steps
+# version.txt, writes it into the program and compiles the installer, which
+# stamps it into <App>_setup.exe. This script never changes a version number.
+# It tags and publishes the number stamped in the installer, because that is the
+# file that ships, and it STOPS, publishing nothing, when:
+#   * the installer is missing (it looks at the top of the project, then in
+#     exec, where some apps wrote it before the Homer layout settled);
+#   * the installer carries a LOWER number than version.txt -- the last build
+#     stepped the version but did not finish a new installer, so the one on disk
+#     is an older build (HomerView 1.48.53 was published on 26 September 2026
+#     while version.txt said 1.48.63). -Force publishes it anyway;
+#   * scripts\check, when the project has it, reports a problem. -NoCheck skips
+#     it.
+# Releasing a version that is already on GitHub publishes nothing and says what
+# to do instead.
 #
-#   The F11 Elevate Version command compares the version baked into the running
-#   .exe (the "public const string VersionString = ..." line in <App>.cs) with
-#   the tag of the latest GitHub release (which this script derives from the
-#   .iss AppVersion). Those are two DIFFERENT sources, so they drift:
-#   DbDo.cs said 1.0.111 while DbDo_setup.iss said 1.0.126, and EdSharp.cs said
-#   5.0.0 while EdSharp_setup.iss said 5.0. When they drift or stay equal, F11
-#   cannot see a new build as newer and reports "up to date".
+# QUIET QUESTIONS. Asking git or gh whether something exists is a question, and
+# "no" is a normal answer. Windows PowerShell 5.1 turns any line a native
+# program writes to stderr into an error record -- "NativeCommandError" -- even
+# with 2>$null, and the transcript prints each one, so a successful release read
+# like a failing one. Such questions now go through cmd, which discards the
+# stderr before PowerShell sees it.
 #
-#   This script removes that whole class of bug:
-#     1. It reads AppVersion from the .iss.
-#     2. If that version has ALREADY been released, it bumps the last number by
-#        one, so every release gets a genuinely higher version than the one
-#        before it -- that is what lets an older install detect this release as
-#        newer. If the version has NOT been released yet (because a previous run
-#        already bumped it and you have since rebuilt), it is published as-is.
-#        This means you never have to remember a flag, and re-running the script
-#        never invalidates the installer you just built.
-#     3. It writes the bumped version BACK to the .iss (AppVersion, and, when
-#        present, AppVerName / VersionInfoVersion) AND into <App>.cs's
-#        VersionString constant, so the .exe and the release tag always agree.
-#     4. Only then does it tag, release, and upload.
-#   Use -Version X.Y.Z to set an explicit version, or -NoBump to release the
-#   version already in the .iss unchanged.
-#
-#   IMPORTANT: because the version is written into <App>.cs, the app must be
-#   REBUILT and the installer recompiled after a bump, before it is published.
-#   The script compares the installer's timestamp against both version-bearing
-#   files and, if the installer is older, stops cleanly (nothing is published),
-#   prints the steps, and commits the version files. Just run it again after
-#   rebuilding -- no flags:
-#
-#     .\release.cmd      bumps if needed, says "rebuild first"
-#     Build<App>.cmd        rebuild with the new version
-#     (compile the .iss in Inno Setup)
-#     .\release.cmd      publishes that same version (no second bump)
-#
-# Working tree: uncommitted changes never block a release. The script commits
-# the version files it changed (unless -NoCommit) and warns about anything else
-# still outstanding, then proceeds.
-#
-# The script always acts on the CURRENT DIRECTORY, not on its own location, so
-# release.ps1 and release.cmd can live in one shared tools folder on your
-# PATH and be run against any repo. Just cd to the repo first:
-#   cd C:\EdSharp
-#   .\release.cmd                     publish the build that is on disk.  It never
-#                                        changes a version number: Build<App>.cmd
-#                                        already assigned one.
-#   .\release.cmd -Version 5.1        set an explicit version
-#   .\release.cmd -NoBump             never bump, even if already released
+# Working tree: uncommitted changes never block a release. They are listed, so
+# a release made from a changed tree is at least never a surprise.
 #
 # Requirements: git and gh in PATH, gh authenticated (gh auth login),
 # PowerShell 5.1+.
@@ -110,7 +84,9 @@ param(
     [string] $Version,
     [switch] $NoBump,
     [switch] $NoCommit,
-    [switch] $SkipStaleCheck
+    [switch] $SkipStaleCheck,
+    [switch] $Force,
+    [switch] $NoCheck
 )
 
 $ErrorActionPreference = 'Stop'
@@ -199,12 +175,75 @@ function getIssDirective {
     return $sValue
 }
 
+function runNative {
+    # Run a program with its standard output and error captured, never shown
+    # to PowerShell as a stream, and return @{ Code = exit code; Out = the
+    # output }. System.Diagnostics.Process rather than & or cmd /c: Windows
+    # PowerShell 5.1 turns each stderr line of a native program into a
+    # NativeCommandError, even with 2>$null, and routing through cmd /c needs
+    # quoting that 5.1 mangles -- the first release of this edition died on
+    # "The syntax of the command is incorrect" before it could say more.
+    param(
+        [Parameter(Mandatory)] [string]   $sExe,
+        [AllowEmptyCollection()] [string[]] $aArgs = @()
+    )
+    $oCommand = Get-Command $sExe -ErrorAction SilentlyContinue | Select-Object -First 1
+    $sPath = if ($oCommand -and $oCommand.Source) { $oCommand.Source } else { $sExe }
+    $oInfo = New-Object System.Diagnostics.ProcessStartInfo
+    $sArgs = ($aArgs | ForEach-Object { if ($_ -match '[\s"]') { '"' + ($_ -replace '"', '\"') + '"' } else { $_ } }) -join ' '
+    # A .cmd or .bat (gh can be gh.cmd) runs through cmd, quoted whole so a
+    # path with a space survives: cmd /s strips exactly the outer pair.
+    if ($sPath -match '\.(cmd|bat)$') {
+        $oInfo.FileName = $env:ComSpec
+        $oInfo.Arguments = '/d /s /c ""' + $sPath + '" ' + $sArgs + '"'
+    } else {
+        $oInfo.FileName = $sPath
+        $oInfo.Arguments = $sArgs
+    }
+    $oInfo.UseShellExecute = $false
+    $oInfo.RedirectStandardOutput = $true
+    $oInfo.RedirectStandardError = $true
+    $oInfo.CreateNoWindow = $true
+    $oInfo.WorkingDirectory = (Get-Location).Path
+    try {
+        $oProcess = [System.Diagnostics.Process]::Start($oInfo)
+    } catch {
+        return @{ Code = 9009; Out = "Could not start ${sExe}: $($_.Exception.Message)" }
+    }
+    # Both streams are read at once, so a program filling one cannot stall on
+    # the other.
+    $oErrTask = $oProcess.StandardError.ReadToEndAsync()
+    $sOut = $oProcess.StandardOutput.ReadToEnd()
+    $oProcess.WaitForExit()
+    $sErr = $oErrTask.Result
+    return @{ Code = $oProcess.ExitCode; Out = (($sOut + $sErr) -replace "`r", '').TrimEnd() }
+}
+
+function invokeQuiet {
+    # A yes-or-no question to git or gh: the exit code, nothing shown.
+    param(
+        [Parameter(Mandatory)] [string]   $sExe,
+        [Parameter(Mandatory)] [string[]] $aArgs
+    )
+    return (runNative -sExe $sExe -aArgs $aArgs).Code
+}
+
+function readQuiet {
+    # A program's output as text, with nothing shown and no error records.
+    param(
+        [Parameter(Mandatory)] [string]   $sExe,
+        [Parameter(Mandatory)] [string[]] $aArgs
+    )
+    $oResult = runNative -sExe $sExe -aArgs $aArgs
+    if ($oResult.Code -ne 0) { return '' }
+    return $oResult.Out.Trim()
+}
+
 function getOwnerRepo {
     # Parse "owner/repo" from the origin remote, covering both HTTPS and SSH
     # forms. The remote is authoritative: the GitHub repo may differ in case
     # from the local folder, and asset URLs are case-sensitive.
-    $ErrorActionPreference = 'Continue'
-    $sUrl = (& git config --get remote.origin.url 2>$null | Out-String).Trim()
+    $sUrl = readQuiet -sExe 'git' -aArgs @('config', '--get', 'remote.origin.url')
     if (-not $sUrl) { throw "No 'origin' remote is configured, so the GitHub owner/repo cannot be determined." }
     $sTrimmed = $sUrl -replace '\.git$', ''
     if ($sTrimmed -match '[:/]([^/:]+)/([^/]+)$') {
@@ -234,13 +273,35 @@ function isReleased {
     # local tag.  This is what lets the script decide by itself whether the
     # version in the .iss still needs releasing or has been used already.
     param([Parameter(Mandatory)] [string] $sTag)
-    $ErrorActionPreference = 'Continue'
+    # GITHUB DECIDES, AND ONLY GITHUB (1.43.12). A tag on this machine alone
+    # means an earlier run stopped between tagging and publishing -- on
+    # 26 September 2026 EdSharp's release said "v5.0.14 is already on GitHub"
+    # while its build, which steps over every number tagged on origin, had
+    # just used 5.0.14. The tag step below pushes such a tag and publishes.
+    # Without gh there is no way to ask GitHub, so a local tag is the answer.
     if (Get-Command gh -ErrorAction SilentlyContinue) {
-        & gh release view $sTag 2>&1 | Out-Null   # a missing release is a normal answer, not an error
-        if ($LASTEXITCODE -eq 0) { return $true }
+        # THE LIST OF RELEASES, READ AS DATA (1.43.13). Asking "gh release view"
+        # and trusting its exit code said EdSharp 5.0.15 was on GitHub minutes
+        # after the build, which steps over every tagged number, had chosen it:
+        # gh here is gh.cmd, and a batch file's exit code through cmd is not a
+        # reliable answer. The tag names GitHub lists are. Only when the list
+        # cannot be read does the exit code decide, as before.
+        $oList = runNative -sExe 'gh' -aArgs @('release', 'list', '--limit', '1000', '--json', 'tagName,isDraft')
+        if ($oList.Code -eq 0 -and $oList.Out) {
+            try {
+                $lReleases = @($oList.Out | ConvertFrom-Json)
+                foreach ($oRelease in $lReleases) {
+                    if ($oRelease.tagName -eq $sTag -and -not $oRelease.isDraft) { return $true }
+                }
+                return $false
+            } catch {
+                Write-Host "NOTE: the release list could not be read ($($_.Exception.Message)); asking for $sTag alone." -ForegroundColor Yellow
+            }
+        }
+        # A missing release is a normal answer, not an error.
+        return ((invokeQuiet -sExe 'gh' -aArgs @('release', 'view', $sTag)) -eq 0)
     }
-    & git rev-parse --verify --quiet "refs/tags/$sTag" 2>$null | Out-Null
-    if ($LASTEXITCODE -eq 0) { return $true }
+    if ((invokeQuiet -sExe 'git' -aArgs @('rev-parse', '--verify', '--quiet', "refs/tags/$sTag")) -eq 0) { return $true }
     return $false
 }
 
@@ -266,9 +327,7 @@ function tryInvoke {
         [Parameter(Mandatory)] [string]   $sExe,
         [Parameter(Mandatory)] [string[]] $aArgs
     )
-    $ErrorActionPreference = 'Continue'
-    & $sExe @aArgs 2>$null | Out-Null
-    return $LASTEXITCODE
+    return (invokeQuiet -sExe $sExe -aArgs $aArgs)
 }
 
 # ============================================================
@@ -280,7 +339,7 @@ $iExitCode = 0
 try {
     $sApp = Split-Path -Leaf $sRepoPath
 
-    Write-Host "=== release.ps1 (HomerDev edition, 2026-09-21) ==="
+    Write-Host "=== release.ps1 (HomerDev edition, 2026-09-26) ==="
     Write-Host "Started: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
     Write-Host "Log:     $sLogPath"
     Write-Host "Repo:    $sRepoPath"
@@ -347,9 +406,18 @@ try {
     $sSetupPath = ''
     $sVersion = ''
     if ($bHasInstaller) {
+        # The top of the project is where every Homer build writes it. exec is
+        # where some apps wrote it before: DbDo until 26 September 2026, when a
+        # release that looked only at the top stopped with "not found".
         $sSetupPath = Join-Path $sRepoPath $sSetupExe
         if (-not (Test-Path -LiteralPath $sSetupPath -PathType Leaf)) {
-            throw "$sSetupExe not found in $sRepoPath. Build the app, then compile $sIssName in Inno Setup."
+            $sInExec = Join-Path (Join-Path $sRepoPath 'exec') $sSetupExe
+            if (Test-Path -LiteralPath $sInExec -PathType Leaf) {
+                Write-Host "Installer found in exec rather than at the top of the project; build$sApp should write it at the top (OutputDir=.)." -ForegroundColor Yellow
+                $sSetupPath = $sInExec
+            } else {
+                throw "$sSetupExe was found neither in $sRepoPath nor in its exec folder. Run build$sApp, which builds the installer, then release again."
+            }
         }
         $oExe = Get-Item -LiteralPath $sSetupPath
         try { $sVersion = ("" + $oExe.VersionInfo.FileVersion).Trim() } catch { }
@@ -381,10 +449,33 @@ try {
     if ($bHasInstaller -and (Test-Path -LiteralPath $sVerPath -PathType Leaf)) {
         $sFileVersion = ((Get-Content -LiteralPath $sVerPath -TotalCount 1) + "").Trim()
         if ($sFileVersion -and -not (sameVersion $sFileVersion $sVersion)) {
+            $bOlder = $false
+            try { $bOlder = ([version] $sVersion) -lt ([version] $sFileVersion) } catch { }
+            if ($bOlder -and -not $Force) {
+                throw ("The installer carries $sVersion, but version.txt says ${sFileVersion}: the last build " +
+                       "stepped the version without finishing a new installer, so $sSetupExe is an older " +
+                       "build. Run build$sApp, then release again. (release -Force publishes the older " +
+                       "installer anyway.)")
+            }
             Write-Host "NOTE: version.txt says $sFileVersion but the installer carries $sVersion." -ForegroundColor Yellow
             Write-Host "      The installer is what ships, so v$sVersion is what will be tagged." -ForegroundColor Yellow
-            Write-Host "      (Recompile $sIssName in Inno Setup if that is not what you meant.)" -ForegroundColor Yellow
         }
+    }
+
+    # --- The project's own check ---
+    # A release should pass the checks its project wrote for itself: accept.inix
+    # and the kit's documents, encoding, whitelist, naming and keys checks.
+    $sCheck = Join-Path (Join-Path $sRepoPath 'scripts') 'check.cmd'
+    if (-not $NoCheck -and (Test-Path -LiteralPath $sCheck -PathType Leaf)) {
+        Write-Host ""
+        Write-Host "--- Check ---"
+        Write-Host "  > scripts\check" -ForegroundColor DarkGray
+        $oCheck = runNative -sExe $sCheck
+        if ($oCheck.Out) { Write-Host $oCheck.Out }
+        if ($oCheck.Code -ne 0) {
+            throw "scripts\check found a problem, so nothing was published. Its report in logs names it. (release -NoCheck skips the check.)"
+        }
+        Write-Host "The check passed."
     }
 
     if (-not $SkipStaleCheck -and (isReleased -sTag "v$sVersion")) {
@@ -394,15 +485,12 @@ try {
         Write-Host "The installer on disk carries v$sVersion, which is already on GitHub." -ForegroundColor Yellow
         Write-Host "So this is the same build that was released before -- there is nothing new." -ForegroundColor Yellow
         Write-Host ""
-        Write-Host "Build$sApp.cmd takes a NEW version every time it runs, and skips any number" -ForegroundColor Yellow
-        Write-Host "that is already released.  So:" -ForegroundColor Yellow
+        Write-Host "build$sApp takes a NEW version every time it runs.  So:" -ForegroundColor Yellow
         Write-Host ""
         if ($bHasInstaller) {
-            Write-Host "  1. build$sApp.cmd" -ForegroundColor Yellow
-            Write-Host "  2. Compile $sIssName in Inno Setup   <- this is the step that stamps the" -ForegroundColor Yellow
-            Write-Host "                                          new version into the installer" -ForegroundColor Yellow
-            Write-Host "  3. git add -A  /  git commit  /  git push" -ForegroundColor Yellow
-            Write-Host "  4. release" -ForegroundColor Yellow
+            Write-Host "  1. build$sApp        (steps the version and builds a new installer)" -ForegroundColor Yellow
+            Write-Host '  2. scripts\push "What changed."' -ForegroundColor Yellow
+            Write-Host "  3. scripts\release" -ForegroundColor Yellow
         } else {
             Write-Host "  1. Raise the number in version.txt, or pass -Version" -ForegroundColor Yellow
             Write-Host "  2. git add -A  /  git commit  /  git push" -ForegroundColor Yellow
@@ -438,7 +526,7 @@ try {
         $iCode = tryInvoke -sExe 'git' -aArgs @('push')
         if ($iCode -ne 0) { Write-Host "WARN: could not push the version commit; the tag will still be pushed." -ForegroundColor Yellow }
     }
-    $sStatus = (& git status --porcelain 2>&1 | Out-String).TrimEnd()
+    $sStatus = readQuiet -sExe 'git' -aArgs @('status', '--porcelain')
     if ($sStatus) {
         Write-Host "NOTE: other uncommitted changes are present. Releasing anyway:" -ForegroundColor Yellow
         Write-Host $sStatus -ForegroundColor Yellow
@@ -457,8 +545,7 @@ try {
         invokeChecked -sExe 'git' -aArgs @('push', 'origin', $sTag)
     } else {
         Write-Host "Tag $sTag already exists locally. Ensuring it is pushed ..."
-        $ErrorActionPreference = 'Continue'
-        & git push origin $sTag 2>$null | Out-Null
+        [void] (invokeQuiet -sExe 'git' -aArgs @('push', 'origin', $sTag))
     }
 
     # --- Release ---
@@ -490,8 +577,12 @@ try {
         } else {
             Write-Host "Release $sTag already exists. Marking it latest ..."
         }
-        $ErrorActionPreference = 'Continue'
-        & gh release edit $sTag --latest 2>$null | Out-Null
+        # A RELEASE THAT EXISTS MAY BE A DRAFT (1.43.15). EdSharp's v5.0.15 was
+        # one, left by an earlier run: invisible to the public, so the list of
+        # releases rightly said "not released", and "gh release view" found it.
+        # Uploading to a draft and marking it latest publishes nothing. It is
+        # published here, and a failure says so rather than passing quietly.
+        invokeChecked -sExe 'gh' -aArgs @('release', 'edit', $sTag, '--draft=false', '--latest')
     }
 
     # --- Verify the public URL ---
@@ -506,6 +597,16 @@ try {
         Stop-Transcript | Out-Null
         exit 0
     }
+    # THE LATEST RELEASE MUST BE THIS ONE. The download link below always
+    # answers while any earlier release carries an installer of the same name,
+    # so its answer alone cannot show that this release went out. GitHub is
+    # asked which release it calls latest.
+    $oLatest = runNative -sExe 'gh' -aArgs @('api', "repos/$sOwnerRepo/releases/latest", '--jq', '.tag_name')
+    $sLatestTag = ("" + $oLatest.Out).Trim()
+    if ($oLatest.Code -eq 0 -and $sLatestTag -ne '' -and $sLatestTag -ne $sTag) {
+        throw "GitHub's latest release is $sLatestTag, not ${sTag}: $sTag is on GitHub but not the one people download. Its page says why -- a draft, or a pre-release."
+    }
+    if ($sLatestTag -eq $sTag) { Write-Host "GitHub's latest release: $sLatestTag" }
     $sUrl = "https://github.com/$sOwnerRepo/releases/latest/download/$sSetupExe"
     Write-Host "Public URL: $sUrl"
     try {

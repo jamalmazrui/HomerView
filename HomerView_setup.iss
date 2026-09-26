@@ -94,7 +94,12 @@ ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 ; release reads the version from this file's version resource and expects
 ; to find it in the repository root, so that is where it is written.
-OutputDir=exec
+; THE INSTALLER IS WRITTEN TO THE TOP OF THE PROJECT, as in every Homer app,
+; where scripts\release looks for it (exec until 26 September 2026). With the
+; build writing into exec while release looked at the top first, a
+; HomerView_setup.exe left at the top from an older build was the one
+; published: 1.48.53, when version.txt said 1.48.63.
+OutputDir=.
 OutputBaseFilename=HomerView_setup
 Compression=lzma2
 SolidCompression=yes

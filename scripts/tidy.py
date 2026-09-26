@@ -7,13 +7,19 @@ folder; tidy swept the git repository. They asked the same question --
 "does this file belong to the project?" -- of two places, and keeping them apart
 meant two surveys, two plans, and two chances to disagree.
 
-    tidy                   survey everything and print the plan. Changes
-                                nothing.
-    tidy --do-it           carry the plan out.
-    tidy --do-it --no-push  carry it out locally; do not push.
-    tidy --folder-only     survey or fix the folder, leaving git alone.
-    tidy --repo-only       survey or fix the repository only.
+    tidy                   tidy everything: the folder and the repository.
+    tidy --no-push         tidy, committing locally; do not push.
+    tidy --folder-only     tidy the folder, leaving git alone.
+    tidy --repo-only       tidy the repository only.
     tidy --gitignore       write the whitelist .gitignore and stop.
+
+IT JUST DOES IT (1.43.9). tidy used to print a plan and change nothing until
+it was run again with --do-it. Nothing it does is lost: a stray file is moved
+into notes, which is on this disk and never in git, so a file tidy took is
+found there; the only deletions are zero-byte files and things the build
+fetches again. So the plan and the doing are one run, and the log records every
+move. --do-it is still accepted, and changes nothing, so an old habit or an old
+script does no harm.
 
 WHAT BELONGS. Nothing is listed inside this script. A file belongs to the
 project when the installer script names it, when RepoFiles.txt names it, when
@@ -136,7 +142,11 @@ c_iLargeBytes = 10 * 1024 * 1024        # what counts as large in the history
 c_lsNeverPushed = [
     "*.exe", "*.log", "*.obj", "*.pdb", "Version.cs", "__pycache__/",
     ".venv/", "build/", "create*Repo.cmd", "create*Repo.ps1", "dist/", "notes/",
-    "exec/", "logs/", "self.htm", "self.md", "release.cmd", "release.ps1", "version.py",
+    # /version.py, AT THE TOP ONLY (1.43.16): it is the file a Python app's
+    # build generates beside its source. HomerView's NVDA add-on carries its
+    # own homer\version.py, which the add-on imports, and a bare version.py
+    # here untracked it.
+    "exec/", "logs/", "self.htm", "self.md", "release.cmd", "release.ps1", "/version.py",
 ]
 
 # Folders a build makes. The survey does not walk into them, because what is
@@ -164,7 +174,7 @@ c_lsStandingNames = [
     r"^install[a-z0-9_]*\.(cmd|ps1)$", r"^get[a-z0-9_]*\.(cmd|ps1)$",
     # A project's own script logs are rewritten on every run and are already
     # ignored by git, so they stay where the script that writes them expects.
-    r"^localfiles\.txt$", r"^self\.(md|htm)$",
+    r"^localfiles\.txt$", r"^keepencoding\.txt$", r"^self\.(md|htm)$",
     r"^(homertidy|tagrelease|summarizesetup)\.log$",
     r"^(build|create|new|clean|tidy)[a-z0-9_]*\.log$",
     r"^[a-z0-9_+-]+\.(cs|py|js|iss|ico|inix|manifest|config|lua)$",
@@ -288,6 +298,17 @@ def placementFor(sRelative, lsNamed):
     if sNorm.lower().endswith(".log") and not sNorm.lower().startswith("logs/"):
         return "logs"
     if "/" in sNorm: return ""
+    # WHERE THE PROJECT SAYS A FILE LIVES, IT STAYS (1.43.11). EdSharp keeps
+    # Tektosyne.dll and nvdaControllerClient.dll at the top, named there in
+    # RepoFiles.txt, and the libraries its build fetches there too, under a
+    # *.dll line in LocalFiles.txt; its installer ships them from exec, where
+    # the build copies them. Seeing the installer's exec\ names, tidy "put
+    # them in place" -- found exec already held the build's copy -- and moved
+    # every one into notes, and git recorded the two carried libraries as
+    # deleted. A file RepoFiles.txt or LocalFiles.txt names where it is is in
+    # its place.
+    if matchesAny(sNorm, exactNames(namedByRepoFiles())) or matchesAny(sNorm, namedByLocalFiles()):
+        return ""
     for sNamed in lsNamed:
         sNamedNorm = sNamed.replace("\\", "/")
         if "/" not in sNamedNorm or "*" in sNamedNorm: continue
@@ -411,11 +432,63 @@ def surveyFolder(lsNamed):
     return (lsEmpty, ldDuplicates, lsStrays, ltPlace)
 
 
+def matchesAny(sRelative, lsNames):
+    """Does a path match any line of a name list: a path, a bare name, a
+    pattern with *, or a folder ending in /?"""
+    sLower = sRelative.replace("\\", "/").lower()
+    sName = os.path.basename(sLower)
+    for sNamed in lsNames:
+        # A leading / anchors a name to the top of the project, as in .gitignore.
+        bAnchored = sNamed.replace("\\", "/").startswith("/")
+        sNamedLower = sNamed.replace("\\", "/").lower().lstrip("/")
+        if sNamedLower == sLower or (not bAnchored and sNamedLower == sName): return True
+        if "*" in sNamedLower:
+            sRegex = "^" + re.escape(sNamedLower).replace(r"\*", ".*") + "$"
+            if re.match(sRegex, sLower) or re.match(sRegex, sName): return True
+        if sNamedLower.endswith("/") and sLower.startswith(sNamedLower): return True
+    return False
+
+
+# THE REPOSITORY HOLDS WHAT RepoFiles.txt NAMES, AND NOTHING ELSE (1.43.9).
+# The folder test -- does a file belong to the project at all? -- also accepts
+# what the installer and LocalFiles.txt name and the standing names, such as
+# version.txt and any .cs. Used for the repository too, it called version.txt,
+# Version.cs and the release scripts "named by the project", so DbDo's tidy on
+# 26 September found "0 files tracked that the project does not name" while
+# all four were tracked and RepoFiles.txt names none of them. A tracked file
+# now stays only when RepoFiles.txt names it and LocalFiles.txt does not.
+c_lsAlwaysTracked = [".gitattributes", ".gitignore", "KeepEncoding.txt", "LocalFiles.txt", "RepoFiles.txt"]
+
+
+def exactNames(lsNames):
+    """The lines of a name list that name one file: no wildcard, no folder."""
+    return [s for s in lsNames if "*" not in s and not s.replace("\\", "/").endswith("/")]
+
+
+def staysTracked(sRelative, lsRepo, lsLocal):
+    """Does a tracked file belong in the repository?
+
+    A NAME IN RepoFiles.txt OUTRANKS A PATTERN IN LocalFiles.txt (1.43.10).
+    EdSharp's LocalFiles.txt says *.dll, because the build fetches its
+    libraries, and its RepoFiles.txt names Tektosyne.dll, which cannot be
+    fetched and so must be carried. Named exactly, it stays. Anything else
+    LocalFiles.txt matches, or the kit never pushes (c_lsNeverPushed: the
+    release scripts, Version.cs, any .exe), goes; so does anything
+    RepoFiles.txt does not name at all.
+    """
+    if matchesAny(sRelative, exactNames(lsRepo)): return True
+    if matchesAny(sRelative, c_lsNeverPushed): return False
+    if matchesAny(sRelative, lsLocal): return False
+    return matchesAny(sRelative, lsRepo)
+
+
 def surveyRepo(lsNamed):
     """Return (lsTrackedStrays, lsLargeInHistory, sStatus)."""
     iCode, sOut = runGit(["ls-files"], True)
     lsTracked = [s.strip() for s in sOut.splitlines() if s.strip()]
-    lsTrackedStrays = [s for s in lsTracked if not belongsTo(s, lsNamed)]
+    lsRepo = namedByRepoFiles() + c_lsAlwaysTracked
+    lsLocal = namedByLocalFiles()
+    lsTrackedStrays = [s for s in lsTracked if not staysTracked(s, lsRepo, lsLocal)]
 
     lsLarge = []
     iCode, sObjects = runGit(
@@ -487,17 +560,50 @@ def writeWhitelistGitignore():
         "",
         "# Put back what the project names.",
     ]
-    for sName in sorted(set(s.replace("\\", "/") for s in lsNamed), key=lambda s: s.lower()):
+    # A FILE IN A SUBFOLDER NEEDS ITS FOLDER PUT BACK FIRST (1.43.0). "/*"
+    # ignores the folder help itself, and git never looks inside an ignored
+    # folder, so "!/help/Announce.md" alone put back nothing: every file named
+    # one by one in help\ or scripts\ -- as the rules for RepoFiles.txt ask --
+    # was silently left out of the repository. So each such folder is put back
+    # and its contents ignored again ("!/help/" then "/help/*"), and only then
+    # are the named files put back. A folder named whole ("help/") is simply
+    # put back, contents and all.
+    lsClean = sorted(set(s.replace("\\", "/") for s in lsNamed), key=lambda s: s.lower())
+    setWhole = set(s.strip("/").lower() for s in lsClean if s.endswith("/"))
+    lsFolders = []
+    for sName in lsClean:
+        lsParts = sName.strip("/").split("/")
+        for iDepth in range(1, len(lsParts)):
+            sFolder = "/".join(lsParts[:iDepth])
+            if sFolder not in lsFolders: lsFolders.append(sFolder)
+    for sFolder in sorted(lsFolders, key=lambda s: (s.count("/"), s.lower())):
+        bInsideWhole = any(sFolder.lower() == s or sFolder.lower().startswith(s + "/") for s in setWhole)
+        if bInsideWhole: continue
+        lsLines.append("!/" + sFolder + "/")
+        lsLines.append("/" + sFolder + "/*")
+    for sName in lsClean:
         sClean = sName.strip("/")
         if not sClean: continue
         lsLines.append("!/" + sClean + ("/" if sName.endswith("/") else ""))
     lsLines.append("!/.gitignore")
+    # .gitattributes, which keeps the Homer CRLF line endings, is put back
+    # whether or not RepoFiles.txt names it, as .gitignore is.
+    lsLines.append("!/.gitattributes")
+    lsLines.append("!/KeepEncoding.txt")
     lsLines.append("")
     lsLocal = namedByLocalFiles()
     if lsLocal:
         lsLines.append("# On this disk only, from LocalFiles.txt.")
         lsLines.extend(s.replace("\\", "/") for s in lsLocal)
         lsLines.append("")
+        # A name in RepoFiles.txt outranks a pattern in LocalFiles.txt: a file
+        # named exactly there is put back after the LocalFiles.txt patterns,
+        # so *.dll there cannot take the one library the repository carries.
+        lsBack = [s for s in exactNames(lsNamed) if matchesAny(s, lsLocal)]
+        if lsBack:
+            lsLines.append("# Named in RepoFiles.txt, so put back after the patterns above.")
+            lsLines.extend("!/" + s.replace("\\", "/").strip("/") for s in lsBack)
+            lsLines.append("")
     lsLines.append("# Never pushed, whatever RepoFiles.txt says: private notes, maintainer")
     lsLines.append("# scripts, logs, and anything a build makes.")
     for sPattern in c_lsNeverPushed:
@@ -541,7 +647,7 @@ def main():
     oParser = argparse.ArgumentParser(
         description="Tidy a Homer Tools project folder and its repository.")
     oParser.add_argument("--do-it", action="store_true",
-                         help="make the changes, rather than only describing them")
+                         help="accepted for old habits; tidy always carries its plan out")
     oParser.add_argument("--no-push", action="store_true",
                          help="commit locally but do not push")
     oParser.add_argument("--folder-only", action="store_true",
@@ -575,7 +681,7 @@ def main():
             (dArguments.do_it, dArguments.no_push, dArguments.folder_only,
              dArguments.repo_only))
 
-    bDoIt = dArguments.do_it
+    bDoIt = True
     sayLine("%s in %s" % (appName(), sRoot))
 
     if dArguments.gitignore:
@@ -583,7 +689,6 @@ def main():
         logLine("Finished %s" % datetime.datetime.now().isoformat(" ", "seconds"))
         return 0
 
-    if not bDoIt: sayLine("This is the plan only. Nothing will be changed.")
     sayLine()
 
     lsNamed = namedByInstaller() + namedByRepoFiles() + namedByLocalFiles()
@@ -663,7 +768,7 @@ def main():
                     countNoun(len(lsTrackedStrays), "file"))
             sayLine("  %s larger than 10 MB in the history" %
                     countNoun(len(lsLarge), "object"))
-            for sPath in lsTrackedStrays: logLine("TRACKED STRAY: " + sPath)
+            for sPath in lsTrackedStrays: logLine("TRACKED STRAY, to be untracked (the file stays on disk): " + sPath)
             for sPath, iSize in lsLarge:
                 logLine("LARGE IN HISTORY: %s, %.1f MB" % (sPath, iSize / 1048576.0))
 
@@ -703,10 +808,8 @@ def main():
                             sayLine("  The push failed. Nothing local was lost; see the log.")
             sayLine()
 
-    if not bDoIt:
-        sayLine("Run it again with --do-it to carry this out.")
-    else:
-        sayLine("%s made." % countNoun(iChanges, "change"))
+    sayLine("%s made. Anything moved is in notes, which git never takes; the log names each move." %
+            countNoun(iChanges, "change"))
     logLine("Finished %s" % datetime.datetime.now().isoformat(" ", "seconds"))
     return 0
 

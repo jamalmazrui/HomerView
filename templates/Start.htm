@@ -1,30 +1,8 @@
-﻿"""Markup for the page the HomerView Edge window opens.
-
-about:blank opens a window NVDA has nothing to say about: no document, no tree
-interceptor, no announcement, and no sign the window is ready. This page loads
-instantly, needs no network, and carries a banner, a navigation landmark, a
-main landmark and headings, so every HomerView command has something to work on
-the moment the window appears.
-
-The links meet a strict test: the thing itself must be free and open source
-software, not merely a company that publishes some. That test excludes more
-than it admits, and the exclusions are worth naming because each is a service
-people reasonably assume is open.
-
-DuckDuckGo's browser apps are open source and its search service is not, so the
-service fails. GitHub hosts an enormous amount of free software and is itself
-proprietary. LinkedIn is proprietary. Grok is a proprietary service; some model
-weights have been published, which is not the same thing as the service being
-open. None of them belong here under this rule.
-"""
-
-startPageVersion = "09f7a753"
-
-startPageText = """<!doctype html>
+﻿<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="homerViewStartVersion" content="{version}">
+<meta name="homerViewStartVersion" content="09f7a753">
 <title>HomerView Start Page</title>
 </head>
 <body>
@@ -141,12 +119,4 @@ address across.</p>
 </footer>
 </body>
 </html>
-"""
 
-
-def getStartPageText():
-    return startPageText.format(version=startPageVersion)
-
-
-def getVersionMarker():
-    return f'content="{startPageVersion}"'

@@ -1,8 +1,9 @@
 ﻿# RepoFiles.txt -- what this repository carries beyond what the program installs.
 #
-# HomerView_setup.iss is the first list: every file it names with a Source line
-# is part of the project by definition, and nothing here needs to repeat it.
-# This file is the second list, and there is no third place to look.
+# THIS FILE IS THE WHOLE LIST (26 September 2026). It used to be the second
+# list after HomerView_setup.iss, whose Source lines counted too; the kit's
+# tidy builds its whitelist from this file alone, so everything the repository
+# carries is named here, the installed files included.
 #
 # TRACKED is what the repository keeps but the program does not install: the
 # scripts that build, check and release it, and the sources they read.
@@ -20,8 +21,6 @@
 # extension what a file is for. Until 31 August 2026 only the first shape
 # was matched, so build\ and notes\ had been in this file from the start
 # and had never matched anything.
-
-tracked:
 
 # This file itself, which is the second of the two lists that decide what
 # belongs here. A list that does not name itself is a stray by its own rule.
@@ -119,10 +118,8 @@ scripts\makeDocs.py
 scripts\probeJawsScripts.cmd
 scripts\probeJawsScripts.ps1
 
-# Making the repository, and telling git what is text. Neither is
-# installed, and both are the repository's own business.
-scripts\createHomerViewRepo.cmd
-scripts\createHomerViewRepo.ps1
+# Telling git what is text: the repository's own business. (The one-time
+# createHomerViewRepo scripts stay on this disk; LocalFiles.txt names them.)
 .gitattributes
 
 # The JAWS script set, in scripts\jaws as the kit lays a project out;
@@ -131,5 +128,8 @@ scripts\jaws\HomerView.jss
 scripts\jaws\HomerView.jkm
 scripts\jaws\HomerView.jsd
 
-# The NVDA add-on sources, under addon\.
-addon\manifest.ini
+# THE NVDA ADD-ON, WHOLE: its manifest, its code under globalPlugins, and the
+# documents it carries. Only manifest.ini was named until 26 September 2026,
+# which the old whitelist forgave; the kit's tidy since 1.43.9 keeps tracked
+# only what this list names, and would have untracked every add-on module.
+addon\

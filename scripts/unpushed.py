@@ -89,7 +89,7 @@ def main():
         say("The reset failed. Nothing was changed; the log has the message.")
         return 1
     say("Undone. Every file is as it was, nothing is staged, and %s is back at %s." % (sBranch, sUpstream))
-    say("Run tidy --do-it to make the commit properly; it needs RepoFiles.txt.")
+    say("Run tidy to make the commit properly; it needs RepoFiles.txt.")
     say("Log: " + sLogPath)
     logLine("Finished %s" % datetime.datetime.now().isoformat(" ", "seconds"))
     return 0

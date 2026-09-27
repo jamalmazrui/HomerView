@@ -149,7 +149,7 @@ category, where every command here can be changed.
 # Adjusting the voice
 
 - **Speech Settings**, Shift+Accent. Reports the punctuation level, the rate and the volume.
-- **Toggle Punctuation**, Control+Shift+Accent. Toggle the voice between all and no punctuation.
+- **Toggle Punctuation**, NVDA+Accent. Toggle the voice between all and no punctuation.
 - **Voice Faster**, Control+Accent. Increase the voice rate. The accent key carries the whole speech family, as it does in EdSharp.
 - **Voice Louder**, Alt+Accent. Increase the voice volume.
 - **Voice Slower**, Control+Shift+Accent. Decrease the voice rate.

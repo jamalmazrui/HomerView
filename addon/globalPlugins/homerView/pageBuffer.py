@@ -125,11 +125,14 @@ dHomerGestures = {
     "kb:shift+j": "proxyMainContent",
     "kb:shift+space": "saySelected",
     "kb:shift+z": "priorSameType",
+    # Punctuation takes the screen reader key, as EdSharp's JAWS+Grave does:
+    # Control+Shift+Grave is Voice Slower, and this dictionary, which held both,
+    # kept only the later one, so punctuation had no key (26 September 2026).
+    "kb:NVDA+`": "togglePunctuation",
     "kb:NVDA+alt+e": "explorePage",
     "kb:NVDA+alt+j": "moveToMainContent",
     "kb:NVDA+alt+l": "listAnyElements",
     "kb:NVDA+shift+f7": "listLinks",
-    "kb:control+shift+`": "togglePunctuation",
     "kb:alt+shift+'": "clearClipboard",
     "kb:alt+shift+`": "speakSofter",
     "kb:alt+shift+f3": "findWordAtCursorBackwards",

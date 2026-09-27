@@ -4,15 +4,18 @@ EdSharp puts four adjustments on one key with different modifiers, and the
 arrangement is worth copying exactly because it is easy to remember and easy to
 reach. From edsharp.jkm:
 
-    JAWSKey+Grave         toggle punctuation between all and none
+    JAWS+Grave            toggle punctuation between all and none
     Control+Grave         speak faster
     Control+Shift+Grave   speak slower
     Alt+Grave             louder
     Alt+Shift+Grave       softer
 
-HomerView keeps the same shape. Punctuation moves to Control+Alt+Grave, since
-NVDA's own modifier is not used for page commands here, and the other four are
-unchanged.
+HomerView keeps the same shape, and it is the Homer Development Kit's
+convention for every app with speech commands: Alt for volume, Control for
+rate, Shift reversing the direction, and the screen reader key for
+punctuation. Punctuation is NVDA+Grave, as EdSharp's is JAWS+Grave, so it
+never shares a key with the other four. (Until 26 September 2026 it was given
+Control+Shift+Grave, Voice Slower's key, and so had none.)
 
 Everything is done through NVDA's own speech configuration rather than by
 talking to a synthesiser, so a change made here is the change the user would

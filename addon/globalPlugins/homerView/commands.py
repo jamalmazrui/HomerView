@@ -308,7 +308,7 @@ lCommands = [
      "Increase the voice volume."),
     ("speakSofter", "Voice Softer", ["kb:alt+shift+`"],
      "Decrease the voice volume."),
-    ("togglePunctuation", "Toggle Punctuation", ["kb:control+shift+`"],
+    ("togglePunctuation", "Toggle Punctuation", ["kb:NVDA+`"],
      "Toggle the voice between all and no punctuation."),
     ("reportSpeechSettings", "Speech Settings", ["kb:shift+`"],
      "Reports the punctuation level, the rate and the volume."),

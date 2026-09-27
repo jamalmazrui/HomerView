@@ -320,7 +320,8 @@ Name: "{autodesktop}\HomerView"; Filename: "{app}\exec\HomerView.exe"; Parameter
 ; box on this page then warned that the ticked box would fail. An installer
 ; offers the components this machine can use and nothing else. Someone who
 ; installs NVDA later has the Start menu item for the add-on.
-Filename: "{app}\exec\{#AddonFile}"; Description: "Install the HomerView add-on in NVDA (recommended)"; Flags: postinstall shellexec skipifsilent runasoriginaluser nowait; Check: HaveNvda
+; (The NVDA entry itself follows the JAWS one below: JAWS first, NVDA second,
+; worded alike, on every Homer finish page.)
 
 ; Pandoc, fetched rather than packaged, for the same reason HomerScribe fetches
 ; Ollama: it is far too large to ship and not everybody needs it.
@@ -385,9 +386,11 @@ Filename: "{app}\scripts\installJawsScripts.cmd"; \
 Filename: "{app}\scripts\installJawsScripts.cmd"; \
   Parameters: "-sVersion {#AppVersion} -bQuiet"; \
   WorkingDir: "{app}"; \
-  Description: "Install the HomerView scripts for JAWS (recommended)"; \
+  Description: "Install JAWS scripts"; \
   Flags: postinstall skipifsilent runasoriginaluser waituntilterminated runhidden; \
   Check: HaveJaws
+
+Filename: "{app}\exec\{#AddonFile}"; Description: "Install NVDA add-on"; Flags: postinstall shellexec skipifsilent runasoriginaluser nowait; Check: HaveNvda
 
 ; THE SAME STEP AGAIN, FOR A SILENT INSTALLATION.
 ;
@@ -778,7 +781,7 @@ var
   sFolders: String;
 begin
   Result := True;
-  iPandoc := homerAdd('pandoc', 'JohnMacFarlane.Pandoc', 'pandoc',
+  iPandoc := homerAdd('Pandoc', 'JohnMacFarlane.Pandoc', 'pandoc',
     '{commonpf}\Pandoc\pandoc.exe', 'reads ebooks and Markdown', 'Pandoc');
 
   { THE TWO APPROACHES MUST NOT BE MIXED, WHICH IS WHY THIS CAN CANCEL.

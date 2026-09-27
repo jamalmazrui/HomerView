@@ -806,7 +806,7 @@ on. Each entry gives the NVDA key and the JAWS key.
     - JAWS: **not yet on JAWS**
     - Reports the punctuation level, the rate and the volume.
 - **Toggle Punctuation**
-    - NVDA: Control+Shift+Accent
+    - NVDA: NVDA+GraveAccent
     - JAWS: **not yet on JAWS**
     - Toggle the voice between all and no punctuation.
 - **Voice Faster**

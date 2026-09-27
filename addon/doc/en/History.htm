@@ -8,6 +8,9 @@
   <title>HomerView History of Changes</title>
   <style>
     html {
+      line-height: 1.5;
+      font-family: Georgia, serif;
+      font-size: 20px;
       color: #1a1a1a;
       background-color: #fdfdfd;
     }
@@ -26,16 +29,13 @@
     @media (max-width: 600px) {
       body {
         font-size: 0.9em;
-        padding: 12px;
+        padding: 1em;
       }
       h1 {
         font-size: 1.8em;
       }
     }
     @media print {
-      html {
-        background-color: white;
-      }
       body {
         background-color: transparent;
         color: black;
@@ -85,10 +85,9 @@
       color: #606060;
     }
     code {
-      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-family: Menlo, Monaco, 'Lucida Console', Consolas, monospace;
       font-size: 85%;
       margin: 0;
-      hyphens: manual;
     }
     pre {
       margin: 1em 0;
@@ -153,17 +152,17 @@
     div.columns{display: flex; gap: min(4vw, 1.5em);}
     div.column{flex: auto; overflow-x: auto;}
     div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
-    /* The extra [class] is a hack that increases specificity enough to
-       override a similar rule in reveal.js */
-    ul.task-list[class]{list-style: none;}
+    ul.task-list{list-style: none;}
     ul.task-list li input[type="checkbox"] {
-      font-size: inherit;
       width: 0.8em;
       margin: 0 0.8em 0.2em -1.6em;
       vertical-align: middle;
     }
     .display.math{display: block; text-align: center; margin: 0.5rem auto;}
   </style>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
 </head>
 <body>
 <header id="title-block-header">
@@ -172,6 +171,9 @@
 </header>
 <nav id="TOC" role="doc-toc">
 <ul>
+<li><a href="#toggle-punctuation-has-its-own-key"
+id="toc-toggle-punctuation-has-its-own-key">Toggle Punctuation has its
+own key</a></li>
 <li><a href="#the-user-guide-names-the-right-keys"
 id="toc-the-user-guide-names-the-right-keys">The user guide names the
 right keys</a></li>
@@ -255,6 +257,17 @@ versions</a></li>
 <p>What changed, newest first, written the way you would tell somebody
 rather than as a list of commit messages. The reasoning behind each
 change is in the code, where it belongs. This is the short version.</p>
+<h2 id="toggle-punctuation-has-its-own-key">Toggle Punctuation has its
+own key</h2>
+<p>Toggle Punctuation is now <strong>NVDA+GraveAccent</strong>. It had
+been given Control+Shift+GraveAccent, which is Voice Slower’s key, and
+in a page only one of two commands on the same key can work – so
+punctuation had no key at all.</p>
+<p>The grave accent key now follows the same pattern in every Homer
+program with speech commands, the one EdSharp started: Alt for volume,
+Control for rate, Shift to go the other way, and the screen reader key
+for punctuation. EdSharp’s punctuation key is JAWS+GraveAccent;
+HomerView’s is NVDA+GraveAccent.</p>
 <h2 id="the-user-guide-names-the-right-keys">The user guide names the
 right keys</h2>
 <p>Four commands in the user guide were listed with keys that had

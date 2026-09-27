@@ -7,6 +7,17 @@ What changed, newest first, written the way you would tell somebody rather than
 as a list of commit messages. The reasoning behind each change is in the code,
 where it belongs. This is the short version.
 
+## Toggle Punctuation has its own key
+
+Toggle Punctuation is now **NVDA+GraveAccent**. It had been given
+Control+Shift+GraveAccent, which is Voice Slower's key, and in a page only one
+of two commands on the same key can work -- so punctuation had no key at all.
+
+The grave accent key now follows the same pattern in every Homer program with
+speech commands, the one EdSharp started: Alt for volume, Control for rate,
+Shift to go the other way, and the screen reader key for punctuation. EdSharp's
+punctuation key is JAWS+GraveAccent; HomerView's is NVDA+GraveAccent.
+
 ## The user guide names the right keys
 
 Four commands in the user guide were listed with keys that had changed:

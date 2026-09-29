@@ -266,12 +266,10 @@ foreach ($folderVersion in $lVersions) {
                         $sHash = (Get-FileHash $pathCheckJsb -Algorithm SHA256).Hash
                         writeLog "    fingerprint $($sHash.Substring(0, 16))"
                         $script:lJsbHashes += $sHash
-                        if (-not $script:pathKeptJsb) {
-                            $script:pathKeptJsb = Join-Path $pathRoot "scripts\jaws\HomerView.jsb"
-                            Copy-Item $pathCheckJsb $script:pathKeptJsb -Force
-                            writeLog "    kept as the fallback build, from JAWS $($folderVersion.Name)"
-                            $script:sKeptFrom = $folderVersion.Name
-                        }
+                        # NO BUILD IS KEPT (29 September 2026): HomerView ships
+                        # no .jsb; each user's installer compiles for each JAWS
+                        # version it finds, or installs nothing. The check's
+                        # compiled copy is removed below with the rest.
                     }
                 } else {
                     writeLog "    ERROR: nothing was compiled, exit code $iExit"
@@ -303,11 +301,14 @@ if ($lJsbHashes.Count -gt 1) {
         writeLog "does not appear to be version dependent and one build serves all."
     } else {
         writeLog "The versions compiled $iUnique DIFFERENT HomerView.jsb files, so the"
-        writeLog "format IS version dependent; a fallback build is a fallback only."
+        writeLog "format IS version dependent, which is why each installer compiles its own."
     }
 }
-if ($pathKeptJsb) {
-    writeLog "Fallback build kept at $pathKeptJsb, compiled by JAWS $sKeptFrom."
+# A .jsb an earlier check kept in scripts\jaws is removed: nothing ships one.
+$pathOldKept = Join-Path $pathRoot "scripts\jaws\HomerView.jsb"
+if (Test-Path $pathOldKept) {
+    Remove-Item $pathOldKept -Force -ErrorAction SilentlyContinue
+    writeLog "Removed $pathOldKept, a build an earlier check kept; the installer compiles its own."
 }
 if ($iQuality -ne 0) {
     writeLog "The source compiles or not on its own account, but the quality checks"

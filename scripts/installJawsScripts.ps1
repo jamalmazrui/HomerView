@@ -138,45 +138,13 @@ function compileScript {
     return $false
 }
 
-function installPrebuiltJsb {
-    param([string] $pathSettings)
-
-    # WHEN THE COMPILER REFUSES, USE THE BUILD WE ALREADY HAVE.
-    #
-    # This is not the preferred path and it is here because of a real one: a
-    # tester's scompile rejects this source on JAWS 2024, 2025 AND 2026 where
-    # every version on the developer's machine accepts it. Whatever differs is
-    # in his JAWS installation, and chasing it has already cost him more of that
-    # tester's time than the feature is worth.
-    #
-    # IT IS NOT RECKLESS. Freedom Scientific's own note on JAWS 13 says scripts
-    # compiled with JAWS 13 "will not be backwardly compatible with earlier
-    # versions" -- which says plainly that a .jsb runs on the version that built
-    # it and on LATER ones. The shipped build comes from the OLDEST JAWS present
-    # when the installer was made, so it is the most portable one available, and
-    # checkJawsScripts reports in the build log whether every version produced a
-    # byte identical file.
-    #
-    # IT IS ALSO SAID OUT LOUD. A script set that came from someone else's
-    # compiler is a thing the reader should know about, not a silent substitute.
-    $pathPrebuilt = Join-Path $pathRoot "scripts\jaws\HomerView.jsb"
-    if (-not (Test-Path $pathPrebuilt)) {
-        writeLog "    no prebuilt HomerView.jsb is available, so this version has none"
-        return $false
-    }
-    try {
-        $pathJsb = Join-Path $pathSettings "HomerView.jsb"
-        Copy-Item $pathPrebuilt $pathJsb -Force
-        $iSize = (Get-Item $pathJsb).Length
-        writeLog "    the compiler refused, so the PREBUILT HomerView.jsb was installed"
-        writeLog "      ($iSize bytes, built when this installer was made)"
-        writeLog "      The scripts will work; only this machine's compiler is unhappy."
-        return $true
-    } catch {
-        writeLog "    the prebuilt HomerView.jsb could not be copied: $($_.Exception.Message)"
-        return $false
-    }
-}
+# NO PREBUILT HomerView.jsb (29 September 2026). There used to be a fallback
+# here: when this machine's compiler refused the source, a HomerView.jsb built
+# on the developer's machine was installed instead. It is gone. A .jsb runs on
+# the JAWS version that built it and later ones, so one built elsewhere may not
+# suit this machine; and a failure should be seen, not covered. When the
+# scripts do not compile, everything this run placed is removed (below) and the
+# Results box says so.
 
 function compileOne {
     param([string] $sVersion, [string] $pathFile)
@@ -601,8 +569,6 @@ foreach ($folderVersion in $lVersions) {
             $iSkipped += 1
         } elseif ($vCompiled) {
             $iDone += 1
-        } elseif (installPrebuiltJsb $pathTarget) {
-            $iDone += 1
         } else {
             $iFailed += 1
         }
@@ -610,7 +576,28 @@ foreach ($folderVersion in $lVersions) {
     writeLog ""
 }
 
+# IF ANY VERSION DID NOT COMPILE, NOTHING IS LEFT INSTALLED (29 September
+# 2026). This run's own removal -- the same one the uninstaller runs, which
+# takes the copied files and the compiled ones out of every JAWS settings
+# folder and undoes the key bindings -- is run on everything this run placed,
+# so no JAWS version is left with scripts that half load. The Finished line is
+# written after it, since the Results box reads the last one.
+$bRolledBack = $false
+if ($iFailed -gt 0 -and -not $bUninstall) {
+    writeLog ""
+    writeLog "ERROR: the scripts did not compile for every JAWS version, so none are left installed."
+    writeLog "Removing everything this run placed, as the uninstaller would."
+    $ErrorActionPreference = "Continue"
+    & powershell -NoProfile -ExecutionPolicy Bypass -File $PSCommandPath -bUninstall -pathLogFile $pathLog -sHomerVersion $sHomerVersion 2>&1 | Out-Null
+    writeLog "run exit=$LASTEXITCODE cmd=""installJawsScripts -bUninstall"""
+    $bRolledBack = $true
+}
 writeLog "Finished. $iDone settings folders done, $iSkipped skipped, $iFailed with a problem."
+if ($bRolledBack) {
+    writeLog "Nothing was left behind: the JAWS scripts are NOT installed. HomerView still works with NVDA."
+    writeLog "The log is at $pathLog"
+    exit 1
+}
 if ($bUserDefault) {
     writeLog ""
     writeLog "IMPORTANT: this machine has its own default.jss or default.jsb, which JAWS"

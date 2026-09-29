@@ -192,13 +192,10 @@ Source: "2htm.exe"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexi
 ; below rather than by this section, because they must be compiled in place.
 Source: "exec\HomerView.exe"; DestDir: "{app}\exec"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "HomerView.cs"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
-Source: "scripts\jaws\*"; DestDir: "{app}\scripts\jaws"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "scripts\jaws\*"; Excludes: "*.jsb"; DestDir: "{app}\scripts\jaws"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "scripts\installJawsScripts.ps1"; DestDir: "{app}\scripts"; Flags: ignoreversion skipifsourcedoesntexist
-; THE PREBUILT SCRIPTS, used only when a machine's own scompile refuses the
-; source. skipifsourcedoesntexist because a build made where no JAWS is
-; installed cannot produce one, and that must not stop the installer being
-; compiled.
-Source: "scripts\jaws\HomerView.jsb"; DestDir: "{app}\scripts\jaws"; Flags: ignoreversion skipifsourcedoesntexist
+; No compiled HomerView.jsb is shipped (29 September 2026): the scripts are
+; compiled on this machine, for each JAWS version, or not installed at all.
 ; The start page, built once by the build from the add-on's own generator so
 ; both screen readers show the same page and neither composes its own.
 Source: "templates\Start.htm"; DestDir: "{app}\templates"; Flags: ignoreversion skipifsourcedoesntexist

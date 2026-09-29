@@ -110,6 +110,7 @@ scripts/createHomerViewRepo.ps1
 # Never pushed, whatever RepoFiles.txt says: private notes, maintainer
 # scripts, logs, and anything a build makes.
 *.exe
+*.jsb
 *.log
 *.obj
 *.pdb

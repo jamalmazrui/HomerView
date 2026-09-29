@@ -41,7 +41,7 @@ if ($oNewest) {
         $iDone = [int] $Matches[1]
         $iTrouble = [int] $Matches[3]
         if ($iTrouble -gt 0) {
-            $sMessage += "  JAWS scripts: FAILED in $iTrouble folder(s). The log named below says why." + $sBreak
+            $sMessage += "  JAWS scripts: NOT installed -- they did not compile for $iTrouble JAWS version(s), so nothing was left behind. The log named below has the compiler's words." + $sBreak
         } elseif ($iDone -gt 0) {
             $sWord = if ($iDone -eq 1) { "folder" } else { "folders" }
             $sMessage += "  JAWS scripts: installed for $iDone JAWS $sWord." + $sBreak

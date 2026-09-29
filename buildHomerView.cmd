@@ -23,7 +23,7 @@ rem carries. Those are the wrapper's job, and the engine takes what it is
 rem given.
 rem
 rem KIT: the shared C# modules are NOT copied into the app folder. They are
-rem compiled straight out of C:\HomerDev\CSharp, so there is one copy of
+rem compiled straight out of C:\HomerDev\exec\CSharp, so there is one copy of
 rem Inix.cs on the machine and every app gets a fix the moment the kit does.
 rem HomerView carried homer\Inix.cs, homer\Web.cs and homer\Keys.cs until
 rem 25 September 2026; the first two had drifted from the kit's by then and
@@ -50,7 +50,12 @@ set "app=HomerView"
 for /f %%i in ('powershell -NoProfile -Command "Get-Date -Format yyyyMMdd-HHmmss"') do set "sStamp=%%i"
 if not exist "%~dp0logs" mkdir "%~dp0logs"
 set "log=%~dp0logs\%app%-build-%sStamp%.log"
-echo %app% build started %DATE% %TIME%> "%log%"
+rem THE START AND END LINES CARRY AN ISO 8601 TIME (HomerDev 1.43.21), with
+rem the UTC offset, from PowerShell rather than %DATE% %TIME%, whose form
+rem follows the regional settings; and they name the event and its result as
+rem every Homer log does.
+for /f "usebackq delims=" %%i in (`powershell -NoProfile -Command "Get-Date -Format 'yyyy-MM-ddTHH:mm:ss.fffzzz'"`) do set "sIso=%%i"
+> "%log%" echo %sIso% INFO  build start app=%app%
 echo Script: %~f0>> "%log%"
 echo Folder: %CD%>> "%log%"
 echo Command line: %0 %*>> "%log%"
@@ -58,9 +63,9 @@ echo Build log: %log%
 
 rem ---- the Homer Development Kit -------------------------------------
 set "homerDev="
-if defined HomerDev if exist "%HomerDev%\CSharp\Inix.cs" set "homerDev=%HomerDev%"
-if not defined homerDev if exist "C:\HomerDev\CSharp\Inix.cs" set "homerDev=C:\HomerDev"
-if not defined homerDev if exist "%CD%\CSharp\Inix.cs" set "homerDev=%CD%"
+if defined HomerDev if exist "%HomerDev%\exec\CSharp\Inix.cs" set "homerDev=%HomerDev%"
+if not defined homerDev if exist "C:\HomerDev\exec\CSharp\Inix.cs" set "homerDev=C:\HomerDev"
+if not defined homerDev if exist "%CD%\exec\CSharp\Inix.cs" set "homerDev=%CD%"
 if not defined homerDev (
   echo %app% needs the Homer Development Kit and cannot find it.
   echo Unzip HomerDev.zip into C:\HomerDev, or set the HomerDev environment variable.
@@ -69,7 +74,7 @@ if not defined homerDev (
 )
 set "homerVer=0.0.0"
 if exist "!homerDev!\version.txt" set /p homerVer=<"!homerDev!\version.txt"
-set "kitNeeded=1.43.20"
+set "kitNeeded=1.43.22"
 rem TRIMMED BEFORE IT IS COMPARED. FileDir's build of 25 September stopped
 rem with "kit 1.40.1 is older than 1.40.1": the kit's version.txt carried a
 rem trailing space, [version] would not parse "1.40.1 ", PowerShell threw, and
@@ -102,8 +107,8 @@ rem inner quotes did not survive the cmd-to-PowerShell boundary: the engine
 rem received the paths bare, found no quotes to split on, compiled with no
 rem kit sources at all, and csc answered "InixCodec does not exist". A
 rem semicolon cannot appear in a Windows path, so it crosses intact.
-set "homerSources=!homerDev!\CSharp\Inix.cs;!homerDev!\CSharp\Web.cs"
-for %%F in ("!homerDev!\CSharp\Inix.cs" "!homerDev!\CSharp\Web.cs") do (
+set "homerSources=!homerDev!\exec\CSharp\Inix.cs;!homerDev!\exec\CSharp\Web.cs"
+for %%F in ("!homerDev!\exec\CSharp\Inix.cs" "!homerDev!\exec\CSharp\Web.cs") do (
   if not exist %%F (
     echo The kit at !homerDev! has no %%~nxF, and HomerView.cs calls into it.
     echo ERROR: missing kit source %%F>> "%log%"
@@ -244,9 +249,12 @@ if /i "%~1"=="nobump" set "bump=nobump"
 powershell -NoProfile -ExecutionPolicy Bypass -File "buildHomerView.ps1" -pathCompiler "!csc!" -sHomerSources "!homerSources!" -pathLogFile "%log%" -sBump "%bump%"
 set "exitCode=!errorlevel!"
 echo Engine exit code !exitCode!>> "%log%"
+for /f "usebackq delims=" %%i in (`powershell -NoProfile -Command "Get-Date -Format 'yyyy-MM-ddTHH:mm:ss.fffzzz'"`) do set "sIso=%%i"
 if not "!exitCode!"=="0" (
+  >> "%log%" echo !sIso! ERROR build end result=failed exit=!exitCode!
   echo Build failed. The log is %log%
   exit /b !exitCode!
 )
+>> "%log%" echo !sIso! INFO  build end result=succeeded
 echo Build finished. The log is %log%
 endlocal & exit /b 0

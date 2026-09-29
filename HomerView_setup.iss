@@ -121,8 +121,8 @@ SetupLogging=yes
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Messages]
-WelcomeLabel2=This will install [name/ver], an NVDA add-on that drives Microsoft Edge through the Chrome DevTools Protocol.%n%nHomerView is free software under the GNU General Public License version 2. The full text installs as License.txt.%n%nAccepting the defaults throughout will install the add-on into NVDA as well as copying the program files. NVDA will ask you to confirm, and will need to restart afterwards.
-FinishedLabel=Setup has installed [name/ver] on your computer.%n%nThe checked box below hands the add-on to NVDA, which will ask you to confirm it and then restart. Until that happens, HomerView is only a folder of files and none of its commands will work.%n%nAfter NVDA restarts, press NVDA+Alt+H to begin, or NVDA+Alt+F10 for a list of every command.
+WelcomeLabel2=This will install [name/ver], which drives Microsoft Edge through the Chrome DevTools Protocol, with commands for NVDA and for JAWS.%n%nHomerView is free software under the GNU General Public License version 2. The full text installs as License.txt.%n%nAccepting the defaults throughout installs the NVDA add-on and the JAWS scripts as well as the program files.
+FinishedLabel=Setup has installed [name/ver] on your computer.%n%nThe ticked boxes below install what is missing or out of date. NVDA loads the add-on when it next starts.
 
 ; No Tasks section. The one optional step, installing the add-on into NVDA, is
 ; offered as a checkbox on the Finish page through the Run section below, which
@@ -243,7 +243,7 @@ Name: "{group}\HomerView history of changes"; Filename: "{app}\History.htm"
 Name: "{group}\HomerView developer notes"; Filename: "{app}\Developer.htm"
 ; A shortcut runs as whoever double-clicks it, so this one can point at the
 ; add-on file directly and let the file association do its work.
-Name: "{group}\Install the HomerView add-on in NVDA"; Filename: "{app}\exec\{#AddonFile}"; WorkingDir: "{app}\exec"
+Name: "{group}\Install the HomerView add-on in NVDA"; Filename: "{app}\scripts\installJawsScripts.cmd"; Parameters: "-bNvda -bQuiet"; WorkingDir: "{app}"; Flags: runminimized
 Name: "{group}\Uninstall HomerView"; Filename: "{uninstallexe}"
 
 ; THE ONE KEY THAT WORKS WHEN THE BROWSER IS NOT IN FRONT, and the reason
@@ -380,15 +380,6 @@ Filename: "{app}\scripts\installJawsScripts.cmd"; \
   Flags: runasoriginaluser waituntilterminated runhidden; \
   Check: RemovingOldScripts
 
-Filename: "{app}\scripts\installJawsScripts.cmd"; \
-  Parameters: "-sVersion {#AppVersion} -bQuiet"; \
-  WorkingDir: "{app}"; \
-  Description: "Install JAWS scripts"; \
-  Flags: postinstall skipifsilent runasoriginaluser waituntilterminated runhidden; \
-  Check: HaveJaws
-
-Filename: "{app}\exec\{#AddonFile}"; Description: "Install NVDA add-on"; Flags: postinstall shellexec skipifsilent runasoriginaluser nowait; Check: HaveNvda
-
 ; THE SAME STEP AGAIN, FOR A SILENT INSTALLATION.
 ;
 ; Every postinstall entry carries skipifsilent, which is right for the two that
@@ -407,19 +398,72 @@ Filename: "{app}\scripts\installJawsScripts.cmd"; \
   Flags: runhidden runasoriginaluser waituntilterminated; \
   Check: JawsAndSilent
 
+; THE FINISH PAGE (29 September 2026; HomerDev FinishPage.md). Three groups,
+; Install and Update ticked, Reinstall unticked; within each, alphabetical by
+; the component's name, ignoring case: JAWS scripts, NVDA add-on, pandoc. The
+; JAWS scripts and the NVDA add-on are judged like any component, by
+; installJawsScripts -sState, and the add-on is installed without starting
+; NVDA, so no second screen reader talks over JAWS.
 ; PANDOC IN THE KIT'S THREE SHAPES: "Install pandoc <version>" ticked when it
 ; is absent, "Update pandoc from <old> to <new>" ticked when a newer one exists,
 ; "Reinstall pandoc <version>" unticked when it is current. So Enter installs
 ; what is missing, updates what is stale, and reinstalls nothing. Run directly,
 ; not through {cmd} with doubled quotes, which the kit found fails silently.
+; ---- 1. Install, ticked
+Filename: "{app}\scripts\installJawsScripts.cmd"; \
+  Parameters: "-sVersion {#AppVersion} -bQuiet"; \
+  WorkingDir: "{app}"; \
+  Description: "{code:labelJaws}"; \
+  Flags: postinstall skipifsilent runasoriginaluser waituntilterminated runhidden; \
+  Check: isInstallJaws
+
+Filename: "{app}\scripts\installJawsScripts.cmd"; \
+  Parameters: "-bNvda -bQuiet"; \
+  WorkingDir: "{app}"; \
+  Description: "{code:labelNvda}"; \
+  Flags: postinstall skipifsilent runasoriginaluser waituntilterminated runhidden; \
+  Check: isInstallNvda
+
 Filename: "{app}\scripts\installPandoc.cmd"; Parameters: "noPause"; \
   WorkingDir: "{app}\scripts"; Description: "{code:labelPandoc}"; \
   Flags: postinstall skipifsilent runascurrentuser waituntilterminated; \
   Check: isInstallPandoc
+
+; ---- 2. Update, ticked
+Filename: "{app}\scripts\installJawsScripts.cmd"; \
+  Parameters: "-sVersion {#AppVersion} -bQuiet"; \
+  WorkingDir: "{app}"; \
+  Description: "{code:labelJaws}"; \
+  Flags: postinstall skipifsilent runasoriginaluser waituntilterminated runhidden; \
+  Check: isUpdateJaws
+
+Filename: "{app}\scripts\installJawsScripts.cmd"; \
+  Parameters: "-bNvda -bQuiet"; \
+  WorkingDir: "{app}"; \
+  Description: "{code:labelNvda}"; \
+  Flags: postinstall skipifsilent runasoriginaluser waituntilterminated runhidden; \
+  Check: isUpdateNvda
+
 Filename: "{app}\scripts\installPandoc.cmd"; Parameters: "noPause"; \
   WorkingDir: "{app}\scripts"; Description: "{code:labelPandoc}"; \
   Flags: postinstall skipifsilent runascurrentuser waituntilterminated; \
   Check: isUpdatePandoc
+
+; ---- 3. Reinstall, unticked
+Filename: "{app}\scripts\installJawsScripts.cmd"; \
+  Parameters: "-sVersion {#AppVersion} -bQuiet"; \
+  WorkingDir: "{app}"; \
+  Description: "{code:labelJaws}"; \
+  Flags: postinstall skipifsilent runasoriginaluser waituntilterminated runhidden unchecked; \
+  Check: isReinstallJaws
+
+Filename: "{app}\scripts\installJawsScripts.cmd"; \
+  Parameters: "-bNvda -bQuiet"; \
+  WorkingDir: "{app}"; \
+  Description: "{code:labelNvda}"; \
+  Flags: postinstall skipifsilent runasoriginaluser waituntilterminated runhidden unchecked; \
+  Check: isReinstallNvda
+
 Filename: "{app}\scripts\installPandoc.cmd"; Parameters: "noPause"; \
   WorkingDir: "{app}\scripts"; Description: "{code:labelPandoc}"; \
   Flags: postinstall skipifsilent runascurrentuser waituntilterminated unchecked; \
@@ -450,15 +494,16 @@ Filename: "{app}\scripts\installJawsScripts.cmd"; \
 ; the comment above records that this exact mistake stopped the script compiling
 ; once already, and I made it again while writing this entry.
 ;
-; And the NVDA add-on, through NVDA's own mechanism rather than by deleting
-; folders under it. NVDA keeps its own record of what is installed, and a
-; directory removed behind its back leaves that record claiming an add-on that
-; is not there. --remove-addon is how NVDA is told.
-Filename: "{code:GetNvdaPath}"; \
-  Parameters: "--remove-addon ""HomerView"""; \
-  Flags: runhidden waituntilterminated skipifdoesntexist; \
-  RunOnceId: "RemoveNvdaAddon"; \
-  Check: HaveNvda
+; And the NVDA add-on, removed without starting NVDA (29 September 2026).
+; nvda.exe has no --remove-addon argument -- it answered with an invalid
+; command line parameter -- and starting it brought a second screen reader up
+; over JAWS. The folder is moved to homerView.delete, which NVDA skips, and
+; deleted; the setup log records it.
+Filename: "{app}\scripts\installJawsScripts.cmd"; \
+  Parameters: "-bNvdaRemove -bQuiet"; \
+  WorkingDir: "{app}"; \
+  Flags: runhidden waituntilterminated; \
+  RunOnceId: "RemoveNvdaAddon"
 
 [UninstallDelete]
 ; ONLY WHAT HOMERVIEW MADE FOR ITSELF, NEVER THE WHOLE FOLDER. The kit's rule:
@@ -830,6 +875,84 @@ end;
 var
   bInstalled: Boolean;
 
+{ ---- JAWS scripts and NVDA add-on, judged like any component ----
+  installJawsScripts.cmd -sState jaws|nvda answers none, install, update or
+  reinstall, and logs its evidence: the script sources' fingerprint against
+  the one kept in each JAWS version's settings, the add-on's version against
+  the installed one's. Asked once per reader; -1 hides every box for it. }
+var
+  giJawsState, giNvdaState: Integer;
+  gbJawsRead, gbNvdaRead: Boolean;
+  gsTicked: String;
+
+function readerState(sReader: String): Integer;
+var
+  sFile: String;
+  sAnswer: AnsiString;
+  iCode: Integer;
+begin
+  if (sReader = 'jaws') and gbJawsRead then begin Result := giJawsState; Exit; end;
+  if (sReader = 'nvda') and gbNvdaRead then begin Result := giNvdaState; Exit; end;
+  Result := -1;
+  sFile := ExpandConstant('{tmp}\homerViewReader_') + sReader + '.txt';
+  if Exec(ExpandConstant('{cmd}'), '/c ""' + ExpandConstant('{app}\scripts\installJawsScripts.cmd') + '" -sState ' + sReader + ' -pathStateFile "' + sFile + '" -bQuiet"',
+          ExpandConstant('{app}'), SW_HIDE, ewWaitUntilTerminated, iCode) then
+    if LoadStringFromFile(sFile, sAnswer) then
+    begin
+      sAnswer := Trim(sAnswer);
+      if sAnswer = 'install' then Result := 0
+      else if sAnswer = 'update' then Result := 1
+      else if sAnswer = 'reinstall' then Result := 2;
+    end;
+  Log('Component ' + sReader + ': state ' + IntToStr(Result) + ' (-1 not offered, 0 Install, 1 Update, 2 Reinstall)');
+  if sReader = 'jaws' then begin giJawsState := Result; gbJawsRead := True; end
+  else begin giNvdaState := Result; gbNvdaRead := True; end;
+end;
+
+function readerLabel(sReader: String): String;
+begin
+  case readerState(sReader) of
+    1: Result := 'Update';
+    2: Result := 'Reinstall';
+  else Result := 'Install';
+  end;
+  if sReader = 'jaws' then Result := Result + ' JAWS scripts'
+  else Result := Result + ' NVDA add-on';
+end;
+
+function labelJaws(sParam: String): String;  begin Result := readerLabel('jaws'); end;
+function isInstallJaws(): Boolean;           begin Result := readerState('jaws') = 0; end;
+function isUpdateJaws(): Boolean;            begin Result := readerState('jaws') = 1; end;
+function isReinstallJaws(): Boolean;         begin Result := readerState('jaws') = 2; end;
+function labelNvda(sParam: String): String;  begin Result := readerLabel('nvda'); end;
+function isInstallNvda(): Boolean;           begin Result := readerState('nvda') = 0; end;
+function isUpdateNvda(): Boolean;            begin Result := readerState('nvda') = 1; end;
+function isReinstallNvda(): Boolean;         begin Result := readerState('nvda') = 2; end;
+
+{ THE RESULTS BOX REPORTS WHAT WAS TICKED: where HomerView is and where the logs
+  are, then one line for each box ticked on the finish page. The captions are
+  written down when Finish is pressed, before any of those steps run. }
+function NextButtonClick(iCurPageID: Integer): Boolean;
+var
+  i: Integer;
+  lsLines: TArrayOfString;
+begin
+  Result := True;
+  if iCurPageID <> wpFinished then Exit;
+  homerNoteTicked();
+  gsTicked := '';
+  SetArrayLength(lsLines, 0);
+  for i := 0 to WizardForm.RunList.Items.Count - 1 do
+    if WizardForm.RunList.Checked[i] then
+    begin
+      gsTicked := gsTicked + WizardForm.RunList.ItemCaption[i] + #10;
+      SetArrayLength(lsLines, GetArrayLength(lsLines) + 1);
+      lsLines[GetArrayLength(lsLines) - 1] := WizardForm.RunList.ItemCaption[i];
+    end;
+  ForceDirectories(ExpandConstant('{localappdata}\HomerView\logs'));
+  SaveStringsToFile(ExpandConstant('{localappdata}\HomerView\logs\HomerView_ticked.txt'), lsLines, False);
+end;
+
 procedure CurStepChanged(iCurStep: TSetupStep);
 begin
   { DeinitializeSetup runs whenever Setup exits, INCLUDING WHEN THE USER
@@ -935,20 +1058,11 @@ begin
   sLogFolder := ExpandConstant('{localappdata}\HomerView\logs');
   ForceDirectories(sLogFolder);
 
-  sMessage := 'HomerView is installed.' + sBreak + sBreak
-    + 'Program files:' + sBreak + '  ' + ExpandConstant('{app}') + sBreak
-    + 'Logs:' + sBreak + '  ' + sLogFolder + sBreak + sBreak
-    + 'Results' + sBreak;
-
-  { pandoc is reported from the component table, which looks everywhere pandoc
-    can be -- Program Files, the PATH, winget -- rather than for a copy in this
-    app's folder, which is no longer where it goes. }
-  if homerIs(iPandoc, 0) then
-    sMessage := sMessage + '  pandoc: not installed yet. The finish page offers it.' + sBreak
-  else
-    sMessage := sMessage + '  pandoc: present. Ebooks and Markdown will open.' + sBreak;
-  if not HaveJaws() then
-    sMessage := sMessage + '  JAWS scripts: not offered, because JAWS was not found here.' + sBreak;
+  // Where it is; the ticked boxes are reported by summarizeSetup, which runs
+  // after them. pandoc runs here from its own outcome line.
+  sMessage := 'HomerView {#AppVersion} is installed in ' + ExpandConstant('{app}') + '.' + sBreak + sBreak;
+  if homerOutcomeLine(iPandoc) <> '' then
+    sMessage := sMessage + '  ' + homerOutcomeLine(iPandoc) + sBreak;
 
   appendSetupLog(sLogFolder);
   saveResultsForSummary(sLogFolder, sMessage);

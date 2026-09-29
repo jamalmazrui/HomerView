@@ -26,53 +26,67 @@ if (Test-Path $pathResults) {
 # outcome can be read off the disk rather than guessed at.
 $sBreak = [Environment]::NewLine
 
-# THE JAWS OUTCOME COMES FROM THE JAWS LOG, which is the only place it is
-# recorded now. That script ends with a line of the form
+# ONLY WHAT WAS TICKED (29 September 2026). The installer wrote the ticked
+# captions to HomerView_ticked.txt when Finish was pressed; each screen reader
+# is reported only when its box was among them, and nothing else is added but
+# where the logs are.
+$pathTicked = Join-Path $pathFolder "HomerView_ticked.txt"
+$sTicked = ""
+if (Test-Path -LiteralPath $pathTicked) {
+    $sTicked = (Get-Content -LiteralPath $pathTicked -ErrorAction SilentlyContinue) -join "`n"
+    try { Remove-Item -LiteralPath $pathTicked -Force } catch { }
+}
+$sMessage = $sMessage.TrimEnd() + $sBreak
+
+# The JAWS outcome comes from the JAWS log, which ends with a line of the form
 #   Finished. 3 settings folders done, 0 skipped, 0 with a problem.
-# so the newest log in this folder answers the question without a second file
-# in C:\temp saying the same thing and falling out of step with it.
-$oNewest = Get-ChildItem -Path $pathFolder -Filter "HomerViewJAWS*.log" -File `
-    -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending |
-    Select-Object -First 1
-if ($oNewest) {
-    $sFinished = (Select-String -Path $oNewest.FullName -Pattern "Finished\. .*settings folders" |
-        Select-Object -Last 1).Line
-    if ($sFinished -match "(\d+) settings folders done, (\d+) skipped, (\d+) with a problem") {
-        $iDone = [int] $Matches[1]
-        $iTrouble = [int] $Matches[3]
-        if ($iTrouble -gt 0) {
-            $sMessage += "  JAWS scripts: NOT installed -- they did not compile for $iTrouble JAWS version(s), so nothing was left behind. The log named below has the compiler's words." + $sBreak
-        } elseif ($iDone -gt 0) {
-            $sWord = if ($iDone -eq 1) { "folder" } else { "folders" }
-            $sMessage += "  JAWS scripts: installed for $iDone JAWS $sWord." + $sBreak
-        } else {
-            $sMessage += "  JAWS scripts: no JAWS version was set up." + $sBreak
+if ($sTicked -match "JAWS") {
+    $oNewest = Get-ChildItem -Path $pathFolder -Filter "HomerViewJAWS*.log" -File `
+        -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending |
+        Select-Object -First 1
+    $sLine = "  JAWS scripts: the step left no record. The log says why."
+    if ($oNewest) {
+        $sFinished = (Select-String -Path $oNewest.FullName -Pattern "Finished\. .*settings folders" |
+            Select-Object -Last 1).Line
+        if ($sFinished -match "(\d+) settings folders done, (\d+) skipped, (\d+) with a problem") {
+            $iDone = [int] $Matches[1]
+            $iTrouble = [int] $Matches[3]
+            if ($iTrouble -gt 0) {
+                $sLine = "  JAWS scripts: NOT installed -- they did not compile for $iTrouble JAWS version(s), so nothing was left behind. The log has the compiler's words."
+            } elseif ($iDone -gt 0) {
+                $sWord = if ($iDone -eq 1) { "version" } else { "versions" }
+                $sLine = "  JAWS scripts: installed and compiled for $iDone JAWS $sWord."
+            }
         }
     }
+    $sMessage += $sLine + $sBreak
 }
 
-$pathAddon = Join-Path $env:APPDATA "nvda\addons"
-if ((Test-Path (Join-Path $pathAddon "homerView")) -or
-    (Test-Path (Join-Path $pathAddon "homerView.pendingInstall"))) {
-    $sMessage += "  NVDA add-on: installed. Restart NVDA to use it." + $sBreak
+if ($sTicked -match "NVDA") {
+    $pathAddon = Join-Path $env:APPDATA "nvda\addons"
+    $bRunning = [bool](Get-Process -Name nvda -ErrorAction SilentlyContinue)
+    if ((Test-Path (Join-Path $pathAddon "homerView")) -or (Test-Path (Join-Path $pathAddon "homerView.pendingInstall"))) {
+        if ($bRunning) { $sMessage += "  NVDA add-on: installed. Restart NVDA to use it." + $sBreak }
+        else { $sMessage += "  NVDA add-on: installed. NVDA loads it when it next starts." + $sBreak }
+    } else {
+        $sMessage += "  NVDA add-on: NOT installed. The log says why." + $sBreak
+    }
+    # For the log: what NVDA now has, and what its own log says.
+    try {
+        $sCheck = Join-Path $PSScriptRoot "installJawsScripts.cmd"
+        & cmd.exe /c "`"$sCheck`" -sState nvda -bQuiet" | Out-Null
+    } catch { }
 }
 
-$sMessage += $sBreak + "The full log is:" + $sBreak + "  " + $pathLog + $sBreak
-# THE LAST THING THE READER HEARS, so it has to be the key that actually
-# works. It said Alt+JAWS+H and Alt+NVDA+H until 31 August 2026, which were
-# right while HomerView bound a key in every application. It no longer does:
-# every screen reader key is now scoped to the browser, and starting the
-# browser from anywhere else is a Windows shortcut key on the desktop icon.
-#
-# Worth noticing that nothing failed here. The installer was correct, the
-# keys were correct, and the one sentence a first-time user reads was wrong.
-# A message is as much a part of the product as the code it describes.
-$sMessage += $sBreak + "To start HomerView, press Alt+Control+Shift+H. That is a Windows" + $sBreak
-$sMessage += "shortcut key on the HomerView icon on your desktop, so it works" + $sBreak
-$sMessage += "whichever screen reader you use." + $sBreak
-$sMessage += $sBreak + "Every other HomerView key works while that browser window is in" + $sBreak
-$sMessage += "front, and does nothing in any other program." + $sBreak
-$sMessage += $sBreak + "In JAWS, restart JAWS first." + $sBreak
+$sMessage += $sBreak + "Logs are kept in $pathFolder." + $sBreak
+
+# At most one blank line in a row.
+$lsShown = @()
+foreach ($sLine in ($sMessage -split "\r?\n")) {
+    if ($sLine.Trim() -eq "" -and ($lsShown.Count -eq 0 -or $lsShown[-1].Trim() -eq "")) { continue }
+    $lsShown += $sLine
+}
+$sMessage = ($lsShown -join $sBreak).TrimEnd()
 
 Add-Type -AssemblyName System.Windows.Forms | Out-Null
 [System.Windows.Forms.MessageBox]::Show($sMessage, "HomerView Setup Results",

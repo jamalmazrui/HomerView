@@ -33,10 +33,14 @@ if ($pathLogFile) {
 }
 
 function writeLog {
+    # THE HOMER LOG LINE (HomerDev 1.43.21): an ISO 8601 time with milliseconds
+    # and UTC offset, a five-character level -- ERROR or WARN when the text says
+    # so -- then the text. The console shows the text alone.
     param([string] $sMessage)
-    $sStamped = "{0}  {1}" -f (Get-Date -Format "yyyy-MM-dd HH:mm:ss"), $sMessage
-    Write-Host $sStamped
-    Add-Content -Path $pathLog -Value $sStamped -Encoding UTF8
+    $sLevel = "INFO "
+    if ($sMessage -match '\b(ERROR|FAIL|FAILED)\b') { $sLevel = "ERROR" } elseif ($sMessage -match '\bWARN(ING)?\b') { $sLevel = "WARN " }
+    Write-Host $sMessage
+    Add-Content -Path $pathLog -Value ("{0} {1} {2}" -f (Get-Date -Format "yyyy-MM-ddTHH:mm:ss.fffzzz"), $sLevel, $sMessage) -Encoding UTF8
 }
 
 if (-not $pathLogFile) { Set-Content -Path $pathLog -Value "" -Encoding UTF8 }
@@ -908,12 +912,22 @@ try {
     # THE KIT'S FOLDER, TOLD TO THE INSTALLER. HomerView_setup.iss includes the
     # kit's HomerComponents.iss, and defaults to C:\HomerDev; when the wrapper
     # found the kit somewhere else, that is where the include must come from.
-    # The kit folder is two levels above any of its C# sources.
+    # The kit is the nearest folder above a C# source that holds
+    # Templates\HomerComponents.iss. (It was taken as two levels up, which
+    # stopped being true when the sources moved into exec\CSharp, HomerDev
+    # 1.43.22: the build of 28 September told Inno the kit was C:\HomerDev\exec.)
     $lInnoArguments = @()
     if ($sHomerSources) {
         $sFirst = $sHomerSources.Split(";")[0].Trim().Trim('"')
-        if ($sFirst) {
-            $sKit = Split-Path -Parent (Split-Path -Parent $sFirst)
+        $sKit = ""
+        $sClimb = if ($sFirst) { Split-Path -Parent $sFirst } else { "" }
+        while ($sClimb) {
+            if (Test-Path -LiteralPath (Join-Path $sClimb "Templates\HomerComponents.iss")) { $sKit = $sClimb; break }
+            $sParent = Split-Path -Parent $sClimb
+            if ($sParent -eq $sClimb) { break }
+            $sClimb = $sParent
+        }
+        if ($sKit) {
             $lInnoArguments += "/DHomerDev=$sKit"
             writeLog "  telling the installer the kit is at $sKit"
         }

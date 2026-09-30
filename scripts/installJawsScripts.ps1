@@ -74,6 +74,36 @@ function writeLog {
 $sSetupLog = Join-Path $pathLogFolder "HomerView_setup.log"
 $lsJawsTypes = @(".jbs", ".jcf", ".jdf", ".jgf", ".jkm", ".jsd", ".jsh", ".jsm", ".jss", ".qs", ".qsm", ".sbl")
 $sMarkerName = "HomerView.scripts.fingerprint"
+
+# THE FINGERPRINTS LIVE IN THE LOCAL TREE (30 September 2026). A Homer app keeps
+# nothing of its own under %APPDATA%, JAWS's folders included: the only files
+# it puts there are the scripts themselves, where JAWS reads them. Which JAWS
+# versions have current scripts is recorded in %LOCALAPPDATA%\<App>\
+# jawsScripts.inix, one "version = fingerprint" line each; a marker file an
+# earlier installer left in a JAWS settings folder is removed.
+$sPrintsFile = Join-Path $env:LOCALAPPDATA ("HomerView" + "\jawsScripts.inix")
+function readPrints() {
+    $dPrints = @{}
+    if (Test-Path -LiteralPath $sPrintsFile) {
+        foreach ($sLine in [IO.File]::ReadAllLines($sPrintsFile)) {
+            if ($sLine -match '^\s*([^=\[;]+?)\s*=\s*(\S+)\s*$') { $dPrints[$Matches[1]] = $Matches[2] }
+        }
+    }
+    return $dPrints
+}
+function writePrints($dPrints) {
+    New-Item -ItemType Directory -Force -Path (Split-Path -Parent $sPrintsFile) | Out-Null
+    $lsLines = @("[fingerprints]")
+    foreach ($sKey in @($dPrints.Keys | Sort-Object)) { $lsLines += "$sKey = $($dPrints[$sKey])" }
+    [IO.File]::WriteAllText($sPrintsFile, (($lsLines -join "`r`n") + "`r`n"), (New-Object Text.UTF8Encoding($true)))
+}
+function versionOfSettings([string] $sSettings) {
+    return (Split-Path -Leaf (Split-Path -Parent (Split-Path -Parent $sSettings)))
+}
+function removeOldMarker([string] $sSettings) {
+    $sOld = Join-Path $sSettings $sMarkerName
+    if (Test-Path -LiteralPath $sOld) { try { Remove-Item -LiteralPath $sOld -Force } catch { } }
+}
 $sAddonFile = Join-Path $pathRoot "exec\HomerView.nvda-addon"
 
 function setupLog([string[]] $lsLines) {
@@ -158,8 +188,7 @@ if ($sState -ne "") {
                 foreach ($sEnu in $lsEnu) {
                     if (-not (Test-Path -LiteralPath (Join-Path $sEnu "HomerView.jsb"))) { continue }
                     $iOurs += 1
-                    $sMarker = Join-Path $sEnu $sMarkerName
-                    if ((Test-Path -LiteralPath $sMarker) -and (([IO.File]::ReadAllText($sMarker)).Trim() -eq $sPrint)) { $iSame += 1 }
+                    if ((readPrints)[(versionOfSettings $sEnu)] -eq $sPrint) { $iSame += 1 }
                 }
                 if ($iOurs -eq 0) { $sAnswer = "install" } elseif ($iSame -eq $lsEnu.Count) { $sAnswer = "reinstall" } else { $sAnswer = "update" }
                 $lsFacts += "state jaws: fingerprint $sPrint; $($lsEnu.Count) JAWS version(s), $iOurs with HomerView.jsb, $iSame current"
@@ -807,7 +836,7 @@ if (-not $bUninstall -and $iFailed -eq 0) {
     $sPrint = sourcesFingerprint
     foreach ($oVersion in @(Get-ChildItem -LiteralPath (Join-Path $env:APPDATA "Freedom Scientific\JAWS") -Directory -ErrorAction SilentlyContinue)) {
         $sEnu = Join-Path $oVersion.FullName "Settings\enu"
-        if (Test-Path -LiteralPath (Join-Path $sEnu "HomerView.jsb")) { Set-Content -LiteralPath (Join-Path $sEnu $sMarkerName) -Value $sPrint -Encoding ASCII }
+        if (Test-Path -LiteralPath (Join-Path $sEnu "HomerView.jsb")) { $dPrints = readPrints; $dPrints[(versionOfSettings $sEnu)] = $sPrint; writePrints $dPrints; removeOldMarker $sEnu }
     }
     writeLog "Fingerprint written for the next installer: $sPrint"
 }

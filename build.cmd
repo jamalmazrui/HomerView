@@ -1,9 +1,9 @@
 @echo off
 rem ===================================================================
-rem buildHomerView.cmd -- build HomerView on the Homer Development Kit.
+rem build.cmd -- build HomerView on the Homer Development Kit.
 rem
 rem THE KIT CONTRACT, as HomerDev_update.md states it, is carried here so
-rem the PowerShell engine beneath (buildHomerView.ps1) can stay the engine:
+rem the PowerShell engine beneath (build.ps1) can stay the engine:
 rem
 rem   1. Find the kit and state the version this app needs.
 rem   2. Compile against the kit's C# sources; carry no copies.
@@ -39,8 +39,8 @@ rem found, winget installs Build Tools; if that fails too, this says so and
 rem stops, because the failure the old compiler produces is forty lines
 rem about braces that never mention the language version.
 rem
-rem   buildHomerView.cmd          steps the version, then builds
-rem   buildHomerView.cmd nobump   keeps the current number
+rem   build.cmd          steps the version, then builds
+rem   build.cmd nobump   keeps the current number
 rem ===================================================================
 
 setlocal enabledelayedexpansion
@@ -246,7 +246,7 @@ if exist "scripts\fixEncoding.cmd" (
 rem ---- the engine -----------------------------------------------------
 set "bump=bump"
 if /i "%~1"=="nobump" set "bump=nobump"
-powershell -NoProfile -ExecutionPolicy Bypass -File "buildHomerView.ps1" -pathCompiler "!csc!" -sHomerSources "!homerSources!" -pathLogFile "%log%" -sBump "%bump%"
+powershell -NoProfile -ExecutionPolicy Bypass -File "build.ps1" -pathCompiler "!csc!" -sHomerSources "!homerSources!" -pathLogFile "%log%" -sBump "%bump%"
 set "exitCode=!errorlevel!"
 echo Engine exit code !exitCode!>> "%log%"
 for /f "usebackq delims=" %%i in (`powershell -NoProfile -Command "Get-Date -Format 'yyyy-MM-ddTHH:mm:ss.fffzzz'"`) do set "sIso=%%i"

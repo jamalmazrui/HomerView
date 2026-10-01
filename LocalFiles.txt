@@ -4,7 +4,7 @@
 # scripts\tidy keeps these where they are and writes each line into .gitignore as
 # never pushed. One path or pattern a line; a trailing slash means a folder.
 #
-# Build output. Made by buildHomerView, never committed.
+# Build output. Made by build, never committed.
 exec/
 scripts/jaws/HomerView.jsb
 version.txt

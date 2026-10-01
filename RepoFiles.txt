@@ -32,8 +32,8 @@ help\handover.md
 buildAll.cmd
 buildAll.ps1
 buildBridge.cmd
-buildHomerView.cmd
-buildHomerView.ps1
+build.cmd
+build.ps1
 buildHomerViewBridge.cmd
 buildHomerViewBridge.ps1
 scripts\checkHomerViewQuality.cmd

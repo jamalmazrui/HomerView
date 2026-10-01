@@ -147,7 +147,7 @@ creates and must stay an integer set lookup.
 
 ## How to work on it
 
-Run `buildHomerView.cmd`. It writes a detailed log and **exit 0 means ready**
+Run `build.cmd`. It writes a detailed log and **exit 0 means ready**
 for `git add -A`, commit, push, `tagRelease`. Its five steps compile the JAWS
 scripts against every installed JAWS version, parse the PowerShell the
 installer will run, build the bridge and the add-on, and compile the installer.
@@ -197,11 +197,11 @@ here, and what it does not yet mean:
 
 **Done in this pass, without moving any file:**
 
-- `buildHomerView.cmd` carries the kit contract: finds the kit, checks
+- `build.cmd` carries the kit contract: finds the kit, checks
   `kitNeeded`, compiles against `C:\HomerDev\CSharp\Inix.cs` and `Web.cs`,
   refreshes the kit's tools into `scripts\`, retires `cleanDir`, `tidyRepo`
   and `homerPolicy`, runs `fixEncoding`, and writes one log per session in
-  `logs\HomerView-build-<stamp>.log`. `buildHomerView.ps1` is still the
+  `logs\HomerView-build-<stamp>.log`. `build.ps1` is still the
   engine — it does five things no template build does — and now takes the
   compiler and the sources from the wrapper instead of choosing them.
 - The local copies in `homer\` are deleted by the build and no longer named

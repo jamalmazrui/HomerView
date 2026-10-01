@@ -20,7 +20,7 @@ would answer one question differently, that is a bug in whichever one is newer.
   `HomerView.exe`. It holds the WebSocket connection to Edge, the accessibility
   engines, the download machinery, the file dialogs and the converters. Anything
   JSL cannot do, the helper does.
-- **`buildHomerView.ps1`** — the build.
+- **`build.ps1`** — the build.
 - **`checkJawsScripts.ps1`** — compiles the JAWS scripts against every installed
   JAWS version, after running the quality checks.
 - **`checkHomerViewQuality.ps1`** — fifteen checks over the source, described
@@ -36,12 +36,12 @@ would answer one question differently, that is a bug in whichever one is newer.
 From the source folder:
 
 ```
-powershell -ExecutionPolicy Bypass -File buildHomerView.ps1
+powershell -ExecutionPolicy Bypass -File build.ps1
 ```
 
 That compiles the helper with `csc`, runs the quality checks, compiles the JAWS
 scripts against each installed JAWS version, builds the NVDA add-on, and runs
-Inno Setup over `HomerView_setup.iss`. It writes `buildHomerView.log`; read that
+Inno Setup over `HomerView_setup.iss`. It writes `build.log`; read that
 rather than the console.
 
 The build fails if the quality checks fail. That is deliberate.
@@ -55,7 +55,7 @@ The build fails if the quality checks fail. That is deliberate.
   every build.
 - A Roslyn C# compiler: Visual Studio or the free Build Tools. The kit's
   classes use C# beyond version 5, which the compiler under
-  `Microsoft.NET\Framework64` does not have. `buildHomerView.cmd` looks for
+  `Microsoft.NET\Framework64` does not have. `build.cmd` looks for
   Roslyn and installs Build Tools with winget if none is found.
 - Inno Setup 6
 - JAWS 2024 or later installed, for `scompile.exe`

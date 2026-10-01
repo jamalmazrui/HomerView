@@ -1,9 +1,9 @@
-﻿# buildHomerView.ps1
+﻿# build.ps1
 # Builds everything a release needs, in the order release expects:
 # the add-on package, then the installer whose version resource release reads.
-# Writes buildHomerView.log beside itself.
+# Writes build.log beside itself.
 
-# HANDED IN BY buildHomerView.cmd, WHICH CARRIES THE KIT CONTRACT. This
+# HANDED IN BY build.cmd, WHICH CARRIES THE KIT CONTRACT. This
 # engine used to choose its own compiler (the legacy one under
 # Microsoft.NET\Framework64) and its own shared sources (copies in homer\).
 # Both are now decided by the wrapper from the Homer Development Kit, and
@@ -321,7 +321,7 @@ function buildBridge {
                 writeLog "  shared class: homer\$sName (no kit was handed in)"
             } else {
                 writeLog "ERROR: no kit sources were handed in and homer\$sName is not here."
-                writeLog "       Run buildHomerView.cmd, which finds the Homer Development Kit."
+                writeLog "       Run build.cmd, which finds the Homer Development Kit."
                 exit 1
             }
         }
@@ -397,7 +397,7 @@ function buildAddon {
 
     # THE PATCH NUMBER IS RAISED HERE, AND THIS CLOSES A REAL GAP.
     #
-    # release tells the reader "BuildHomerView.cmd takes a NEW version every
+    # release tells the reader "Build.cmd takes a NEW version every
     # time it runs, and skips any number that is already released." THAT WAS
     # NOT TRUE: the build only ever READ the version from manifest.ini, so a
     # whole day's work could be built at a number already published, and
@@ -620,7 +620,7 @@ function buildAddon {
 
 }
 
-writeLog "buildHomerView starting"
+writeLog "build starting"
 
 # The environment, recorded before anything can fail. A log that says only what
 # went wrong, and not what it went wrong on, sends the reader back to ask.
@@ -637,7 +637,7 @@ if ($commandPython) {
 writeLog ""
 
 # The checks run FIRST. An earlier version ran them after the installer was
-# compiled, which the log made plain: buildHomerView finished, and then it
+# compiled, which the log made plain: build finished, and then it
 # announced it was checking the setup script. A check nobody can act on is not
 # a check, and the whole point of these is to stop a bad script reaching Inno
 # Setup, which reports a line number and four words.
@@ -787,7 +787,7 @@ foreach ($sName in @("scripts\chainJawsScripts.ps1", "scripts\installJawsScripts
         foreach ($oError in $lErrors) {
             writeLog "    line $($oError.Extent.StartLineNumber): $($oError.Message)"
         }
-        writeLog "buildHomerView finished with a failure"
+        writeLog "build finished with a failure"
         exit 1
     }
     writeLog "  $sName parses"
@@ -1029,11 +1029,11 @@ try {
 if ($script:bJawsFailed) {
     writeLog "The add-on and the installer were built, and can be installed and tested."
     writeLog "The JAWS scripts did not compile, so this build is NOT ready for release."
-    writeLog "buildHomerView finished with a failure"
+    writeLog "build finished with a failure"
     exit 1
 }
 writeLog "Ready for release."
-writeLog "buildHomerView finished"
+writeLog "build finished"
 # EXPLICIT, so the exit code cannot be inherited from the last native
 # command that happened to run. His routine keys off it.
 exit 0

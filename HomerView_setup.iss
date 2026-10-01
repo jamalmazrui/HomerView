@@ -12,7 +12,7 @@
 ; broken; the release simply did not happen, and the reason was two numbers that
 ; had to agree and no mechanism making them.
 ;
-; manifest.ini is the source. buildHomerView reads it and writes version.txt
+; manifest.ini is the source. build reads it and writes version.txt
 ; beside this script, and this reads that. A build must therefore precede a
 ; compile, which was already true and is now enforced rather than remembered.
 #if FileExists(SourcePath + "\version.txt")
@@ -20,7 +20,7 @@
 #define AppVersion Trim(FileRead(FileHandle))
 #expr FileClose(FileHandle)
 #else
-#error version.txt is missing. Run buildHomerView before compiling this script.
+#error version.txt is missing. Run build before compiling this script.
 #endif
 #define AppPublisher "Jamal Mazrui"
 ; A stable name on purpose. The version lives in the add-on's manifest and
@@ -176,8 +176,8 @@ Source: "HomerView_setup.iss"; DestDir: "{app}"; Flags: ignoreversion
 ; under this comment explaining why it should not be. It moves anything the
 ; project does not name, which is the last program that belongs in an
 ; installation folder.
-Source: "buildHomerView.cmd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "buildHomerView.ps1"; DestDir: "{app}"; Flags: ignoreversion
+Source: "build.cmd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "build.ps1"; DestDir: "{app}"; Flags: ignoreversion
 
 ; The development plan, kept for its historical value.
 
@@ -227,7 +227,7 @@ Source: "scripts\chainJawsScripts.ps1"; DestDir: "{app}\scripts"; Flags: ignorev
 ; did not happen and the keys stayed bound in the old browser. Found on
 ; 26 September 2026 while moving the scripts, by mapping every caller.
 Source: "scripts\chainJawsScripts.cmd"; DestDir: "{app}\scripts"; Flags: ignoreversion skipifsourcedoesntexist
-; One line, the version. Written by buildHomerView so the installed scripts and
+; One line, the version. Written by build so the installed scripts and
 ; their log can say which build they came from without being told.
 Source: "version.txt"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 

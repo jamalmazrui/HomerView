@@ -610,7 +610,7 @@ function checkTwenty {
 # legacy csc.exe under Microsoft.NET\Framework64, which stops there. On
 # 25 September 2026 HomerView moved to compiling against the Homer
 # Development Kit's own sources, and those use modern C#, so the rule
-# inverted: the COMPILER must be Roslyn, and buildHomerView.cmd finds or
+# inverted: the COMPILER must be Roslyn, and build.cmd finds or
 # installs one. A check that the sources stay old would now fail every
 # correct build.
 

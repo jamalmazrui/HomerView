@@ -7,7 +7,7 @@ FileTask = accept
 
 [check]
 Name = the build script runs clean, against the kit
-Run = buildHomerView.cmd nobump
+Run = build.cmd nobump
 Expect = 0
 
 [check]

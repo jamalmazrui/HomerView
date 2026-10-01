@@ -70,7 +70,7 @@ if (Test-Path $pathOutput) {
 # does not put a console window on the screen. Every answer is written to a
 # file, so nothing is lost by having no console.
 # The shared Homer classes are compiled in beside HomerView.cs. Kept in step
-# with buildHomerView.ps1 by hand, which is one list in two places: if a
+# with build.ps1 by hand, which is one list in two places: if a
 # third shared class is added, both need it, and only this comment says so.
 $lShared = @()
 foreach ($sName in @("Inix.cs", "Keys.cs", "Web.cs")) {

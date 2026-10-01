@@ -1,7 +1,7 @@
 @echo off
 rem buildHomerViewBridge.cmd -- compile HomerViewBridge.exe
 rem
-rem Named to match the rest of the Homer Tools: buildHomerView builds the NVDA
+rem Named to match the rest of the Homer Tools: build builds the NVDA
 rem add-on and its installer, and this builds the bridge the JAWS scripts use.
 rem
 rem Writes buildHomerViewBridge.log beside this script. Upload that log rather

@@ -1647,8 +1647,10 @@ namespace Homer
         /// </summary>
         private static string SettingsFilePath()
         {
+            // The local tree only (30 September 2026), the same folder the add-on
+            // now keeps its settings in.
             string sFolder = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                 "HomerView");
             try { Directory.CreateDirectory(sFolder); }
             catch (Exception) { }

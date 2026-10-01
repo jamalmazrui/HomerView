@@ -613,7 +613,6 @@ writeLog "  script:            $($MyInvocation.MyCommand.Path)"
 writeLog "  PowerShell:        $($PSVersionTable.PSVersion)"
 writeLog "  platform:          $([System.Environment]::OSVersion.VersionString)"
 writeLog "  running as:        $env:USERNAME"
-writeLog "  roaming data:      $env:APPDATA"
 writeLog "  uninstalling:      $bUninstall"
 
 # The two paths that are written into the script source as it is copied.

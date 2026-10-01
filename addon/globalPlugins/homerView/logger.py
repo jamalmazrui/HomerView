@@ -141,7 +141,7 @@ def buildRedactions():
     import os
 
     lPairs = []
-    for sVariable in ("LOCALAPPDATA", "APPDATA", "TEMP", "USERPROFILE"):
+    for sVariable in ("LOCALAPPDATA", "TEMP", "USERPROFILE"):
         sValue = os.environ.get(sVariable, "")
         if sValue and len(sValue) > 3:
             lPairs.append((sValue, f"%{sVariable}%"))

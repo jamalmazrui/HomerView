@@ -94,7 +94,7 @@ $c_sMarker = "; Added by HomerView"
 
 # THE ONE PLACE THE BROWSER IS DECIDED, and it is a file both sides read.
 #
-# HomerView.inix in the roaming application data folder is where the add-on
+# HomerView.inix in the local application data folder is where the add-on
 # keeps preferences, so the setting lives there rather than in a second store
 # of this script's own. A second store is how two halves of one program come
 # to disagree about which browser they are driving.
@@ -110,7 +110,7 @@ function chosenBrowserExe {
         writeLog "  browser: $sGiven, given on the command line"
         return [System.IO.Path]::GetFileName($sGiven)
     }
-    $pathInix = Join-Path $env:APPDATA "HomerView\HomerView.inix"
+    $pathInix = Join-Path $env:LOCALAPPDATA "HomerView\HomerView.inix"
     if (Test-Path $pathInix) {
         foreach ($sLine in (Get-Content $pathInix -ErrorAction SilentlyContinue)) {
             if ($sLine -match '^\s*browserPath\s*=\s*(.+?)\s*$') {
@@ -321,7 +321,6 @@ writeLog "  script:            $($MyInvocation.MyCommand.Path)"
 writeLog "  PowerShell:        $($PSVersionTable.PSVersion)"
 writeLog "  platform:          $([System.Environment]::OSVersion.VersionString)"
 writeLog "  running as:        $env:USERNAME"
-writeLog "  roaming data:      $env:APPDATA"
 writeLog "  program data:      $env:ProgramData"
 writeLog "  undoing:           $bUndo"
 writeLog ""

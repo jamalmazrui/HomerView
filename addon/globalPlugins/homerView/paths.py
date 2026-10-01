@@ -85,19 +85,58 @@ def getDataFolder():
 
 
 def getSettingsFolder():
-    """Where this user's HomerView preferences live.
+    """Where this user's HomerView preferences live: %LOCALAPPDATA%\\HomerView.
 
-    Roaming application data, which follows the user to another computer in a
-    domain. Preferences belong to the person rather than the machine, and they
-    are small, which is what roaming requires.
+    THE LOCAL TREE ONLY (30 September 2026). They were under the Roaming tree,
+    which Homer no longer uses; HomerView.inix and anything else left there by
+    an earlier version is moved here the first time, each file to the same
+    place, unless a file of that name is already here.
     """
-    sRoot = os.environ.get("APPDATA", "")
+    sRoot = os.environ.get("LOCALAPPDATA", "")
     pathFolder = Path(sRoot) / "HomerView" if sRoot else Path.home() / "HomerView"
     try:
         pathFolder.mkdir(parents=True, exist_ok=True)
     except OSError:
         pass
+    _moveFromRoaming(pathFolder)
     return pathFolder
+
+
+_bRoamingChecked = False
+
+
+def _moveFromRoaming(pathLocal):
+    """Bring an earlier version's files across from the Roaming tree, once."""
+    global _bRoamingChecked
+    if _bRoamingChecked:
+        return False
+    _bRoamingChecked = True
+    try:
+        import shutil
+        sRoamingRoot = os.environ.get("APPDATA", "")
+        if not sRoamingRoot:
+            return False
+        pathRoaming = Path(sRoamingRoot) / "HomerView"
+        if not pathRoaming.is_dir():
+            return False
+        for pathFile in [p for p in pathRoaming.rglob("*") if p.is_file()]:
+            pathTarget = pathLocal / pathFile.relative_to(pathRoaming)
+            if pathTarget.exists():
+                continue
+            pathTarget.parent.mkdir(parents=True, exist_ok=True)
+            shutil.move(str(pathFile), str(pathTarget))
+        for pathFolder in sorted([p for p in pathRoaming.rglob("*") if p.is_dir()], key=lambda p: -len(str(p))):
+            try:
+                pathFolder.rmdir()
+            except OSError:
+                pass
+        try:
+            pathRoaming.rmdir()
+        except OSError:
+            pass
+    except Exception:
+        return False
+    return True
 
 
 def getTempFolder():

@@ -99,7 +99,7 @@ help\History.md
 help\History.htm
 help\HomerView.md
 help\HomerView.htm
-LICENSE.md
+License.md
 License.htm
 README.md
 README.htm

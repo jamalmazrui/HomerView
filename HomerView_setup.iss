@@ -121,7 +121,7 @@ SetupLogging=yes
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Messages]
-WelcomeLabel2=This will install [name/ver], which drives Microsoft Edge through the Chrome DevTools Protocol, with commands for NVDA and for JAWS.%n%nHomerView is free software under the GNU General Public License version 2. The full text installs as License.txt.%n%nAccepting the defaults throughout installs the NVDA add-on and the JAWS scripts as well as the program files.
+WelcomeLabel2=This will install [name/ver], which drives Microsoft Edge through the Chrome DevTools Protocol, with commands for NVDA and for JAWS.%n%nHomerView is free software under the MIT License The full text installs as License.txt.%n%nAccepting the defaults throughout installs the NVDA add-on and the JAWS scripts as well as the program files.
 FinishedLabel=Setup has installed [name/ver] on your computer.%n%nThe ticked boxes below install what is missing or out of date. NVDA loads the add-on when it next starts.
 
 ; No Tasks section. The one optional step, installing the add-on into NVDA, is
@@ -160,7 +160,7 @@ Source: "help\hotkeys.htm"; DestDir: "{app}\help"; Flags: ignoreversion
 Source: "help\Developer.md"; DestDir: "{app}\help"; Flags: ignoreversion
 Source: "help\Developer.htm"; DestDir: "{app}\help"; Flags: ignoreversion
 Source: "configs\Hotkeys.inix"; DestDir: "{app}\configs"; Flags: ignoreversion
-Source: "LICENSE.md"; DestDir: "{app}"; DestName: "License.txt"; Flags: ignoreversion
+Source: "License.md"; DestDir: "{app}"; DestName: "License.txt"; Flags: ignoreversion
 
 ; Source, so the installed copy can be read and rebuilt.
 Source: "addon\*"; DestDir: "{app}\addon"; Flags: ignoreversion recursesubdirs createallsubdirs

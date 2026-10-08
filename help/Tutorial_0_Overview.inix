@@ -1,0 +1,98 @@
+﻿; Tutorial_0_Overview.inix -- what HomerView is, the two reader keys, and the table of contents.
+
+[feed]
+Title=HomerView Walkthroughs
+Description=Spoken walks through HomerView, the browser companion that does what a screen reader cannot. Ten walks, each under five minutes, in the order a new person meets them.
+Author=Jamal Mazrui
+Email=jamal.mazrui@outlook.com
+Base=
+
+[about]
+Title=0 - Overview
+Intro=What HomerView is, two keys of the screen reader's own, and the table of contents.
+Setup=Nothing is needed; this walk is listened to.
+Homework=Take walks one and two, then the task you need today.
+
+[step]
+
+Say=HomerView opens its own copy of Microsoft Edge and talks to the browser directly, so it can answer what a screen reader cannot: the page as its scripts built it, what is at the other end of a link before you go, and files behind a sign-in fetched as a click would fetch them. It adds a command only where your screen reader cannot do the job, or cannot do it as well.
+Key=
+Hear=
+
+[step]
+
+Say=Two keys before anything else, both the reader's own. If a line goes by too fast, Insert plus Up Arrow says it again.
+Key=Insert+Up Arrow
+Hear=(the last line, read a second time)
+
+[step]
+
+Say=And if you lose your place, Insert plus Tab says where you are.
+Key=Insert+Tab
+Hear=(the current control, with its state and position)
+
+[step]
+
+Say=Now the table of contents. I say the number and the title; the reader says what the walk covers.
+Key=
+Hear=
+
+[step]
+
+Say=One, User Interface.
+Key=
+Hear=The HomerView window, the menu of every command, the hotkey summary, the rules its keys follow, and where help lives.
+
+[step]
+
+Say=Two, Install and Launch.
+Key=
+Hear=The installer, the scripts it sets up for your screen reader, and the key that opens HomerView.
+
+[step]
+
+Say=Three, Read an Article Properly.
+Key=
+Hear=Past the navigation in one key, the article alone in a tab, and the whole page read without moving.
+
+[step]
+
+Say=Four, Decide Whether to Follow a Link.
+Key=
+Hear=What is at the other end of a link, before you go there.
+
+[step]
+
+Say=Five, Find Things.
+Key=
+Hear=Searching backwards, searching by pattern, and gathering every match.
+
+[step]
+
+Say=Six, Select and Copy a Passage.
+Key=
+Hear=A passage selected in two keys, copied, and passages gathered from across a page.
+
+[step]
+
+Say=Seven, Gather Files from a Page.
+Key=
+Hear=Every document on a page fetched at once, with the browser's own sign-in.
+
+[step]
+
+Say=Eight, Check Accessibility.
+Key=
+Hear=Two accessibility engines over a page, readable reports, and who to tell.
+
+[step]
+
+Say=Nine, Conclusion.
+Key=
+Hear=What to carry away, the words HomerView uses, the help built in, and where to learn more.
+
+[step]
+
+Say=Ten walks, each under five minutes, under an hour together: the overview, the user interface, seven tasks, and the conclusion. They are a course, not a reference: each one assumes those before it.
+Key=
+Hear=

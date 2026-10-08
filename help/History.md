@@ -1,4 +1,8 @@
-﻿---
+﻿
+## 8 October 2026 -- tutorials in the pattern of ten
+
+HomerView has spoken tutorials for the first time: ten walks in the Homer pattern of ten. 0 Overview; 1 User Interface, the window, the command list, the hotkey summary, the key rules and help; 2 Install and Launch; seven tasks, 3 Read an Article Properly, 4 Decide Whether to Follow a Link, 5 Find Things, 6 Select and Copy a Passage, 7 Gather Files from a Page, 8 Check Accessibility; and 9 Conclusion. build.ps1 now copies the kit's tutorial tools in and speaks the walks before compiling the installer, the installer ships the tutorials and their audio, and RepoFiles.txt names them for the repository.
+---
 title: "HomerView History of Changes"
 author: "Jamal Mazrui"
 ---

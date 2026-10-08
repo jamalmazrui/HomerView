@@ -134,3 +134,25 @@ scripts\jaws\HomerView.jsd
 # which the old whitelist forgave; the kit's tidy since 1.43.9 keeps tracked
 # only what this list names, and would have untracked every add-on module.
 addon\
+# The spoken tutorials, their tools, and their audio (8 October 2026).
+scripts\buildTutorials.cmd
+scripts\buildTutorials.ps1
+scripts\checkTutorial.cmd
+scripts\checkTutorial.py
+scripts\makeTutorials.cmd
+scripts\makeTutorials.py
+scripts\kind.py
+help\Tutorials.md
+help\Tutorials.htm
+help\TutorialFeed.xml
+help\tutorials\
+help\Tutorial_0_Overview.inix
+help\Tutorial_1_User_Interface.inix
+help\Tutorial_2_Install_and_Launch.inix
+help\Tutorial_3_Read_an_Article_Properly.inix
+help\Tutorial_4_Decide_Whether_to_Follow_a_Link.inix
+help\Tutorial_5_Find_Things.inix
+help\Tutorial_6_Select_and_Copy_a_Passage.inix
+help\Tutorial_7_Gather_Files_from_a_Page.inix
+help\Tutorial_8_Check_Accessibility.inix
+help\Tutorial_9_Conclusion.inix

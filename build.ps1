@@ -889,6 +889,36 @@ if (-not $pathCompiler) {
 }
 writeLog "Inno Setup compiler: $pathCompiler"
 
+writeLog "Spoken tutorials: making sure they are current"
+# THE TUTORIALS SHIP, MADE BEFORE THE INSTALLER (8 October 2026, HomerDev
+# 1.62.4): HomerView's walks follow the Homer pattern of ten, and their audio
+# goes into the installer and the repository so no user waits for it. This
+# build is HomerView's own, not the kit's template, so it copies the kit's
+# tutorial tools in, as every other Homer app's build does, and runs them:
+# buildTutorials speaks only a walk whose text changed, by its fingerprint.
+# A tutorial failure is logged with its reason and does not stop the installer.
+$sKitScripts = ""
+foreach ($sKitTry in @($env:HomerDev, "C:\HomerDev")) {
+    if ($sKitTry -and (Test-Path -LiteralPath (Join-Path $sKitTry "scripts\buildTutorials.ps1"))) { $sKitScripts = Join-Path $sKitTry "scripts"; break }
+}
+if (-not $sKitScripts) {
+    writeLog "  the HomerDev kit's tutorial tools were not found; the tutorials were not spoken"
+} else {
+    foreach ($sName in @("buildTutorials.cmd", "buildTutorials.ps1", "checkTutorial.cmd", "checkTutorial.py", "makeTutorials.cmd", "makeTutorials.py", "kind.py")) {
+        $sFrom = Join-Path $sKitScripts $sName
+        if (Test-Path -LiteralPath $sFrom) { Copy-Item -LiteralPath $sFrom -Destination (Join-Path $pathRoot "scripts") -Force }
+    }
+    writeLog ("  tutorial tools copied from " + $sKitScripts)
+    $sTutorialCmd = Join-Path $pathRoot "scripts\buildTutorials.cmd"
+    $oSaved = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = "Continue"
+        & cmd.exe /c ("`"" + $sTutorialCmd + "`" -build") 2>&1 | ForEach-Object { writeLog ("  " + $_) }
+        writeLog ("  buildTutorials exit code: " + $LASTEXITCODE)
+        if ($LASTEXITCODE -ne 0) { Write-Host "Not every tutorial could be spoken. The tutorials log in logs says why." }
+    } finally { $ErrorActionPreference = $oSaved }
+}
+
 writeLog "Step 5 of 5: compiling the installer"
 # Captured, not just run. The first version let Inno Setup print to the console
 # and logged four words when it failed, so the one log a person uploads said

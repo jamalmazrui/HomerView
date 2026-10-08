@@ -1,0 +1,81 @@
+﻿; Tutorial_6_Select_and_Copy_a_Passage.inix -- selecting and gathering text.
+
+[about]
+Title=6 - Select and Copy a Passage
+Intro=A passage selected in two keys rather than a drag, copied, the line copied when nothing is selected, passages gathered with Copy Append, and the whole page copied without its furniture.
+Setup=HomerView is open on a long page.
+Homework=Gather three passages from one page into one note with Alt plus C, and paste it into a document.
+
+[step]
+
+Say=One want: three passages from different parts of a page in one note, without a second window to paste into.
+Key=
+Hear=
+
+[step]
+
+Say=Alt plus Control plus Shift plus H opens the HomerView browser, or brings it back.
+Key=Alt+Control+Shift+H
+Hear=HomerView
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=I move to where the passage begins. F8 starts the selection.
+Key=F8
+Hear=Start Selection
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=I move to where it ends, by arrow, by heading or by find. Shift plus F8 completes it.
+Key=Shift+F8
+Hear=(the selected passage)
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Control plus C copies it. With nothing selected, Control plus C copies the line I am on, which the browser's own copy does not.
+Key=Control+C
+Hear=Copied
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=For the second passage, Alt plus C, Copy Append, adds it to what is already on the clipboard, with a blank line between.
+Key=Alt+C
+Hear=Appended
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=A planned misstep: Control plus C for the third passage would replace the first two. Alt plus C again keeps all three.
+Key=Alt+C
+Hear=Appended
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Control plus F8 copies the whole page, without its navigation and footers.
+Key=Control+F8
+Hear=(the page, copied)
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=What this walk taught. I name the command; the reader gives the key.
+Key=
+Hear=
+
+[step]
+
+Say=Start, then complete a selection.
+Key=
+Hear=F8
+Hear=Shift plus F8
+
+[step]
+
+Say=Add to the clipboard.
+Key=
+Hear=Alt plus C

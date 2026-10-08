@@ -1,0 +1,77 @@
+﻿; Tutorial_8_Check_Accessibility.inix -- checking a page, and who to tell.
+
+[about]
+Title=8 - Check Accessibility
+Intro=Two accessibility engines over the page -- Deque's axe-core and IBM's Equal Access -- each writing a readable report, and Find Contacts for who to tell.
+Setup=HomerView is open on a page to check.
+Homework=Check one page with both engines and compare what each found.
+
+[step]
+
+Say=One want: what is wrong with a page's accessibility, and who to tell.
+Key=
+Hear=
+
+[step]
+
+Say=Alt plus Control plus Shift plus H opens the HomerView browser, or brings it back.
+Key=Alt+Control+Shift+H
+Hear=HomerView
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Alt plus Shift plus A, A for Accessibility, runs Deque's axe-core over the page and opens a readable report.
+Key=Alt+Shift+A
+Hear=(the report's title, as a heading)
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=It starts in plain words: how many problems, and that an automated tool finds roughly a third of them. Then the worst first, each with its WCAG criterion named and its level.
+Key=
+Hear=
+
+[step]
+
+Say=Alt plus Shift plus E runs IBM's Equal Access instead, which folds Section 508 and EN 301 549 in with WCAG.
+Key=Alt+Shift+E
+Hear=(the IBM report's title, as a heading)
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Use both; they disagree usefully. Then Alt plus Shift plus C, Find Contacts, answers who to tell: it looks on this page, the home page, and where accessibility statements usually live.
+Key=Alt+Shift+C
+Hear=(the contacts found, and where)
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=A planned misstep: reading a report of no problems as a clean bill of health. An automated check finds only some problems; a person using the page finds the rest.
+Key=
+Hear=
+
+[step]
+
+Say=What this walk taught. I name the command; the reader gives the key.
+Key=
+Hear=
+
+[step]
+
+Say=Check with axe-core.
+Key=
+Hear=Alt plus Shift plus A
+
+[step]
+
+Say=Check with Equal Access.
+Key=
+Hear=Alt plus Shift plus E
+
+[step]
+
+Say=Who to tell.
+Key=
+Hear=Alt plus Shift plus C

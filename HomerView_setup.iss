@@ -155,6 +155,12 @@ Source: "help\History.md"; DestDir: "{app}\help"; Flags: ignoreversion
 Source: "help\History.htm"; DestDir: "{app}\help"; Flags: ignoreversion
 Source: "help\Announce.md"; DestDir: "{app}\help"; Flags: ignoreversion
 Source: "help\Announce.htm"; DestDir: "{app}\help"; Flags: ignoreversion
+; The spoken tutorials and their audio, made by the build before this is compiled (8 October 2026).
+Source: "help\Tutorials.md"; DestDir: "{app}\help"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "help\Tutorials.htm"; DestDir: "{app}\help"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "help\TutorialFeed.xml"; DestDir: "{app}\help"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "help\tutorials\*.mp3"; DestDir: "{app}\help\tutorials"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "help\tutorials\Tutorials.m3u"; DestDir: "{app}\help\tutorials"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "help\hotkeys.md"; DestDir: "{app}\help"; Flags: ignoreversion
 Source: "help\hotkeys.htm"; DestDir: "{app}\help"; Flags: ignoreversion
 Source: "help\Developer.md"; DestDir: "{app}\help"; Flags: ignoreversion
@@ -163,7 +169,7 @@ Source: "configs\Hotkeys.inix"; DestDir: "{app}\configs"; Flags: ignoreversion
 Source: "License.md"; DestDir: "{app}"; DestName: "License.txt"; Flags: ignoreversion
 
 ; Source, so the installed copy can be read and rebuilt.
-Source: "addon\*"; DestDir: "{app}\addon"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "addon\*"; DestDir: "{app}\addon"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: ".git,.venv,__pycache__,*.pyc,venv"
 Source: "HomerView_setup.iss"; DestDir: "{app}"; Flags: ignoreversion
 
 ; Build scripts only. The repository scripts, the sweep that tidies the

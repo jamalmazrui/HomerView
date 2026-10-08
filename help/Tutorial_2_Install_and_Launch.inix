@@ -1,0 +1,81 @@
+﻿; Tutorial_2_Install_and_Launch.inix -- installing HomerView and opening it.
+
+[about]
+Title=2 - Install and Launch
+Intro=The installer finds your screen reader and sets up its scripts; then the key that opens HomerView from anywhere.
+Setup=HomerView_setup.exe is downloaded from the HomerView page on GitHub.
+Homework=Press Alt plus Shift plus H after installing and listen to the version line.
+
+[step]
+
+Say=One want: HomerView working with your screen reader, without a restart.
+Key=
+Hear=
+
+[step]
+
+Say=I open the downloaded setup program and allow it to make changes.
+Key=Enter
+Hear=Setup - HomerView dialog
+Hear=Welcome to the HomerView Setup Wizard
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Enter takes Next on each page; the defaults are right.
+Key=Enter
+Hear=Select Destination Location
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=The last page offers the scripts for each screen reader it finds on this computer, ticked, each saying Install, Update or Reinstall. For one reader it also compiles the scripts for every version installed and asks the reader to reload them, so no restart is normally needed.
+Key=Tab
+Hear=(the box for your screen reader's scripts, its first word, checked)
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=A planned misstep: clearing that box. HomerView's keys would then do nothing. Space ticks it back.
+Key=Space
+Hear=checked
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Enter installs.
+Key=Enter
+Hear=Finish button
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=The key on HomerView's desktop icon opens it from anywhere, with any screen reader or none.
+Key=Alt+Control+Shift+H
+Hear=HomerView
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=To confirm which build is loaded: the hotkey summary's first line.
+Key=Alt+Shift+H
+Hear=(the version, and when it was installed)
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=If the opening key does nothing, another program has taken it; set a different one in the icon's properties. What this walk taught. I name the step; the reader gives the key.
+Key=
+Hear=
+
+[step]
+
+Say=Open HomerView.
+Key=
+Hear=Alt plus Control plus Shift plus H
+
+[step]
+
+Say=Which build is loaded.
+Key=
+Hear=Alt plus Shift plus H

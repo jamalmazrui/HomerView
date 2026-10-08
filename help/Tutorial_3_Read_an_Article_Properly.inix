@@ -1,0 +1,76 @@
+﻿; Tutorial_3_Read_an_Article_Properly.inix -- the article, without the furniture.
+
+[about]
+Title=3 - Read an Article Properly
+Intro=Past the navigation in one key, the article alone in a tab of its own, and the whole page read from the top without moving the cursor.
+Setup=HomerView is open on a news article with a lot of navigation around it.
+Homework=Open a long article, jump to its main content, and extract it.
+
+[step]
+
+Say=One want: the article, not the menus, links and footers around it.
+Key=
+Hear=
+
+[step]
+
+Say=Alt plus Control plus Shift plus H opens the HomerView browser, or brings it back.
+Key=Alt+Control+Shift+H
+Hear=HomerView
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Shift plus Q is Jump to Probable Main. On a page that declares its main region, I land there.
+Key=Shift+Q
+Hear=Main content, as the page declares it
+
+[step]
+
+Say=On a page that declares nothing, HomerView weighs every part -- how much text, how much of it links -- and moves to the winner.
+Key=Shift+Q
+Hear=Main content, by weighing the page
+
+[step]
+
+Say=Shift plus F9 is Extract Main Content: the article, its title, byline and links, saved and opened in a tab of its own, without the surrounding furniture.
+Key=Shift+F9
+Hear=(the article's title, as a heading)
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Every HomerView command works on that tab, because it is a real page. Alt plus F8 is Read All: it reads the whole page from the top, and does not move the cursor.
+Key=Alt+F8
+Hear=(the page, from the top)
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=A planned misstep: the screen reader's own Say All starts where you are and leaves you further down. Read All starts at the top and leaves you where you were.
+Key=
+Hear=
+
+[step]
+
+Say=What this walk taught. I name the command; the reader gives the key.
+Key=
+Hear=
+
+[step]
+
+Say=Jump past the navigation.
+Key=
+Hear=Shift plus Q
+
+[step]
+
+Say=The article alone.
+Key=
+Hear=Shift plus F9
+
+[step]
+
+Say=Read all, without moving.
+Key=
+Hear=Alt plus F8

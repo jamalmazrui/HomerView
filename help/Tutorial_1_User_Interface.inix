@@ -1,0 +1,111 @@
+﻿; Tutorial_1_User_Interface.inix -- what HomerView is made of, and the rules its keys follow.
+
+[about]
+Title=1 - User Interface
+Intro=HomerView's window and how it is reached, the menu of every command, the hotkey summary, the rule that it adds only what the screen reader cannot do, the patterns its keys follow, and where help lives.
+Setup=HomerView is installed.
+Homework=Open the menu of every command and find three commands you did not know.
+
+[step]
+
+Say=HomerView is a browser window of its own, with your screen reader in charge of reading it. I name each part; the reader shows it.
+Key=
+Hear=
+
+[step]
+
+Say=Alt plus Control plus Shift plus H opens the HomerView browser, or brings it back.
+Key=Alt+Control+Shift+H
+Hear=HomerView
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Its own window, on a start page, in a separate browser profile, so your ordinary browsing is untouched. The same key later brings you back rather than opening another. Every other HomerView key works only while this window is in front. Insert plus T, the reader's own key, says the title.
+Key=Insert+T
+Hear=HomerView
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Nothing is hidden behind a key you must already know. Alt plus F10 opens a list of every command, each with its key beside it.
+Key=Alt+F10
+Hear=Commands list box
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Down Arrow moves through them; a command's name, then its key.
+Key=Down Arrow
+Hear=(the next command and its key)
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Escape closes the list. Alt plus Shift plus H is the hotkey summary: every command as a line you can press Enter on to run it. Its first line is the version and when it was installed.
+Key=Alt+Shift+H
+Hear=(the version, and when it was installed)
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Escape. Now the rule behind HomerView: it adds a command only where your screen reader cannot do the job, or does it noticeably worse. So it has no list of headings or links: your reader has those. It searches backwards, and by pattern, because readers do not.
+Key=Escape
+Hear=HomerView
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=The key patterns are the kit's. The letter is the first letter of a word: Alt plus L, L for Link. Shift reverses: Control plus F3 searches forward by pattern, Control plus Shift plus F3 backwards. F8 is selection: F8 starts it, Shift plus F8 completes it.
+Key=Alt+L
+Hear=(what is at the other end of the link)
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=A few keys depend on the screen reader, because each reserves different letters: Jump to Probable Main is Shift plus Q, or, with some screen readers, Shift plus J. The menu shows the right one for yours.
+Key=Shift+Q
+Hear=Main content, as the page declares it
+
+[step]
+
+Say=Help is in four places. I say which; the reader says the key. Every command, by name.
+Key=
+Hear=Alt plus F10, the command list
+
+[step]
+
+Say=Every key, with the version.
+Key=
+Hear=Alt plus Shift plus H, the hotkey summary
+
+[step]
+
+Say=The guide and the hotkeys, as documents.
+Key=
+Hear=HomerView dot m d, and hotkeys dot m d
+
+[step]
+
+Say=A planned misstep: pressing a HomerView key in another program does nothing for HomerView; that program gets the key. Alt plus Control plus Shift plus H brings HomerView back first.
+Key=Alt+Control+Shift+H
+Hear=HomerView
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=What this walk taught. I name the command; the reader gives the key.
+Key=
+Hear=
+
+[step]
+
+Say=Every command, by name.
+Key=
+Hear=Alt plus F10
+
+[step]
+
+Say=Every key, with the version.
+Key=
+Hear=Alt plus Shift plus H

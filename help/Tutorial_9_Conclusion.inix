@@ -1,0 +1,104 @@
+﻿; Tutorial_9_Conclusion.inix -- what to carry away, the words HomerView uses, and where to learn more.
+
+[about]
+Title=9 - Conclusion
+Intro=The conclusion and summary of the walks; the words HomerView uses, in two voices; then more information: the help built in and where to learn more.
+Setup=Nothing is needed; this walk is listened to.
+Homework=Open a page you read often and use three HomerView commands on it.
+
+[step]
+
+Say=To finish: what to carry away, the words HomerView uses, and where to get help. First, the summary. HomerView does only what your screen reader cannot, so the two together cover a page: your reader for headings and links, HomerView for what lies behind them.
+Key=
+Hear=Alt plus L, Link Target
+
+[step]
+
+Say=Every command is in one list, so nothing has to be remembered first.
+Key=
+Hear=Alt plus F10, the command list
+
+[step]
+
+Say=And it works in its own window, so it never gets in your reader's way elsewhere.
+Key=
+Hear=Alt plus Control plus Shift plus H
+
+[step]
+
+Say=Now the words, in alphabetical order. I say the term; the reader says what it means.
+Key=
+Hear=
+
+[step]
+
+Say=axe-core.
+Key=
+Hear=Deque's accessibility engine, run by Alt plus Shift plus A.
+
+[step]
+
+Say=Copy Append.
+Key=
+Hear=Alt plus C: the selection, or the line, added to what is already on the clipboard.
+
+[step]
+
+Say=Equal Access.
+Key=
+Hear=IBM's accessibility engine, run by Alt plus Shift plus E, with Section 508 and EN 301 549 folded in.
+
+[step]
+
+Say=Extract Main Content.
+Key=
+Hear=Shift plus F9: the article alone, in a tab of its own.
+
+[step]
+
+Say=Link Target.
+Key=
+Hear=Alt plus L: what is at the other end of a link, before you go.
+
+[step]
+
+Say=pattern.
+Key=
+Hear=A regular expression: a description of text to find, such as any four digits.
+
+[step]
+
+Say=Probable Main.
+Key=
+Hear=Where the page's content most likely begins, declared or weighed.
+
+[step]
+
+Say=profile.
+Key=
+Hear=HomerView's own browser settings and sign-ins, kept apart from your ordinary browsing.
+
+[step]
+
+Say=Read All.
+Key=
+Hear=Alt plus F8: the whole page from the top, without moving the cursor.
+
+[step]
+
+Say=Web Download.
+Key=
+Hear=Alt plus Shift plus W: every document on a page, fetched with the browser's own sign-in.
+
+[step]
+
+Say=Last, more information. Every command, by name, and every key with the version.
+Key=
+Hear=Alt plus F10
+Hear=Alt plus Shift plus H
+
+[step]
+
+Say=HomerView dot m d is the guide, with its own tutorial and troubleshooting; hotkeys dot m d lists every key; and the HomerView page on GitHub, at github dot com slash JamalMazrui slash HomerView, has the newest version.
+Key=
+Hear=

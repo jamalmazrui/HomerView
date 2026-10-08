@@ -1,0 +1,65 @@
+﻿; Tutorial_4_Decide_Whether_to_Follow_a_Link.inix -- a link's other end, before you go.
+
+[about]
+Title=4 - Decide Whether to Follow a Link
+Intro=Alt plus L asks a link's server what is at the other end -- a page, a PDF, an archive -- how big, its title, about how long to read, any paywall, and where it really goes.
+Setup=HomerView is open on a page with links.
+Homework=Ask about three links before following any of them.
+
+[step]
+
+Say=One want: to know what a link leads to before spending the time to follow it.
+Key=
+Hear=
+
+[step]
+
+Say=Alt plus Control plus Shift plus H opens the HomerView browser, or brings it back.
+Key=Alt+Control+Shift+H
+Hear=HomerView
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=I move to a link. Alt plus L, L for Link, is Link Target.
+Key=Alt+L
+Hear=(a web page, its title, about how many words and minutes)
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=HomerView asked the link's server without fetching the whole thing: what kind of thing it is, how big, its title if it is a page, roughly how long to read, and whether there is a paywall.
+Key=
+Hear=
+
+[step]
+
+Say=I move to a shortened link and ask again.
+Key=Alt+L
+Hear=(where the short address really goes)
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Shortened links are resolved and named, and a link that ends somewhere other than where it seemed to point says so.
+Key=
+Hear=
+
+[step]
+
+Say=A planned misstep: a link to a server that cannot be reached. HomerView still says its address, which was known before anything was asked.
+Key=Alt+L
+Hear=(the address, and that it could not be reached)
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=What this walk taught. I name the command; the reader gives the key.
+Key=
+Hear=
+
+[step]
+
+Say=What is at the other end of a link.
+Key=
+Hear=Alt plus L

@@ -1,0 +1,64 @@
+﻿; Tutorial_7_Gather_Files_from_a_Page.inix -- every document on a page, at once.
+
+[about]
+Title=7 - Gather Files from a Page
+Intro=Alt plus Shift plus W, Web Download, lists the documents on a page by kind, fetches the ones you choose with the browser's own sign-in, and names each as it arrives.
+Setup=HomerView is open on a page with documents on it, such as an agency's publications.
+Homework=Gather every PDF from a publications page, then open its folder.
+
+[step]
+
+Say=One want: every report on a publications page, without clicking each one.
+Key=
+Hear=
+
+[step]
+
+Say=Alt plus Control plus Shift plus H opens the HomerView browser, or brings it back.
+Key=Alt+Control+Shift+H
+Hear=HomerView
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Alt plus Shift plus W, W for Web, is Web Download. HomerView says what is there, by kind.
+Key=Alt+Shift+W
+Hear=pdf: PDF document, 11. docx: Word document, 6. html: Web page, 1.
+
+[step]
+
+Say=The sensible kinds are already filled in; page addresses are listed but not chosen, since they are many and rarely wanted. Enter fetches.
+Key=Enter
+Hear=(each file's name as it arrives)
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Silence after a name means it arrived; only a failure says more. The request carries the browser's own sign-in, so a file behind a sign-in comes as it would to a click.
+Key=
+Hear=
+
+[step]
+
+Say=At the end, a message box gives the count, the folder, and anything that did not come.
+Key=
+Hear=(the count of files, and their folder)
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=They go to the page's own folder under Downloads, and names are unescaped first, so Annual percent 20 Report arrives as Annual Report. A planned misstep: running it again adds to the folder rather than replacing it.
+Key=
+Hear=
+
+[step]
+
+Say=What this walk taught. I name the command; the reader gives the key.
+Key=
+Hear=
+
+[step]
+
+Say=Every document on a page.
+Key=
+Hear=Alt plus Shift plus W

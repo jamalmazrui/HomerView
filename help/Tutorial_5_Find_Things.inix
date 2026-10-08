@@ -1,0 +1,85 @@
+﻿; Tutorial_5_Find_Things.inix -- backwards, by pattern, and all at once.
+
+[about]
+Title=5 - Find Things
+Intro=Searching backwards, which a screen reader's own find does not, searching by pattern, moving between matches, and gathering every match into one window.
+Setup=HomerView is open on a page with dates or prices on it.
+Homework=Gather every year on a page with Control plus Shift plus E and the pattern backslash d, open brace, 4, close brace.
+
+[step]
+
+Say=One want: the years mentioned on a long page, and the place where one appears. Your reader's own Control plus F searches forward, and HomerView leaves it alone.
+Key=
+Hear=
+
+[step]
+
+Say=Alt plus Control plus Shift plus H opens the HomerView browser, or brings it back.
+Key=Alt+Control+Shift+H
+Hear=HomerView
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Control plus Shift plus F searches backwards, which the screen reader's find cannot.
+Key=Control+Shift+F
+Hear=Find Backwards dialog
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Escape. Control plus F3 searches forward for a pattern: backslash d, open brace, four, close brace, for any four-digit year.
+Key=Control+F3
+Hear=Find Pattern dialog
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=I type the pattern and press Enter.
+Key=Enter
+Hear=(the first year on the page, in its line)
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=F3 goes to the next match and Shift plus F3 to the one before, of whichever kind of find came last.
+Key=F3
+Hear=(the next year, in its line)
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Control plus Shift plus E answers the other question -- not where is the next one, but what are they all. It gathers every match into a window, each on a small page of its own.
+Key=Control+Shift+E
+Hear=(every year on the page, one to a page)
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=A planned misstep: a pattern with a typing slip finds nothing, and HomerView says so rather than moving. Shift plus F3 after a backwards find goes forward: Shift reverses whichever came last.
+Key=
+Hear=
+
+[step]
+
+Say=What this walk taught. I name the command; the reader gives the key.
+Key=
+Hear=
+
+[step]
+
+Say=Search backwards.
+Key=
+Hear=Control plus Shift plus F
+
+[step]
+
+Say=Search by pattern.
+Key=
+Hear=Control plus F3
+
+[step]
+
+Say=Every match at once.
+Key=
+Hear=Control plus Shift plus E

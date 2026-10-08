@@ -44,6 +44,16 @@ function writeLog {
 }
 
 if (-not $pathLogFile) { Set-Content -Path $pathLog -Value "" -Encoding UTF8 }
+
+# NO FAILURE WITHOUT ITS REASON (8 October 2026): a build stopped with only
+# "Engine exit code 1" in the log, because PowerShell printed its error to the
+# console. Any error that stops this script is now written to the log first,
+# with the line it happened on.
+trap {
+    writeLog ("ERROR: the build stopped: " + $_.Exception.Message)
+    writeLog ("ERROR: at " + ($_.InvocationInfo.PositionMessage -replace "`r?`n", " "))
+    exit 1
+}
 function checkSetupScript {
     # Everything Inno Setup will reject, found before Inno Setup sees it. Its
     # own report is a line number and four words, which is enough to find the
@@ -657,15 +667,27 @@ writeLog ""
 # nothing here. pandoc is found on the PATH or at the standard machine-wide
 # install, which is where installPandoc.cmd puts it.
 function buildDocuments {
+    # THE NEWEST PANDOC, NOT THE FIRST ON THE PATH (8 October 2026): an old copy
+    # in c:\bin came first, and the build stopped on it. Every copy found is asked
+    # its version, and the newest is used.
     $pathPandoc = ""
+    $lsCandidates = @()
     $oCommand = Get-Command pandoc -ErrorAction SilentlyContinue
-    if ($oCommand) { $pathPandoc = $oCommand.Source }
-    if (-not $pathPandoc) {
-        foreach ($sTry in @((Join-Path ${env:ProgramFiles} "Pandoc\pandoc.exe"),
-                            (Join-Path $env:LOCALAPPDATA "Pandoc\pandoc.exe"),
-                            (Join-Path $pathRoot "pandoc.exe"))) {
-            if (Test-Path $sTry) { $pathPandoc = $sTry; break }
-        }
+    if ($oCommand) { $lsCandidates += $oCommand.Source }
+    foreach ($sTry in @((Join-Path ${env:ProgramFiles} "Pandoc\pandoc.exe"),
+                        (Join-Path $env:LOCALAPPDATA "Pandoc\pandoc.exe"),
+                        (Join-Path $pathRoot "pandoc.exe"))) {
+        if ((Test-Path $sTry) -and ($lsCandidates -notcontains $sTry)) { $lsCandidates += $sTry }
+    }
+    $oNewest = [version]"0.0"
+    foreach ($sTry in $lsCandidates) {
+        $ErrorActionPreference = "Continue"
+        $sFirst = (& $sTry --version 2>$null | Select-Object -First 1) -as [string]
+        $ErrorActionPreference = "Stop"
+        $oVersion = [version]"0.0"
+        if ($sFirst -match '(\d+\.\d+(\.\d+)?)') { $oVersion = [version]$matches[1] }
+        writeLog "Documents: pandoc candidate $sTry, version $oVersion"
+        if ($oVersion -gt $oNewest) { $oNewest = $oVersion; $pathPandoc = $sTry }
     }
     if (-not $pathPandoc) {
         writeLog "WARNING: pandoc was not found, so no .htm was made from a .md."
@@ -685,7 +707,12 @@ function buildDocuments {
             $bMake = (Get-Item $pathMd).LastWriteTimeUtc -gt (Get-Item $pathHtm).LastWriteTimeUtc
         }
         if (-not $bMake) { continue }
+        # Pandoc's warnings come on its error stream, which with 2>&1 and Stop would
+        # end the build on the first one; the build stops only on its exit code.
+        $ErrorActionPreference = "Continue"
         $sOut = & $pathPandoc -s --toc --toc-depth=3 $pathMd -o $pathHtm 2>&1 | Out-String
+        $ErrorActionPreference = "Stop"
+        if ($LASTEXITCODE -eq 0 -and $sOut.Trim()) { writeLog "  pandoc said, on $sName.md: $($sOut.Trim())" }
         if ($LASTEXITCODE -ne 0) {
             writeLog "ERROR: pandoc failed on $sName.md: $($sOut.Trim())"
             exit 1

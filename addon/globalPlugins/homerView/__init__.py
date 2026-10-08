@@ -31,6 +31,8 @@ from controlTypes import Role
 from scriptHandler import script
 
 from . import alternateMenu
+from . import browsers
+from . import commands
 from . import convert
 from . import dialogs
 from . import documents

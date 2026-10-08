@@ -200,7 +200,7 @@ def extractMainContent(cdpSession):
     if not dArticle:
         raise MainContentError("No main content could be identified on this page")
 
-    pathFolder = paths.pageFolder(sTitle)
+    pathFolder = paths.pageFolder(sPageTitle)
     pathDocument = pathFolder / mainContentFileName
     # UTF-8 with a byte order mark and Windows line endings, matching the
     # convention for every other .htm file in this project.

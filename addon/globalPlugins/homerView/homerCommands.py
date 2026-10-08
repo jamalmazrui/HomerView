@@ -193,6 +193,9 @@ def sayYield(treeInterceptor):
 
 
 def sayYieldPattern(treeInterceptor):
+    # Imported here, as this module's other commands do: neither lbc nor find was bound at
+    # module level, so this command raised NameError (8 October 2026, from an audit by another AI).
+    from . import lbc
     """Count how often a regular expression matches, as EdSharp's Yield does.
 
     Plain Yield answers how much text there is. This answers how much of a
@@ -212,6 +215,9 @@ def sayYieldPattern(treeInterceptor):
 
 def _sayYieldPatternNow(treeInterceptor):
     import re as reModule
+
+    from . import find
+    from . import lbc
 
     from . import output
     from . import settings
@@ -618,6 +624,7 @@ def lastFindKind():
 
 def repeatFind(treeInterceptor, bBackwards):
     """Repeat the last regular expression search."""
+    from . import find
     find.repeatFind(treeInterceptor, bBackwards)
 
 

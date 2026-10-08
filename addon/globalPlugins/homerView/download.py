@@ -12,8 +12,10 @@ Referer, the browser's own user agent, the cookies the protocol reports for that
 address, and the Sec-Fetch set that a navigation from a link would produce.
 """
 
+import os
 import re
 import time
+import urllib.parse
 import urllib.request
 from pathlib import Path
 from urllib.parse import unquote, urlparse
@@ -410,7 +412,7 @@ def downloadOne(dLink, sPageUrl, sUserAgent, sCookies, pathFolder):
     # Try again once on an error that is likely to pass.
     for iAttempt in range(1, retryAttempts + 1):
         try:
-            return fetchOne(request, dLink, pathFolder)
+            return fetchOne(request, dLink, pathFolder, sFileUrl, sExtension)
         except Exception as exception:
             if iAttempt >= retryAttempts or not isTransient(exception):
                 raise
@@ -421,8 +423,23 @@ def downloadOne(dLink, sPageUrl, sUserAgent, sCookies, pathFolder):
             time.sleep(retryPauseSeconds)
 
 
-def fetchOne(request, dLink, pathFolder):
-    with urllib.request.urlopen(request, timeout=downloadTimeoutSeconds) as response:
+class _SameHostCookies(urllib.request.HTTPRedirectHandler):
+    """Follows redirects, but drops the page's Cookie and Authorization headers when a redirect leaves the host they
+    were sent to. WHY (8 October 2026, from an audit by another AI): the cookies go as an ordinary header, which urllib
+    copies to whatever host a redirect names, so a link to another site could carry the user's sign-in with it."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        requestNew = super().redirect_request(req, fp, code, msg, headers, newurl)
+        if requestNew is not None and urllib.parse.urlsplit(newurl).hostname != urllib.parse.urlsplit(req.full_url).hostname:
+            for sHeader in ("Cookie", "Authorization"):
+                requestNew.remove_header(sHeader)
+                requestNew.unredirected_hdrs.pop(sHeader, None)
+            homerLog.info(f"A redirect left the page's host, so its cookies were not sent on: {abbreviate(newurl, 200)}")
+        return requestNew
+
+
+def fetchOne(request, dLink, pathFolder, sFileUrl, sExtension):
+    with urllib.request.build_opener(_SameHostCookies).open(request, timeout=downloadTimeoutSeconds) as response:
         # A web page returned where a document was asked for means the address
         # was a page about the file rather than the file. Saving it would put
         # markup on disk under a name that promises a document.
@@ -433,14 +450,25 @@ def fetchOne(request, dLink, pathFolder):
             )
         sName = nameFromResponse(response, sFileUrl, sExtension)
         pathTarget = paths.uniquePath(pathFolder, sName)
+        # Written to a .part file and given its name only when complete, so a transfer that fails part-way leaves no
+        # half a document under a name that promises a whole one (8 October 2026, from an audit by another AI).
+        pathPart = pathTarget.with_name(pathTarget.name + ".part")
         iBytes = 0
-        with open(pathTarget, "wb") as fTarget:
-            while True:
-                bChunk = response.read(downloadChunkBytes)
-                if not bChunk:
-                    break
-                fTarget.write(bChunk)
-                iBytes += len(bChunk)
+        try:
+            with open(pathPart, "wb") as fTarget:
+                while True:
+                    bChunk = response.read(downloadChunkBytes)
+                    if not bChunk:
+                        break
+                    fTarget.write(bChunk)
+                    iBytes += len(bChunk)
+            os.replace(pathPart, pathTarget)
+        except BaseException:
+            try:
+                pathPart.unlink()
+            except OSError:
+                pass
+            raise
     homerLog.info(f"Downloaded {pathTarget.name}, {iBytes} bytes, from {abbreviate(sFileUrl, 200)}")
     return pathTarget, iBytes
 

@@ -1,0 +1,104 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd">
+  <channel>
+    <title>HomerView Walkthroughs</title>
+    <link>Tutorials.htm</link>
+    <description>Spoken walks through HomerView, the browser companion that does what a screen reader cannot. Ten walks, each under five minutes, in the order a new person meets them.</description>
+    <language>en-us</language>
+    <lastBuildDate>Thu, 08 Oct 2026 21:51:43 +0000</lastBuildDate>
+    <itunes:author>Jamal Mazrui</itunes:author>
+    <itunes:explicit>false</itunes:explicit>
+    <itunes:category text="Technology"/>
+    <itunes:owner><itunes:name>Jamal Mazrui</itunes:name><itunes:email>jamal.mazrui@outlook.com</itunes:email></itunes:owner>
+    <item>
+      <title>0 - Overview</title>
+      <description>Nothing is needed; this walk is listened to. Full transcript: Tutorials.htm#0-0-overview</description>
+      <link>Tutorials.htm#0-0-overview</link>
+      <guid isPermaLink="false">homer-tutorial_0_overview</guid>
+      <enclosure url="tutorials/0_Overview.mp3" length="810387" type="audio/mpeg"/>
+      <itunes:duration>00:01:58</itunes:duration>
+      <itunes:explicit>false</itunes:explicit>
+    </item>
+    <item>
+      <title>1 - User Interface</title>
+      <description>HomerView is installed. Full transcript: Tutorials.htm#0a-1-user-interface</description>
+      <link>Tutorials.htm#0a-1-user-interface</link>
+      <guid isPermaLink="false">homer-tutorial_1_user_interface</guid>
+      <enclosure url="tutorials/1_User_Interface.mp3" length="1154018" type="audio/mpeg"/>
+      <itunes:duration>00:02:47</itunes:duration>
+      <itunes:explicit>false</itunes:explicit>
+    </item>
+    <item>
+      <title>2 - Install and Launch</title>
+      <description>HomerView_setup.exe is downloaded from the HomerView page on GitHub. Full transcript: Tutorials.htm#0b-2-install-and-launch</description>
+      <link>Tutorials.htm#0b-2-install-and-launch</link>
+      <guid isPermaLink="false">homer-tutorial_2_install_and_launch</guid>
+      <enclosure url="tutorials/2_Install_and_Launch.mp3" length="612249" type="audio/mpeg"/>
+      <itunes:duration>00:01:32</itunes:duration>
+      <itunes:explicit>false</itunes:explicit>
+    </item>
+    <item>
+      <title>3 - Read an Article Properly</title>
+      <description>HomerView is open on a news article with a lot of navigation around it. Full transcript: Tutorials.htm#0c-3-read-an-article-properly</description>
+      <link>Tutorials.htm#0c-3-read-an-article-properly</link>
+      <guid isPermaLink="false">homer-tutorial_3_read_an_article_properly</guid>
+      <enclosure url="tutorials/3_Read_an_Article_Properly.mp3" length="595420" type="audio/mpeg"/>
+      <itunes:duration>00:01:29</itunes:duration>
+      <itunes:explicit>false</itunes:explicit>
+    </item>
+    <item>
+      <title>4 - Decide Whether to Follow a Link</title>
+      <description>HomerView is open on a page with links. Full transcript: Tutorials.htm#0d-4-decide-whether-to-follow-a-link</description>
+      <link>Tutorials.htm#0d-4-decide-whether-to-follow-a-link</link>
+      <guid isPermaLink="false">homer-tutorial_4_decide_whether_to_follow_a_link</guid>
+      <enclosure url="tutorials/4_Decide_Whether_to_Follow_a_Link.mp3" length="458670" type="audio/mpeg"/>
+      <itunes:duration>00:01:09</itunes:duration>
+      <itunes:explicit>false</itunes:explicit>
+    </item>
+    <item>
+      <title>5 - Find Things</title>
+      <description>HomerView is open on a page with dates or prices on it. Full transcript: Tutorials.htm#0e-5-find-things</description>
+      <link>Tutorials.htm#0e-5-find-things</link>
+      <guid isPermaLink="false">homer-tutorial_5_find_things</guid>
+      <enclosure url="tutorials/5_Find_Things.mp3" length="687130" type="audio/mpeg"/>
+      <itunes:duration>00:01:41</itunes:duration>
+      <itunes:explicit>false</itunes:explicit>
+    </item>
+    <item>
+      <title>6 - Select and Copy a Passage</title>
+      <description>HomerView is open on a long page. Full transcript: Tutorials.htm#0f-6-select-and-copy-a-passage</description>
+      <link>Tutorials.htm#0f-6-select-and-copy-a-passage</link>
+      <guid isPermaLink="false">homer-tutorial_6_select_and_copy_a_passage</guid>
+      <enclosure url="tutorials/6_Select_and_Copy_a_Passage.mp3" length="584901" type="audio/mpeg"/>
+      <itunes:duration>00:01:28</itunes:duration>
+      <itunes:explicit>false</itunes:explicit>
+    </item>
+    <item>
+      <title>7 - Gather Files from a Page</title>
+      <description>HomerView is open on a page with documents on it, such as an agency's publications. Full transcript: Tutorials.htm#0g-7-gather-files-from-a-page</description>
+      <link>Tutorials.htm#0g-7-gather-files-from-a-page</link>
+      <guid isPermaLink="false">homer-tutorial_7_gather_files_from_a_page</guid>
+      <enclosure url="tutorials/7_Gather_Files_from_a_Page.mp3" length="563497" type="audio/mpeg"/>
+      <itunes:duration>00:01:21</itunes:duration>
+      <itunes:explicit>false</itunes:explicit>
+    </item>
+    <item>
+      <title>8 - Check Accessibility</title>
+      <description>HomerView is open on a page to check. Full transcript: Tutorials.htm#0h-8-check-accessibility</description>
+      <link>Tutorials.htm#0h-8-check-accessibility</link>
+      <guid isPermaLink="false">homer-tutorial_8_check_accessibility</guid>
+      <enclosure url="tutorials/8_Check_Accessibility.mp3" length="627615" type="audio/mpeg"/>
+      <itunes:duration>00:01:31</itunes:duration>
+      <itunes:explicit>false</itunes:explicit>
+    </item>
+    <item>
+      <title>9 - Conclusion</title>
+      <description>Nothing is needed; this walk is listened to. Full transcript: Tutorials.htm#0i-9-conclusion</description>
+      <link>Tutorials.htm#0i-9-conclusion</link>
+      <guid isPermaLink="false">homer-tutorial_9_conclusion</guid>
+      <enclosure url="tutorials/9_Conclusion.mp3" length="784670" type="audio/mpeg"/>
+      <itunes:duration>00:01:56</itunes:duration>
+      <itunes:explicit>false</itunes:explicit>
+    </item>
+  </channel>
+</rss>

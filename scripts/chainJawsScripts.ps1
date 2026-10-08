@@ -667,14 +667,25 @@ foreach ($folderVersion in $lVersions) {
                         }
                     }
                 } elseif ($sAction -eq "edited") {
+                    # OUR LINES OUT, NOT THE BACKUP IN (8 October 2026, from an audit by
+                    # another AI): copying the backup back over the file undid every edit
+                    # made to it since the install. A file that still carries our marker
+                    # loses only our block; a missing one comes back from the backup; one
+                    # replaced since is left alone, with the backup kept beside it.
                     $pathBackup = "$pathFile.homerViewBackup"
-                    if (Test-Path $pathBackup) {
+                    if (Test-Path $pathFile) {
+                        if ((Get-Content $pathFile -Raw) -match [regex]::Escape($c_sMarker)) {
+                            $iOut = removeOurBlock $pathFile
+                            writeLog "    took $iOut of our lines back out of $sName, keeping any other change made to it"
+                            if (Test-Path $pathBackup) { Remove-Item $pathBackup -Force }
+                        } else {
+                            writeLog "    $sName no longer carries our lines, so it was left as it is"
+                            if (Test-Path $pathBackup) { writeLog "      (the backup taken before the install is kept: $(Split-Path $pathBackup -Leaf))" }
+                        }
+                    } elseif (Test-Path $pathBackup) {
                         Copy-Item $pathBackup $pathFile -Force
                         Remove-Item $pathBackup -Force
-                        writeLog "    restored $sName from the backup taken before it was changed"
-                    } elseif (Test-Path $pathFile) {
-                        $iOut = removeOurBlock $pathFile
-                        writeLog "    took $iOut of our lines back out of $sName"
+                        writeLog "    restored $sName, which was missing, from the backup taken before it was changed"
                     }
                     # A SOURCE FILE PUT BACK IS STILL THE OLD BINARY UNTIL
                     # IT IS COMPILED. Restoring somebody's .jss and leaving

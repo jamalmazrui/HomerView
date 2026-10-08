@@ -25,6 +25,7 @@ installed copy first and treats a bundled copy as the fallback, not the rule.
 
 import os
 import subprocess
+import time
 import winreg
 from pathlib import Path
 
@@ -204,10 +205,21 @@ def findCalibre():
     return None
 
 
+def writtenSince(pathTarget, nStarted):
+    """Whether the file exists and was written at or after nStarted, a time.time() value: made by this attempt, not
+    left by an earlier one. WHY (8 October 2026, from an audit by another AI): success was the target's existence alone,
+    so a failed conversion of a document converted before "succeeded" by finding the old file."""
+    try:
+        return pathTarget.is_file() and pathTarget.stat().st_mtime >= nStarted - 2
+    except OSError:
+        return False
+
+
 def runConverter(lArguments, pathTarget, sTool, nBudget=conversionCeilingSeconds):
     """Run a converter, bounded. The budget comes from the caller, which knows
     the source file; this function only sees the argument list."""
     homerLog.info(f"Running {sTool} with {nBudget:.0f} seconds: {lArguments}")
+    nStarted = time.time()
     try:
         completed = subprocess.run(
             lArguments, capture_output=True, text=True,
@@ -221,7 +233,7 @@ def runConverter(lArguments, pathTarget, sTool, nBudget=conversionCeilingSeconds
         homerLog.debug(f"{sTool} said: {abbreviate(completed.stdout, 600)}")
     if completed.stderr:
         homerLog.warning(f"{sTool} reported: {abbreviate(completed.stderr, 600)}")
-    return pathTarget.is_file()
+    return completed.returncode == 0 and writtenSince(pathTarget, nStarted)
 
 
 def convertWithLibreOffice(pathSource, pathFolder):
@@ -347,6 +359,7 @@ def convertWithPandoc(pathSource, pathFolder):
         f"--metadata=title:{pathSource.stem}", "-o", str(pathTarget),
     ]
     homerLog.info(f"Running: {lArguments}")
+    nStarted = time.time()
     completed = subprocess.run(
         lArguments, capture_output=True, text=True,
         timeout=conversionBudget(pathSource),
@@ -354,8 +367,8 @@ def convertWithPandoc(pathSource, pathFolder):
     )
     if completed.stderr:
         homerLog.warning(f"Pandoc reported: {abbreviate(completed.stderr, 800)}")
-    if not pathTarget.is_file():
-        raise ConversionError(f"{pathSource.name} could not be converted by pandoc")
+    if completed.returncode != 0 or not writtenSince(pathTarget, nStarted):
+        raise ConversionError(f"{pathSource.name} could not be converted by pandoc (exit code {completed.returncode})")
     homerLog.info(f"Pandoc wrote {pathTarget}, {pathTarget.stat().st_size} bytes")
     return pathTarget
 

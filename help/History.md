@@ -1,4 +1,21 @@
 ﻿
+## 8 October 2026 -- an audit by another AI
+
+ChatGPT audited HomerView and reported 51 findings. Checked against the code, these held and are fixed:
+
+- **NVDA commands that could not run.** Nine names were used where they were never defined: the command table and the browser list in the plugin, lbc and find in three pattern and search commands, the page title in Extract Main Content, and the file's address and extension in a download. Each raised an error when its command ran. The worst was the first: the command table could not be read, so HomerView's browser-only keys were not limited to the browser. A static check of all 62 Python files now finds none.
+- **Your sign-in stays with its site.** NVDA: a download's cookies went with it through any redirect, to whatever host it named; they are now dropped when a redirect leaves the page's host (tested with two local servers). JAWS: the page's cookies were sent with every link, to any site; they now go only to the page's own host.
+- **A failed download leaves no half a file.** It is written to a .part file and named only when complete.
+- **A failed conversion is not taken for a success.** It needs a zero exit code and a file written by this attempt; a document converted before had "succeeded" by finding the old file.
+- **JAWS: the cookie reader worked.** Replies were accepted only for request number 1, so its requests 2 and 3 waited out their whole time and failed.
+- **Undoing the JAWS scripts keeps your own changes.** An edited file was restored from the backup taken before the install, losing every later change to it; now only HomerView's own lines come out.
+- **NVDA's Add-on Help opens.** The manifest named readme.html, which the build no longer makes; it names README.htm.
+- **The build names its reason.** A build stopped with only "Engine exit code 1": Pandoc's warnings, on its error stream, stopped the build at once. Warnings are now logged and never stop it; the newest Pandoc found is used, not the first on the PATH; and any error that stops the build is written to the log with its line.
+- **Old build entry points retired.** buildAll, buildBridge and buildHomerViewBridge built files that no longer exist; build.cmd removes them, and logs each.
+- **Kit tools** updated from HomerDev 1.63.3: push stops on a stale whitelist and reports a failed commit as one.
+
+Left for later, as larger changes: JAWS cookies through a cross-host redirect, unique download folders per page, asynchronous JAWS jobs with their own files, revalidating an action's target before clicking, and the WebSocket frame and message-size checks.
+
 ## 8 October 2026 -- tutorials in the pattern of ten
 
 HomerView has spoken tutorials for the first time: ten walks in the Homer pattern of ten. 0 Overview; 1 User Interface, the window, the command list, the hotkey summary, the key rules and help; 2 Install and Launch; seven tasks, 3 Read an Article Properly, 4 Decide Whether to Follow a Link, 5 Find Things, 6 Select and Copy a Passage, 7 Gather Files from a Page, 8 Check Accessibility; and 9 Conclusion. build.ps1 now copies the kit's tutorial tools in and speaks the walks before compiling the installer, the installer ships the tutorials and their audio, and RepoFiles.txt names them for the repository.

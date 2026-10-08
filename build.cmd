@@ -232,6 +232,14 @@ for %%N in (chainJawsScripts checkHomerViewQuality checkJawsScripts checkParity 
   )
 )
 
+rem RETIRED BUILD ENTRY POINTS (8 October 2026, from an audit by another AI):
+rem buildBridge and buildHomerViewBridge built HomerViewBridge.cs, gone since the
+rem program became HomerView.cs, and buildAll ran a buildAddon.ps1 that no longer
+rem exists. This build does all of it; each old file is removed, and logged.
+for %%F in (buildAll.cmd buildAll.ps1 buildBridge.cmd buildHomerViewBridge.cmd buildHomerViewBridge.ps1) do (
+  if exist "%%F" del /q "%%F" && echo Retired %%F, an old build entry point; build.cmd does its work now>> "%log%"
+)
+
 rem ---- the Homer encoding, before anything is compiled -----------------
 rem AN EXPLICIT ARGUMENT, ALWAYS. The kit's lesson of 25 September: %* is not
 rem reset by a bare call, and a tool called with none inherits the caller's.

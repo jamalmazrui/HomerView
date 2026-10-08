@@ -28,11 +28,6 @@
 !/addon/
 !/build.cmd
 !/build.ps1
-!/buildAll.cmd
-!/buildAll.ps1
-!/buildBridge.cmd
-!/buildHomerViewBridge.cmd
-!/buildHomerViewBridge.ps1
 !/configs/Hotkeys.inix
 !/help/Announce.htm
 !/help/Announce.md

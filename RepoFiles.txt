@@ -29,13 +29,8 @@ RepoFiles.txt
 help\handover.md
 
 # The build, and the checks it runs.
-buildAll.cmd
-buildAll.ps1
-buildBridge.cmd
 build.cmd
 build.ps1
-buildHomerViewBridge.cmd
-buildHomerViewBridge.ps1
 scripts\checkHomerViewQuality.cmd
 scripts\checkHomerViewQuality.ps1
 scripts\checkJawsScripts.cmd

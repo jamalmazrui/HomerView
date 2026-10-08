@@ -3689,7 +3689,13 @@ namespace Homer
                 oRequest.Headers.Add("Sec-Fetch-Dest", "document");
                 oRequest.Headers.Add("Sec-Fetch-Mode", "navigate");
                 oRequest.Headers.Add("Sec-Fetch-User", "?1");
-                if (sCookies != "") oRequest.Headers.Add("Cookie", sCookies);
+                // THE PAGE'S COOKIES GO ONLY TO THE PAGE'S HOST (8 October 2026, from an
+                // audit by another AI): they were read for the page's address, and were
+                // sent with every link, to whatever site it named.
+                bool bPageHost = false;
+                try { bPageHost = sPageUrl != "" && string.Equals(new Uri(sPageUrl).Host, new Uri(sUrl).Host, StringComparison.OrdinalIgnoreCase); }
+                catch (Exception) { }
+                if (sCookies != "" && bPageHost) oRequest.Headers.Add("Cookie", sCookies);
                 if (sPageUrl != "")
                 {
                     oRequest.Referer = sPageUrl;
@@ -5724,6 +5730,11 @@ namespace Homer
             // the scripts wait for this process and a process that never exits
             // is a screen reader that never comes back.
             DateTime oDeadline = DateTime.UtcNow.AddSeconds(iCallBudgetSeconds);
+            // THE REPLY TO THIS MESSAGE, by its own id (8 October 2026, from an audit
+            // by another AI): only id 1 was accepted, so the cookie reader's ids 2 and
+            // 3 waited out the whole budget and failed.
+            Match oId = Regex.Match(sMessage, "\"id\"\\s*:\\s*(\\d+)");
+            string sWantedId = oId.Success ? oId.Groups[1].Value : "1";
             using (var socket = new ClientWebSocket())
             using (var cancellation = new CancellationTokenSource(
                 TimeSpan.FromSeconds(iCallBudgetSeconds)))
@@ -5762,7 +5773,7 @@ namespace Homer
                     while (!result.EndOfMessage);
 
                     string sReply = builder.ToString();
-                    if (Regex.IsMatch(sReply, "^\\s*\\{\\s*\"id\"\\s*:\\s*1\\b"))
+                    if (Regex.IsMatch(sReply, "^\\s*\\{\\s*\"id\"\\s*:\\s*" + sWantedId + "\\b"))
                         return sReply;
                     if (DateTime.UtcNow >= oDeadline)
                         break;

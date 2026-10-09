@@ -169,7 +169,7 @@ rem release. A NAME THE KIT DOES NOT HAVE IS SAID, NOT SKIPPED: this loop used
 rem to copy "if exist", so after a rename every copy would quietly have been
 rem skipped and HomerView kept its stale old-named scripts with nothing in the
 rem log to say so.
-for %%F in (check.cmd check.py fixEncoding.cmd fixEncoding.py push.cmd release.cmd release.ps1 tidy.cmd tidy.py unpushed.cmd unpushed.py) do (
+for %%F in (check.cmd check.py fixEncoding.cmd fixEncoding.py kind.cmd kind.py push.cmd release.cmd release.ps1 tidy.cmd tidy.py unpushed.cmd unpushed.py) do (
   if exist "!homerDev!\scripts\%%F" (
     copy /y "!homerDev!\scripts\%%F" scripts\ >nul && echo Refreshed scripts\%%F>> "%log%"
   ) else (

@@ -21,7 +21,7 @@ Note=Confirm the wording with a live run: buildTutorials -live.
 
 [step]
 
-Say=Shift plus Q is Jump to Probable Main. On a page that declares its main region, I land there.
+Say=Shift plus Q is Jump to Probable Main; where your screen reader keeps Q for itself, HomerView puts it on Shift plus J, and Hotkey Summary, Alt plus Shift plus H, shows which. On a page that declares its main region, I land there.
 Key=Shift+Q
 Hear=Main content, as the page declares it
 
@@ -68,6 +68,69 @@ Hear=Shift plus Q
 Say=The article alone.
 Key=
 Hear=Shift plus F9
+
+[step]
+
+Say=Inside the article, Control plus Down Arrow moves by paragraph and reads it, as it does in Word.
+Key=Control+Down Arrow
+Hear=The study followed four hundred families for ten years.
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Alt plus Down Arrow moves by sentence, for a closer reading.
+Key=Alt+Down Arrow
+Hear=Most moved at least once.
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Alt plus Up Arrow goes back a sentence to hear it again.
+Key=Alt+Up Arrow
+Hear=The study followed four hundred families for ten years.
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Z moves to the next thing of the same kind as the one I am on: the next paragraph, the next list item, the next link.
+Key=Z
+Hear=The results surprised the authors.
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Alt plus Z moves to the next thing of a different kind, past a long run of links to the text after them.
+Key=Alt+Z
+Hear=heading level 2, Methods
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Shift plus F9 sets the readable part of the page apart, in a page of its own, without the menus and advertisements around it.
+Key=Shift+F9
+Hear=Extracted main content
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Alt plus Delete says where I am: the line, the column and how far through the page.
+Key=Alt+Delete
+Hear=Line 42, column 1, 38 percent
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Scroll Lock starts reading continuously, and stops it again, when I would rather listen than step.
+Key=ScrollLock
+Hear=Reading
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Alt plus M says what the page claims about itself: its author, its publisher and its date.
+Key=Alt+M
+Hear=Author: Lena Ortiz. Published 3 March 2026
+Note=Confirm the wording with a live run: buildTutorials -live.
 
 [step]
 

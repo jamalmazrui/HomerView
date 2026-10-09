@@ -59,6 +59,82 @@ Hear=
 
 [step]
 
+Say=Each file is saved into this page's folder, kept by HomerView for everything saved from the page.
+Key=
+
+[step]
+
+Say=Alt plus Shift plus F opens that folder in File Explorer, to see what was gathered.
+Key=Alt+Shift+F
+Hear=Page folder
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Before gathering, Alt plus L on one file's link says its kind and size, so a large download is no surprise.
+Key=Alt+L
+Hear=PDF document, 1.8 megabytes
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Control plus S saves the page itself, in any of nine formats, beside the files gathered from it.
+Key=Control+S
+Hear=Save Page dialog
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Escape, for now.
+Key=Escape
+Hear=HomerView
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Control plus O opens a Word file, a spreadsheet, a slide deck, a PDF or an ebook as a page, so everything here works on it too.
+Key=Control+O
+Hear=Open Document dialog
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Escape. A downloaded PDF can be opened that way, read with the same keys, and searched with the same finds.
+Key=Escape
+Hear=HomerView
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=For many pages at once, urlFido, another Homer program, fetches the same way from a list; Web Download suits the page you are on.
+Key=
+
+[step]
+
+Say=Web Download lists the files on the page; Space ticks the ones wanted, and Enter fetches them.
+Key=Space
+Hear=checked
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Files arrive one at a time, under the names the site gives them, in the page's folder.
+Key=
+
+[step]
+
+Say=Shift plus F4 says the names of the open tabs, and F4 lists them to switch between pages, when files come from several.
+Key=Shift+F4
+Hear=2 tabs: Reports, Archive
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Each page keeps a folder of its own, so files from different pages never mix.
+Key=
+
+[step]
+
 Say=Every document on a page.
 Key=
 Hear=Alt plus Shift plus W

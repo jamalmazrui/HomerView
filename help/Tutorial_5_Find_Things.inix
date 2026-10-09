@@ -49,7 +49,7 @@ Note=Confirm the wording with a live run: buildTutorials -live.
 
 [step]
 
-Say=Control plus Shift plus E answers the other question -- not where is the next one, but what are they all. It gathers every match into a window, each on a small page of its own.
+Say=Control plus Shift plus E, where your screen reader leaves that key free, answers the other question -- not where is the next one, but what are they all. It gathers every match into a window, each on a small page of its own.
 Key=Control+Shift+E
 Hear=(every year on the page, one to a page)
 Note=Confirm the wording with a live run: buildTutorials -live.
@@ -77,6 +77,65 @@ Hear=Control plus Shift plus F
 Say=Search by pattern.
 Key=
 Hear=Control plus F3
+
+[step]
+
+Say=Control plus F, Forward Find, uses the screen reader's own find, so its dialog is the familiar one.
+Key=Control+F
+Hear=Find dialog
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=F3 finds the next match, and Shift plus F3 the one before, whichever kind of find was used last.
+Key=F3
+Hear=The second match
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Alt plus F3 finds the next place the text at the cursor appears, with no typing at all.
+Key=Alt+F3
+Hear=The word again, three paragraphs on
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Control plus F3 finds by regular expression, which plain find cannot: any number, or any date.
+Key=
+
+[step]
+
+Say=Alt plus Y says how many characters, words and lines the page holds, or the selection.
+Key=Alt+Y
+Hear=8,412 characters, 1,390 words, 212 lines
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Control plus Shift plus Y counts the matches of a regular expression, which answers questions such as how many prices are on this page.
+Key=
+
+[step]
+
+Say=Alt plus Shift plus Y says how the page is built: how many headings, links and form fields.
+Key=Alt+Shift+Y
+Hear=12 headings, 87 links, 3 forms
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Control plus G goes to a percentage of the page, the way EdSharp does: 50 is the middle.
+Key=Control+G
+Hear=Go to Percent dialog
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Escape, and Alt plus G repeats the last go, or moves a step further.
+Key=Escape
+Hear=HomerView
+Note=Confirm the wording with a live run: buildTutorials -live.
 
 [step]
 

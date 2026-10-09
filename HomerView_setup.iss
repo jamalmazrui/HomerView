@@ -564,9 +564,11 @@ Type: filesandordirs; Name: "{app}\dist"
 #ifndef HomerDev
   #define HomerDev "C:\HomerDev"
 #endif
-; HomerView writes its own screen-reader wrappers (labelJaws, isInstallJaws ...), which
-; call its own readerLabel; this tells the kit's components to leave theirs out, since
-; Inno refuses a function defined twice (8 October 2026: Duplicate identifier LABELJAWS).
+// HomerView writes its own screen-reader wrappers (labelJaws, isInstallJaws ...), which
+// call its own readerLabel; this tells the kit's components to leave theirs out, since
+// Inno refuses a function defined twice (8 October 2026: Duplicate identifier LABELJAWS).
+// In [Code] a comment is // or braces: a line beginning with ; stopped the compile on
+// 9 October 2026 ("BEGIN expected" on line 567).
 #define HomerReaderWrappersInApp
 #include HomerDev + "\Templates\HomerComponents.iss"
 

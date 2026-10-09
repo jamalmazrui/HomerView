@@ -1,5 +1,11 @@
 ﻿
 
+
+## 9 October 2026 -- from the build and release logs
+
+- **The installer compiles again.** Three comment lines added on 8 October began with a semicolon inside the [Code] section, where Inno does not take a semicolon as a comment, and the compile stopped with "BEGIN expected" at line 567. They are // comments now, and the kit's check fails any [Code] line that begins with a semicolon.
+- **Ten walks of about three minutes.** Walks 2 to 8 were lengthened on 8 October, with keys that are the same on both screen readers and the differences where a key is the screen reader's own, but those files never reached the project; they come now.
+
 ## Unreleased -- 9 October 2026
 
 - **The kit's own Python modules inside the add-on.** The add-on's homer package held hand-kept copies of five kit modules -- inix, lbc, say, util and web -- and they had drifted: they lacked the kit's 1.62.5 fixes, among them relative links made absolute, file names that avoid Windows device names, Control+Enter accepting a dialog through its default button, and a dialog that stays open, saying why, when its handler fails. The kit's modules now work flat or in a package, so the build copies them in exactly, every time, and logs each. The kit's say module already speaks through NVDA itself when running inside it, as the copy did. HomerView needs HomerDev 1.65.3.

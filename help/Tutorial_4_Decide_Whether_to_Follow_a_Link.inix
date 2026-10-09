@@ -60,6 +60,84 @@ Hear=
 
 [step]
 
+Say=Alt plus U says where the link at the cursor would go, its address, before I decide anything.
+Key=Alt+U
+Hear=https colon slash slash example dot org slash report dot pdf
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Link Target, Alt plus L, goes further: what kind of thing is there, how big it is, and whether it ends somewhere else.
+Key=
+
+[step]
+
+Say=For a document, it says the kind and the size, so a large download is no surprise.
+Key=Alt+L
+Hear=PDF document, 4.2 megabytes
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=For a link that redirects, it says where it really lands, which is how a disguised link shows itself.
+Key=Alt+L
+Hear=Redirects to a different site: example dot net
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Alt plus Shift plus P copies every link address on the page to the clipboard, for checking a page's links all at once.
+Key=Alt+Shift+P
+Hear=24 links copied
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Alt plus Apostrophe says what is on the clipboard, to hear what was copied.
+Key=Alt+Apostrophe
+Hear=https colon slash slash example dot org
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Alt plus A says this page's own address; pressed twice, it spells it; three times, it copies it.
+Key=Alt+A
+Hear=https colon slash slash example dot org slash news
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Deciding first saves a trip to a page that was never wanted, and a download that was never meant.
+Key=
+
+[step]
+
+Say=Alt plus R opens a recent page, for the moment a link already followed is wanted again.
+Key=Alt+R
+Hear=Recent Pages dialog
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=A link that opens a document rather than a page is common in government and university sites; asking first is how to know which it is.
+Key=
+
+[step]
+
+Say=Alt plus Q looks something up with free services that need no account, such as a word in the link's text that is unfamiliar.
+Key=Alt+Q
+Hear=Query Web dialog
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Escape closes it, and the cursor is back on the link.
+Key=Escape
+Hear=link, Annual report
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
 Say=What is at the other end of a link.
 Key=
 Hear=Alt plus L

@@ -76,6 +76,77 @@ Hear=Alt plus Control plus Shift plus H
 
 [step]
 
+Say=The documentation is a key away from any page. Control plus F1 opens the user guide in the HomerView window; plain F1 stays Edge's own help.
+Key=Control+F1
+Hear=HomerView User Guide
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Alt plus Shift plus F1 opens the quick start, the first ten minutes of HomerView, for anyone new to it.
+Key=Alt+Shift+F1
+Hear=HomerView Quick Start
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Shift plus F1 opens the history of changes, and Alt plus F1 says the version and where HomerView keeps its files.
+Key=Alt+F1
+Hear=About HomerView
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Alt plus Shift plus H, Hotkey Summary, lists every command with its key in a window of its own, the quickest way to learn the keys.
+Key=Alt+Shift+H
+Hear=Hotkey Summary
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Alt plus F10, the Alternate Menu, lists every command in one alphabetized list, for the moment a key will not come to mind.
+Key=Alt+F10
+Hear=Alternate Menu
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Escape closes it without running anything.
+Key=Escape
+Hear=HomerView
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Control plus F11 checks for a newer HomerView and installs it, as F11 does in other Homer programs.
+Key=
+
+[step]
+
+Say=If something goes wrong, Alt plus Shift plus L copies the log to the clipboard as a file, ready to attach to an email.
+Key=
+
+[step]
+
+Say=HomerView keeps its own copy of the browser, so its settings and its sign ins never disturb your everyday Edge.
+Key=
+
+[step]
+
+Say=Alt plus Shift plus B, Choose Browser, picks which Chromium browser it drives, from those installed here.
+Key=Alt+Shift+B
+Hear=Choose Browser dialog
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Escape leaves the choice as it was.
+Key=Escape
+Hear=HomerView
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
 Say=Which build is loaded.
 Key=
 Hear=Alt plus Shift plus H

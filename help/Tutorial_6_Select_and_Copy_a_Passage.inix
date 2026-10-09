@@ -76,6 +76,79 @@ Hear=Shift plus F8
 
 [step]
 
+Say=Control plus Space selects the chunk at the cursor, a run of characters with no spaces in it, such as a web address or a code.
+Key=Control+Space
+Hear=selected
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Shift plus Space says what is selected, or spells it if pressed twice.
+Key=Shift+Space
+Hear=ABC-1234
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Alt plus Shift plus F8 returns to where the selection began, to check its start.
+Key=Alt+Shift+F8
+Hear=Start of selection
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Control plus Apostrophe saves the clipboard to a text file, proposing a name, so a passage gathered over several pages can be kept.
+Key=Control+Apostrophe
+Hear=Save Clipboard dialog
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Escape. Control plus Shift plus Apostrophe adds the clipboard to the end of a text file, rather than replacing it.
+Key=Escape
+Hear=HomerView
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Alt plus Shift plus Apostrophe empties the clipboard, so an append starts afresh.
+Key=Alt+Shift+Apostrophe
+Hear=Clipboard cleared
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Alt plus F8 reads the whole page aloud without moving the cursor, to hear a passage in context before copying it.
+Key=
+
+[step]
+
+Say=These are the keys EdSharp uses for the same work, so a passage moves from a page to a document with the same habits.
+Key=
+
+[step]
+
+Say=Copy Line, Control plus C, copies the selection, or the current line when nothing is selected, so one line needs no selecting at all.
+Key=Control+C
+Hear=Copied
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Alt plus C adds the selection, or the current line, to what is already on the clipboard, gathering lines from different places into one.
+Key=Alt+C
+Hear=Appended
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Control plus F8 copies the whole page's text in one press, for pasting into a document of your own.
+Key=Control+F8
+Hear=All text copied
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
 Say=Add to the clipboard.
 Key=
 Hear=Alt plus C

@@ -34,7 +34,7 @@ Hear=
 
 [step]
 
-Say=Alt plus Shift plus E runs IBM's Equal Access instead, which folds Section 508 and EN 301 549 in with WCAG.
+Say=Alt plus Shift plus E runs IBM's Equal Access instead, where your screen reader leaves that key free; otherwise Check Accessibility offers it, which folds Section 508 and EN 301 549 in with WCAG.
 Key=Alt+Shift+E
 Hear=(the IBM report's title, as a heading)
 Note=Confirm the wording with a live run: buildTutorials -live.
@@ -69,6 +69,75 @@ Hear=Alt plus Shift plus A
 Say=Check with Equal Access.
 Key=
 Hear=Alt plus Shift plus E
+
+[step]
+
+Say=Alt plus Shift plus C, Find Contacts, finds who to tell: email addresses, the accessibility statement, and contact forms.
+Key=Alt+Shift+C
+Hear=Contacts for this site
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Report Accessibility, from the Alternate Menu, tests the page and writes a report addressed to whoever publishes the site.
+Key=Alt+F10
+Hear=Alternate Menu
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=I type report, and Enter.
+Key=Enter
+Hear=Report Accessibility
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=The report is a page of its own, plain and polite, ready to send to the contact just found.
+Key=
+
+[step]
+
+Say=Alt plus Shift plus Y, before testing, says how the page is built, which often explains a result: no headings, or a form with unlabelled fields.
+Key=Alt+Shift+Y
+Hear=0 headings, 112 links, 1 form
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=An automated test finds many problems but not all; the report says so, and lists what a person should still check.
+Key=
+
+[step]
+
+Say=For a whole site, urlCheck, another Homer program, checks a list of pages and drafts a conformance report.
+Key=
+
+[step]
+
+Say=Checking takes a minute, and a clear report makes a fix far more likely than a complaint.
+Key=
+
+[step]
+
+Say=Alt plus Shift plus D closes a browser dialog that blocks the page, such as a cookie banner, before testing.
+Key=Alt+Shift+D
+Hear=Dialog dismissed
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Alt plus Shift plus A again, after a site fixes its page, shows whether the fix worked.
+Key=Alt+Shift+A
+Hear=Check Accessibility dialog
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Escape, for now.
+Key=Escape
+Hear=HomerView
+Note=Confirm the wording with a live run: buildTutorials -live.
 
 [step]
 

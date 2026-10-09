@@ -564,6 +564,10 @@ Type: filesandordirs; Name: "{app}\dist"
 #ifndef HomerDev
   #define HomerDev "C:\HomerDev"
 #endif
+; HomerView writes its own screen-reader wrappers (labelJaws, isInstallJaws ...), which
+; call its own readerLabel; this tells the kit's components to leave theirs out, since
+; Inno refuses a function defined twice (8 October 2026: Duplicate identifier LABELJAWS).
+#define HomerReaderWrappersInApp
 #include HomerDev + "\Templates\HomerComponents.iss"
 
 { PANDOC, THE ONE COMPONENT HOMERVIEW DEPENDS ON FROM OUTSIDE. Registered once

@@ -38,7 +38,7 @@ variable; then, from the folder given and from this script's folder upward,
 any folder that is the kit or that holds a HomerDev folder; then a HomerDev
 folder at the top of any ready fixed drive. "kind --kit" prints it.
 """
-import glob, os, sys
+import glob, os, re, sys
 
 c_lsStandardDocs = ["announce", "developer", "faq", "history", "hotkeys", "index", "license",
                     "readme", "self", "tutorials"]
@@ -171,6 +171,35 @@ def findKit(lsStarts=None):
     for sRoot in fixedDrives():
         if isKit(os.path.join(sRoot, "HomerDev")): return os.path.join(sRoot, "HomerDev")
     return ""
+
+
+def issFunctions(sText, setDefines):
+    """The Pascal functions and procedures an installer script compiles, given the
+    names #define'd before it: a block under #ifndef NAME counts only when NAME is
+    not defined, and one under #ifdef NAME only when it is."""
+    lsNames, lbActive = [], []
+    for sLine in sText.splitlines():
+        sTrim = sLine.strip()
+        oIf = re.match(r"#if(n?)def\s+(\w+)", sTrim)
+        if oIf:
+            lbActive.append((oIf.group(2) in setDefines) != (oIf.group(1) == "n"))
+            continue
+        if sTrim.startswith("#else") and lbActive: lbActive[-1] = not lbActive[-1]; continue
+        if sTrim.startswith("#endif") and lbActive: lbActive.pop(); continue
+        if all(lbActive):
+            oFunc = re.match(r"(?i)(?:function|procedure)\s+(\w+)", sTrim)
+            if oFunc: lsNames.append(oFunc.group(1).lower())
+    return lsNames
+
+
+def issFunctionClashes(sAppText, sComponentsText):
+    """ONE NAME, ONE DEFINITION (1.64.4): the functions an app's installer script
+    and the kit's HomerComponents.iss would both compile -- which Inno refuses,
+    as it refused HomerView's on 8 October 2026 (Duplicate identifier LABELJAWS).
+    The app's #define lines, made before it includes the components, decide which
+    of the kit's guarded blocks are left out."""
+    setDefines = set(re.findall(r"(?m)^\s*#define\s+(\w+)", sAppText))
+    return sorted(set(issFunctions(sAppText, setDefines)) & set(issFunctions(sComponentsText, setDefines)))
 
 
 def main():

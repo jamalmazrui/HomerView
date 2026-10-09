@@ -1,4 +1,10 @@
 ﻿
+
+## Unreleased -- 9 October 2026
+
+- **The kit's own Python modules inside the add-on.** The add-on's homer package held hand-kept copies of five kit modules -- inix, lbc, say, util and web -- and they had drifted: they lacked the kit's 1.62.5 fixes, among them relative links made absolute, file names that avoid Windows device names, Control+Enter accepting a dialog through its default button, and a dialog that stays open, saying why, when its handler fails. The kit's modules now work flat or in a package, so the build copies them in exactly, every time, and logs each. The kit's say module already speaks through NVDA itself when running inside it, as the copy did. HomerView needs HomerDev 1.65.3.
+- **Conversion through programs never approved, removed.** convert.py held a table of converters, and functions to find and run two outside conversion programs, that nothing called; they are gone, and two messages no longer advise installing one of them.
+
 ## 8 October 2026 -- an audit by another AI
 
 ChatGPT audited HomerView and reported 51 findings. Checked against the code, these held and are fixed:

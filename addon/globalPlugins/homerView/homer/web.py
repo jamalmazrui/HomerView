@@ -17,12 +17,13 @@ None of this is difficult. All of it is easy to leave out, and each omission
 produces a failure that looks like something else.
 """
 
+import html
 import mimetypes
 import os
 import re
 import urllib.request
 from pathlib import Path
-from urllib.parse import unquote, urlparse
+from urllib.parse import unquote, urljoin, urlparse
 
 defaultTimeoutSeconds = 30.0
 maximumNameLength = 120
@@ -93,6 +94,9 @@ def sanitizeName(sName, sFallback="download"):
     sName = unquote(str(sName or "")).strip().strip(".")
     sName = reUnsafe.sub("_", sName)
     sName = " ".join(sName.split())
+    sName = "".join(c for c in sName if ord(c) >= 32)
+    # Windows' reserved device names cannot be file names, with or without an extension (kit 1.62.5).
+    if re.match(r"(?i)^(con|prn|aux|nul|com[1-9]|lpt[1-9])(\.|$)", sName): sName = "_" + sName
     if not sName:
         sName = sFallback
     if len(sName) > maximumNameLength:
@@ -131,12 +135,10 @@ def getLinks(sHtml, sBaseUrl=""):
     sOrigin = f"{parsed.scheme}://{parsed.netloc}" if parsed and parsed.netloc else ""
     lLinks = []
     for match in reAnchor.finditer(sHtml or ""):
-        sHref = match.group(1).strip()
-        sText = reTag.sub(" ", match.group(2)).strip()
-        sAbsolute = sHref
-        if sHref.startswith("//") and parsed:
-            sAbsolute = f"{parsed.scheme}:{sHref}"
-        elif sHref.startswith("/") and sOrigin:
-            sAbsolute = sOrigin + sHref
+        sHref = html.unescape(match.group(1).strip())
+        sText = html.unescape(reTag.sub(" ", match.group(2))).strip()
+        # Every relative address made absolute against the page, as described, not only those starting with a slash
+        # (kit 1.62.5, from an audit by another AI: next.html and #part stayed relative).
+        sAbsolute = urljoin(sBaseUrl, sHref) if sBaseUrl and not re.match(r"(?i)^(javascript|mailto|tel|data):", sHref) else sHref
         lLinks.append((sAbsolute, sText))
     return lLinks

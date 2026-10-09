@@ -44,6 +44,23 @@ c_lsStandardDocs = ["announce", "developer", "faq", "history", "hotkeys", "index
                     "readme", "self", "tutorials"]
 c_lsKinds = ["app", "collection", "kit", "page", "unknown"]
 
+# THE HOMER TREE (1.65.0), in one place: the folders a project of each kind may
+# have at its top. A folder outside these is either declared in the project's
+# RepoFiles.txt or LocalFiles.txt, and listed for the author to confirm, or it
+# fails check -- nobody, the AI included, adds a folder to a Homer tree unasked.
+c_lsHiddenFolders = [".claude", ".git", ".github", ".vs", ".vscode"]
+c_dStandardFolders = {
+    "app": ["configs", "data", "exec", "help", "logs", "notes", "results", "scripts", "templates"],
+    "kit": ["configs", "data", "exec", "help", "logs", "notes", "results", "scripts", "templates"],
+    "page": ["_data", "_includes", "_layouts", "assets", "configs", "data", "help", "logs", "notes", "results", "scripts", "templates"],
+    "collection": ["configs", "data", "help", "logs", "notes", "results", "scripts", "templates"],
+    "unknown": ["configs", "data", "exec", "help", "logs", "notes", "results", "scripts", "templates"]}
+
+
+def standardFolders(sKind):
+    """The folder names a project of this kind may have at its top, lowercased."""
+    return set(c_dStandardFolders.get(sKind, c_dStandardFolders["unknown"]) + c_lsHiddenFolders)
+
 
 # THE LICENSE FOR EACH KIND (1.48.0). Code is MIT, the license the Homer apps
 # and the kit have always carried, in a License.md beside the source. Writing

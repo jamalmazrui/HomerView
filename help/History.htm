@@ -184,6 +184,8 @@
 <body>
 <nav id="TOC" role="doc-toc">
 <ul>
+<li><a href="#unreleased-9-october-2026"
+id="toc-unreleased-9-october-2026">Unreleased – 9 October 2026</a></li>
 <li><a href="#october-2026-an-audit-by-another-ai"
 id="toc-october-2026-an-audit-by-another-ai">8 October 2026 – an audit
 by another AI</a></li>
@@ -285,6 +287,24 @@ in August 2026</a></li>
 versions</a></li>
 </ul>
 </nav>
+<h2 id="unreleased-9-october-2026">Unreleased – 9 October 2026</h2>
+<ul>
+<li><strong>The kit’s own Python modules inside the add-on.</strong> The
+add-on’s homer package held hand-kept copies of five kit modules – inix,
+lbc, say, util and web – and they had drifted: they lacked the kit’s
+1.62.5 fixes, among them relative links made absolute, file names that
+avoid Windows device names, Control+Enter accepting a dialog through its
+default button, and a dialog that stays open, saying why, when its
+handler fails. The kit’s modules now work flat or in a package, so the
+build copies them in exactly, every time, and logs each. The kit’s say
+module already speaks through NVDA itself when running inside it, as the
+copy did. HomerView needs HomerDev 1.65.3.</li>
+<li><strong>Conversion through programs never approved,
+removed.</strong> convert.py held a table of converters, and functions
+to find and run two outside conversion programs, that nothing called;
+they are gone, and two messages no longer advise installing one of
+them.</li>
+</ul>
 <h2 id="october-2026-an-audit-by-another-ai">8 October 2026 – an audit
 by another AI</h2>
 <p>ChatGPT audited HomerView and reported 51 findings. Checked against

@@ -39,6 +39,12 @@ exists at all:
     unaffected, because their text belongs to the control itself.
 """
 
+# THE SAME FILE, FLAT OR IN A PACKAGE (kit 1.65.3). lbc imports its sibling
+# modules, say and util, only inside the functions that need them, first as
+# part of a package -- HomerView's NVDA add-on carries the kit's modules in a
+# homer package -- and then flat, as every other Homer Python program has them.
+# One file serves both, so HomerView carries the kit's file exactly, rather
+# than a hand-kept copy that had missed the kit's fixes.
 import configparser
 import os
 from collections import OrderedDict
@@ -223,14 +229,18 @@ class ListSearch:
             pass
         # A selection changed in code does not raise the event a screen reader
         # listens for, so the item is announced here.
-        from . import say as sayModule
-
+        try:
+            from . import say as sayModule
+        except ImportError:
+            import say as sayModule
         sayModule.say(listBox.GetString(iIndex))
 
     @staticmethod
     def prompt(listBox, bForward=True):
-        from . import say as sayModule
-
+        try:
+            from . import say as sayModule
+        except ImportError:
+            import say as sayModule
         sTerm = dialogInput(
             "Find backwards" if not bForward else "Find",
             "Find substring, not case sensitive:",
@@ -249,8 +259,10 @@ class ListSearch:
 
     @staticmethod
     def again(listBox, bForward=True):
-        from . import say as sayModule
-
+        try:
+            from . import say as sayModule
+        except ImportError:
+            import say as sayModule
         if not ListSearch.sTerm:
             sayModule.say("Press Control+J first to search")
             return
@@ -269,8 +281,10 @@ class ListSearch:
         Every Lbc control answers the same chords, so a user does not have to
         remember which kind of control they are in.
         """
-        from . import say as sayModule
-
+        try:
+            from . import say as sayModule
+        except ImportError:
+            import say as sayModule
         iIndex = listBox.GetSelection()
         if iIndex < 0:
             sayModule.say("No item")
@@ -407,9 +421,14 @@ class Dialog(wx.Dialog):
         thing anyone wants, and offering it would take the key from something
         that is.
         """
-        from . import say as sayModule
-        from . import util
-
+        try:
+            from . import say as sayModule
+        except ImportError:
+            import say as sayModule
+        try:
+            from . import util
+        except ImportError:
+            import util
         if not textCtrl.IsMultiLine():
             sayModule.say("Not a multi-line field")
             return
@@ -443,9 +462,14 @@ class Dialog(wx.Dialog):
             return sText[iStart:iEnd if iEnd >= 0 else len(sText)].rstrip("\r")
 
         def onKey(event):
-            from . import say as sayModule
-            from . import util
-
+            try:
+                from . import say as sayModule
+            except ImportError:
+                import say as sayModule
+            try:
+                from . import util
+            except ImportError:
+                import util
             iKey = event.GetKeyCode()
             bControl, bShift, bAlt = event.ControlDown(), event.ShiftDown(), event.AltDown()
 
@@ -571,9 +595,11 @@ class Dialog(wx.Dialog):
         control = self.findControl(sName)
         if control is None:
             return vDefault
+        # The field's value first, its selection only for a control with no value of its own, such as a list (kit
+        # 1.62.5, from an audit by another AI: a text field with nothing selected read as empty).
         for functionRead in (
-            lambda: control.GetStringSelection(),
             lambda: control.GetValue(),
+            lambda: control.GetStringSelection(),
         ):
             try:
                 return functionRead()
@@ -849,8 +875,10 @@ class Dialog(wx.Dialog):
         iTipId = wx.NewIdRef()
 
         def onTip(event):
-            from . import say as sayModule
-
+            try:
+                from . import say as sayModule
+            except ImportError:
+                import say as sayModule
             control = self.FindFocus()
             sayModule.say(self.dTips.get(control) or "No tip for this control")
 
@@ -889,19 +917,31 @@ class Dialog(wx.Dialog):
         ]))
 
     def _submit(self):
+        # Control+Enter accepts the way the default button does, through the same handler and checks, so a dialog gives
+        # the same answer however it is accepted (kit 1.62.5, from an audit by another AI).
+        button = self.GetDefaultItem() or self.FindWindowById(wx.ID_OK)
+        if isinstance(button, wx.Button):
+            self._accept(button)
+            return
         self.collect()
         self.EndModal(wx.ID_OK)
 
     def _onButton(self, event):
-        button = event.GetEventObject()
+        self._accept(event.GetEventObject())
+
+    def _accept(self, button):
         self.collect()
         self.dResults["button"] = stripMnemonic(button.GetLabel())
         if self.functionHandler:
             try:
                 if self.functionHandler(self, button) is False:
                     return
-            except Exception:
-                pass
+            except Exception as oError:
+                # A handler that fails leaves the dialog open with what was typed, and says so, rather than closing as
+                # if it had succeeded (kit 1.62.5, from an audit by another AI).
+                self.dResults["error"] = str(oError)
+                wx.MessageBox("That could not be done: " + str(oError), "Error", wx.OK | wx.ICON_ERROR, self)
+                return
         iId = button.GetId()
         if iId in (wx.ID_OK, wx.ID_CANCEL):
             self.EndModal(iId)

@@ -405,6 +405,37 @@ function buildAddon {
     # What went in, gathered rather than announced line by line.
     $script:lIncluded = New-Object System.Collections.ArrayList
 
+    # THE KIT'S PYTHON MODULES, EXACTLY (9 October 2026). The add-on's homer
+    # package held hand-kept copies of five kit modules -- inix, lbc, say, util
+    # and web -- which had drifted: they missed the kit's 1.62.5 fixes, among
+    # them relative links made absolute and a dialog that stays open when its
+    # handler fails. Since kit 1.65.3 those modules work flat or in a package,
+    # so the build copies the kit's own files in, every time, and logs each.
+    $sKitRoot = ""
+    if ($sHomerSources) {
+        $sClimb = Split-Path -Parent ($sHomerSources.Split(";")[0].Trim().Trim('"'))
+        while ($sClimb) {
+            if (Test-Path -LiteralPath (Join-Path $sClimb "Templates\HomerComponents.iss")) { $sKitRoot = $sClimb; break }
+            $sParent = Split-Path -Parent $sClimb
+            if ($sParent -eq $sClimb) { break }
+            $sClimb = $sParent
+        }
+    }
+    $pathHomerPackage = Join-Path $pathAddon "globalPlugins\homerView\homer"
+    if ($sKitRoot) {
+        foreach ($sModule in @("inix.py", "lbc.py", "say.py", "util.py", "web.py")) {
+            $pathFrom = Join-Path $sKitRoot ("exec\Python\" + $sModule)
+            if (-not (Test-Path -LiteralPath $pathFrom)) {
+                writeLog ("ERROR: the kit at " + $sKitRoot + " has no exec\Python\" + $sModule)
+                exit 1
+            }
+            Copy-Item -LiteralPath $pathFrom -Destination (Join-Path $pathHomerPackage $sModule) -Force
+            writeLog ("  kit module: exec\Python\" + $sModule + " copied into the add-on's homer package")
+        }
+    } else {
+        writeLog "WARNING: no kit was handed in, so the add-on's homer package keeps the modules it has."
+    }
+
     # THE PATCH NUMBER IS RAISED HERE, AND THIS CLOSES A REAL GAP.
     #
     # release tells the reader "Build.cmd takes a NEW version every

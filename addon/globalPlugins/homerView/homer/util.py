@@ -7,7 +7,7 @@ line-ending conversion, and the line operations the Lbc text controls offer.
 
 The C# original is a static class in the Homer namespace, reached as
 Util.formatBytes. Python has no need of the class: a module is already the
-container a namespace provides, so this is homer.util.formatBytes. That is the
+container a namespace provides, so this is util.formatBytes. That is the
 one structural difference between the two ports, and it applies throughout the
 package.
 

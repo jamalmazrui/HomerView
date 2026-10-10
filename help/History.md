@@ -3,6 +3,8 @@
 
 ## 9 October 2026 -- from the build and release logs
 
+- **The installer's screen reader boxes are the kit's.** HomerView kept its own copy of the kit's screen reader wrappers and state function. They are gone: HomerComponents.iss words and ticks the JAWS and NVDA boxes by asking installJawsScripts.cmd the kit's question, "state jaws <file>", which that script now answers, so HomerView keeps its own installation, with its chaining, while the verbs and ticks are the kit's.
+
 - **The installer compiles again.** Three comment lines added on 8 October began with a semicolon inside the [Code] section, where Inno does not take a semicolon as a comment, and the compile stopped with "BEGIN expected" at line 567. They are // comments now, and the kit's check fails any [Code] line that begins with a semicolon.
 - **Ten walks of about three minutes.** Walks 2 to 8 were lengthened on 8 October, with keys that are the same on both screen readers and the differences where a key is the screen reader's own, but those files never reached the project; they come now.
 

@@ -569,7 +569,9 @@ Type: filesandordirs; Name: "{app}\dist"
 // Inno refuses a function defined twice (8 October 2026: Duplicate identifier LABELJAWS).
 // In [Code] a comment is // or braces: a line beginning with ; stopped the compile on
 // 9 October 2026 ("BEGIN expected" on line 567).
-#define HomerReaderWrappersInApp
+// THE KIT'S SCREEN READER FUNCTIONS (10 October 2026): asked through HomerView's own script, which chains its
+// JAWS scripts into the defaults; the verbs and ticks are the kit's.
+#define HomerReaderScript "installJawsScripts.cmd"
 #include HomerDev + "\Templates\HomerComponents.iss"
 
 { PANDOC, THE ONE COMPONENT HOMERVIEW DEPENDS ON FROM OUTSIDE. Registered once
@@ -887,59 +889,10 @@ end;
 var
   bInstalled: Boolean;
 
-{ ---- JAWS scripts and NVDA add-on, judged like any component ----
-  installJawsScripts.cmd -sState jaws|nvda answers none, install, update or
-  reinstall, and logs its evidence: the script sources' fingerprint against
-  the one kept in each JAWS version's settings, the add-on's version against
-  the installed one's. Asked once per reader; -1 hides every box for it. }
+{ The JAWS scripts' and NVDA add-on's boxes are the kit's (10 October 2026), asked through installJawsScripts.cmd. }
 var
-  giJawsState, giNvdaState: Integer;
-  gbJawsRead, gbNvdaRead: Boolean;
   gsTicked: String;
 
-function readerState(sReader: String): Integer;
-var
-  sFile: String;
-  sAnswer: AnsiString;
-  iCode: Integer;
-begin
-  if (sReader = 'jaws') and gbJawsRead then begin Result := giJawsState; Exit; end;
-  if (sReader = 'nvda') and gbNvdaRead then begin Result := giNvdaState; Exit; end;
-  Result := -1;
-  sFile := ExpandConstant('{tmp}\homerViewReader_') + sReader + '.txt';
-  if Exec(ExpandConstant('{cmd}'), '/c ""' + ExpandConstant('{app}\scripts\installJawsScripts.cmd') + '" -sState ' + sReader + ' -pathStateFile "' + sFile + '" -bQuiet"',
-          ExpandConstant('{app}'), SW_HIDE, ewWaitUntilTerminated, iCode) then
-    if LoadStringFromFile(sFile, sAnswer) then
-    begin
-      sAnswer := Trim(sAnswer);
-      if sAnswer = 'install' then Result := 0
-      else if sAnswer = 'update' then Result := 1
-      else if sAnswer = 'reinstall' then Result := 2;
-    end;
-  Log('Component ' + sReader + ': state ' + IntToStr(Result) + ' (-1 not offered, 0 Install, 1 Update, 2 Reinstall)');
-  if sReader = 'jaws' then begin giJawsState := Result; gbJawsRead := True; end
-  else begin giNvdaState := Result; gbNvdaRead := True; end;
-end;
-
-function readerLabel(sReader: String): String;
-begin
-  case readerState(sReader) of
-    1: Result := 'Update';
-    2: Result := 'Reinstall';
-  else Result := 'Install';
-  end;
-  if sReader = 'jaws' then Result := Result + ' JAWS scripts'
-  else Result := Result + ' NVDA add-on';
-end;
-
-function labelJaws(sParam: String): String;  begin Result := readerLabel('jaws'); end;
-function isInstallJaws(): Boolean;           begin Result := readerState('jaws') = 0; end;
-function isUpdateJaws(): Boolean;            begin Result := readerState('jaws') = 1; end;
-function isReinstallJaws(): Boolean;         begin Result := readerState('jaws') = 2; end;
-function labelNvda(sParam: String): String;  begin Result := readerLabel('nvda'); end;
-function isInstallNvda(): Boolean;           begin Result := readerState('nvda') = 0; end;
-function isUpdateNvda(): Boolean;            begin Result := readerState('nvda') = 1; end;
-function isReinstallNvda(): Boolean;         begin Result := readerState('nvda') = 2; end;
 
 { THE RESULTS BOX REPORTS WHAT WAS TICKED: where HomerView is and where the logs
   are, then one line for each box ticked on the finish page. The captions are

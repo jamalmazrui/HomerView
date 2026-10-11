@@ -21,15 +21,27 @@ Hear=
 
 [step]
 
-Say=Two keys before anything else, both the reader's own. If a line goes by too fast, Insert plus Up Arrow says it again.
+Say=You know your screen reader's own keys already, and three of them are worth remembering whenever you feel lost or unsure. Insert plus Up Arrow says the line you are on again.
 Key=Insert+Up Arrow
-Hear=(the last line, read a second time)
+Hear=Seattle is a seaport city on the West Coast of the United States.
 
 [step]
 
-Say=And if you lose your place, Insert plus Tab says where you are.
+Say=Insert plus Tab says what has the focus: its name, its role, and its value or state.
 Key=Insert+Tab
-Hear=(the current control, with its state and position)
+Hear=Seattle, Wikipedia, document
+
+[step]
+
+Say=Insert plus T says the title of the window.
+Key=Insert+T
+Hear=Seattle - Wikipedia - Microsoft Edge
+
+[step]
+
+Say=If you set your screen reader to use Caps Lock in place of Insert, Caps Lock works the same way for all three.
+Key=
+Hear=
 
 [step]
 

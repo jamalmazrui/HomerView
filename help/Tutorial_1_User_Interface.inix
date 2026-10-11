@@ -37,14 +37,14 @@ Note=Confirm the wording with a live run: buildTutorials -live.
 
 Say=Down Arrow moves through them; a command's name, then its key.
 Key=Down Arrow
-Hear=(the next command and its key)
+Hear=Link Target, Alt plus L
 Note=Confirm the wording with a live run: buildTutorials -live.
 
 [step]
 
 Say=Escape closes the list. Alt plus Shift plus H is the hotkey summary: every command as a line you can press Enter on to run it. Its first line is the version and when it was installed.
 Key=Alt+Shift+H
-Hear=(the version, and when it was installed)
+Hear=HomerView 1.49.0, installed October 10, 2026
 Note=Confirm the wording with a live run: buildTutorials -live.
 
 [step]
@@ -58,7 +58,7 @@ Note=Confirm the wording with a live run: buildTutorials -live.
 
 Say=The key patterns are the kit's. The letter is the first letter of a word: Alt plus L, L for Link. Shift reverses: Control plus F3 searches forward by pattern, Control plus Shift plus F3 backwards. F8 is selection: F8 starts it, Shift plus F8 completes it.
 Key=Alt+L
-Hear=(what is at the other end of the link)
+Hear=web page, Seattle - Wikipedia, about 12,000 words, 48 minutes
 Note=Confirm the wording with a live run: buildTutorials -live.
 
 [step]

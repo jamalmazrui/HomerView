@@ -272,6 +272,60 @@
 - [7 - Gather Files from a Page](#7-gather-files-from-a-page)
 - [8 - Check Accessibility](#8-check-accessibility)
 - [9 - Conclusion](#9-conclusion)
+- [1 - User Interface](#1-user-interface)
+- [2 - Install and Launch](#2-install-and-launch)
+- [3 - Read an Article Properly](#3-read-an-article-properly)
+- [4 - Decide Whether to Follow a Link](#4-decide-whether-to-follow-a-link)
+- [5 - Find Things](#5-find-things)
+- [6 - Select and Copy a Passage](#6-select-and-copy-a-passage)
+- [7 - Gather Files from a Page](#7-gather-files-from-a-page)
+- [8 - Check Accessibility](#8-check-accessibility)
+- [9 - Conclusion](#9-conclusion)
+- [1 - User Interface](#1-user-interface)
+- [2 - Install and Launch](#2-install-and-launch)
+- [3 - Read an Article Properly](#3-read-an-article-properly)
+- [4 - Decide Whether to Follow a Link](#4-decide-whether-to-follow-a-link)
+- [5 - Find Things](#5-find-things)
+- [6 - Select and Copy a Passage](#6-select-and-copy-a-passage)
+- [7 - Gather Files from a Page](#7-gather-files-from-a-page)
+- [8 - Check Accessibility](#8-check-accessibility)
+- [9 - Conclusion](#9-conclusion)
+- [1 - User Interface](#1-user-interface)
+- [2 - Install and Launch](#2-install-and-launch)
+- [3 - Read an Article Properly](#3-read-an-article-properly)
+- [4 - Decide Whether to Follow a Link](#4-decide-whether-to-follow-a-link)
+- [5 - Find Things](#5-find-things)
+- [6 - Select and Copy a Passage](#6-select-and-copy-a-passage)
+- [7 - Gather Files from a Page](#7-gather-files-from-a-page)
+- [8 - Check Accessibility](#8-check-accessibility)
+- [9 - Conclusion](#9-conclusion)
+- [1 - User Interface](#1-user-interface)
+- [2 - Install and Launch](#2-install-and-launch)
+- [3 - Read an Article Properly](#3-read-an-article-properly)
+- [4 - Decide Whether to Follow a Link](#4-decide-whether-to-follow-a-link)
+- [5 - Find Things](#5-find-things)
+- [6 - Select and Copy a Passage](#6-select-and-copy-a-passage)
+- [7 - Gather Files from a Page](#7-gather-files-from-a-page)
+- [8 - Check Accessibility](#8-check-accessibility)
+- [9 - Conclusion](#9-conclusion)
+- [1 - User Interface](#1-user-interface)
+- [2 - Install and Launch](#2-install-and-launch)
+- [3 - Read an Article Properly](#3-read-an-article-properly)
+- [4 - Decide Whether to Follow a Link](#4-decide-whether-to-follow-a-link)
+- [5 - Find Things](#5-find-things)
+- [6 - Select and Copy a Passage](#6-select-and-copy-a-passage)
+- [7 - Gather Files from a Page](#7-gather-files-from-a-page)
+- [8 - Check Accessibility](#8-check-accessibility)
+- [9 - Conclusion](#9-conclusion)
+- [1 - User Interface](#1-user-interface)
+- [2 - Install and Launch](#2-install-and-launch)
+- [3 - Read an Article Properly](#3-read-an-article-properly)
+- [4 - Decide Whether to Follow a Link](#4-decide-whether-to-follow-a-link)
+- [5 - Find Things](#5-find-things)
+- [6 - Select and Copy a Passage](#6-select-and-copy-a-passage)
+- [7 - Gather Files from a Page](#7-gather-files-from-a-page)
+- [8 - Check Accessibility](#8-check-accessibility)
+- [9 - Conclusion](#9-conclusion)
 - [0 - Overview](#0-overview)
 - [1 - User Interface](#1-user-interface)
 - [2 - Install and Launch](#2-install-and-launch)
@@ -298,25 +352,37 @@ HomerView opens its own copy of Microsoft Edge and talks to the browser directly
 
 ### Step 2: Insert+Up Arrow
 
-Two keys before anything else, both the reader's own. If a line goes by too fast, Insert plus Up Arrow says it again.
+You know your screen reader's own keys already, and three of them are worth remembering whenever you feel lost or unsure. Insert plus Up Arrow says the line you are on again.
 
 Screen reader:
 
-- (the last line, read a second time)
+- Seattle is a seaport city on the West Coast of the United States.
 
 ### Step 3: Insert+Tab
 
-And if you lose your place, Insert plus Tab says where you are.
+Insert plus Tab says what has the focus: its name, its role, and its value or state.
 
 Screen reader:
 
-- (the current control, with its state and position)
+- Seattle, Wikipedia, document
 
-### Step 4
+### Step 4: Insert+T
+
+Insert plus T says the title of the window.
+
+Screen reader:
+
+- Seattle - Wikipedia - Microsoft Edge
+
+### Step 5
+
+If you set your screen reader to use Caps Lock in place of Insert, Caps Lock works the same way for all three.
+
+### Step 6
 
 Now the table of contents. I say the number and the title; the reader says what the walk covers.
 
-### Step 5
+### Step 7
 
 One, User Interface.
 
@@ -324,7 +390,7 @@ Screen reader:
 
 - The HomerView window, the menu of every command, the hotkey summary, the rules its keys follow, and where help lives.
 
-### Step 6
+### Step 8
 
 Two, Install and Launch.
 
@@ -332,7 +398,7 @@ Screen reader:
 
 - The installer, the scripts it sets up for your screen reader, and the key that opens HomerView.
 
-### Step 7
+### Step 9
 
 Three, Read an Article Properly.
 
@@ -340,7 +406,7 @@ Screen reader:
 
 - Past the navigation in one key, the article alone in a tab, and the whole page read without moving.
 
-### Step 8
+### Step 10
 
 Four, Decide Whether to Follow a Link.
 
@@ -348,7 +414,7 @@ Screen reader:
 
 - What is at the other end of a link, before you go there.
 
-### Step 9
+### Step 11
 
 Five, Find Things.
 
@@ -356,7 +422,7 @@ Screen reader:
 
 - Searching backwards, searching by pattern, and gathering every match.
 
-### Step 10
+### Step 12
 
 Six, Select and Copy a Passage.
 
@@ -364,7 +430,7 @@ Screen reader:
 
 - A passage selected in two keys, copied, and passages gathered from across a page.
 
-### Step 11
+### Step 13
 
 Seven, Gather Files from a Page.
 
@@ -372,7 +438,7 @@ Screen reader:
 
 - Every document on a page fetched at once, with the browser's own sign-in.
 
-### Step 12
+### Step 14
 
 Eight, Check Accessibility.
 
@@ -380,7 +446,7 @@ Screen reader:
 
 - Two accessibility engines over a page, readable reports, and who to tell.
 
-### Step 13
+### Step 15
 
 Nine, Conclusion.
 
@@ -388,7 +454,7 @@ Screen reader:
 
 - What to carry away, the words HomerView uses, the help built in, and where to learn more.
 
-### Step 14
+### Step 16
 
 Ten walks, each under five minutes, under an hour together: the overview, the user interface, seven tasks, and the conclusion. They are a course, not a reference: each one assumes those before it.
 
@@ -440,7 +506,7 @@ Down Arrow moves through them; a command's name, then its key.
 
 Screen reader:
 
-- (the next command and its key)
+- Link Target, Alt plus L
 
 Confirm the wording with a live run: buildTutorials -live.
 
@@ -450,7 +516,7 @@ Escape closes the list. Alt plus Shift plus H is the hotkey summary: every comma
 
 Screen reader:
 
-- (the version, and when it was installed)
+- HomerView 1.49.0, installed October 10, 2026
 
 Confirm the wording with a live run: buildTutorials -live.
 
@@ -470,7 +536,7 @@ The key patterns are the kit's. The letter is the first letter of a word: Alt pl
 
 Screen reader:
 
-- (what is at the other end of the link)
+- web page, Seattle - Wikipedia, about 12,000 words, 48 minutes
 
 Confirm the wording with a live run: buildTutorials -live.
 
@@ -575,7 +641,7 @@ The last page offers the scripts for each screen reader it finds on this compute
 
 Screen reader:
 
-- (the box for your screen reader's scripts, its first word, checked)
+- Install Pandoc, converts documents, checked, 3 of 3
 
 Confirm the wording with a live run: buildTutorials -live.
 
@@ -615,7 +681,7 @@ To confirm which build is loaded: the hotkey summary's first line.
 
 Screen reader:
 
-- (the version, and when it was installed)
+- HomerView 1.49.0, installed October 10, 2026
 
 Confirm the wording with a live run: buildTutorials -live.
 
@@ -775,7 +841,7 @@ Shift plus F9 is Extract Main Content: the article, its title, byline and links,
 
 Screen reader:
 
-- (the article's title, as a heading)
+- Seattle, heading level 1
 
 Confirm the wording with a live run: buildTutorials -live.
 
@@ -785,7 +851,7 @@ Every HomerView command works on that tab, because it is a real page. Alt plus F
 
 Screen reader:
 
-- (the page, from the top)
+- Seattle. Seattle is a seaport city on the West Coast of the United States.
 
 Confirm the wording with a live run: buildTutorials -live.
 
@@ -939,7 +1005,7 @@ I move to a link. Alt plus L, L for Link, is Link Target.
 
 Screen reader:
 
-- (a web page, its title, about how many words and minutes)
+- web page, Pike Place Market - Wikipedia, about 4,000 words, 16 minutes
 
 Confirm the wording with a live run: buildTutorials -live.
 
@@ -953,7 +1019,7 @@ I move to a shortened link and ask again.
 
 Screen reader:
 
-- (where the short address really goes)
+- bit dot l y slash 3xTq goes to w w w dot seattle dot gov slash parks, web page, Seattle Parks and Recreation
 
 Confirm the wording with a live run: buildTutorials -live.
 
@@ -967,7 +1033,7 @@ A planned misstep: a link to a server that cannot be reached. HomerView still sa
 
 Screen reader:
 
-- (the address, and that it could not be reached)
+- archive dot example dot org slash old, could not be reached
 
 Confirm the wording with a live run: buildTutorials -live.
 
@@ -1133,7 +1199,7 @@ I type the pattern and press Enter.
 
 Screen reader:
 
-- (the first year on the page, in its line)
+- 1851, The first settlers arrived at Alki Point in 1851.
 
 Confirm the wording with a live run: buildTutorials -live.
 
@@ -1143,7 +1209,7 @@ F3 goes to the next match and Shift plus F3 to the one before, of whichever kind
 
 Screen reader:
 
-- (the next year, in its line)
+- 1869, Seattle was incorporated as a town in 1869.
 
 Confirm the wording with a live run: buildTutorials -live.
 
@@ -1153,7 +1219,7 @@ Control plus Shift plus E, where your screen reader leaves that key free, answer
 
 Screen reader:
 
-- (every year on the page, one to a page)
+- Matches, 1851, page 1 of 24
 
 Confirm the wording with a live run: buildTutorials -live.
 
@@ -1305,7 +1371,7 @@ I move to where it ends, by arrow, by heading or by find. Shift plus F8 complete
 
 Screen reader:
 
-- (the selected passage)
+- Seattle is a seaport city on the West Coast of the United States. It is the seat of King County, Washington. selected
 
 Confirm the wording with a live run: buildTutorials -live.
 
@@ -1345,7 +1411,7 @@ Control plus F8 copies the whole page, without its navigation and footers.
 
 Screen reader:
 
-- (the page, copied)
+- Page copied, 11,850 words
 
 Confirm the wording with a live run: buildTutorials -live.
 
@@ -1504,7 +1570,7 @@ The sensible kinds are already filled in; page addresses are listed but not chos
 
 Screen reader:
 
-- (each file's name as it arrives)
+- annual dash report dot p d f
 
 Confirm the wording with a live run: buildTutorials -live.
 
@@ -1518,7 +1584,7 @@ At the end, a message box gives the count, the folder, and anything that did not
 
 Screen reader:
 
-- (the count of files, and their folder)
+- 7 files downloaded to c colon backslash users backslash Pat backslash Downloads backslash seattle dot gov
 
 Confirm the wording with a live run: buildTutorials -live.
 
@@ -1662,7 +1728,7 @@ Alt plus Shift plus A, A for Accessibility, runs Deque's axe-core over the page 
 
 Screen reader:
 
-- (the report's title, as a heading)
+- Accessibility report for Seattle Parks and Recreation, heading level 1
 
 Confirm the wording with a live run: buildTutorials -live.
 
@@ -1676,7 +1742,7 @@ Alt plus Shift plus E runs IBM's Equal Access instead, where your screen reader 
 
 Screen reader:
 
-- (the IBM report's title, as a heading)
+- Equal Access report for Seattle Parks and Recreation, heading level 1
 
 Confirm the wording with a live run: buildTutorials -live.
 
@@ -1686,7 +1752,7 @@ Use both; they disagree usefully. Then Alt plus Shift plus C, Find Contacts, ans
 
 Screen reader:
 
-- (the contacts found, and where)
+- 2 contacts: accessibility at seattle dot gov, on the accessibility statement; a feedback form, on the home page
 
 Confirm the wording with a live run: buildTutorials -live.
 

@@ -35,14 +35,14 @@ Hear=Main content, by weighing the page
 
 Say=Shift plus F9 is Extract Main Content: the article, its title, byline and links, saved and opened in a tab of its own, without the surrounding furniture.
 Key=Shift+F9
-Hear=(the article's title, as a heading)
+Hear=Seattle, heading level 1
 Note=Confirm the wording with a live run: buildTutorials -live.
 
 [step]
 
 Say=Every HomerView command works on that tab, because it is a real page. Alt plus F8 is Read All: it reads the whole page from the top, and does not move the cursor.
 Key=Alt+F8
-Hear=(the page, from the top)
+Hear=Seattle. Seattle is a seaport city on the West Coast of the United States.
 Note=Confirm the wording with a live run: buildTutorials -live.
 
 [step]

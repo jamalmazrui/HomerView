@@ -3,6 +3,8 @@
 
 ## 9 October 2026 -- from the build and release logs
 
+- **The walks' reader speaks concrete words.** Twenty reader lines described speech -- "(the article's title, as a heading)", "(where the short address really goes)" -- and now say what is heard: "Seattle, heading level 1", a short link and where it goes. The Overview gently reminds of three reader keys, Insert plus Up Arrow, Insert plus Tab and Insert plus T, and that Caps Lock serves in place of Insert where set up.
+
 - **The installer's screen reader boxes are the kit's.** HomerView kept its own copy of the kit's screen reader wrappers and state function. They are gone: HomerComponents.iss words and ticks the JAWS and NVDA boxes by asking installJawsScripts.cmd the kit's question, "state jaws <file>", which that script now answers, so HomerView keeps its own installation, with its chaining, while the verbs and ticks are the kit's.
 
 - **The installer compiles again.** Three comment lines added on 8 October began with a semicolon inside the [Code] section, where Inno does not take a semicolon as a comment, and the compile stopped with "BEGIN expected" at line 567. They are // comments now, and the kit's check fails any [Code] line that begins with a semicolon.

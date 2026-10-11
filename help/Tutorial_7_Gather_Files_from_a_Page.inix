@@ -29,7 +29,7 @@ Hear=pdf: PDF document, 11. docx: Word document, 6. html: Web page, 1.
 
 Say=The sensible kinds are already filled in; page addresses are listed but not chosen, since they are many and rarely wanted. Enter fetches.
 Key=Enter
-Hear=(each file's name as it arrives)
+Hear=annual dash report dot p d f
 Note=Confirm the wording with a live run: buildTutorials -live.
 
 [step]
@@ -42,7 +42,7 @@ Hear=
 
 Say=At the end, a message box gives the count, the folder, and anything that did not come.
 Key=
-Hear=(the count of files, and their folder)
+Hear=7 files downloaded to c colon backslash users backslash Pat backslash Downloads backslash seattle dot gov
 Note=Confirm the wording with a live run: buildTutorials -live.
 
 [step]

@@ -23,7 +23,7 @@ Note=Confirm the wording with a live run: buildTutorials -live.
 
 Say=I move to a link. Alt plus L, L for Link, is Link Target.
 Key=Alt+L
-Hear=(a web page, its title, about how many words and minutes)
+Hear=web page, Pike Place Market - Wikipedia, about 4,000 words, 16 minutes
 Note=Confirm the wording with a live run: buildTutorials -live.
 
 [step]
@@ -36,7 +36,7 @@ Hear=
 
 Say=I move to a shortened link and ask again.
 Key=Alt+L
-Hear=(where the short address really goes)
+Hear=bit dot l y slash 3xTq goes to w w w dot seattle dot gov slash parks, web page, Seattle Parks and Recreation
 Note=Confirm the wording with a live run: buildTutorials -live.
 
 [step]
@@ -49,7 +49,7 @@ Hear=
 
 Say=A planned misstep: a link to a server that cannot be reached. HomerView still says its address, which was known before anything was asked.
 Key=Alt+L
-Hear=(the address, and that it could not be reached)
+Hear=archive dot example dot org slash old, could not be reached
 Note=Confirm the wording with a live run: buildTutorials -live.
 
 [step]

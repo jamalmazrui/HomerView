@@ -31,7 +31,7 @@ Note=Confirm the wording with a live run: buildTutorials -live.
 
 Say=The last page offers the scripts for each screen reader it finds on this computer, ticked, each saying Install, Update or Reinstall. For one reader it also compiles the scripts for every version installed and asks the reader to reload them, so no restart is normally needed.
 Key=Tab
-Hear=(the box for your screen reader's scripts, its first word, checked)
+Hear=Install Pandoc, converts documents, checked, 3 of 3
 Note=Confirm the wording with a live run: buildTutorials -live.
 
 [step]
@@ -59,7 +59,7 @@ Note=Confirm the wording with a live run: buildTutorials -live.
 
 Say=To confirm which build is loaded: the hotkey summary's first line.
 Key=Alt+Shift+H
-Hear=(the version, and when it was installed)
+Hear=HomerView 1.49.0, installed October 10, 2026
 Note=Confirm the wording with a live run: buildTutorials -live.
 
 [step]

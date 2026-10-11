@@ -1,9 +1,11 @@
 ﻿
 
 
-## 9 October 2026 -- from the build and release logs
+## 11 October 2026 -- from an audit and a report
 
-- **The walks' reader speaks concrete words.** Twenty reader lines described speech -- "(the article's title, as a heading)", "(where the short address really goes)" -- and now say what is heard: "Seattle, heading level 1", a short link and where it goes. The Overview gently reminds of three reader keys, Insert plus Up Arrow, Insert plus Tab and Insert plus T, and that Caps Lock serves in place of Insert where set up.
+- **The hotkeys page has one top heading.** scripts\\makeDocs.py wrote help\\hotkeys.md with its title in front matter and every section at level one, so the page had seventeen top headings, and the kit's check refused the 1.48.95 release for it. The sections are now level two under the title, in the generator and in the page.
+
+## 9 October 2026 -- from the build and release logs
 
 - **The installer's screen reader boxes are the kit's.** HomerView kept its own copy of the kit's screen reader wrappers and state function. They are gone: HomerComponents.iss words and ticks the JAWS and NVDA boxes by asking installJawsScripts.cmd the kit's question, "state jaws <file>", which that script now answers, so HomerView keeps its own installation, with its chaining, while the verbs and ticks are the kit's.
 

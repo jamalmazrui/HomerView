@@ -93,7 +93,7 @@ def writeHotkeys():
         "---", "title: HomerView Hotkeys",
         "subtitle: Every command, its key, and why that key",
         "author: Jamal Mazrui", "---", "",
-        "# About this list", "",
+        "## About this list", "",
         "Every HomerView command, grouped by what you are trying to do and sorted by",
         "name inside each group. Where the key is not obvious, the description says",
         "why it is that key.", "",
@@ -101,7 +101,7 @@ def writeHotkeys():
         "file is here so you can keep it open beside your work.", "",
         "Press Alt+Shift+H in HomerView and the program builds this list for itself,",
         "from the same source, so it is never out of date.", "",
-        "# How to read a key", "",
+        "## How to read a key", "",
         "Modifiers come in alphabetical order: Alt, Control, NVDA, Shift. So",
         "Alt+NVDA+C, never NVDA+Alt+C. Key names are the ones JAWS uses, because most",
         "blind Windows users have read those for years, so Accent rather than Grave",
@@ -116,7 +116,10 @@ def writeHotkeys():
         "You can give it a key in NVDA's Input Gestures dialog, under the HomerView",
         "category, where every command here can be changed.", "",
     ]
-    lLines += commandLines(1)
+    # ONE TOP HEADING (11 October 2026): the title in the front matter is the page's level-one heading, so every
+    # section here is level two. At level one they made seventeen top headings, and the kit's check refused the
+    # release for it.
+    lLines += commandLines(2)
     # THE HOMER ENCODING (26 September 2026): a byte order mark and CRLF. The kit's
     # check refused a release over hotkeys.md, which this wrote as bare UTF-8 after
     # fixEncoding had already run.

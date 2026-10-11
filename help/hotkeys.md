@@ -4,7 +4,7 @@ subtitle: Every command, its key, and why that key
 author: Jamal Mazrui
 ---
 
-# About this list
+## About this list
 
 Every HomerView command, grouped by what you are trying to do and sorted by
 name inside each group. Where the key is not obvious, the description says
@@ -16,7 +16,7 @@ file is here so you can keep it open beside your work.
 Press Alt+Shift+H in HomerView and the program builds this list for itself,
 from the same source, so it is never out of date.
 
-# How to read a key
+## How to read a key
 
 Modifiers come in alphabetical order: Alt, Control, NVDA, Shift. So
 Alt+NVDA+C, never NVDA+Alt+C. Key names are the ones JAWS uses, because most
@@ -35,13 +35,13 @@ A command with no key still runs, from the Alternate Menu on Alt+F10.
 You can give it a key in NVDA's Input Gestures dialog, under the HomerView
 category, where every command here can be changed.
 
-# Starting HomerView
+## Starting HomerView
 
 - **Alternate Menu**, Alt+F10. Present all commands in a single, alphabetized list. F10 opens a menu bar in Windows, and this is the menu HomerView has instead.
 - **Hotkey Summary**, Alt+Shift+H. Display this list of command names, hot keys, and descriptions in a new window, as EdSharp does on the same key.
 - **Launch HomerView**, Alt+Control+Shift+H. Launches or reconnects the HomerView copy of Microsoft Edge. H for HomerView, and it works anywhere because nothing is running yet.
 
-# Reading the documentation
+## Reading the documentation
 
 - **About HomerView**, Alt+F1. Display version and release date, and where HomerView keeps its files.
 - **Developer Notes**, Control+Shift+F1. Open the notes on how HomerView is built and why.
@@ -53,7 +53,7 @@ category, where every command here can be changed.
 - **Session Log**, Control+Shift+L. Open a copy of this session's log, for working out what went wrong.
 - **User Guide**, Control+F1. Open Documentation in the HomerView window. F1 is help everywhere, but plain F1 opens Edge's own help and stays Edge's, so the family here takes F1 with a modifier.
 
-# Moving through a page
+## Moving through a page
 
 - **Go to Percent**, Control+G. Go to percentage point in document, as EdSharp does on the same key.
 - **Go to Percent Again**, Alt+G. Repeat Go command, or move a step further with plus or minus.
@@ -68,7 +68,7 @@ category, where every command here can be changed.
 - **Prior Same Kind**, Shift+Z. Moves to the previous thing of the same kind as the one you are on.
 - **Prior Sentence**, Alt+UpArrow. Moves to the previous sentence and reads it.
 
-# Finding text
+## Finding text
 
 - **Forward Find**, Control+F. Search forward for string, using NVDA's own find so the dialog and its behaviour are the ones you already know.
 - **Forward Find Again**, F3. Search forward for next match, of whichever kind of find was used last.
@@ -79,7 +79,7 @@ category, where every command here can be changed.
 - **Reverse Find at Cursor**, Alt+Shift+F3. Search backward for chunk or selected text.
 - **Reverse Find with Regular Expression**, Control+Shift+F3. Search backward for regular expression.
 
-# Listing what is on the page
+## Listing what is on the page
 
 - **Explore Page**, Alt+NVDA+E. Describes how the page is laid out, including what a sighted person can see that your reading order never mentions. E for Explore. It gave up its bare Y: a single letter in browse mode reads as a navigation key, and this command does not move anywhere.
 - **List Elements**, Alt+NVDA+L. Lists any kind of element, including kinds NVDA's own Elements List does not offer. L for List.
@@ -87,7 +87,7 @@ category, where every command here can be changed.
 - **List Headings**, NVDA+F6. List the headings on the page, on the key JAWS uses for its heading list.
 - **List Links**, NVDA+Shift+F7. List the links on the page, beside the key JAWS uses for its link list.
 
-# Asking about the page
+## Asking about the page
 
 - **Link Target**, Alt+L. Ask what is actually at that link without going there: what kind of thing, how big, and whether it ends up where it claims. L for Link.
 - **Page Links to Clipboard**, Alt+Shift+P. Copy every link address on the page to the clipboard, as EdSharp copies a path on the same key.
@@ -101,14 +101,14 @@ category, where every command here can be changed.
 - **Say Yield Structure**, Alt+Shift+Y. Says how the page is built: how many headings, links, forms and the rest.
 - **Yield with Regular Expression**, Control+Shift+Y. Count parts of text matching a regular expression, which answers how many rather than where.
 
-# Reading aloud
+## Reading aloud
 
 - **Read All**, Alt+F8. Say all text, without moving the cursor.
 - **Say Chunk**, Shift+Backspace. Say chunk at cursor, or spell if repeated.
 - **Say Selected**, Shift+Space. Say selected text, or spell if repeated.
 - **Toggle Reading**, ScrollLock. Starts reading continuously, or stops if it is already reading. Scroll Lock because nothing else in Edge, NVDA or Windows wants it.
 
-# Selecting and the clipboard
+## Selecting and the clipboard
 
 - **Append Clipboard**, Control+Shift+Apostrophe. Adds the clipboard to the end of a text file rather than replacing it.
 - **Clear Clipboard**, Alt+Shift+Apostrophe. Empties the clipboard, so an append starts afresh.
@@ -122,7 +122,7 @@ category, where every command here can be changed.
 - **Select Chunk**, Control+Space. Select contiguous sequence of non-blank characters at cursor, or select the next chunk if a selection already exists.
 - **Start Selection**, F8. Mark starting point of text to be selected, so Shift need not be held while you move.
 
-# Acting on the page
+## Acting on the page
 
 - **Check Accessibility**, Alt+Shift+A. Tests the page for accessibility problems, asking which engine to use, and offers to report what it finds to whoever publishes the site. A for Accessibility.
 - **Check with Axe**, no key. Tests the page with Deque's axe-core engine. Offered by Check Accessibility.
@@ -140,13 +140,13 @@ category, where every command here can be changed.
 - **Submit Form**, Control+Enter. Submits the form you are filling in, from any field in it, so you need not find the button.
 - **Web Download**, Alt+Shift+W. Pick files to download from a web page, on the key EdSharp uses for it.
 
-# The window and its tabs
+## The window and its tabs
 
 - **Tab Close Others**, Control+Shift+F4. Closes every tab but the one you are reading. Control+F4 closes one tab, so Control+Shift+F4 closes the rest.
 - **Tab List**, F4. Lists the HomerView tabs and switches to the one you choose. F4 is the Homer window list, and Edge has two other keys for what F4 does there.
 - **Tab Names**, Shift+F4. Says the names of the open tabs without moving the keyboard anywhere.
 
-# Adjusting the voice
+## Adjusting the voice
 
 - **Speech Settings**, Shift+Accent. Reports the punctuation level, the rate and the volume.
 - **Toggle Punctuation**, NVDA+Accent. Toggle the voice between all and no punctuation.
@@ -155,19 +155,19 @@ category, where every command here can be changed.
 - **Voice Slower**, Control+Shift+Accent. Decrease the voice rate.
 - **Voice Softer**, Alt+Shift+Accent. Decrease the voice volume.
 
-# Changing how HomerView behaves
+## Changing how HomerView behaves
 
 - **Choose Browser**, Alt+Shift+B. Choose which Chromium browser HomerView drives, from the ones installed here. B for Browser, and Alt+Shift with a letter is where the settings commands live because they are used once and then not again for months.
 - **HomerView Settings**, Alt+Shift+S. Open the settings file, HomerView.inix, in a text editor. Everything the settings panel changes is in it, and a comment beside each value says what it does.
 
-# Now and then
+## Now and then
 
 - **Elevate Version**, Control+F11, or Alt+NVDA+F11. Checks whether a newer HomerView exists and installs it.
 - **Recent Pages**, Alt+R. Open a page from the list of those recently used, on the key EdSharp uses for its recent files.
 - **Report Connection**, no key. Says whether HomerView is connected to the browser, and how.
 - **Self Test**, no key. Checks that all three ways of reaching the browser are working.
 
-# Everything else
+## Everything else
 
 - **Page Folder**, Alt+Shift+F. Open this page's folder in File Explorer, to browse what was saved from it. Nothing is created: if nothing has been saved from this page, it says so. Alt+Shift+F, beside Alt+Shift+W which fills the folder.
 

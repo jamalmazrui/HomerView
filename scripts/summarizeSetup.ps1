@@ -88,6 +88,14 @@ foreach ($sLine in ($sMessage -split "\r?\n")) {
 }
 $sMessage = ($lsShown -join $sBreak).TrimEnd()
 
+# THE FILE SAYS WHAT THE BOX SAYS (14 October 2026, from an audit by another AI): the screen reader outcomes were added
+# to the box only, so HomerView_setup_results.txt, read later, held just where HomerView was installed. The whole message
+# is written back to it, and added to the setup log, before the box is shown.
+try {
+    [System.IO.File]::WriteAllText($pathResults, $sMessage + $sBreak, (New-Object System.Text.UTF8Encoding($true)))
+    Add-Content -LiteralPath $pathLog -Value ($sBreak + "==== The results shown ====" + $sBreak + $sMessage) -Encoding UTF8
+} catch { }
+
 Add-Type -AssemblyName System.Windows.Forms | Out-Null
 [System.Windows.Forms.MessageBox]::Show($sMessage, "HomerView Setup Results",
     [System.Windows.Forms.MessageBoxButtons]::OK,

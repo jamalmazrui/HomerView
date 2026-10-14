@@ -1,6 +1,10 @@
 ﻿
 
 
+## 14 October 2026 -- the results file says what the box said
+
+- **HomerView_setup_results.txt now holds the whole summary,** the JAWS and NVDA outcomes included, and the setup log ends with it. The outcomes were shown in the box but never written back, so the file, read later, said only where HomerView was installed (from an audit by another AI).
+
 ## 14 October 2026 -- Yield Structure
 
 - **Say Yield Structure is now Yield Structure, on NVDA and JAWS.** The quality check found Say Yield inside Say Yield Structure, and a name inside another is confusing to hear, so the 13 October build stopped. The new name sits with Yield with Pattern and keeps its key, Alt+Shift+Y.

@@ -30,7 +30,7 @@ $pathLogFolder = Join-Path $env:LOCALAPPDATA "HomerView\logs"
 try { New-Item -ItemType Directory -Path $pathLogFolder -Force | Out-Null } catch { }
 $pathLog = Join-Path $pathLogFolder ("HomerView-installPandoc-" + (Get-Date -Format "yyyyMMdd-HHmmss") + ".log")
 $pathMachine = Join-Path $env:ProgramFiles "Pandoc"
-$c_sWingetId = "JohnMacFarlane.Pandoc"
+$sWingetId = "JohnMacFarlane.Pandoc"
 
 function writeLog {
     param([string] $sMessage)
@@ -82,8 +82,8 @@ $sFound = findPandoc
 if ($sFound) {
     writeLog "Found $sFound, $(versionOf $sFound)"
     if ($bWinget) {
-        writeLog "Running: winget upgrade --id $c_sWingetId --exact"
-        $sOutput = & winget upgrade --id $c_sWingetId --exact --accept-package-agreements `
+        writeLog "Running: winget upgrade --id $sWingetId --exact"
+        $sOutput = & winget upgrade --id $sWingetId --exact --accept-package-agreements `
             --accept-source-agreements --disable-interactivity 2>&1 | Out-String
         writeLog "winget exit code $LASTEXITCODE"
         foreach ($sLine in ($sOutput -split "`n")) { if ($sLine.Trim()) { writeLog "  $($sLine.Trim())" } }
@@ -96,8 +96,8 @@ if ($sFound) {
 # --- 2. winget, machine-wide ------------------------------------------------
 if ($bWinget) {
     say "Installing pandoc with winget..."
-    writeLog "Running: winget install --id $c_sWingetId --exact --scope machine"
-    $sOutput = & winget install --id $c_sWingetId --exact --scope machine --accept-package-agreements `
+    writeLog "Running: winget install --id $sWingetId --exact --scope machine"
+    $sOutput = & winget install --id $sWingetId --exact --scope machine --accept-package-agreements `
         --accept-source-agreements --disable-interactivity 2>&1 | Out-String
     writeLog "winget exit code $LASTEXITCODE"
     foreach ($sLine in ($sOutput -split "`n")) { if ($sLine.Trim()) { writeLog "  $($sLine.Trim())" } }

@@ -1,5 +1,5 @@
 ﻿<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en-US" xml:lang="en-US">
 <head>
   <meta charset="utf-8" />
   <meta name="generator" content="pandoc 3.12.1" />
@@ -183,8 +183,11 @@
 </head>
 <body>
 <h1>History</h1>
-<nav id="TOC" role="doc-toc">
+<nav id="TOC" role="doc-toc" aria-label="Contents">
 <ul>
+<li><a href="#october-2026-a-log-for-every-session-where-homer-logs-go"
+id="toc-october-2026-a-log-for-every-session-where-homer-logs-go">11
+October 2026 – a log for every session, where Homer logs go</a></li>
 <li><a href="#october-2026-from-an-audit-and-a-report"
 id="toc-october-2026-from-an-audit-and-a-report">11 October 2026 – from
 an audit and a report</a></li>
@@ -294,6 +297,23 @@ in August 2026</a></li>
 versions</a></li>
 </ul>
 </nav>
+<main>
+<h2 id="october-2026-a-log-for-every-session-where-homer-logs-go">11
+October 2026 – a log for every session, where Homer logs go</h2>
+<ul>
+<li><strong>The JAWS side now starts one log per session</strong>,
+HomerView-yyyyMMdd-HHmmss.log in %LOCALAPPDATA%\HomerView\logs, the
+Homer pattern. Every JAWS session appended to the one HomerViewJAWS file
+the installer named when the scripts were installed, so a day’s commands
+sat at the end of a file dated weeks before, and no log appeared for the
+day. The bridge joins the newest session log; Control+Shift+L and Alt+F1
+show the current one; the installer’s own log is now
+HomerView-jawsScripts-yyyyMMdd-HHmmss.log, and the setup summary and the
+chained install read that name.</li>
+<li><strong>The NVDA side’s log is named in the pattern too</strong>,
+HomerView-yyyyMMdd-HHmmss.log, with the hyphen it lacked, and the empty
+HomerView.log its write test left behind is removed.</li>
+</ul>
 <h2 id="october-2026-from-an-audit-and-a-report">11 October 2026 – from
 an audit and a report</h2>
 <ul>
@@ -793,5 +813,6 @@ connection, the reading commands, the find family, the clipboard family,
 main-content extraction, document conversion, the accessibility check,
 and Web Download. The JAWS side began at 1.48 and reached parity at
 1.48.4.</p>
+</main>
 </body>
 </html>

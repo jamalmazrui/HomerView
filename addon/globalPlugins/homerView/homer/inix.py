@@ -47,10 +47,10 @@ Usage:
 
 import os, re
 
-c_sBacktick = "`"
-c_sLegacyClose = "}"
-c_sLegacyOpen = "{"
-c_sTripleQuote = '"""'
+sBacktick = "`"
+sLegacyClose = "}"
+sLegacyOpen = "{"
+sTripleQuote = '"""'
 globalSectionName = "Global"
 lsIgnored = []
 
@@ -72,7 +72,7 @@ class Pair:
 
     @property
     def bMultiLine(self):
-        return "\n" in self.sValue or self.sForm in ("plain", c_sBacktick, c_sTripleQuote)
+        return "\n" in self.sValue or self.sForm in ("plain", sBacktick, sTripleQuote)
 
 
 class Section:
@@ -113,9 +113,16 @@ def looksLikePartOfValue(sLine):
 
 
 def endsPlainValue(sLine):
-    """True when a line ends a plain multi-line value: a section line, or a name = value line."""
+    """True when a line ends a plain multi-line value: a section line, a name = value line, or a comment line.
+
+    A SEMICOLON COMMENT ENDS A PLAIN VALUE (kit 1.72.9, 12 October 2026). An empty asin = in MyBooks' books.inix,
+    followed by the comment lines that describe the next book, read as a plain value holding those comments, and
+    kdpReport printed them as Blind Vibe Coding's ASIN. A comment is a comment wherever it stands. A line beginning with
+    a number sign stays part of a plain value, since a Markdown heading begins that way; the writers never write the
+    plain form, so nothing they wrote reads differently. Kept identical to Inix.cs."""
     sTrim = sLine.strip()
     if sTrim.startswith("[") and sTrim.endswith("]"): return True
+    if sTrim.startswith(";"): return True
     return not sTrim.startswith(";") and sTrim.find("=") > 0 and not looksLikePartOfValue(sTrim)
 
 
@@ -152,8 +159,8 @@ def parseLines(lLines):
         iEq = sLine.find("=")
         sKey, sValTrim = sLine[:iEq].strip(), sLine[iEq + 1:].strip()
         iIndex += 1
-        if sValTrim in (c_sBacktick, c_sTripleQuote, c_sLegacyOpen):
-            sClose = c_sLegacyClose if sValTrim == c_sLegacyOpen else sValTrim
+        if sValTrim in (sBacktick, sTripleQuote, sLegacyOpen):
+            sClose = sLegacyClose if sValTrim == sLegacyOpen else sValTrim
             lBody = []
             iOpenLine = iIndex
             while iIndex < len(lLines) and lLines[iIndex].rstrip("\r\n").strip() != sClose:
@@ -163,7 +170,7 @@ def parseLines(lLines):
             # the file, as before, but no longer silently -- the diagnostics name the key and the line it opened on.
             if iIndex >= len(lLines): lsIgnored.append("unterminated %s fence for %s, opened on line %d; read to the end of the file" % (sValTrim, sKey, iOpenLine))
             iIndex += 1
-            lSections[-1].lPairs.append(Pair(sKey, "\n".join(lBody), sForm=c_sBacktick if sValTrim == c_sLegacyOpen else sValTrim))
+            lSections[-1].lPairs.append(Pair(sKey, "\n".join(lBody), sForm=sBacktick if sValTrim == sLegacyOpen else sValTrim))
             continue
         if not sValTrim:
             lBody = []
@@ -200,11 +207,11 @@ def chooseFence(sValue):
     if "\n" not in sValue and "=" not in sValue and "[" not in sValue: return None
     # A value holding both fences as lines of their own cannot be written so that it reads back exactly; it is refused,
     # rather than written corrupted (kit 1.62.5, from an audit by another AI).
-    if hasSoleLine(sValue, c_sBacktick) and hasSoleLine(sValue, c_sTripleQuote):
+    if hasSoleLine(sValue, sBacktick) and hasSoleLine(sValue, sTripleQuote):
         raise ValueError("an inix value cannot hold both a line of one backtick and a line of three double quotes")
-    if c_sBacktick in sValue and not hasSoleLine(sValue, c_sTripleQuote): return c_sTripleQuote
-    if hasSoleLine(sValue, c_sBacktick) and not hasSoleLine(sValue, c_sTripleQuote): return c_sTripleQuote
-    return c_sBacktick
+    if sBacktick in sValue and not hasSoleLine(sValue, sTripleQuote): return sTripleQuote
+    if hasSoleLine(sValue, sBacktick) and not hasSoleLine(sValue, sTripleQuote): return sTripleQuote
+    return sBacktick
 
 
 def renderPair(pair):
@@ -212,12 +219,12 @@ def renderPair(pair):
     sValue = pair.sValue.replace("\r\n", "\n").replace("\r", "\n")
     sForm = pair.sForm
     if sForm == "plain" and (not sValue.strip() or any(endsPlainValue(sOne) for sOne in sValue.split("\n"))): sForm = None
-    if sForm is None or (sForm in (c_sBacktick, c_sTripleQuote) and hasSoleLine(sValue, sForm)): sForm = chooseFence(sValue)
+    if sForm is None or (sForm in (sBacktick, sTripleQuote) and hasSoleLine(sValue, sForm)): sForm = chooseFence(sValue)
     if sForm == "plain": return [pair.sKey + " ="] + sValue.split("\n")
-    if sForm in (c_sBacktick, c_sTripleQuote): return [pair.sKey + "=" + sForm] + sValue.split("\n") + [sForm]
+    if sForm in (sBacktick, sTripleQuote): return [pair.sKey + "=" + sForm] + sValue.split("\n") + [sForm]
     # A value that is itself a fence mark -- one backtick, three double quotes, or { -- is quoted, since bare it would
     # read back as the start of a fence and swallow what follows (kit 1.62.5).
-    bQuote = not sValue or sValue != sValue.strip() or (len(sValue) >= 2 and sValue.startswith('"') and sValue.endswith('"')) or sValue.strip() in (c_sBacktick, c_sTripleQuote, c_sLegacyOpen)
+    bQuote = not sValue or sValue != sValue.strip() or (len(sValue) >= 2 and sValue.startswith('"') and sValue.endswith('"')) or sValue.strip() in (sBacktick, sTripleQuote, sLegacyOpen)
     return [pair.sKey + ' = "' + sValue + '"'] if bQuote else [pair.sKey + " = " + sValue]
 
 

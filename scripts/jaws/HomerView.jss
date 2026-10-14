@@ -82,17 +82,17 @@
 Include "hjconst.jsh"
 
 Const
-    c_iWaitLimit = 120,
-    c_sAnswerPath = "@answerPath@",
-    c_sInstalled = "@installed@",
-    c_sVersion = "@version@",
-    c_sLogFile = "@logFile@",
-    c_sAppFolder = "@appFolder@",
-    c_sBridgePath = "@bridgePath@",
-    c_sFileSystemProgId = "Scripting.FileSystemObject",
-    c_sXmlProgId = "msxml2.DOMDocument.6.0",
-    c_sXmlProgIdAny = "Msxml2.DOMDocument",
-    c_sShellProgId = "WScript.Shell"
+    iWaitLimit = 120,
+    sAnswerPath = "@answerPath@",
+    sInstalled = "@installed@",
+    sVersion = "@version@",
+    sLogFile = "@logFile@",
+    sAppFolder = "@appFolder@",
+    sBridgePath = "@bridgePath@",
+    sFileSystemProgId = "Scripting.FileSystemObject",
+    sXmlProgId = "msxml2.DOMDocument.6.0",
+    sXmlProgIdAny = "Msxml2.DOMDocument",
+    sShellProgId = "WScript.Shell"
 
 ; EVERY FUNCTION HERE IS PREFIXED hv, AND THAT IS NOT A STYLE CHOICE.
 ;
@@ -170,7 +170,8 @@ Globals
 ; header and its own lines beneath it.
 string Function hVLogPath ()
 Var
-    object oFile, object oFileSystem
+    object oFile, object oFileSystem,
+    string sLogFolder, string sStamp
 ; THE HEADER IS WRITTEN WHEN THE FILE LACKS ONE, NOT ONCE PER SESSION.
 ;
 ; Two of a tester's logs came back with NO VERSION ANYWHERE IN THEM, so there
@@ -180,20 +181,34 @@ Var
 ; new install gets none if the session already wrote to the previous name.
 ;
 ; The test is now the file itself: no file, or an empty one, gets a header.
-Let oFileSystem = Builtin::CreateObjectEx (c_sFileSystemProgId, False)
+Let oFileSystem = Builtin::CreateObjectEx (sFileSystemProgId, False)
 If gsLogPath != "" Then
     If oFileSystem.FileExists (gsLogPath) Then
         Return gsLogPath
     EndIf
 EndIf
-Let gsLogPath = c_sLogFile
+; ONE LOG PER JAWS SESSION, NAMED FOR WHEN IT BEGAN (11 October 2026). Every session appended to the one file the
+; installer named, HomerViewJAWS and the date of the install, so a day's commands sat at the end of a file dated
+; weeks before, and no log appeared for the day. The Homer pattern is one log per session, HomerView-yyyyMMdd-HHmmss,
+; in the same logs folder; the bridge appends to the newest of them, so it joins this one.
+; ONE STEP PER STATEMENT: the compiler rejected the whole path built in one Let, with a COM call's result
+; joined into it ("Expected gsLogPath to be a variable", 11 October 2026), so each part is its own Let.
+If gsLogPath == "" Then
+    Let sLogFolder = oFileSystem.GetParentFolderName (sLogFile)
+    Let sStamp = Builtin::SysGetDate ("yyyyMMdd")
+    Let sStamp = sStamp + "-"
+    Let sStamp = sStamp + Builtin::SysGetTime ("HHmmss")
+    Let gsLogPath = sLogFolder + "\\HomerView-"
+    Let gsLogPath = gsLogPath + sStamp
+    Let gsLogPath = gsLogPath + ".log"
+EndIf
 Let oFile = oFileSystem.OpenTextFile (gsLogPath, 8, True)
 oFile.WriteLine ("")
 oFile.WriteLine ("==========================================================")
-oFile.WriteLine ("HomerView " + c_sVersion + " for " + GetJAWSVersionInfo ())
-oFile.WriteLine ("  scripts installed: " + c_sInstalled)
+oFile.WriteLine ("HomerView " + sVersion + " for " + GetJAWSVersionInfo ())
+oFile.WriteLine ("  scripts installed: " + sInstalled)
 oFile.WriteLine ("  session started:   " + Builtin::SysGetDate ("yyyy-MM-dd") + " " + Builtin::SysGetTime ("HH:mm:ss"))
-oFile.WriteLine ("  bridge:            " + c_sBridgePath)
+oFile.WriteLine ("  bridge:            " + sBridgePath)
 oFile.WriteLine ("==========================================================")
 oFile.Close ()
 Return gsLogPath
@@ -224,7 +239,7 @@ Var
 ;
 ; So the folder is made first if it is missing. OpenTextFile creates a FILE
 ; that is not there; it does NOT create the FOLDER above it.
-Let oFileSystem = Builtin::CreateObjectEx (c_sFileSystemProgId, False)
+Let oFileSystem = Builtin::CreateObjectEx (sFileSystemProgId, False)
 Let sFolder = oFileSystem.GetParentFolderName (hVLogPath ())
 If sFolder != "" Then
     If oFileSystem.FolderExists (sFolder) == False Then
@@ -418,7 +433,7 @@ int Function hVShellRun (string sCommandLine, int iWindowStyle, int iWait)
 Var
     int iExit,
     object oShell
-Let oShell = Builtin::CreateObjectEx (c_sShellProgId, False)
+Let oShell = Builtin::CreateObjectEx (sShellProgId, False)
 Let iExit = oShell.Run (sCommandLine, iWindowStyle, iWait)
 Return iExit
 EndFunction
@@ -480,12 +495,12 @@ Var
     int iExit,
     object oFile, object oFileSystem, object oNull,
     string sArgumentPath, string sCommandLine, string sPassed
-If Builtin::SubString (c_sBridgePath, 1, 1) == "@" Then
+If Builtin::SubString (sBridgePath, 1, 1) == "@" Then
     SayMessage (OT_ERROR, "HomerView is not installed. Run its installer.")
     Return False
 EndIf
-Let oFileSystem = Builtin::CreateObjectEx (c_sFileSystemProgId, False)
-Let sArgumentPath = c_sAnswerPath + ".arg"
+Let oFileSystem = Builtin::CreateObjectEx (sFileSystemProgId, False)
+Let sArgumentPath = sAnswerPath + ".arg"
 If sArgument == "" Then
     Let sPassed = ""
 Else
@@ -495,11 +510,11 @@ Else
     Let oFile = oNull
     Let sPassed = "@" + sArgumentPath
 EndIf
-Let sCommandLine = hVStringQuote (c_sBridgePath) + " " + sCommand
-    + " " + hVStringQuote (c_sAnswerPath) + " " + hVStringQuote (sPassed)
+Let sCommandLine = hVStringQuote (sBridgePath) + " " + sCommand
+    + " " + hVStringQuote (sAnswerPath) + " " + hVStringQuote (sPassed)
 hVLogLine ("startBridge " + sCommand + " without waiting, for " + sWaitFor)
-If oFileSystem.FileExists (c_sAnswerPath) Then
-    oFileSystem.DeleteFile (c_sAnswerPath)
+If oFileSystem.FileExists (sAnswerPath) Then
+    oFileSystem.DeleteFile (sAnswerPath)
 EndIf
 ; False is the whole point of this function: do not wait.
 Let iExit = hVShellRun (sCommandLine, 0, False)
@@ -515,7 +530,7 @@ Var
     int iExit,
     object oFile, object oFileSystem, object oNull,
     string sAnswer, string sArgumentPath, string sCommandLine, string sPassed
-If Builtin::SubString (c_sBridgePath, 1, 1) == "@" Then
+If Builtin::SubString (sBridgePath, 1, 1) == "@" Then
     SayMessage (OT_ERROR, "HomerView is not installed. Run its installer.")
     Return ""
 EndIf
@@ -534,8 +549,8 @@ EndIf
 ;
 ; True as the third argument to CreateTextFile writes UTF-16, so an accented
 ; character survives the trip. .NET reads the byte order mark and knows.
-Let oFileSystem = Builtin::CreateObjectEx (c_sFileSystemProgId, False)
-Let sArgumentPath = c_sAnswerPath + ".arg"
+Let oFileSystem = Builtin::CreateObjectEx (sFileSystemProgId, False)
+Let sArgumentPath = sAnswerPath + ".arg"
 If sArgument == "" Then
     Let sPassed = ""
 Else
@@ -545,24 +560,24 @@ Else
     Let oFile = oNull
     Let sPassed = "@" + sArgumentPath
 EndIf
-Let sCommandLine = hVStringQuote (c_sBridgePath) + " " + sCommand
-    + " " + hVStringQuote (c_sAnswerPath) + " " + hVStringQuote (sPassed)
+Let sCommandLine = hVStringQuote (sBridgePath) + " " + sCommand
+    + " " + hVStringQuote (sAnswerPath) + " " + hVStringQuote (sPassed)
 hVLogLine ("callBridge " + sCommand + " sending "
     + Builtin::IntToString (Builtin::StringLength (sArgument)) + " characters through a file")
 ; A command that never started must never be read as the last one's success.
-If oFileSystem.FileExists (c_sAnswerPath) Then
-    oFileSystem.DeleteFile (c_sAnswerPath)
+If oFileSystem.FileExists (sAnswerPath) Then
+    oFileSystem.DeleteFile (sAnswerPath)
 EndIf
 ; Nought hides the window; True waits for it to finish.
 Let iExit = hVShellRun (sCommandLine, 0, True)
-If oFileSystem.FileExists (c_sAnswerPath) Then
+If oFileSystem.FileExists (sAnswerPath) Then
     ; The fourth argument is -1, which asks the FileSystemObject to read the
     ; file as Unicode. The helper writes UTF-16 and this reads it, which is the
     ; only pairing that works: opened in the default mode the byte order mark
     ; arrived as three visible characters in front of the answer, so nothing
     ; would parse as XML, and every accented character was mojibake. The two
     ; sides have to agree, and check 13 makes sure they still do.
-    Let oFile = oFileSystem.OpenTextFile (c_sAnswerPath, 1, False, -1)
+    Let oFile = oFileSystem.OpenTextFile (sAnswerPath, 1, False, -1)
     Let sAnswer = oFile.ReadAll ()
 Else
     SayMessage (OT_ERROR, "HomerView did not answer. Launch it and try again.")
@@ -636,10 +651,10 @@ EndIf
 ; If msxml2.DOMDocument.6.0 is not registered on a machine, CreateObjectEx
 ; hands back nothing and there is no error to hear. So the unversioned ProgID
 ; is tried after it, and the log SAYS which one answered, or that neither did.
-Let oDoc = Builtin::CreateObjectEx (c_sXmlProgId, False)
+Let oDoc = Builtin::CreateObjectEx (sXmlProgId, False)
 If oDoc.loadXML ("<root/>") == False Then
-    hVLogLine ("xmlValue: " + c_sXmlProgId + " did not answer, trying " + c_sXmlProgIdAny)
-    Let oDoc = Builtin::CreateObjectEx (c_sXmlProgIdAny, False)
+    hVLogLine ("xmlValue: " + sXmlProgId + " did not answer, trying " + sXmlProgIdAny)
+    Let oDoc = Builtin::CreateObjectEx (sXmlProgIdAny, False)
 EndIf
 ; Written the way Freedom Scientific write it in their own sample: no Let,
 ; which JAWS 11 Update 1 made optional, and a property set on a COM object
@@ -662,7 +677,7 @@ EndFunction
 ; up and SAYS SO -- a command that quietly never reports back is worse than one
 ; that fails.
 ;
-; c_iWaitLimit visits of a half second each: ONE MINUTE. Nobody waits longer
+; iWaitLimit visits of a half second each: ONE MINUTE. Nobody waits longer
 ; than that wondering whether a command is still going, and being told it is
 ; still running beats silence. The work is not cancelled -- the helper keeps
 ; going and its own log says how it ended.
@@ -677,10 +692,10 @@ Var
 If gsWaitFor == "" Then
     Return False
 EndIf
-Let oFileSystem = Builtin::CreateObjectEx (c_sFileSystemProgId, False)
-If oFileSystem.FileExists (c_sAnswerPath) == False Then
+Let oFileSystem = Builtin::CreateObjectEx (sFileSystemProgId, False)
+If oFileSystem.FileExists (sAnswerPath) == False Then
     Let giWaitTicks = giWaitTicks + 1
-    If giWaitTicks > c_iWaitLimit Then
+    If giWaitTicks > iWaitLimit Then
         Let sWaitFor = gsWaitFor
         Let gsWaitFor = ""
         hVLogLine ("bridgePoll: " + sWaitFor + " gave no answer in time")
@@ -709,7 +724,7 @@ If oFileSystem.FileExists (c_sAnswerPath) == False Then
     ScheduleFunction ("hVBridgePoll", 5)
     Return False
 EndIf
-Let oFile = oFileSystem.OpenTextFile (c_sAnswerPath, 1, False, -1)
+Let oFile = oFileSystem.OpenTextFile (sAnswerPath, 1, False, -1)
 Let sAnswer = oFile.ReadAll ()
 Let gsLastResult = sAnswer
 Let sWaitFor = gsWaitFor
@@ -823,9 +838,9 @@ If sXml == "" Then
     hVLogLine ("textFromDocument: GetDocumentXML returned nothing")
     Return ""
 EndIf
-Let oDoc = Builtin::CreateObjectEx (c_sXmlProgId, False)
+Let oDoc = Builtin::CreateObjectEx (sXmlProgId, False)
 If oDoc.loadXML ("<root/>") == False Then
-    Let oDoc = Builtin::CreateObjectEx (c_sXmlProgIdAny, False)
+    Let oDoc = Builtin::CreateObjectEx (sXmlProgIdAny, False)
 EndIf
 oDoc.async = False
 oDoc.resolveExternals = False
@@ -874,9 +889,9 @@ If sXml == "" Then
     hVLogLine ("linksFromDocument: GetDocumentXML returned nothing")
     Return ""
 EndIf
-Let oDoc = Builtin::CreateObjectEx (c_sXmlProgId, False)
+Let oDoc = Builtin::CreateObjectEx (sXmlProgId, False)
 If oDoc.loadXML ("<root/>") == False Then
-    Let oDoc = Builtin::CreateObjectEx (c_sXmlProgIdAny, False)
+    Let oDoc = Builtin::CreateObjectEx (sXmlProgIdAny, False)
 EndIf
 oDoc.async = False
 oDoc.resolveExternals = False
@@ -956,7 +971,7 @@ Var
     int iExit,
     string sAnswer
 hVLogLine ("openOwnDocument asked for " + sFile)
-Let sAnswer = hVCallBridge ("openPage", c_sAppFolder + "\\help\\" + sFile)
+Let sAnswer = hVCallBridge ("openPage", sAppFolder + "\\help\\" + sFile)
 If hVXmlValue (sAnswer, "/root/value") != "" Then
     SayMessage (OT_STATUS, "Opening " + sWhat)
     Return
@@ -965,7 +980,7 @@ EndIf
 ; worse than one in the wrong window, and these are what somebody reaches for
 ; when nothing else is working.
 hVLogLine ("openOwnDocument: falling back to the default browser")
-Let iExit = hVShellRun ("cmd.exe /c start \"\" " + hVStringQuote (c_sAppFolder + "\\help\\" + sFile), 0, False)
+Let iExit = hVShellRun ("cmd.exe /c start \"\" " + hVStringQuote (sAppFolder + "\\help\\" + sFile), 0, False)
 SayMessage (OT_STATUS, "Opening outside HomerView")
 EndFunction
 
@@ -1925,13 +1940,13 @@ hVLogLine ("hVOpenUserGuide started")
 ; The shell is kept only for the case where the browser is not running at all,
 ; because a guide that will not open is worse than a guide in the wrong window,
 ; and the guide is exactly what somebody reaches for when nothing else works.
-Let sAnswer = hVCallBridge ("openPage", c_sAppFolder + "\\help\\HomerView.htm")
+Let sAnswer = hVCallBridge ("openPage", sAppFolder + "\\help\\HomerView.htm")
 If hVXmlValue (sAnswer, "/root/value") != "" Then
     SayMessage (OT_STATUS, "Opening the guide")
     Return
 EndIf
 hVLogLine ("hVOpenUserGuide: falling back to the default browser")
-Let iExit = hVShellRun ("cmd.exe /c start \"\" " + hVStringQuote (c_sAppFolder + "\\help\\HomerView.htm"), 0, False)
+Let iExit = hVShellRun ("cmd.exe /c start \"\" " + hVStringQuote (sAppFolder + "\\help\\HomerView.htm"), 0, False)
 SayMessage (OT_STATUS, "Opening outside HomerView")
 EndScript
 
@@ -2653,12 +2668,12 @@ Var
     int iExit,
     string sAnswer
 hVLogLine ("hVOpenSessionLog started")
-Let sAnswer = hVCallBridge ("openPage", c_sLogFile)
+Let sAnswer = hVCallBridge ("openPage", hVLogPath ())
 If hVXmlValue (sAnswer, "/root/value") != "" Then
     SayMessage (OT_STATUS, "Opening the log")
     Return
 EndIf
-Let iExit = hVShellRun ("cmd.exe /c start \"\" " + hVStringQuote (c_sLogFile), 0, False)
+Let iExit = hVShellRun ("cmd.exe /c start \"\" " + hVStringQuote (hVLogPath ()), 0, False)
 SayMessage (OT_STATUS, "Opening outside HomerView")
 EndScript
 
@@ -2669,10 +2684,10 @@ EndScript
 ; ships with it: the version, when it was installed, and where the log is.
 Script hVShowAbout ()
 hVLogLine ("hVShowAbout started")
-hVSayVirtual ("HomerView " + c_sVersion + " for JAWS"
-    + "\r\n" + "Installed " + c_sInstalled
-    + "\r\n\r\n" + "Program: " + c_sAppFolder
-    + "\r\n" + "Log: " + c_sLogFile
+hVSayVirtual ("HomerView " + sVersion + " for JAWS"
+    + "\r\n" + "Installed " + sInstalled
+    + "\r\n\r\n" + "Program: " + sAppFolder
+    + "\r\n" + "Log: " + hVLogPath ()
     + "\r\n\r\n" + "Alt+F10 opens the menu. Alt+Shift+H lists every key.")
 EndScript
 
@@ -2896,22 +2911,22 @@ Var
     object oFileSystem,
     string sText
 SayMessage (OT_MESSAGE, "HomerView diagnostics")
-Let sText = "Version " + c_sVersion + ". "
-Let oFileSystem = Builtin::CreateObjectEx (c_sFileSystemProgId, False)
-If oFileSystem.FileExists (c_sBridgePath) Then
+Let sText = "Version " + sVersion + ". "
+Let oFileSystem = Builtin::CreateObjectEx (sFileSystemProgId, False)
+If oFileSystem.FileExists (sBridgePath) Then
     Let sText = sText + "The helper program is there. "
 Else
-    Let sText = sText + "THE HELPER PROGRAM IS MISSING at " + c_sBridgePath + ". "
+    Let sText = sText + "THE HELPER PROGRAM IS MISSING at " + sBridgePath + ". "
 EndIf
-If oFileSystem.FolderExists (oFileSystem.GetParentFolderName (c_sLogFile)) Then
+If oFileSystem.FolderExists (oFileSystem.GetParentFolderName (sLogFile)) Then
     Let sText = sText + "The log folder is there. "
 Else
-    Let sText = sText + "THE LOG FOLDER IS MISSING at " + c_sLogFile + ". "
+    Let sText = sText + "THE LOG FOLDER IS MISSING at " + sLogFile + ". "
 EndIf
-If oFileSystem.FileExists (c_sAppFolder + "\\templates\\Start.htm") Then
+If oFileSystem.FileExists (sAppFolder + "\\templates\\Start.htm") Then
     Let sText = sText + "The start page is installed. "
 Else
-    Let sText = sText + "The start page is NOT installed in " + c_sAppFolder + ". "
+    Let sText = sText + "The start page is NOT installed in " + sAppFolder + ". "
 EndIf
 ; THE ONE FACT THAT DIFFERS BETWEEN THE TWO MACHINES WE HAVE COMPARED.
 ;
@@ -2930,7 +2945,7 @@ If oFileSystem.FileExists (Builtin::GetJAWSSettingsDirectory () + "\\default.jss
 Else
     Let sText = sText + "No custom default.jss, so JAWS uses its own. "
 EndIf
-Let sText = sText + "Answers go to " + c_sAnswerPath + "."
+Let sText = sText + "Answers go to " + sAnswerPath + "."
 hVSayOrShow (sText)
 hVLogLine ("hVSayDiagnostics: " + sText)
 EndScript
@@ -2941,7 +2956,7 @@ Var
     int iActivated, int iAdded
 Builtin::UserBufferDeactivate ()
 Builtin::UserBufferClear ()
-Let iAdded = Builtin::UserBufferAddText ("HomerView " + c_sVersion + " for JAWS, installed " + c_sInstalled)
+Let iAdded = Builtin::UserBufferAddText ("HomerView " + sVersion + " for JAWS, installed " + sInstalled)
 Let iAdded = Builtin::UserBufferAddText ("")
 ; THE POINTER TO JAWS'S OWN HELP, BECAUSE THAT IS THE REAL INTEGRATION.
 ;

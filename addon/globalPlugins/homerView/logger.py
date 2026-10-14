@@ -63,9 +63,14 @@ def chooseLogFolder():
     for iIndex, pathCandidate in enumerate(lCandidates):
         try:
             pathCandidate.mkdir(parents=True, exist_ok=True)
+            # THE PROBE IS REMOVED (11 October 2026): it left an empty HomerView.log behind, and Homer folders keep no
+            # zero-byte files. A probe that was already there and holds something is left alone.
             pathProbe = pathCandidate / logFileName
+            bExisted = pathProbe.exists()
             with open(pathProbe, "a", encoding="utf-8"):
                 pass
+            if not bExisted and pathProbe.stat().st_size == 0:
+                pathProbe.unlink()
             bUsingPreferredFolder = iIndex == 0
             return pathCandidate
         except OSError:
@@ -264,7 +269,8 @@ def sessionLogName():
     """
     import datetime
 
-    return f"HomerView{datetime.datetime.now():%Y%m%d-%H%M%S}.log"
+    # THE HOMER PATTERN, <App>-yyyyMMdd-HHmmss.log (11 October 2026): the hyphen after the name was missing.
+    return f"HomerView-{datetime.datetime.now():%Y%m%d-%H%M%S}.log"
 
 
 def pruneOldLogs(pathFolder, iKeep=30):

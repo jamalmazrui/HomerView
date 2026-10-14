@@ -1,6 +1,15 @@
 ﻿
 
 
+## 11 October 2026 -- the session log's name, built so the compiler accepts it
+
+- **The JAWS scripts compile again.** The line that named each session's log joined a COM call's result into one long expression, and the JAWS compiler rejected it ("Expected gsLogPath to be a variable"), stopping the build. The name is now built one part per statement.
+
+## 11 October 2026 -- a log for every session, where Homer logs go
+
+- **The JAWS side now starts one log per session**, HomerView-yyyyMMdd-HHmmss.log in %LOCALAPPDATA%\\HomerView\\logs, the Homer pattern. Every JAWS session appended to the one HomerViewJAWS file the installer named when the scripts were installed, so a day's commands sat at the end of a file dated weeks before, and no log appeared for the day. The bridge joins the newest session log; Control+Shift+L and Alt+F1 show the current one; the installer's own log is now HomerView-jawsScripts-yyyyMMdd-HHmmss.log, and the setup summary and the chained install read that name.
+- **The NVDA side's log is named in the pattern too**, HomerView-yyyyMMdd-HHmmss.log, with the hyphen it lacked, and the empty HomerView.log its write test left behind is removed.
+
 ## 11 October 2026 -- from an audit and a report
 
 - **The hotkeys page has one top heading.** scripts\\makeDocs.py wrote help\\hotkeys.md with its title in front matter and every section at level one, so the page had seventeen top headings, and the kit's check refused the 1.48.95 release for it. The sections are now level two under the title, in the generator and in the page.

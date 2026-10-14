@@ -41,7 +41,7 @@ $sMessage = $sMessage.TrimEnd() + $sBreak
 # The JAWS outcome comes from the JAWS log, which ends with a line of the form
 #   Finished. 3 settings folders done, 0 skipped, 0 with a problem.
 if ($sTicked -match "JAWS") {
-    $oNewest = Get-ChildItem -Path $pathFolder -Filter "HomerViewJAWS*.log" -File `
+    $oNewest = Get-ChildItem -Path $pathFolder -Filter "HomerView-jawsScripts-*.log" -File `
         -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending |
         Select-Object -First 1
     $sLine = "  JAWS scripts: the step left no record. The log says why."

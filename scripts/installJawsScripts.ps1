@@ -56,7 +56,9 @@ try { New-Item -ItemType Directory -Path $pathLogFolder -Force | Out-Null } catc
 # when it started, so a log can be told apart from the one before it without
 # opening either. The scripts and the bridge append to the newest one, so an
 # installation and the commands that follow it stay together in one file.
-$pathLog = Join-Path $pathLogFolder ("HomerViewJAWS{0:yyyyMMdd-HHmmss}.log" -f (Get-Date))
+# The installer's own log, in the Homer pattern for a script: HomerView-jawsScripts-yyyyMMdd-HHmmss.log (11 October
+# 2026). Each JAWS session then starts its own HomerView-yyyyMMdd-HHmmss.log in the same folder.
+$pathLog = Join-Path $pathLogFolder ("HomerView-jawsScripts-{0:yyyyMMdd-HHmmss}.log" -f (Get-Date))
 if ($pathLogFile -ne "") { $pathLog = $pathLogFile }
 
 function writeLog {

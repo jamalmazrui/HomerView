@@ -58,10 +58,10 @@ lKnownBrowsers = [
     ("Chromium", "chrome.exe", ["Chromium/Application"]),
 ]
 
-c_sDefaultBrowser = "Microsoft Edge"
-c_sPortFileName = "DevToolsActivePort"
-c_sStartMenuKey = r"SOFTWARE\Clients\StartMenuInternet"
-c_iDriveTestSeconds = 15
+sDefaultBrowser = "Microsoft Edge"
+sPortFileName = "DevToolsActivePort"
+sStartMenuKey = r"SOFTWARE\Clients\StartMenuInternet"
+iDriveTestSeconds = 15
 lRootVariables = ["PROGRAMFILES", "PROGRAMFILES(X86)", "LOCALAPPDATA"]
 
 
@@ -108,7 +108,7 @@ def startMenuBrowsers():
     lFound = []
     for iHive in (winreg.HKEY_LOCAL_MACHINE, winreg.HKEY_CURRENT_USER):
         try:
-            with winreg.OpenKey(iHive, c_sStartMenuKey) as keyRoot:
+            with winreg.OpenKey(iHive, sStartMenuKey) as keyRoot:
                 iIndex = 0
                 while True:
                     try:
@@ -180,7 +180,7 @@ def canBeDriven(sPath, pathProfile):
     a test on the user's own profile would fail for a browser that works.
     """
     pathProfile = Path(pathProfile)
-    pathPort = pathProfile / c_sPortFileName
+    pathPort = pathProfile / sPortFileName
     try:
         pathProfile.mkdir(parents=True, exist_ok=True)
         if pathPort.exists():
@@ -202,7 +202,7 @@ def canBeDriven(sPath, pathProfile):
         process = subprocess.Popen(lArguments, close_fds=True)
     except OSError as exception:
         return False, f"it would not start ({exception})"
-    nDeadline = time.monotonic() + c_iDriveTestSeconds
+    nDeadline = time.monotonic() + iDriveTestSeconds
     bWorks = False
     while time.monotonic() < nDeadline:
         if pathPort.is_file():
@@ -234,7 +234,7 @@ def chosenBrowser():
         return sName or Path(sPath).stem, sPath
     if sPath:
         homerLog.warning(f"The chosen browser is no longer at {sPath}")
-    return c_sDefaultBrowser, ""
+    return sDefaultBrowser, ""
 
 
 def rememberBrowser(sName, sPath):

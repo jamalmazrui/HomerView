@@ -453,7 +453,7 @@ namespace Homer
         // Beside the NVDA side's own logs, so one folder holds both.
         private static string sLogFile = null;
 
-        // The newest HomerViewJAWS log in the folder, or a new one.
+        // The newest HomerView session log in the folder.
         //
         // One process per command means this cannot own the session: the
         // scripts do, and they name the file. Appending to the newest is how
@@ -470,10 +470,14 @@ namespace Homer
             try
             {
                 Directory.CreateDirectory(sFolder);
-                var lFiles = new DirectoryInfo(sFolder).GetFiles("HomerViewJAWS*.log");
+                // The session's own log, HomerView-yyyyMMdd-HHmmss.log, which the JAWS scripts start (11 October
+                // 2026); before that, one HomerViewJAWS file named at install time took every session.
+                var lFiles = new DirectoryInfo(sFolder).GetFiles("HomerView-*.log");
                 FileInfo newest = null;
                 foreach (FileInfo file in lFiles)
                 {
+                    // A script's log, such as the installer's HomerView-jawsScripts-..., is not a session's.
+                    if (file.Name.IndexOf("-jawsScripts-", StringComparison.OrdinalIgnoreCase) >= 0) continue;
                     if (newest == null || file.LastWriteTime > newest.LastWriteTime)
                         newest = file;
                 }
@@ -686,7 +690,7 @@ namespace Homer
                 {
                     Log("  no port file, so the browser is not running");
                     WriteResult(sOutputFile,
-                        XmlAnswer("{\"error\":\"" + c_sNeedsHomerView + "\"}"));
+                        XmlAnswer("{\"error\":\"" + sNeedsHomerView + "\"}"));
                     return 1;
                 }
                 switch (sCommand)
@@ -1539,7 +1543,7 @@ namespace Homer
         ///
         /// One string, in one place, so every command says the same thing.
         /// </summary>
-        private const string c_sNeedsHomerView =
+        private const string sNeedsHomerView =
             "This needs the HomerView browser. Press Alt+Control+Shift+H.";
 
         private static string[,] KnownBrowsers()
@@ -1792,7 +1796,7 @@ namespace Homer
                 catch (Exception exception)
                 {
                     Log("  and the default browser refused it: " + exception.Message);
-                    return "{\"error\":\"" + c_sNeedsHomerView + "\"}";
+                    return "{\"error\":\"" + sNeedsHomerView + "\"}";
                 }
             }
             string sOutcome = OpenInTab(sUrl);

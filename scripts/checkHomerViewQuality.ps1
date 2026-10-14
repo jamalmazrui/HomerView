@@ -551,7 +551,7 @@ function checkThirteen {
     # And the scripts must ask for Unicode when they open it.
     $bReadsUnicode = $false
     foreach ($sLine in $aLines) {
-        if ($sLine -match 'OpenTextFile\s*\(\s*c_sAnswerPath\s*,\s*1\s*,\s*False\s*,\s*-1\s*\)') { $bReadsUnicode = $true }
+        if ($sLine -match 'OpenTextFile\s*\(\s*sAnswerPath\s*,\s*1\s*,\s*False\s*,\s*-1\s*\)') { $bReadsUnicode = $true }
     }
     if ($bReadsUnicode) {
         reportNote "the scripts open the answer file as Unicode"

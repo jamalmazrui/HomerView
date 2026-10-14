@@ -83,13 +83,13 @@ $pathRoot = if ((Split-Path -Leaf $pathHere) -ieq "scripts") { Split-Path -Paren
 # starts one of its own, named the same way.
 $pathLog = $pathLogFile
 if (-not $pathLog) {
-    $pathLog = Join-Path $env:LOCALAPPDATA ("HomerView\logs\HomerViewJAWS{0:yyyyMMdd-HHmmss}.log" -f (Get-Date))
+    $pathLog = Join-Path $env:LOCALAPPDATA ("HomerView\logs\HomerView-jawsScripts-{0:yyyyMMdd-HHmmss}.log" -f (Get-Date))
 }
 try { New-Item -ItemType Directory -Force -Path (Split-Path $pathLog) | Out-Null } catch { }
 
 # The comment that marks our own lines in somebody else's file. Anything
 # between this and the end of our block is ours to remove and nothing else is.
-$c_sMarker = "; Added by HomerView"
+$sMarker = "; Added by HomerView"
 
 
 # THE ONE PLACE THE BROWSER IS DECIDED, and it is a file both sides read.
@@ -176,7 +176,7 @@ function addToSection {
         if ($lLines[$i].Trim() -eq $sSection) { $iSection = $i; break }
     }
 
-    $lBlock = @($c_sMarker) + $lNewLines + @("$c_sMarker ends")
+    $lBlock = @($sMarker) + $lNewLines + @("$sMarker ends")
     if ($iSection -lt 0) {
         writeLog "      the file has no $sSection section, so one is added"
         $lOut = $lLines + @("", $sSection) + $lBlock
@@ -198,8 +198,8 @@ function removeOurBlock {
     $bInside = $false
     $iRemoved = 0
     foreach ($sLine in $lLines) {
-        if ($sLine.Trim() -eq $c_sMarker) { $bInside = $true; $iRemoved += 1; continue }
-        if ($sLine.Trim() -eq "$c_sMarker ends") { $bInside = $false; $iRemoved += 1; continue }
+        if ($sLine.Trim() -eq $sMarker) { $bInside = $true; $iRemoved += 1; continue }
+        if ($sLine.Trim() -eq "$sMarker ends") { $bInside = $false; $iRemoved += 1; continue }
         if ($bInside) { $iRemoved += 1; continue }
         $lOut += $sLine
     }
@@ -651,7 +651,7 @@ foreach ($folderVersion in $lVersions) {
                     # comes out of it instead.
                     $bStillOurs = $true
                     if (($pathFile -like "*.jss") -and (Test-Path $pathFile)) {
-                        $bStillOurs = ((Get-Content $pathFile -Raw) -match [regex]::Escape($c_sMarker))
+                        $bStillOurs = ((Get-Content $pathFile -Raw) -match [regex]::Escape($sMarker))
                     }
                     if (-not $bStillOurs) {
                         $iOut = removeOurBlock $pathFile
@@ -674,7 +674,7 @@ foreach ($folderVersion in $lVersions) {
                     # replaced since is left alone, with the backup kept beside it.
                     $pathBackup = "$pathFile.homerViewBackup"
                     if (Test-Path $pathFile) {
-                        if ((Get-Content $pathFile -Raw) -match [regex]::Escape($c_sMarker)) {
+                        if ((Get-Content $pathFile -Raw) -match [regex]::Escape($sMarker)) {
                             $iOut = removeOurBlock $pathFile
                             writeLog "    took $iOut of our lines back out of $sName, keeping any other change made to it"
                             if (Test-Path $pathBackup) { Remove-Item $pathBackup -Force }
@@ -852,7 +852,7 @@ foreach ($folderVersion in $lVersions) {
                 if (($sNamed -ieq $sConfigBase) -and (-not $sFactoryJsbSeen)) { continue }
                 $bLayered = $true
             }
-            if (($sCheck -match [regex]::Escape($c_sMarker)) -and (-not $bLayered)) {
+            if (($sCheck -match [regex]::Escape($sMarker)) -and (-not $bLayered)) {
                 writeLog "    $sConfigBase.jss is ours and does not use $sConfigBase.jsb; rewriting it"
                 writeLog "      (that is what made Control+F answer 'unknown script call')"
                 Remove-Item $pathBrowserJss -Force -ErrorAction SilentlyContinue
@@ -867,7 +867,7 @@ foreach ($folderVersion in $lVersions) {
             writeLog "    a $sConfigBase.jsb is in the shared settings folder as well"
         }
         if (-not (Test-Path $pathBrowserJss)) {
-            $lJss = @($c_sMarker)
+            $lJss = @($sMarker)
             # WHICH LAYER TO EXTEND, DECIDED BY LOOKING RATHER THAN ASSUMED.
             #
             # Kelly at Vispero gave the rule: a user <app>.jss should Use the
@@ -927,7 +927,7 @@ foreach ($folderVersion in $lVersions) {
                 for ($i = 0; $i -lt $lTheirs.Count; $i++) {
                     if ($lTheirs[$i] -match '(?i)^\s*use\s+"') { $iLastUse = $i }
                 }
-                $lBlock = @($c_sMarker, 'Use "HomerView.jsb"', "$c_sMarker ends")
+                $lBlock = @($sMarker, 'Use "HomerView.jsb"', "$sMarker ends")
                 if ($iLastUse -lt 0) {
                     $lTheirs = $lBlock + $lTheirs
                 } else {

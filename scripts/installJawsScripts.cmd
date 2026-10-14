@@ -11,7 +11,7 @@ rem Normally run by HomerView_setup.exe with the JAWS box ticked. Running it by
 rem hand does the same thing.
 rem
 rem THE LOG IS ONE FILE PER RUN, and it is not here:
-rem   %LOCALAPPDATA%\HomerView\logs\HomerViewJAWS<when>.log
+rem   %LOCALAPPDATA%\HomerView\logs\HomerView-jawsScripts-<when>.log
 rem
 rem The installation, the key binding, every command given afterwards and every
 rem answer the browser sends all go in that one file, in the order they
@@ -37,7 +37,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0installJawsScripts.ps1
 set exitCode=%errorlevel%
 
 echo ------------------------------------------------------------
-echo The log is the newest HomerViewJAWS file in:
+echo The log is the newest HomerView-jawsScripts file in:
 echo   %logDir%
 echo In JAWS, press JAWSKey+L to put it on the clipboard.
 if not "%exitCode%"=="0" echo Something went wrong. Please send that file.

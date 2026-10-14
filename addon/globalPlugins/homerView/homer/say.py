@@ -41,9 +41,9 @@ import ctypes
 import os
 import sys
 
-c_lsNvdaDllNames = ["nvdaControllerClient.dll", "nvdaControllerClient64.dll"]
-c_sJawsProgId = "FreedomSci.JawsApi"
-c_sJawsWindowClass = "JFWUI2"
+lsNvdaDllNames = ["nvdaControllerClient.dll", "nvdaControllerClient64.dll"]
+sJawsProgId = "FreedomSci.JawsApi"
+sJawsWindowClass = "JFWUI2"
 
 bExtraSpeechEnabled = True
 sLastPath = ""
@@ -149,7 +149,7 @@ def _sayNvdaInside(sText):
 
 def isJawsRunning():
     try:
-        return bool(ctypes.windll.user32.FindWindowW(c_sJawsWindowClass, None))
+        return bool(ctypes.windll.user32.FindWindowW(sJawsWindowClass, None))
     except Exception:
         return False
 
@@ -159,14 +159,14 @@ def _jawsObject():
     if _oJaws is not None: return _oJaws
     try:
         import win32com.client
-        _oJaws = win32com.client.Dispatch(c_sJawsProgId)
+        _oJaws = win32com.client.Dispatch(sJawsProgId)
         return _oJaws
     except Exception:
         pass
     try:
         import clr  # pythonnet
         from System import Activator, Type
-        typeJaws = Type.GetTypeFromProgID(c_sJawsProgId)
+        typeJaws = Type.GetTypeFromProgID(sJawsProgId)
         if typeJaws is None: return None
         _oJaws = (typeJaws, Activator.CreateInstance(typeJaws))
         return _oJaws
@@ -212,7 +212,7 @@ def isNvdaRunning():
     if not _bNvdaProbed:
         _bNvdaProbed = True
         for sFolder in _nvdaDllFolders():
-            for sName in c_lsNvdaDllNames:
+            for sName in lsNvdaDllNames:
                 sPath = os.path.join(sFolder, sName)
                 if not os.path.isfile(sPath): continue
                 try:

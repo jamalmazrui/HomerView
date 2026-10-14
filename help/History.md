@@ -1,6 +1,10 @@
 ﻿
 
 
+## 14 October 2026 -- an expected result no longer logged as an error
+
+- **The build's start-up probe is logged as what it is.** The build checks that HomerView.exe starts and answers; with no browser running during a build it cannot connect, as expected, but the note said "an error about connecting is expected", and the log takes its level from the words, so every build logged an ERROR. The note now says the same thing without the word (from an audit by another AI).
+
 ## 11 October 2026 -- the session log's name, built so the compiler accepts it
 
 - **The JAWS scripts compile again.** The line that named each session's log joined a COM call's result into one long expression, and the JAWS compiler rejected it ("Expected gsLogPath to be a variable"), stopping the build. The name is now built one part per statement.

@@ -379,8 +379,10 @@ function buildBridge {
     Start-Process -FilePath $pathBridge -ArgumentList @("tabs", $pathProbe) `
         -WindowStyle Hidden -Wait
     if (Test-Path $pathProbe) {
-        writeLog "It runs and answers. (An error about connecting is expected here:"
-        writeLog "HomerView's browser is not running during a build.)"
+        # NOT AN ERROR, SO NOT WORDED AS ONE (14 October 2026, from an audit by another AI): writeLog takes its level from
+        # the words, and "An error about connecting is expected" was logged as ERROR on every build.
+        writeLog "It runs and answers. It could not reach a browser, as expected:"
+        writeLog "HomerView's browser is not running during a build."
         Remove-Item $pathProbe -Force
     } else {
         writeLog "WARNING: the bridge wrote no file, which it should do even on failure."

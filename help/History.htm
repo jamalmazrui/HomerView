@@ -185,6 +185,15 @@
 <h1>History</h1>
 <nav id="TOC" role="doc-toc" aria-label="Contents">
 <ul>
+<li><a
+href="#october-2026-an-expected-result-no-longer-logged-as-an-error"
+id="toc-october-2026-an-expected-result-no-longer-logged-as-an-error">14
+October 2026 – an expected result no longer logged as an error</a></li>
+<li><a
+href="#october-2026-the-session-logs-name-built-so-the-compiler-accepts-it"
+id="toc-october-2026-the-session-logs-name-built-so-the-compiler-accepts-it">11
+October 2026 – the session log’s name, built so the compiler accepts
+it</a></li>
 <li><a href="#october-2026-a-log-for-every-session-where-homer-logs-go"
 id="toc-october-2026-a-log-for-every-session-where-homer-logs-go">11
 October 2026 – a log for every session, where Homer logs go</a></li>
@@ -298,6 +307,27 @@ versions</a></li>
 </ul>
 </nav>
 <main>
+<h2 id="october-2026-an-expected-result-no-longer-logged-as-an-error">14
+October 2026 – an expected result no longer logged as an error</h2>
+<ul>
+<li><strong>The build’s start-up probe is logged as what it is.</strong>
+The build checks that HomerView.exe starts and answers; with no browser
+running during a build it cannot connect, as expected, but the note said
+“an error about connecting is expected”, and the log takes its level
+from the words, so every build logged an ERROR. The note now says the
+same thing without the word (from an audit by another AI).</li>
+</ul>
+<h2
+id="october-2026-the-session-logs-name-built-so-the-compiler-accepts-it">11
+October 2026 – the session log’s name, built so the compiler accepts
+it</h2>
+<ul>
+<li><strong>The JAWS scripts compile again.</strong> The line that named
+each session’s log joined a COM call’s result into one long expression,
+and the JAWS compiler rejected it (“Expected gsLogPath to be a
+variable”), stopping the build. The name is now built one part per
+statement.</li>
+</ul>
 <h2 id="october-2026-a-log-for-every-session-where-homer-logs-go">11
 October 2026 – a log for every session, where Homer logs go</h2>
 <ul>

@@ -1,6 +1,10 @@
 ﻿
 
 
+## 14 October 2026 -- Tab Close Others, on JAWS too, and never on a guess
+
+- **Tab Close Others is on the JAWS menu.** It closes every tab but the one you are on, as on NVDA, through a new command of HomerView's helper. The parity check now finds 6 NVDA commands without a JAWS counterpart, down from 7.
+- **No tab is closed on a guess, on either screen reader.** When no tab reported itself as the current one, NVDA kept the oldest and closed the rest, so the tab being read could be closed. Now, on NVDA and JAWS alike, tabs are closed only when exactly one tab is current; otherwise none is, and you hear why. Tested on NVDA's own code with one current tab, none, two, and a single tab (from an audit by another AI).
 ## 14 October 2026 -- the results file says what the box said
 
 - **HomerView_setup_results.txt now holds the whole summary,** the JAWS and NVDA outcomes included, and the setup log ends with it. The outcomes were shown in the box but never written back, so the file, read later, said only where HomerView was installed (from an audit by another AI).

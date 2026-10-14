@@ -185,3 +185,6 @@ hVSayYieldStructure_Description=On the HomerView menu, which has no key of its o
 hVSubmitForm=Submit Form
 hVSubmitForm_Synopsis=Submits the form holding the focused field, from any field.
 hVSubmitForm_Description=On the HomerView menu, which has no key of its own for it. Submits the form holding the focused field, from any field.
+hVTabCloseOthers=Tab Close Others
+hVTabCloseOthers_Synopsis=Closes every tab but the one you are on.
+hVTabCloseOthers_Description=On the HomerView menu, which has no key of its own for it. Closes every tab but the one you are on; if it cannot tell which tab that is, it closes none and says why.

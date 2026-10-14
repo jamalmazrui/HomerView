@@ -2945,6 +2945,32 @@ SayMessage (OT_MESSAGE, "HomerView is connected")
 EndScript
 
 
+; Closes every tab but the one you are on, as NVDA's Tab Close Others does
+; (14 October 2026). The helper closes them only when exactly one tab says it
+; has focus; otherwise nothing is closed, and the answer says why, rather than
+; guess which tab is yours and close it.
+Script hVTabCloseOthers ()
+Var string sAnswer, string sClosed
+hVLogLine ("hVTabCloseOthers started")
+Let sAnswer = hVCallBridge ("closeOtherTabs", "")
+If sAnswer == "" Then
+    Return
+EndIf
+If hVXmlValue (sAnswer, "/root/error") != "" Then
+    SayMessage (OT_ERROR, hVXmlValue (sAnswer, "/root/error"))
+    Return
+EndIf
+Let sClosed = hVXmlValue (sAnswer, "/root/closed")
+If sClosed == "" || sClosed == "0" Then
+    SayMessage (OT_MESSAGE, "Nothing to close")
+ElIf sClosed == "1" Then
+    SayMessage (OT_MESSAGE, "Closed 1 tab")
+Else
+    SayMessage (OT_MESSAGE, "Closed " + sClosed + " tabs")
+EndIf
+EndScript
+
+
 ; Says what is on the clipboard. Alt+Apostrophe.
 ;
 ; The same answer FileDir gives to the same key: "Path drop list" and then the
@@ -3256,6 +3282,7 @@ Let sTable = "About HomerView, Which build is loaded and where everything lives.
     + "\7" + "Session Log, Opens this session's log to read. (Control+Shift+L)\thVOpenSessionLog\tA"
     + "\7" + "Start Selection, Marks where a selection begins, to be finished with Shift+F8. (F8)\thVStartSelection\tP"
     + "\7" + "Submit Form, Submits the form holding the focused field, from any field.\thVSubmitForm\tP"
+    + "\7" + "Tab Close Others, Closes every tab but the one you are on.\thVTabCloseOthers\tA"
     + "\7" + "Tab List, Lists the open tabs by name and address.\thVListTabs\tA"
     + "\7" + "Tab Names, Says the names of the open tabs without moving anywhere. (Shift+F4)\thVSayTabNames\tA"
     + "\7" + "User Guide, Opens the HomerView guide. (Control+F1)\thVOpenUserGuide\tA"

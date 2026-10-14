@@ -717,6 +717,9 @@ namespace Homer
                     case "tablist":
                         sResult = TabList();
                         break;
+                    case "closeothertabs":
+                        sResult = CloseOtherTabs();
+                        break;
                     case "extract":
                         sResult = Extract();
                         break;
@@ -5672,6 +5675,60 @@ namespace Homer
         /// all -- the first is used, and the log says that is what happened,
         /// because a fallback nobody can see is how this went unnoticed.
         /// </summary>
+        /// <summary>
+        /// Closes every page tab but the one that has focus (14 October 2026, for the JAWS port of NVDA's Tab Close
+        /// Others, and from an audit by another AI). A tab is closed only when exactly one tab answers that it has
+        /// focus: FindActivePageSocket falls back to the first tab when none does, which is a fair guess for reading a
+        /// page and a wrong one for closing tabs, since the tab being read could be the one closed. So when no tab, or
+        /// more than one, claims focus, nothing is closed and the answer says why. Tabs are closed through the same
+        /// DevTools address that lists them, /json/close/(id).
+        /// </summary>
+        private static string CloseOtherTabs()
+        {
+            var lTabs = new List<string[]>();
+            string sList = HttpGet("/json/list");
+            foreach (Match match in Regex.Matches(sList, "\\{[^{}]*?\"type\"\\s*:\\s*\"page\"[^{}]*?\\}"))
+            {
+                if (match.Value.Contains("devtools://")) continue;
+                Match matchSocket = Regex.Match(match.Value, "\"webSocketDebuggerUrl\"\\s*:\\s*\"([^\"]+)\"");
+                Match matchId = Regex.Match(match.Value, "\"id\"\\s*:\\s*\"([^\"]+)\"");
+                if (!matchSocket.Success || !matchId.Success) continue;
+                lTabs.Add(new string[] { matchId.Groups[1].Value, matchSocket.Groups[1].Value });
+            }
+            if (lTabs.Count <= 1)
+            {
+                Log("  close other tabs: " + lTabs.Count.ToString() + " tab open, so nothing to close");
+                return "{\"closed\":0}";
+            }
+            string sKeep = null;
+            int iFocused = 0;
+            foreach (string[] aTab in lTabs)
+            {
+                try
+                {
+                    string sAnswer = SendAndWait(aTab[1],
+                        "{\"id\":1,\"method\":\"Runtime.evaluate\",\"params\":{"
+                        + "\"expression\":\"document.hasFocus()\",\"returnByValue\":true}}");
+                    if (sAnswer != null && sAnswer.Contains("\"value\":true")) { sKeep = aTab[0]; iFocused++; }
+                }
+                catch (Exception oError) { Log("  close other tabs: a tab could not be asked: " + oError.Message); }
+            }
+            if (iFocused != 1)
+            {
+                Log("  close other tabs: " + iFocused.ToString() + " of " + lTabs.Count.ToString() + " tabs claim focus, so none was closed");
+                return "{\"error\":\"No one tab is the current one, so no tab was closed. Bring the browser to the front and try again.\"}";
+            }
+            int iClosed = 0;
+            foreach (string[] aTab in lTabs)
+            {
+                if (aTab[0] == sKeep) continue;
+                try { HttpGet("/json/close/" + aTab[0]); iClosed++; }
+                catch (Exception oError) { Log("  close other tabs: a tab could not be closed: " + oError.Message); }
+            }
+            Log("  close other tabs: closed " + iClosed.ToString() + ", kept the tab with focus");
+            return "{\"closed\":" + iClosed.ToString() + "}";
+        }
+
         private static string FindActivePageSocket()
         {
             var lSockets = new List<string>();

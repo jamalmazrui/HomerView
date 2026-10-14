@@ -185,9 +185,11 @@
 <h1>History</h1>
 <nav id="TOC" role="doc-toc" aria-label="Contents">
 <ul>
-<li><a href="#october-2026-the-results-file-says-what-the-box-said"
-id="toc-october-2026-the-results-file-says-what-the-box-said">14 October
-2026 – the results file says what the box said</a></li>
+<li><a
+href="#october-2026-tab-close-others-on-jaws-too-and-never-on-a-guess"
+id="toc-october-2026-tab-close-others-on-jaws-too-and-never-on-a-guess">14
+October 2026 – Tab Close Others, on JAWS too, and never on a
+guess</a></li>
 <li><a href="#october-2026-yield-structure"
 id="toc-october-2026-yield-structure">14 October 2026 – Yield
 Structure</a></li>
@@ -317,14 +319,27 @@ versions</a></li>
 </ul>
 </nav>
 <main>
-<h2 id="october-2026-the-results-file-says-what-the-box-said">14 October
-2026 – the results file says what the box said</h2>
+<h2
+id="october-2026-tab-close-others-on-jaws-too-and-never-on-a-guess">14
+October 2026 – Tab Close Others, on JAWS too, and never on a guess</h2>
 <ul>
-<li><strong>HomerView_setup_results.txt now holds the whole
+<li><p><strong>Tab Close Others is on the JAWS menu.</strong> It closes
+every tab but the one you are on, as on NVDA, through a new command of
+HomerView’s helper. The parity check now finds 6 NVDA commands without a
+JAWS counterpart, down from 7.</p></li>
+<li><p><strong>No tab is closed on a guess, on either screen
+reader.</strong> When no tab reported itself as the current one, NVDA
+kept the oldest and closed the rest, so the tab being read could be
+closed. Now, on NVDA and JAWS alike, tabs are closed only when exactly
+one tab is current; otherwise none is, and you hear why. Tested on
+NVDA’s own code with one current tab, none, two, and a single tab (from
+an audit by another AI). ## 14 October 2026 – the results file says what
+the box said</p></li>
+<li><p><strong>HomerView_setup_results.txt now holds the whole
 summary,</strong> the JAWS and NVDA outcomes included, and the setup log
 ends with it. The outcomes were shown in the box but never written back,
 so the file, read later, said only where HomerView was installed (from
-an audit by another AI).</li>
+an audit by another AI).</p></li>
 </ul>
 <h2 id="october-2026-yield-structure">14 October 2026 – Yield
 Structure</h2>

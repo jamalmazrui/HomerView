@@ -1844,6 +1844,9 @@ def closeOtherTabs():
 
 def _reportClosed(dResult):
     iClosed = dResult.get("closed", 0)
+    if dResult.get("reason") == "no current tab":
+        ui.message(_("No one tab is the current one, so no tab was closed. Bring the browser to the front and try again."))
+        return
     if not iClosed:
         # Translators: Reported when there was nothing to close.
         ui.message(_("Nothing to close"))

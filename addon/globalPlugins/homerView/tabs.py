@@ -112,11 +112,13 @@ def closeOtherTabs(cdpSession):
     for dTab in lTabs:
         if dTab["current"]:
             setKeep.add(dTab["targetId"])
-    if not setKeep:
-        # Nothing reported itself as current, so the oldest stands in. Closing
-        # everything on a guess would end the session.
-        setKeep.add(lTabs[0]["targetId"])
-        homerLog.warning("No tab reported itself as current, so the oldest is kept instead")
+    if len(setKeep) != 1:
+        # ONLY WHEN THE CURRENT TAB IS KNOWN (14 October 2026, from an audit by
+        # another AI). With no tab reporting itself current, the oldest was kept
+        # and the rest closed on a guess, so the tab being read could be closed.
+        # Now nothing is closed unless exactly one tab is current, as on JAWS.
+        homerLog.warning(f"{len(setKeep)} tabs reported themselves as current, so none was closed")
+        return {"closed": 0, "kept": len(lTabs), "reason": "no current tab"}
 
     iClosed = 0
     for dTab in lTabs:

@@ -2945,6 +2945,27 @@ SayMessage (OT_MESSAGE, "HomerView is connected")
 EndScript
 
 
+; Opens Copilot in the browser with the page's text on the clipboard, as NVDA's
+; Consult Copilot does (14 October 2026). The helper puts the page's title,
+; address and main text on the clipboard, then presses Edge's own key for
+; Copilot, Control+Shift+Period.
+Script hVConsultCopilot ()
+Var string sAnswer
+hVLogLine ("hVConsultCopilot started")
+SayMessage (OT_STATUS, "Opening Copilot")
+Let sAnswer = hVCallBridge ("copilot", "")
+If sAnswer == "" Then
+    Return
+EndIf
+If hVXmlValue (sAnswer, "/root/error") != "" Then
+    SayMessage (OT_ERROR, hVXmlValue (sAnswer, "/root/error"))
+    Return
+EndIf
+SayMessage (OT_MESSAGE, "Copilot opened. " + hVXmlValue (sAnswer, "/root/characters")
+    + " characters of the page are on the clipboard, ready to paste with Control+V.")
+EndScript
+
+
 ; Closes every tab but the one you are on, as NVDA's Tab Close Others does
 ; (14 October 2026). The helper closes them only when exactly one tab says it
 ; has focus; otherwise nothing is closed, and the answer says why, rather than
@@ -3238,6 +3259,7 @@ Let sTable = "About HomerView, Which build is loaded and where everything lives.
     + "\7" + "Choose Browser, Chooses which Chromium browser HomerView drives. (Alt+Shift+B)\thVChooseBrowser\tA"
     + "\7" + "Clear Clipboard, Empties the clipboard so an append starts afresh. (Alt+Shift+Apostrophe)\thVClearClipboard\tA"
     + "\7" + "Complete Selection, Selects from where F8 was pressed to here. (Shift+F8)\thVCompleteSelection\tP"
+    + "\7" + "Consult Copilot, Opens Copilot in the browser, with the page's text on the clipboard to paste.\thVConsultCopilot\tP"
     + "\7" + "Copy All, Puts the whole page on the clipboard. (Control+F8)\thVCopyAll\tP"
     + "\7" + "Copy Append, Adds the selection or the line to what is on the clipboard. (Alt+C)\thVCopyAppend\tA"
     + "\7" + "Copy Selection, Copies the selection, or the line under the cursor. (Control+C)\thVCopySelection\tP"

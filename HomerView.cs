@@ -720,6 +720,9 @@ namespace Homer
                     case "closeothertabs":
                         sResult = CloseOtherTabs();
                         break;
+                    case "copilot":
+                        sResult = Copilot();
+                        break;
                     case "extract":
                         sResult = Extract();
                         break;
@@ -5683,6 +5686,57 @@ namespace Homer
         /// more than one, claims focus, nothing is closed and the answer says why. Tabs are closed through the same
         /// DevTools address that lists them, /json/close/(id).
         /// </summary>
+        // Consult Copilot (14 October 2026, the JAWS port of NVDA's command, and done as NVDA does it): Edge's own key
+        // for Copilot, Control+Shift+Period, pressed after the page's text is on the clipboard, ready to paste. The pause
+        // lets the HomerView menu close and focus return to the page first. Pressing an application's own shortcut is
+        // not driving its interface by clicks.
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern void keybd_event(byte iVirtualKey, byte iScanCode, uint iFlags, UIntPtr iExtraInfo);
+        private const byte iVirtualControl = 0x11;
+        private const byte iVirtualShift = 0x10;
+        private const byte iVirtualPeriod = 0xBE;
+        private const uint iKeyEventKeyUp = 0x0002;
+        private const int iCopilotSettleMs = 350;
+
+        private static string Copilot()
+        {
+            // The page's title, address and main text, laid out as NVDA lays them out, with the text's own length first.
+            string sText = EvaluateText("(() => { const el = document.querySelector('main, [role=main], article') || document.body; "
+                + "const s = (el.innerText || '').trim().slice(0, 20000); "
+                + "return s.length + '\\t' + document.title + '\\n' + location.href + '\\n\\n' + s; })()");
+            if (sText.StartsWith("ERROR:"))
+                return "{\"error\":" + Quote("The page's text could not be read: " + sText.Substring(6).Trim()) + "}";
+            int iCharacters = 0;
+            string sPayload = sText;
+            int iTab = sText.IndexOf('\t');
+            if (iTab > 0)
+            {
+                int.TryParse(sText.Substring(0, iTab), out iCharacters);
+                sPayload = sText.Substring(iTab + 1);
+            }
+            if (iCharacters > 0)
+            {
+                string sClip = ClipboardText(sPayload);
+                if (sClip.Contains("\"error\"")) Log("  Copilot: the page's text could not be put on the clipboard: " + sClip);
+            }
+            System.Threading.Thread.Sleep(iCopilotSettleMs);
+            try
+            {
+                keybd_event(iVirtualControl, 0, 0, UIntPtr.Zero);
+                keybd_event(iVirtualShift, 0, 0, UIntPtr.Zero);
+                keybd_event(iVirtualPeriod, 0, 0, UIntPtr.Zero);
+                keybd_event(iVirtualPeriod, 0, iKeyEventKeyUp, UIntPtr.Zero);
+                keybd_event(iVirtualShift, 0, iKeyEventKeyUp, UIntPtr.Zero);
+                keybd_event(iVirtualControl, 0, iKeyEventKeyUp, UIntPtr.Zero);
+            }
+            catch (Exception oError)
+            {
+                return "{\"error\":" + Quote("Copilot did not open: " + oError.Message) + "}";
+            }
+            Log("  Copilot: sent Control+Shift+Period; " + iCharacters.ToString() + " characters of the page on the clipboard");
+            return "{\"characters\":" + iCharacters.ToString() + "}";
+        }
+
         private static string CloseOtherTabs()
         {
             var lTabs = new List<string[]>();

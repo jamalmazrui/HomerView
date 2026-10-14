@@ -1,6 +1,11 @@
 ﻿
 
 
+## 14 October 2026 -- Consult Copilot on JAWS
+
+- **Consult Copilot is on the JAWS menu.** As on NVDA, it puts the page's title, address and main text on the clipboard, ready to paste, then presses Edge's own key for Copilot, Control+Shift+Period, through HomerView's helper; you hear how many characters are on the clipboard.
+- **Say Url is counted as Link Target on JAWS,** where the two were joined on purpose: one key that always gives a link's address and adds what is there when it can be fetched. The parity check now finds 4 NVDA commands without a JAWS counterpart -- Explore Page, Invoke Script, Query Web and Self Test -- each needing a dialog of its own.
+
 ## 14 October 2026 -- Tab Close Others, on JAWS too, and never on a guess
 
 - **Tab Close Others is on the JAWS menu.** It closes every tab but the one you are on, as on NVDA, through a new command of HomerView's helper. The parity check now finds 6 NVDA commands without a JAWS counterpart, down from 7.

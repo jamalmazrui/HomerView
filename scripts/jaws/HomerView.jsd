@@ -188,3 +188,6 @@ hVSubmitForm_Description=On the HomerView menu, which has no key of its own for 
 hVTabCloseOthers=Tab Close Others
 hVTabCloseOthers_Synopsis=Closes every tab but the one you are on.
 hVTabCloseOthers_Description=On the HomerView menu, which has no key of its own for it. Closes every tab but the one you are on; if it cannot tell which tab that is, it closes none and says why.
+hVConsultCopilot=Consult Copilot
+hVConsultCopilot_Synopsis=Opens Copilot in the browser, with the page's text on the clipboard to paste.
+hVConsultCopilot_Description=On the HomerView menu, which has no key of its own for it. Puts the page's title, address and main text on the clipboard, then opens Copilot in the browser.

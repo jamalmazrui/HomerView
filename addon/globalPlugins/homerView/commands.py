@@ -196,7 +196,7 @@ lCommands = [
      "among the navigation keys, which is where a position question belongs."),
     ("sayYield", "Say Yield", ["kb:alt+y"],
      "Say number of characters, words, and lines in all or selected text."),
-    ("sayYieldStructure", "Say Yield Structure", ["kb:alt+shift+y"],
+    ("sayYieldStructure", "Yield Structure", ["kb:alt+shift+y"],
      "Says how the page is built: how many headings, links, forms and the rest."),
     ("sayYieldPattern", "Yield with Regular Expression", ["kb:control+shift+y"],
      "Count parts of text matching a regular expression, which answers how many "

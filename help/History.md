@@ -1,6 +1,22 @@
 ﻿
 
 
+## 14 October 2026 -- Yield Structure
+
+- **Say Yield Structure is now Yield Structure, on NVDA and JAWS.** The quality check found Say Yield inside Say Yield Structure, and a name inside another is confusing to hear, so the 13 October build stopped. The new name sits with Yield with Pattern and keeps its key, Alt+Shift+Y.
+
+## 14 October 2026 -- Link Target reads a page's details whatever their order, and stops at its redirect limit
+
+- **An author written the other way round is still found.** Link Target read a page's title, description, author and date with patterns that expected the name of a detail before its value, so the equally valid reverse order gave nothing. A page's head is now read by an HTML parser: attributes in any order, any case, quoted or not, across lines, with entities decoded. Tested on thirteen cases, the audit's own among them (from an audit by another AI).
+- **Following a link stops after eight redirects, as was intended.** The limit of eight was written down and never applied, so Python's own limit of ten held, with a message about an infinite loop. The ninth redirect now stops it, and the message names the last address reached. Tested against a local server with chains of eight and nine redirects (from an audit by another AI).
+- **The handover notes name the kit's classes where they are,** in C:\HomerDev\exec\CSharp.
+- **Link Target says when it read only part of a page.** It reads the first 96 KB of a page, counted the words there, and gave a reading time as though for the whole page, so a long article looked short. When the page goes on past what was read, the count is now given as at least so many words, with the limit named; and when the part read holds too little to judge, it says the length is not known. Menus, headers, footers and side panels are no longer counted as words, so a long menu cannot pass for an article, even one the part read ends inside. Tested against a local server with a page whose article begins after a menu longer than 96 KB, a long article after a short menu, and an ordinary short page (from an audit by another AI).
+
+## 14 October 2026 -- five NVDA commands come to JAWS
+
+- **Say Address, Say Yield, Say Yield Structure, Submit Form and Report Connection are now on the JAWS menu.** They were on NVDA only. Each says what NVDA says: Say Yield counts characters, words and lines by NVDA's own rules, giving the same numbers on every text tested, and Submit Form runs NVDA's own page script, so the page's own checks run and the browser shows what is missing. Say Address shows the address in the viewer when pressed again, as every short answer on JAWS does. They are on the menu without keys of their own, so none takes a key JAWS already gives you.
+- **The parity check counts the JAWS menu itself.** NVDA's Alternate Menu opens HomerView's menu, which on JAWS is Alt+F10; the menu cannot list itself, so it was counted as missing. It now counts while the menu's script exists. NVDA's second address command, for outside the page, is covered by Say Address, which on JAWS works anywhere.
+- **Fourteen gaps are now seven:** Consult Copilot, Explore Page, Invoke Script, Query Web, Say Url, Self Test and Tab Close Others. Each needs more than a script in the page, such as a new helper command or a dialog of its own.
 ## 14 October 2026 -- an expected result no longer logged as an error
 
 - **The build's start-up probe is logged as what it is.** The build checks that HomerView.exe starts and answers; with no browser running during a build it cannot connect, as expected, but the note said "an error about connecting is expected", and the log takes its level from the words, so every build logged an ERROR. The note now says the same thing without the word (from an audit by another AI).

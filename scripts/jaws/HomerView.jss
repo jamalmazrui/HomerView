@@ -2809,6 +2809,142 @@ EndIf
 EndScript
 
 
+; FIVE COMMANDS THAT WERE ON NVDA AND NOT HERE (14 October 2026). The parity
+; check counted fourteen NVDA commands with no JAWS counterpart. These five need
+; nothing the helper lacks: each runs a short script in the page, as Page Links
+; to Clipboard does, and says what NVDA says. They are on the menu without keys
+; of their own, so none of them can take a key JAWS already gives the reader.
+
+
+; Says the page's web address; pressed again, shows it in the viewer, where it
+; can be read a character at a time or copied, as every short answer here does.
+; NVDA has a second command for saying the address outside the page; a JAWS
+; script is not tied to the page, so this one serves for both.
+Script hVSayAddress ()
+Var string sAddress
+hVLogLine ("hVSayAddress started")
+Let sAddress = hVRunScript ("location.href")
+If sAddress == "" Then
+    SayMessage (OT_ERROR, "The web address is unavailable")
+    Return
+EndIf
+hVSayOrShow ("Address: " + sAddress)
+EndScript
+
+
+; Says how much text there is: the selection when there is one, otherwise the
+; whole page. Characters, words and lines are counted as NVDA counts them, so
+; the two readers give the same numbers: words are runs between spaces, and a
+; line break at the very end does not make another line.
+Script hVSayYield ()
+Var string sAnswer
+hVLogLine ("hVSayYield started")
+Let sAnswer = hVRunScript (
+    "(() => {"
+    + "const sSelected = String(getSelection() || '');"
+    + "const s = sSelected || (document.body ? document.body.innerText : '');"
+    + "const iWords = s.split(/\\s+/).filter(Boolean).length;"
+    + "const iLines = s ? s.replace(/(\\r\\n|\\r|\\n)$/, '').split(/\\r\\n|\\r|\\n/).length : 0;"
+    + "return (sSelected ? 'Selected text: ' : 'Page text: ') + s.length + ' characters, '"
+    + "  + iWords + ' words, ' + iLines + ' lines';"
+    + "})()")
+If sAnswer == "" Then
+    Return
+EndIf
+hVSayOrShow (sAnswer)
+EndScript
+
+
+; Says how the page is built rather than how long it is: how many links,
+; headings, landmarks, tables, frames and form fields, naming only those it has.
+; NVDA counts what its own view of the page holds; this counts the same kinds of
+; thing in the page itself, by element and by role, so a count can differ by one
+; where the two views disagree about an element.
+Script hVSayYieldStructure ()
+Var string sAnswer
+hVLogLine ("hVSayYieldStructure started")
+Let sAnswer = hVRunScript (
+    "(() => {"
+    + "const n = (s) => document.querySelectorAll(s).length;"
+    + "const l = ["
+    + "  [n('a[href], [role=link]'), 'links'],"
+    + "  [n('h1, h2, h3, h4, h5, h6, [role=heading]'), 'headings'],"
+    + "  [n('main, nav, header, footer, aside, form[aria-label], form[aria-labelledby], section[aria-label], section[aria-labelledby], "
+    + "[role=main], [role=navigation], [role=banner], [role=contentinfo], [role=complementary], [role=search], [role=region], [role=form]'), 'landmarks'],"
+    + "  [n('table, [role=table], [role=grid]'), 'tables'],"
+    + "  [n('iframe, frame'), 'frames'],"
+    + "  [n('input:not([type=hidden]), select, textarea, [role=textbox], [role=combobox], [role=checkbox], [role=radio], "
+    + "[role=listbox], [role=slider], [role=spinbutton], [role=switch]'), 'form fields']"
+    + "].filter((a) => a[0]);"
+    + "return l.length ? 'What this page holds: ' + l.map((a) => a[0] + ' ' + a[1]).join(', ') : 'This page holds none of these';"
+    + "})()")
+If sAnswer == "" Then
+    Return
+EndIf
+hVSayOrShow (sAnswer)
+EndScript
+
+
+; Submits the form holding the focused field, from any field: the Lbc
+; Control+Enter carried onto the web, since Enter does not submit from a text
+; area, a list or a checkbox. The page script is NVDA's own, word for word but
+; for its quotes, so both readers submit the same way: requestSubmit rather
+; than submit, so the page's own checks run and the browser shows what is
+; missing, exactly as pressing the submit button would.
+Script hVSubmitForm ()
+Var string sOutcome
+hVLogLine ("hVSubmitForm started")
+Let sOutcome = hVRunScript (
+    "(() => {"
+    + "let el = document.activeElement;"
+    + "while (el && el.shadowRoot && el.shadowRoot.activeElement) { el = el.shadowRoot.activeElement; }"
+    + "if (!el) return 'noForm';"
+    + "const elForm = el.form || (el.closest ? el.closest('form') : null);"
+    + "if (!elForm) {"
+    + "  const elButton = el.closest ? el.closest('[role=form], form, body') : null;"
+    + "  const elSubmit = elButton ? elButton.querySelector("
+    + "    'button[type=submit], input[type=submit], button:not([type]), [role=button][data-submit]') : null;"
+    + "  if (elSubmit) { elSubmit.click(); return 'submitted'; }"
+    + "  return 'noForm';"
+    + "}"
+    + "const elSubmitter = elForm.querySelector('button[type=submit], input[type=submit], button:not([type])');"
+    + "if (typeof elForm.requestSubmit === 'function') {"
+    + "  if (!elForm.checkValidity || !elForm.checkValidity()) { elForm.requestSubmit(elSubmitter || undefined); return 'invalid'; }"
+    + "  elForm.requestSubmit(elSubmitter || undefined);"
+    + "  return 'submitted';"
+    + "}"
+    + "if (elSubmitter) { elSubmitter.click(); return 'submitted'; }"
+    + "elForm.submit();"
+    + "return 'submitted';"
+    + "})()")
+hVLogLine ("hVSubmitForm: " + sOutcome)
+If sOutcome == "submitted" Then
+    SayMessage (OT_MESSAGE, "Form submitted")
+ElIf sOutcome == "invalid" Then
+    SayMessage (OT_MESSAGE, "The form is incomplete. The browser is showing what is missing.")
+ElIf sOutcome == "noForm" Then
+    SayMessage (OT_ERROR, "The cursor is not in a form")
+ElIf sOutcome != "" Then
+    SayMessage (OT_ERROR, "That form could not be submitted")
+EndIf
+EndScript
+
+
+; Says whether HomerView's browser is there to talk to. The helper is asked for
+; the tab list, the cheapest question it answers; an answer means connected.
+Script hVReportConnection ()
+Var string sAnswer
+hVLogLine ("hVReportConnection started")
+Let sAnswer = hVCallBridge ("tabList", "")
+If sAnswer == "" || hVXmlValue (sAnswer, "/root/error") != "" Then
+    hVLogLine ("hVReportConnection: not connected " + hVXmlValue (sAnswer, "/root/error"))
+    SayMessage (OT_MESSAGE, "Not connected")
+    Return
+EndIf
+SayMessage (OT_MESSAGE, "HomerView is connected")
+EndScript
+
+
 ; Says what is on the clipboard. Alt+Apostrophe.
 ;
 ; The same answer FileDir gives to the same key: "Path drop list" and then the
@@ -3105,6 +3241,7 @@ Let sTable = "About HomerView, Which build is loaded and where everything lives.
     + "\7" + "Quick Start, The short introduction to HomerView. (Alt+Shift+F1)\thVOpenQuickStart\tA"
     + "\7" + "Read All, Speaks the whole page from the top without moving the cursor. (Alt+F8)\thVReadAll\tP"
     + "\7" + "Recent Pages, Opens a page you had open recently. (Alt+R)\thVRecentPages\tA"
+    + "\7" + "Report Connection, Says whether HomerView's browser is there to talk to.\thVReportConnection\tA"
     + "\7" + "Report Diagnostics, Says whether the helper, the log folder and the start page are where they should be. (Alt+Shift+R)\thVSayDiagnostics\tA"
     + "\7" + "Reverse Find Again, The previous match of whichever find was done last. (Shift+F3)\thVFindPrevious\tP"
     + "\7" + "Reverse Find at Cursor, Searches backward for the word under the cursor, or the selected text, without asking you to type it. (Alt+Shift+F3)\thVFindWordAtCursorBackwards\tP"
@@ -3112,14 +3249,18 @@ Let sTable = "About HomerView, Which build is loaded and where everything lives.
     + "\7" + "Reverse Find with Regular Expression, Searches backwards for a pattern. (Control+Shift+F3)\thVFindByPatternBackwards\tP"
     + "\7" + "Save Clipboard, Saves the clipboard to a text file. (Control+Apostrophe)\thVSaveClipboard\tA"
     + "\7" + "Save Page, Saves this page as html, Word, Markdown or an ebook. (Control+S)\thVSavePage\tP"
+    + "\7" + "Say Address, Says the page's web address; press again to show it.\thVSayAddress\tA"
     + "\7" + "Say Clipboard, Says what is on the clipboard, paths or text. (Alt+Apostrophe)\thVSayClipboard\tA"
     + "\7" + "Say Metadata, Shows what the page says about itself. (Alt+M)\thVSayMetadata\tP"
+    + "\7" + "Say Yield, Says how many characters, words and lines the selection or the page holds.\thVSayYield\tP"
     + "\7" + "Session Log, Opens this session's log to read. (Control+Shift+L)\thVOpenSessionLog\tA"
     + "\7" + "Start Selection, Marks where a selection begins, to be finished with Shift+F8. (F8)\thVStartSelection\tP"
+    + "\7" + "Submit Form, Submits the form holding the focused field, from any field.\thVSubmitForm\tP"
     + "\7" + "Tab List, Lists the open tabs by name and address.\thVListTabs\tA"
     + "\7" + "Tab Names, Says the names of the open tabs without moving anywhere. (Shift+F4)\thVSayTabNames\tA"
     + "\7" + "User Guide, Opens the HomerView guide. (Control+F1)\thVOpenUserGuide\tA"
     + "\7" + "Web Download, Fetches the files this page links to, with the browser's own cookies. (Alt+Shift+W)\thVDownloadFiles\tP"
+    + "\7" + "Yield Structure, Says how many links, headings, landmarks, tables, frames and form fields the page holds.\thVSayYieldStructure\tP"
     + "\7" + "Yield with Pattern, Says how many times a pattern matches. (Control+Shift+Y)\thVYieldByPattern\tP"
 ; The list the dialog shows is the first field of every row.
 ; ONLY WHAT APPLIES RIGHT NOW.

@@ -643,7 +643,7 @@ on. Each entry gives the NVDA key and the JAWS key.
     - NVDA: Alt+Y
     - JAWS: **not yet on JAWS**
     - Say number of characters, words, and lines in all or selected text.
-- **Say Yield Structure**
+- **Yield Structure**
     - NVDA: Alt+Shift+Y
     - JAWS: **not yet on JAWS**
     - Says how the page is built: how many headings, links, forms and the rest.

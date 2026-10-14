@@ -198,7 +198,7 @@ here, and what it does not yet mean:
 **Done in this pass, without moving any file:**
 
 - `build.cmd` carries the kit contract: finds the kit, checks
-  `kitNeeded`, compiles against `C:\HomerDev\CSharp\Inix.cs` and `Web.cs`,
+  `kitNeeded`, compiles against `C:\HomerDev\exec\CSharp\Inix.cs` and `Web.cs`,
   refreshes the kit's tools into `scripts\`, retires `cleanDir`, `tidyRepo`
   and `homerPolicy`, runs `fixEncoding`, and writes one log per session in
   `logs\HomerView-build-<stamp>.log`. `build.ps1` is still the

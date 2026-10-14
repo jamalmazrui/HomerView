@@ -98,7 +98,7 @@ category, where every command here can be changed.
 - **Say Time**, Alt+SemiColon. Say current time and date.
 - **Say Url**, Alt+U. Say where the link at the cursor would go. U for url.
 - **Say Yield**, Alt+Y. Say number of characters, words, and lines in all or selected text.
-- **Say Yield Structure**, Alt+Shift+Y. Says how the page is built: how many headings, links, forms and the rest.
+- **Yield Structure**, Alt+Shift+Y. Says how the page is built: how many headings, links, forms and the rest.
 - **Yield with Regular Expression**, Control+Shift+Y. Count parts of text matching a regular expression, which answers how many rather than where.
 
 ## Reading aloud

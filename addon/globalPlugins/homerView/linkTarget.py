@@ -22,6 +22,7 @@ about before following.
 """
 
 import html
+import html.parser
 import re
 import urllib.error
 import urllib.parse
@@ -79,20 +80,93 @@ setShorteners = {
 }
 
 
+class TooManyRedirects(Exception):
+    """A link that redirects more than maximumRedirects times. Its message names the last address reached."""
+
+
 class Redirecting(urllib.request.HTTPRedirectHandler):
     """Follow redirects, and remember every step.
 
     Where a link ends up is what matters, and it is often not where it points.
     Recording the path is what lets the reader be told that a link to one site
     finished at another.
+
+    THE LIMIT IS THIS ONE (14 October 2026, from an audit by another AI).
+    maximumRedirects was declared and never used, so urllib's own limit of ten
+    applied, with a message about an infinite loop. The ninth redirect now
+    stops the fetch, and the message names the last address reached.
     """
+
+    max_redirections = maximumRedirects + 1
 
     def __init__(self):
         self.lChain = []
 
     def redirect_request(self, request, response, iCode, sMessage, dHeaders, sNewUrl):
+        if len(self.lChain) >= maximumRedirects:
+            raise TooManyRedirects(_(
+                "The link redirects more than {count} times, so HomerView stopped following it. "
+                "The last address reached was {address}").format(
+                count=maximumRedirects, address=self.lChain[-1][1]))
         self.lChain.append((iCode, sNewUrl))
         return super().redirect_request(request, response, iCode, sMessage, dHeaders, sNewUrl)
+
+
+class PageFactsParser(html.parser.HTMLParser):
+    """The facts readPageFacts wants, read by an HTML parser rather than by patterns.
+
+    BY THE MARKUP, NOT ITS ORDER (14 October 2026, from an audit by another
+    AI). The patterns expected name or property before content, so a meta
+    element written the other way round, which is just as valid, gave nothing:
+    an author's name went unsaid. A parser reads attributes in any order, in
+    any case, quoted or not, across lines, with entities decoded.
+    """
+
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.dMeta = {}
+        self.sTitle = ""
+        self.bInTitle = False
+        self.sLanguage = ""
+        self.sTime = ""
+
+    def handle_starttag(self, sTag, lAttributes):
+        dAttributes = {sName.lower(): (sValue or "") for sName, sValue in lAttributes}
+        if sTag == "meta":
+            sKey = (dAttributes.get("property") or dAttributes.get("name") or "").strip().lower()
+            sContent = " ".join(dAttributes.get("content", "").split())
+            if sKey and sContent and sKey not in self.dMeta: self.dMeta[sKey] = sContent
+        elif sTag == "title" and not self.sTitle:
+            self.bInTitle = True
+        elif sTag == "html" and not self.sLanguage:
+            self.sLanguage = dAttributes.get("lang", "").strip()
+        elif sTag == "time" and not self.sTime:
+            self.sTime = dAttributes.get("datetime", "").strip()
+
+    def handle_endtag(self, sTag):
+        if sTag == "title": self.bInTitle = False
+
+    def handle_data(self, sData):
+        if self.bInTitle: self.sTitle += sData
+
+
+def readHead(sHtml):
+    """A PageFactsParser that has read sHtml; a damaged page gives what was read before the damage."""
+    oParser = PageFactsParser()
+    try:
+        oParser.feed(sHtml)
+        oParser.close()
+    except Exception as exception:
+        homerLog.info(f"The page's markup could not all be read: {exception}")
+    return oParser
+
+
+def firstOf(oParser, *lKeys):
+    """The first of these meta names or properties that the page fills in."""
+    for sKey in lKeys:
+        sValue = oParser.dMeta.get(sKey, "")
+        if sValue: return sValue
+    return ""
 
 
 def openTarget(sUrl, sMethod="GET"):
@@ -115,16 +189,6 @@ def describeSize(vBytes):
     return util.formatBytes(vBytes) if vBytes not in (None, "") else ""
 
 
-def firstMatch(sHtml, *lPatterns):
-    for sPattern in lPatterns:
-        match = re.search(sPattern, sHtml, re.I | re.S)
-        if match:
-            sValue = " ".join(html.unescape(match.group(1)).split())
-            if sValue:
-                return sValue
-    return ""
-
-
 def readPageFacts(sHtml):
     """Pull what a reader would want to know out of a page's head.
 
@@ -132,37 +196,22 @@ def readPageFacts(sHtml):
     preference, because a page that fills in Open Graph and nothing else is
     common and its title is still its title.
     """
+    oParser = readHead(sHtml)
     dFacts = {}
-    dFacts["title"] = firstMatch(
-        sHtml,
-        r'<meta[^>]+property=["\']og:title["\'][^>]+content=["\']([^"\']+)',
-        r'<meta[^>]+name=["\']twitter:title["\'][^>]+content=["\']([^"\']+)',
-        r"<title[^>]*>(.*?)</title>",
-    )
-    dFacts["description"] = firstMatch(
-        sHtml,
-        r'<meta[^>]+name=["\']description["\'][^>]+content=["\']([^"\']+)',
-        r'<meta[^>]+property=["\']og:description["\'][^>]+content=["\']([^"\']+)',
-    )
-    dFacts["site"] = firstMatch(
-        sHtml, r'<meta[^>]+property=["\']og:site_name["\'][^>]+content=["\']([^"\']+)')
-    dFacts["author"] = firstMatch(
-        sHtml,
-        r'<meta[^>]+name=["\']author["\'][^>]+content=["\']([^"\']+)',
-        r'<meta[^>]+property=["\']article:author["\'][^>]+content=["\']([^"\']+)',
-    )
-    dFacts["published"] = firstMatch(
-        sHtml,
-        r'<meta[^>]+property=["\']article:published_time["\'][^>]+content=["\']([^"\']+)',
-        r'<time[^>]+datetime=["\']([^"\']+)',
-    )
-    dFacts["language"] = firstMatch(sHtml, r'<html[^>]+lang=["\']([^"\']+)')
-    dFacts["kind"] = firstMatch(
-        sHtml, r'<meta[^>]+property=["\']og:type["\'][^>]+content=["\']([^"\']+)')
+    dFacts["title"] = firstOf(oParser, "og:title", "twitter:title") or " ".join(oParser.sTitle.split())
+    dFacts["description"] = firstOf(oParser, "description", "og:description")
+    dFacts["site"] = firstOf(oParser, "og:site_name")
+    dFacts["author"] = firstOf(oParser, "author", "article:author")
+    dFacts["published"] = firstOf(oParser, "article:published_time") or oParser.sTime
+    dFacts["language"] = oParser.sLanguage
+    dFacts["kind"] = firstOf(oParser, "og:type")
 
     # A rough sense of length, from the visible text. Not exact, and does not
     # need to be: the question is whether this is a paragraph or an hour.
-    sBody = re.sub(r"<(script|style)[^>]*>.*?</\1>", " ", sHtml, flags=re.I | re.S)
+    # MENUS ARE NOT THE ARTICLE (14 October 2026, from an audit by another AI): the navigation, header, footer and
+    # side panels of a page were counted as its words, so a long menu could pass for content. A section the part read
+    # ends inside has no closing tag, so it runs to the end of what was read.
+    sBody = re.sub(r"<(script|style|nav|header|footer|aside|noscript)\b[^>]*>.*?(?:</\1>|\Z)", " ", sHtml, flags=re.I | re.S)
     sBody = re.sub(r"<[^>]+>", " ", sBody)
     iWords = len(re.findall(r"[A-Za-z']+", sBody))
     dFacts["words"] = iWords
@@ -176,6 +225,25 @@ def readPageFacts(sHtml):
         "you have reached your article limit",
     ))
     return dFacts
+
+
+def lengthLine(iWords, bTruncated):
+    """How long the page is, as far as the part read can tell; "" when it is too short to be worth saying.
+
+    A SAMPLE IS SAID TO BE ONE (14 October 2026, from an audit by another AI). Only the first readLimitBytes of a page
+    are read, so a long page looked short: its words were counted in the first part alone, and a reading time was
+    given as though for the whole. When the page goes on past what was read, the count is a lower bound and says
+    so; and when the part read holds too little to judge, that is said rather than nothing.
+    """
+    iKb = readLimitBytes // 1024
+    if bTruncated:
+        if iWords > 200:
+            return _("At least {count} words, so at least {minutes} minutes: only its first {kb} KB were read, and it goes on.").format(
+                count=iWords, minutes=max(1, round(iWords / 220)), kb=iKb)
+        return _("Only its first {kb} KB were read, and it goes on, so its length is not known.").format(kb=iKb)
+    if iWords > 200:
+        return _("Roughly {count} words, about {minutes} minutes.").format(count=iWords, minutes=max(1, round(iWords / 220)))
+    return ""
 
 
 def describeLink(sUrl, sLinkText=""):
@@ -241,6 +309,8 @@ def describeLink(sUrl, sLinkText=""):
         # For a page, what it is about.
         if sType == "text/html":
             bBytes = response.read(readLimitBytes)
+            # Whether the page goes on past what was read: one byte more is enough to know.
+            bTruncated = bool(len(bBytes) >= readLimitBytes and response.read(1))
             sHtml = bBytes.decode("utf-8", errors="replace")
             dFacts = readPageFacts(sHtml)
             lLines.append("")
@@ -255,11 +325,10 @@ def describeLink(sUrl, sLinkText=""):
             if dFacts.get("description"):
                 lLines.append("")
                 lLines.append(dFacts["description"])
-            if dFacts.get("words") > 200:
-                iMinutes = max(1, round(dFacts["words"] / 220))
+            sLength = lengthLine(dFacts.get("words", 0), bTruncated)
+            if sLength:
                 lLines.append("")
-                lLines.append(_("Roughly {count} words, about {minutes} minutes.").format(
-                    count=dFacts["words"], minutes=iMinutes))
+                lLines.append(sLength)
             if dFacts.get("wall"):
                 lLines.append("")
                 lLines.append(_("It looks as though reading it needs a subscription or an account."))

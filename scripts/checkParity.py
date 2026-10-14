@@ -57,7 +57,16 @@ alias = {
  "jump to main": "jump to probable main",
  "yield with regular expression": "yield with pattern",
  "reverse find": "reverse find for text",
+ # NVDA needs a second command to say the address outside the page; a JAWS script is not tied to the page,
+ # so Say Address serves for both (14 October 2026).
+ "say address anywhere": "say address",
 }
+# THE MENU CANNOT LIST ITSELF (14 October 2026). NVDA's Alternate Menu is the key that opens HomerView's menu;
+# on JAWS the menu is hVShowHomerViewMenu, on Alt+F10, but the table above is the menu's own rows, so the menu
+# never appears in it and was counted as a gap. It counts as present only while that script really exists, so
+# removing it would bring the gap back.
+if re.search(r"(?m)^Script hVShowHomerViewMenu \(", jss):
+    jaws.add("alternate menu")
 nvda = {}
 for m in re.finditer(r'\("(\w+)",\s*"([^"]+)"', cmds):
     nvda[m.group(2).strip().lower()] = m.group(2)

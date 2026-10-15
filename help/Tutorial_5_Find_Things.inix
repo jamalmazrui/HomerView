@@ -62,24 +62,6 @@ Hear=
 
 [step]
 
-Say=What this walk taught. I name the command; the reader gives the key.
-Key=
-Hear=
-
-[step]
-
-Say=Search backwards.
-Key=
-Hear=Control plus Shift plus F
-
-[step]
-
-Say=Search by pattern.
-Key=
-Hear=Control plus F3
-
-[step]
-
 Say=Control plus F, Forward Find, uses the screen reader's own find, so its dialog is the familiar one.
 Key=Control+F
 Hear=Find dialog
@@ -136,6 +118,24 @@ Say=Escape, and Alt plus G repeats the last go, or moves a step further.
 Key=Escape
 Hear=HomerView
 Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=What this walk taught. I name the command; the reader gives the key.
+Key=
+Hear=
+
+[step]
+
+Say=Search backwards.
+Key=
+Hear=Control plus Shift plus F
+
+[step]
+
+Say=Search by pattern.
+Key=
+Hear=Control plus F3
 
 [step]
 

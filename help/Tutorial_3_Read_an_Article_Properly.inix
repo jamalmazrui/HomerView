@@ -53,24 +53,6 @@ Hear=
 
 [step]
 
-Say=What this walk taught. I name the command; the reader gives the key.
-Key=
-Hear=
-
-[step]
-
-Say=Jump past the navigation.
-Key=
-Hear=Shift plus Q
-
-[step]
-
-Say=The article alone.
-Key=
-Hear=Shift plus F9
-
-[step]
-
 Say=Inside the article, Control plus Down Arrow moves by paragraph and reads it, as it does in Word.
 Key=Control+Down Arrow
 Hear=The study followed four hundred families for ten years.
@@ -131,6 +113,24 @@ Say=Alt plus M says what the page claims about itself: its author, its publisher
 Key=Alt+M
 Hear=Author: Lena Ortiz. Published 3 March 2026
 Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=What this walk taught. I name the command; the reader gives the key.
+Key=
+Hear=
+
+[step]
+
+Say=Jump past the navigation.
+Key=
+Hear=Shift plus Q
+
+[step]
+
+Say=The article alone.
+Key=
+Hear=Shift plus F9
 
 [step]
 

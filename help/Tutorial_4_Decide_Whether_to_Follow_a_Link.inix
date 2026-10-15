@@ -54,12 +54,6 @@ Note=Confirm the wording with a live run: buildTutorials -live.
 
 [step]
 
-Say=What this walk taught. I name the command; the reader gives the key.
-Key=
-Hear=
-
-[step]
-
 Say=Alt plus U says where the link at the cursor would go, its address, before I decide anything.
 Key=Alt+U
 Hear=https colon slash slash example dot org slash report dot pdf
@@ -135,6 +129,12 @@ Say=Escape closes it, and the cursor is back on the link.
 Key=Escape
 Hear=link, Annual report
 Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=What this walk taught. I name the command; the reader gives the key.
+Key=
+Hear=
 
 [step]
 

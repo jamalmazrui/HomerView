@@ -63,12 +63,6 @@ Note=Confirm the wording with a live run: buildTutorials -live.
 
 [step]
 
-Say=What this walk taught. I name the command; the reader gives the key.
-Key=
-Hear=
-
-[step]
-
 Say=Start, then complete a selection.
 Key=
 Hear=F8
@@ -146,6 +140,12 @@ Say=Control plus F8 copies the whole page's text in one press, for pasting into 
 Key=Control+F8
 Hear=All text copied
 Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=What this walk taught. I name the command; the reader gives the key.
+Key=
+Hear=
 
 [step]
 

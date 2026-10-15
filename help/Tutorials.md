@@ -26,7 +26,11 @@ What HomerView is, two keys of the screen reader's own, and the table of content
 
 HomerView opens its own copy of Microsoft Edge and talks to the browser directly, so it can answer what a screen reader cannot: the page as its scripts built it, what is at the other end of a link before you go, and files behind a sign-in fetched as a click would fetch them. It adds a command only where your screen reader cannot do the job, or cannot do it as well.
 
-### Step 2: Insert+Up Arrow
+### Step 2
+
+Two voices take these walks. I am the host; the other voice plays the screen reader. It is a simulation, so your own reader's words may differ a little.
+
+### Step 3: Insert+Up Arrow
 
 You know your screen reader's own keys already, and three of them are worth remembering whenever you feel lost or unsure. Insert plus Up Arrow says the line you are on again.
 
@@ -34,7 +38,7 @@ Screen reader:
 
 - Seattle is a seaport city on the West Coast of the United States.
 
-### Step 3: Insert+Tab
+### Step 4: Insert+Tab
 
 Insert plus Tab says what has the focus: its name, its role, and its value or state.
 
@@ -42,7 +46,7 @@ Screen reader:
 
 - Seattle, Wikipedia, document
 
-### Step 4: Insert+T
+### Step 5: Insert+T
 
 Insert plus T says the title of the window.
 
@@ -50,15 +54,15 @@ Screen reader:
 
 - Seattle - Wikipedia - Microsoft Edge
 
-### Step 5
-
-If you set your screen reader to use Caps Lock in place of Insert, Caps Lock works the same way for all three.
-
 ### Step 6
+
+On a laptop keyboard, Caps Lock usually stands in for Insert, though in some laptop layouts the line command moves to a letter, such as Caps Lock plus L. And if speech goes by before you catch it, your reader can replay it: Insert plus X in some readers, a speech history in others.
+
+### Step 7
 
 Now the table of contents. I say the number and the title; the reader says what the walk covers.
 
-### Step 7
+### Step 8
 
 One, User Interface.
 
@@ -66,7 +70,7 @@ Screen reader:
 
 - The HomerView window, the menu of every command, the hotkey summary, the rules its keys follow, and where help lives.
 
-### Step 8
+### Step 9
 
 Two, Install and Launch.
 
@@ -74,7 +78,7 @@ Screen reader:
 
 - The installer, the scripts it sets up for your screen reader, and the key that opens HomerView.
 
-### Step 9
+### Step 10
 
 Three, Read an Article Properly.
 
@@ -82,7 +86,7 @@ Screen reader:
 
 - Past the navigation in one key, the article alone in a tab, and the whole page read without moving.
 
-### Step 10
+### Step 11
 
 Four, Decide Whether to Follow a Link.
 
@@ -90,7 +94,7 @@ Screen reader:
 
 - What is at the other end of a link, before you go there.
 
-### Step 11
+### Step 12
 
 Five, Find Things.
 
@@ -98,7 +102,7 @@ Screen reader:
 
 - Searching backwards, searching by pattern, and gathering every match.
 
-### Step 12
+### Step 13
 
 Six, Select and Copy a Passage.
 
@@ -106,7 +110,7 @@ Screen reader:
 
 - A passage selected in two keys, copied, and passages gathered from across a page.
 
-### Step 13
+### Step 14
 
 Seven, Gather Files from a Page.
 
@@ -114,7 +118,7 @@ Screen reader:
 
 - Every document on a page fetched at once, with the browser's own sign-in.
 
-### Step 14
+### Step 15
 
 Eight, Check Accessibility.
 
@@ -122,7 +126,7 @@ Screen reader:
 
 - Two accessibility engines over a page, readable reports, and who to tell.
 
-### Step 15
+### Step 16
 
 Nine, Conclusion.
 
@@ -130,7 +134,7 @@ Screen reader:
 
 - What to carry away, the words HomerView uses, the help built in, and where to learn more.
 
-### Step 16
+### Step 17
 
 Ten walks, each under five minutes, under an hour together: the overview, the user interface, seven tasks, and the conclusion. They are a course, not a reference: each one assumes those before it.
 
@@ -535,27 +539,7 @@ Confirm the wording with a live run: buildTutorials -live.
 
 A planned misstep: the screen reader's own Say All starts where you are and leaves you further down. Read All starts at the top and leaves you where you were.
 
-### Step 8
-
-What this walk taught. I name the command; the reader gives the key.
-
-### Step 9
-
-Jump past the navigation.
-
-Screen reader:
-
-- Shift plus Q
-
-### Step 10
-
-The article alone.
-
-Screen reader:
-
-- Shift plus F9
-
-### Step 11: Control+Down Arrow
+### Step 8: Control+Down Arrow
 
 Inside the article, Control plus Down Arrow moves by paragraph and reads it, as it does in Word.
 
@@ -565,7 +549,7 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 12: Alt+Down Arrow
+### Step 9: Alt+Down Arrow
 
 Alt plus Down Arrow moves by sentence, for a closer reading.
 
@@ -575,7 +559,7 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 13: Alt+Up Arrow
+### Step 10: Alt+Up Arrow
 
 Alt plus Up Arrow goes back a sentence to hear it again.
 
@@ -585,7 +569,7 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 14: Z
+### Step 11: Z
 
 Z moves to the next thing of the same kind as the one I am on: the next paragraph, the next list item, the next link.
 
@@ -595,7 +579,7 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 15: Alt+Z
+### Step 12: Alt+Z
 
 Alt plus Z moves to the next thing of a different kind, past a long run of links to the text after them.
 
@@ -605,7 +589,7 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 16: Shift+F9
+### Step 13: Shift+F9
 
 Shift plus F9 sets the readable part of the page apart, in a page of its own, without the menus and advertisements around it.
 
@@ -615,7 +599,7 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 17: Alt+Delete
+### Step 14: Alt+Delete
 
 Alt plus Delete says where I am: the line, the column and how far through the page.
 
@@ -625,7 +609,7 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 18: ScrollLock
+### Step 15: ScrollLock
 
 Scroll Lock starts reading continuously, and stops it again, when I would rather listen than step.
 
@@ -635,7 +619,7 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 19: Alt+M
+### Step 16: Alt+M
 
 Alt plus M says what the page claims about itself: its author, its publisher and its date.
 
@@ -644,6 +628,26 @@ Screen reader:
 - Author: Lena Ortiz. Published 3 March 2026
 
 Confirm the wording with a live run: buildTutorials -live.
+
+### Step 17
+
+What this walk taught. I name the command; the reader gives the key.
+
+### Step 18
+
+Jump past the navigation.
+
+Screen reader:
+
+- Shift plus Q
+
+### Step 19
+
+The article alone.
+
+Screen reader:
+
+- Shift plus F9
 
 ### Step 20
 
@@ -713,11 +717,7 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 8
-
-What this walk taught. I name the command; the reader gives the key.
-
-### Step 9: Alt+U
+### Step 8: Alt+U
 
 Alt plus U says where the link at the cursor would go, its address, before I decide anything.
 
@@ -727,11 +727,11 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 10
+### Step 9
 
 Link Target, Alt plus L, goes further: what kind of thing is there, how big it is, and whether it ends somewhere else.
 
-### Step 11: Alt+L
+### Step 10: Alt+L
 
 For a document, it says the kind and the size, so a large download is no surprise.
 
@@ -741,7 +741,7 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 12: Alt+L
+### Step 11: Alt+L
 
 For a link that redirects, it says where it really lands, which is how a disguised link shows itself.
 
@@ -751,7 +751,7 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 13: Alt+Shift+P
+### Step 12: Alt+Shift+P
 
 Alt plus Shift plus P copies every link address on the page to the clipboard, for checking a page's links all at once.
 
@@ -761,7 +761,7 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 14: Alt+Apostrophe
+### Step 13: Alt+Apostrophe
 
 Alt plus Apostrophe says what is on the clipboard, to hear what was copied.
 
@@ -771,7 +771,7 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 15: Alt+A
+### Step 14: Alt+A
 
 Alt plus A says this page's own address; pressed twice, it spells it; three times, it copies it.
 
@@ -781,11 +781,11 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 16
+### Step 15
 
 Deciding first saves a trip to a page that was never wanted, and a download that was never meant.
 
-### Step 17: Alt+R
+### Step 16: Alt+R
 
 Alt plus R opens a recent page, for the moment a link already followed is wanted again.
 
@@ -795,11 +795,11 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 18
+### Step 17
 
 A link that opens a document rather than a page is common in government and university sites; asking first is how to know which it is.
 
-### Step 19: Alt+Q
+### Step 18: Alt+Q
 
 Alt plus Q looks something up with free services that need no account, such as a word in the link's text that is unfamiliar.
 
@@ -809,7 +809,7 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 20: Escape
+### Step 19: Escape
 
 Escape closes it, and the cursor is back on the link.
 
@@ -818,6 +818,10 @@ Screen reader:
 - link, Annual report
 
 Confirm the wording with a live run: buildTutorials -live.
+
+### Step 20
+
+What this walk taught. I name the command; the reader gives the key.
 
 ### Step 21
 
@@ -903,27 +907,7 @@ Confirm the wording with a live run: buildTutorials -live.
 
 A planned misstep: a pattern with a typing slip finds nothing, and HomerView says so rather than moving. Shift plus F3 after a backwards find goes forward: Shift reverses whichever came last.
 
-### Step 9
-
-What this walk taught. I name the command; the reader gives the key.
-
-### Step 10
-
-Search backwards.
-
-Screen reader:
-
-- Control plus Shift plus F
-
-### Step 11
-
-Search by pattern.
-
-Screen reader:
-
-- Control plus F3
-
-### Step 12: Control+F
+### Step 9: Control+F
 
 Control plus F, Forward Find, uses the screen reader's own find, so its dialog is the familiar one.
 
@@ -933,7 +917,7 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 13: F3
+### Step 10: F3
 
 F3 finds the next match, and Shift plus F3 the one before, whichever kind of find was used last.
 
@@ -943,7 +927,7 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 14: Alt+F3
+### Step 11: Alt+F3
 
 Alt plus F3 finds the next place the text at the cursor appears, with no typing at all.
 
@@ -953,11 +937,11 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 15
+### Step 12
 
 Control plus F3 finds by regular expression, which plain find cannot: any number, or any date.
 
-### Step 16: Alt+Y
+### Step 13: Alt+Y
 
 Alt plus Y says how many characters, words and lines the page holds, or the selection.
 
@@ -967,11 +951,11 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 17
+### Step 14
 
 Control plus Shift plus Y counts the matches of a regular expression, which answers questions such as how many prices are on this page.
 
-### Step 18: Alt+Shift+Y
+### Step 15: Alt+Shift+Y
 
 Alt plus Shift plus Y says how the page is built: how many headings, links and form fields.
 
@@ -981,7 +965,7 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 19: Control+G
+### Step 16: Control+G
 
 Control plus G goes to a percentage of the page, the way EdSharp does: 50 is the middle.
 
@@ -991,7 +975,7 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 20: Escape
+### Step 17: Escape
 
 Escape, and Alt plus G repeats the last go, or moves a step further.
 
@@ -1000,6 +984,26 @@ Screen reader:
 - HomerView
 
 Confirm the wording with a live run: buildTutorials -live.
+
+### Step 18
+
+What this walk taught. I name the command; the reader gives the key.
+
+### Step 19
+
+Search backwards.
+
+Screen reader:
+
+- Control plus Shift plus F
+
+### Step 20
+
+Search by pattern.
+
+Screen reader:
+
+- Control plus F3
 
 ### Step 21
 
@@ -1093,10 +1097,6 @@ Confirm the wording with a live run: buildTutorials -live.
 
 ### Step 9
 
-What this walk taught. I name the command; the reader gives the key.
-
-### Step 10
-
 Start, then complete a selection.
 
 Screen reader:
@@ -1104,7 +1104,7 @@ Screen reader:
 - F8
 - Shift plus F8
 
-### Step 11: Control+Space
+### Step 10: Control+Space
 
 Control plus Space selects the chunk at the cursor, a run of characters with no spaces in it, such as a web address or a code.
 
@@ -1114,7 +1114,7 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 12: Shift+Space
+### Step 11: Shift+Space
 
 Shift plus Space says what is selected, or spells it if pressed twice.
 
@@ -1124,7 +1124,7 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 13: Alt+Shift+F8
+### Step 12: Alt+Shift+F8
 
 Alt plus Shift plus F8 returns to where the selection began, to check its start.
 
@@ -1134,7 +1134,7 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 14: Control+Apostrophe
+### Step 13: Control+Apostrophe
 
 Control plus Apostrophe saves the clipboard to a text file, proposing a name, so a passage gathered over several pages can be kept.
 
@@ -1144,7 +1144,7 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 15: Escape
+### Step 14: Escape
 
 Escape. Control plus Shift plus Apostrophe adds the clipboard to the end of a text file, rather than replacing it.
 
@@ -1154,7 +1154,7 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 16: Alt+Shift+Apostrophe
+### Step 15: Alt+Shift+Apostrophe
 
 Alt plus Shift plus Apostrophe empties the clipboard, so an append starts afresh.
 
@@ -1164,15 +1164,15 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 17
+### Step 16
 
 Alt plus F8 reads the whole page aloud without moving the cursor, to hear a passage in context before copying it.
 
-### Step 18
+### Step 17
 
 These are the keys EdSharp uses for the same work, so a passage moves from a page to a document with the same habits.
 
-### Step 19: Control+C
+### Step 18: Control+C
 
 Copy Line, Control plus C, copies the selection, or the current line when nothing is selected, so one line needs no selecting at all.
 
@@ -1182,7 +1182,7 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 20: Alt+C
+### Step 19: Alt+C
 
 Alt plus C adds the selection, or the current line, to what is already on the clipboard, gathering lines from different places into one.
 
@@ -1192,7 +1192,7 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 21: Control+F8
+### Step 20: Control+F8
 
 Control plus F8 copies the whole page's text in one press, for pasting into a document of your own.
 
@@ -1201,6 +1201,10 @@ Screen reader:
 - All text copied
 
 Confirm the wording with a live run: buildTutorials -live.
+
+### Step 21
+
+What this walk taught. I name the command; the reader gives the key.
 
 ### Step 22
 
@@ -1270,13 +1274,9 @@ They go to the page's own folder under Downloads, and names are unescaped first,
 
 ### Step 8
 
-What this walk taught. I name the command; the reader gives the key.
-
-### Step 9
-
 Each file is saved into this page's folder, kept by HomerView for everything saved from the page.
 
-### Step 10: Alt+Shift+F
+### Step 9: Alt+Shift+F
 
 Alt plus Shift plus F opens that folder in File Explorer, to see what was gathered.
 
@@ -1286,7 +1286,7 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 11: Alt+L
+### Step 10: Alt+L
 
 Before gathering, Alt plus L on one file's link says its kind and size, so a large download is no surprise.
 
@@ -1296,7 +1296,7 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 12: Control+S
+### Step 11: Control+S
 
 Control plus S saves the page itself, in any of nine formats, beside the files gathered from it.
 
@@ -1306,7 +1306,7 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 13: Escape
+### Step 12: Escape
 
 Escape, for now.
 
@@ -1316,7 +1316,7 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 14: Control+O
+### Step 13: Control+O
 
 Control plus O opens a Word file, a spreadsheet, a slide deck, a PDF or an ebook as a page, so everything here works on it too.
 
@@ -1326,7 +1326,7 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 15: Escape
+### Step 14: Escape
 
 Escape. A downloaded PDF can be opened that way, read with the same keys, and searched with the same finds.
 
@@ -1336,11 +1336,11 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 16
+### Step 15
 
 For many pages at once, urlFido, another Homer program, fetches the same way from a list; Web Download suits the page you are on.
 
-### Step 17: Space
+### Step 16: Space
 
 Web Download lists the files on the page; Space ticks the ones wanted, and Enter fetches them.
 
@@ -1350,11 +1350,11 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 18
+### Step 17
 
 Files arrive one at a time, under the names the site gives them, in the page's folder.
 
-### Step 19: Shift+F4
+### Step 18: Shift+F4
 
 Shift plus F4 says the names of the open tabs, and F4 lists them to switch between pages, when files come from several.
 
@@ -1364,9 +1364,13 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 20
+### Step 19
 
 Each page keeps a folder of its own, so files from different pages never mix.
+
+### Step 20
+
+What this walk taught. I name the command; the reader gives the key.
 
 ### Step 21
 
@@ -1410,7 +1414,7 @@ Confirm the wording with a live run: buildTutorials -live.
 
 ### Step 4
 
-It starts in plain words: how many problems, and that an automated tool finds roughly a third of them. Then the worst first, each with its WCAG criterion named and its level.
+It starts in plain words: how many problems, and that an automated tool finds only some of them, so a person still checks the rest. Then the worst first, each with its WCAG criterion named and its level.
 
 ### Step 5: Alt+Shift+E
 
@@ -1436,27 +1440,7 @@ Confirm the wording with a live run: buildTutorials -live.
 
 A planned misstep: reading a report of no problems as a clean bill of health. An automated check finds only some problems; a person using the page finds the rest.
 
-### Step 8
-
-What this walk taught. I name the command; the reader gives the key.
-
-### Step 9
-
-Check with axe-core.
-
-Screen reader:
-
-- Alt plus Shift plus A
-
-### Step 10
-
-Check with Equal Access.
-
-Screen reader:
-
-- Alt plus Shift plus E
-
-### Step 11: Alt+Shift+C
+### Step 8: Alt+Shift+C
 
 Alt plus Shift plus C, Find Contacts, finds who to tell: email addresses, the accessibility statement, and contact forms.
 
@@ -1466,7 +1450,7 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 12: Alt+F10
+### Step 9: Alt+F10
 
 Report Accessibility, from the Alternate Menu, tests the page and writes a report addressed to whoever publishes the site.
 
@@ -1476,7 +1460,7 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 13: Enter
+### Step 10: Enter
 
 I type report, and Enter.
 
@@ -1486,11 +1470,11 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 14
+### Step 11
 
 The report is a page of its own, plain and polite, ready to send to the contact just found.
 
-### Step 15: Alt+Shift+Y
+### Step 12: Alt+Shift+Y
 
 Alt plus Shift plus Y, before testing, says how the page is built, which often explains a result: no headings, or a form with unlabelled fields.
 
@@ -1500,19 +1484,19 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 16
+### Step 13
 
 An automated test finds many problems but not all; the report says so, and lists what a person should still check.
 
-### Step 17
+### Step 14
 
 For a whole site, urlCheck, another Homer program, checks a list of pages and drafts a conformance report.
 
-### Step 18
+### Step 15
 
 Checking takes a minute, and a clear report makes a fix far more likely than a complaint.
 
-### Step 19: Alt+Shift+D
+### Step 16: Alt+Shift+D
 
 Alt plus Shift plus D closes a browser dialog that blocks the page, such as a cookie banner, before testing.
 
@@ -1522,7 +1506,7 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 20: Alt+Shift+A
+### Step 17: Alt+Shift+A
 
 Alt plus Shift plus A again, after a site fixes its page, shows whether the fix worked.
 
@@ -1532,7 +1516,7 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 21: Escape
+### Step 18: Escape
 
 Escape, for now.
 
@@ -1541,6 +1525,26 @@ Screen reader:
 - HomerView
 
 Confirm the wording with a live run: buildTutorials -live.
+
+### Step 19
+
+What this walk taught. I name the command; the reader gives the key.
+
+### Step 20
+
+Check with axe-core.
+
+Screen reader:
+
+- Alt plus Shift plus A
+
+### Step 21
+
+Check with Equal Access.
+
+Screen reader:
+
+- Alt plus Shift plus E
 
 ### Step 22
 

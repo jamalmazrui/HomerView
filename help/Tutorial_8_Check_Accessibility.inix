@@ -28,7 +28,7 @@ Note=Confirm the wording with a live run: buildTutorials -live.
 
 [step]
 
-Say=It starts in plain words: how many problems, and that an automated tool finds roughly a third of them. Then the worst first, each with its WCAG criterion named and its level.
+Say=It starts in plain words: how many problems, and that an automated tool finds only some of them, so a person still checks the rest. Then the worst first, each with its WCAG criterion named and its level.
 Key=
 Hear=
 
@@ -51,24 +51,6 @@ Note=Confirm the wording with a live run: buildTutorials -live.
 Say=A planned misstep: reading a report of no problems as a clean bill of health. An automated check finds only some problems; a person using the page finds the rest.
 Key=
 Hear=
-
-[step]
-
-Say=What this walk taught. I name the command; the reader gives the key.
-Key=
-Hear=
-
-[step]
-
-Say=Check with axe-core.
-Key=
-Hear=Alt plus Shift plus A
-
-[step]
-
-Say=Check with Equal Access.
-Key=
-Hear=Alt plus Shift plus E
 
 [step]
 
@@ -138,6 +120,24 @@ Say=Escape, for now.
 Key=Escape
 Hear=HomerView
 Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=What this walk taught. I name the command; the reader gives the key.
+Key=
+Hear=
+
+[step]
+
+Say=Check with axe-core.
+Key=
+Hear=Alt plus Shift plus A
+
+[step]
+
+Say=Check with Equal Access.
+Key=
+Hear=Alt plus Shift plus E
 
 [step]
 

@@ -5,7 +5,7 @@
     <link>Tutorials.htm</link>
     <description>Spoken walks through HomerView, the browser companion that does what a screen reader cannot. Ten walks, each under five minutes, in the order a new person meets them.</description>
     <language>en-us</language>
-    <lastBuildDate>Wed, 14 Oct 2026 17:10:42 +0000</lastBuildDate>
+    <lastBuildDate>Thu, 15 Oct 2026 20:56:49 +0000</lastBuildDate>
     <itunes:author>Jamal Mazrui</itunes:author>
     <itunes:explicit>false</itunes:explicit>
     <itunes:category text="Technology"/>
@@ -15,8 +15,8 @@
       <description>Nothing is needed; this walk is listened to. Full transcript: Tutorials.htm#0-0-overview</description>
       <link>Tutorials.htm#0-0-overview</link>
       <guid isPermaLink="false">homer-tutorial_0_overview</guid>
-      <enclosure url="tutorials/0_Overview.mp3" length="943725" type="audio/mpeg"/>
-      <itunes:duration>00:02:15</itunes:duration>
+      <enclosure url="tutorials/0_Overview.mp3" length="1068488" type="audio/mpeg"/>
+      <itunes:duration>00:02:31</itunes:duration>
       <itunes:explicit>false</itunes:explicit>
     </item>
     <item>
@@ -42,8 +42,8 @@
       <description>HomerView is open on a news article with a lot of navigation around it. Full transcript: Tutorials.htm#0c-3-read-an-article-properly</description>
       <link>Tutorials.htm#0c-3-read-an-article-properly</link>
       <guid isPermaLink="false">homer-tutorial_3_read_an_article_properly</guid>
-      <enclosure url="tutorials/3_Read_an_Article_Properly.mp3" length="1214113" type="audio/mpeg"/>
-      <itunes:duration>00:02:59</itunes:duration>
+      <enclosure url="tutorials/3_Read_an_Article_Properly.mp3" length="1216063" type="audio/mpeg"/>
+      <itunes:duration>00:03:00</itunes:duration>
       <itunes:explicit>false</itunes:explicit>
     </item>
     <item>
@@ -51,7 +51,7 @@
       <description>HomerView is open on a page with links. Full transcript: Tutorials.htm#0d-4-decide-whether-to-follow-a-link</description>
       <link>Tutorials.htm#0d-4-decide-whether-to-follow-a-link</link>
       <guid isPermaLink="false">homer-tutorial_4_decide_whether_to_follow_a_link</guid>
-      <enclosure url="tutorials/4_Decide_Whether_to_Follow_a_Link.mp3" length="1210119" type="audio/mpeg"/>
+      <enclosure url="tutorials/4_Decide_Whether_to_Follow_a_Link.mp3" length="1205001" type="audio/mpeg"/>
       <itunes:duration>00:02:53</itunes:duration>
       <itunes:explicit>false</itunes:explicit>
     </item>
@@ -60,8 +60,8 @@
       <description>HomerView is open on a page with dates or prices on it. Full transcript: Tutorials.htm#0e-5-find-things</description>
       <link>Tutorials.htm#0e-5-find-things</link>
       <guid isPermaLink="false">homer-tutorial_5_find_things</guid>
-      <enclosure url="tutorials/5_Find_Things.mp3" length="1260721" type="audio/mpeg"/>
-      <itunes:duration>00:03:02</itunes:duration>
+      <enclosure url="tutorials/5_Find_Things.mp3" length="1261884" type="audio/mpeg"/>
+      <itunes:duration>00:03:01</itunes:duration>
       <itunes:explicit>false</itunes:explicit>
     </item>
     <item>
@@ -69,7 +69,7 @@
       <description>HomerView is open on a long page. Full transcript: Tutorials.htm#0f-6-select-and-copy-a-passage</description>
       <link>Tutorials.htm#0f-6-select-and-copy-a-passage</link>
       <guid isPermaLink="false">homer-tutorial_6_select_and_copy_a_passage</guid>
-      <enclosure url="tutorials/6_Select_and_Copy_a_Passage.mp3" length="1290531" type="audio/mpeg"/>
+      <enclosure url="tutorials/6_Select_and_Copy_a_Passage.mp3" length="1292666" type="audio/mpeg"/>
       <itunes:duration>00:03:09</itunes:duration>
       <itunes:explicit>false</itunes:explicit>
     </item>
@@ -78,7 +78,7 @@
       <description>HomerView is open on a page with documents on it, such as an agency's publications. Full transcript: Tutorials.htm#0g-7-gather-files-from-a-page</description>
       <link>Tutorials.htm#0g-7-gather-files-from-a-page</link>
       <guid isPermaLink="false">homer-tutorial_7_gather_files_from_a_page</guid>
-      <enclosure url="tutorials/7_Gather_Files_from_a_Page.mp3" length="1232078" type="audio/mpeg"/>
+      <enclosure url="tutorials/7_Gather_Files_from_a_Page.mp3" length="1216642" type="audio/mpeg"/>
       <itunes:duration>00:02:54</itunes:duration>
       <itunes:explicit>false</itunes:explicit>
     </item>
@@ -87,8 +87,8 @@
       <description>HomerView is open on a page to check. Full transcript: Tutorials.htm#0h-8-check-accessibility</description>
       <link>Tutorials.htm#0h-8-check-accessibility</link>
       <guid isPermaLink="false">homer-tutorial_8_check_accessibility</guid>
-      <enclosure url="tutorials/8_Check_Accessibility.mp3" length="1278153" type="audio/mpeg"/>
-      <itunes:duration>00:03:03</itunes:duration>
+      <enclosure url="tutorials/8_Check_Accessibility.mp3" length="1294554" type="audio/mpeg"/>
+      <itunes:duration>00:03:04</itunes:duration>
       <itunes:explicit>false</itunes:explicit>
     </item>
     <item>

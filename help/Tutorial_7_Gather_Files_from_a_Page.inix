@@ -53,12 +53,6 @@ Hear=
 
 [step]
 
-Say=What this walk taught. I name the command; the reader gives the key.
-Key=
-Hear=
-
-[step]
-
 Say=Each file is saved into this page's folder, kept by HomerView for everything saved from the page.
 Key=
 
@@ -132,6 +126,12 @@ Note=Confirm the wording with a live run: buildTutorials -live.
 
 Say=Each page keeps a folder of its own, so files from different pages never mix.
 Key=
+
+[step]
+
+Say=What this walk taught. I name the command; the reader gives the key.
+Key=
+Hear=
 
 [step]
 

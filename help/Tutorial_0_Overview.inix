@@ -20,6 +20,11 @@ Key=
 Hear=
 
 [step]
+Say=Two voices take these walks. I am the host; the other voice plays the screen reader. It is a simulation, so your own reader's words may differ a little.
+Key=
+Hear=
+
+[step]
 
 Say=You know your screen reader's own keys already, and three of them are worth remembering whenever you feel lost or unsure. Insert plus Up Arrow says the line you are on again.
 Key=Insert+Up Arrow
@@ -39,7 +44,7 @@ Hear=Seattle - Wikipedia - Microsoft Edge
 
 [step]
 
-Say=If you set your screen reader to use Caps Lock in place of Insert, Caps Lock works the same way for all three.
+Say=On a laptop keyboard, Caps Lock usually stands in for Insert, though in some laptop layouts the line command moves to a letter, such as Caps Lock plus L. And if speech goes by before you catch it, your reader can replay it: Insert plus X in some readers, a speech history in others.
 Key=
 Hear=
 

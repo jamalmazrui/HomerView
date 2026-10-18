@@ -832,6 +832,27 @@ writeLog ""
 # the installer could only report that the keys had not been bound.
 #
 # PowerShell's own parser answers this in a moment. Nothing is executed.
+# THE BROWSER-IDENTITY PROOF (18 October 2026, suite stage 1). identity.py is
+# the one place HomerView decides whose window a key or a page belongs to, and
+# scripts\testIdentity.py checks every rule in it without NVDA or a browser.
+# A failure stops the build: a release that claims an ordinary browser window,
+# or misses its own Chrome, must not be built.
+writeLog "Step 1a of 5: the browser-identity tests"
+$pathTestIdentity = Join-Path $pathRoot "scripts\testIdentity.py"
+$commandPythonForTests = Get-Command python -ErrorAction SilentlyContinue
+if (-not $commandPythonForTests) {
+    writeLog "ERROR: python is not on the path, so the browser-identity tests cannot run."
+    exit 1
+}
+$sIdentityOut = & python $pathTestIdentity 2>&1 | Out-String
+$iIdentityExit = $LASTEXITCODE
+foreach ($sLine in ($sIdentityOut -split "`n")) { if ($sLine.Trim()) { writeLog "  $($sLine.Trim())" } }
+writeLog "  testIdentity exit code: $iIdentityExit"
+if ($iIdentityExit -ne 0) {
+    writeLog "ERROR: the browser-identity tests failed; see the testIdentity log in logs."
+    exit 1
+}
+writeLog ""
 writeLog "Step 1b of 5: parsing the PowerShell that the installer runs"
 foreach ($sName in @("scripts\chainJawsScripts.ps1", "scripts\installJawsScripts.ps1", "scripts\checkJawsScripts.ps1")) {
     $pathScript = Join-Path $pathRoot $sName

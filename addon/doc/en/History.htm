@@ -2,19 +2,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en-US" xml:lang="en-US">
 <head>
   <meta charset="utf-8" />
-  <meta name="generator" content="pandoc 3.12.1" />
+  <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <title>History</title>
   <style>
-    /* Default styles provided by pandoc.
-    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
-    */
     html {
       color: #1a1a1a;
-      color: light-dark(#1a1a1a, #fdfdfd);
       background-color: #fdfdfd;
-      background-color: light-dark(#fdfdfd, #1a1a1a);
-      color-scheme: light dark;
     }
     body {
       margin: 0 auto;
@@ -39,16 +33,12 @@
     }
     @media print {
       html {
-        color-scheme: light only;
+        background-color: white;
       }
-      html, body, pre, code {
+      body {
         background-color: transparent;
-      }
-      body, a, a:visited, blockquote {
         color: black;
-      }
-      pre, code {
-        padding: 0;
+        font-size: 12pt;
       }
       p, h2, h3 {
         orphans: 3;
@@ -61,14 +51,13 @@
     p {
       margin: 1em 0;
     }
-    a, a:visited {
-      color: inherit;
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
     }
     img {
-      max-width: 100%;
-    }
-    svg {
-      height: auto;
       max-width: 100%;
     }
     h1, h2, h3, h4, h5, h6 {
@@ -91,14 +80,10 @@
     blockquote {
       margin: 1em 0 1em 1.7em;
       padding-left: 1em;
-      border-left: 2px solid;
-      border-color: #e6e6e6;
-      border-color: light-dark(#e6e6e6, #4c4c4c);
+      border-left: 2px solid #e6e6e6;
       color: #606060;
-      color: light-dark(#606060, #b6b6b6);
     }
     code {
-      white-space: pre-wrap;
       font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
       font-size: 85%;
       margin: 0;
@@ -118,8 +103,8 @@
      overflow: visible;
     }
     hr {
+      background-color: #1a1a1a;
       border: none;
-      border-top: 1px solid currentColor;
       height: 1px;
       margin: 1em 0;
     }
@@ -136,11 +121,11 @@
     }
     tbody {
       margin-top: 0.5em;
-      border-top: 1px solid currentColor;
-      border-bottom: 1px solid currentColor;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
     }
     th {
-      border-top: 1px solid currentColor;
+      border-top: 1px solid #1a1a1a;
       padding: 0.25em 0.5em 0.25em 0.5em;
     }
     td {
@@ -162,13 +147,10 @@
     #TOC a:not(:hover) {
       text-decoration: none;
     }
+    code{white-space: pre-wrap;}
     span.smallcaps{font-variant: small-caps;}
-    div.columns{display: flex; gap: 1.5em;}
-    div.column{flex: auto;}
-    @media screen {
-    div.columns{gap: min(4vw, 1.5em);}
-    div.column{overflow-x: auto;}
-    }
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
     div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
     /* The extra [class] is a hack that increases specificity enough to
        override a similar rule in reveal.js */
@@ -179,149 +161,42 @@
       margin: 0 0.8em 0.2em -1.6em;
       vertical-align: middle;
     }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
   </style>
 </head>
 <body>
-<h1>History</h1>
-<nav id="TOC" role="doc-toc" aria-label="Contents">
-<ul>
-<li><a href="#october-2026-consult-copilot-on-jaws"
-id="toc-october-2026-consult-copilot-on-jaws">14 October 2026 – Consult
-Copilot on JAWS</a></li>
-<li><a
-href="#october-2026-tab-close-others-on-jaws-too-and-never-on-a-guess"
-id="toc-october-2026-tab-close-others-on-jaws-too-and-never-on-a-guess">14
-October 2026 – Tab Close Others, on JAWS too, and never on a
-guess</a></li>
-<li><a href="#october-2026-yield-structure"
-id="toc-october-2026-yield-structure">14 October 2026 – Yield
-Structure</a></li>
-<li><a
-href="#october-2026-link-target-reads-a-pages-details-whatever-their-order-and-stops-at-its-redirect-limit"
-id="toc-october-2026-link-target-reads-a-pages-details-whatever-their-order-and-stops-at-its-redirect-limit">14
-October 2026 – Link Target reads a page’s details whatever their order,
-and stops at its redirect limit</a></li>
-<li><a href="#october-2026-five-nvda-commands-come-to-jaws"
-id="toc-october-2026-five-nvda-commands-come-to-jaws">14 October 2026 –
-five NVDA commands come to JAWS</a></li>
-<li><a
-href="#october-2026-the-session-logs-name-built-so-the-compiler-accepts-it"
-id="toc-october-2026-the-session-logs-name-built-so-the-compiler-accepts-it">11
-October 2026 – the session log’s name, built so the compiler accepts
-it</a></li>
-<li><a href="#october-2026-a-log-for-every-session-where-homer-logs-go"
-id="toc-october-2026-a-log-for-every-session-where-homer-logs-go">11
-October 2026 – a log for every session, where Homer logs go</a></li>
-<li><a href="#october-2026-from-an-audit-and-a-report"
-id="toc-october-2026-from-an-audit-and-a-report">11 October 2026 – from
-an audit and a report</a></li>
-<li><a href="#october-2026-from-the-build-and-release-logs"
-id="toc-october-2026-from-the-build-and-release-logs">9 October 2026 –
-from the build and release logs</a></li>
-<li><a href="#unreleased-9-october-2026"
-id="toc-unreleased-9-october-2026">Unreleased – 9 October 2026</a></li>
-<li><a href="#october-2026-an-audit-by-another-ai"
-id="toc-october-2026-an-audit-by-another-ai">8 October 2026 – an audit
-by another AI</a></li>
-<li><a href="#october-2026-tutorials-in-the-pattern-of-ten"
-id="toc-october-2026-tutorials-in-the-pattern-of-ten">8 October 2026 –
-tutorials in the pattern of ten</a></li>
-<li><a
-href="#homerview-has-spoken-tutorials-for-the-first-time-ten-walks-in-the-homer-pattern-of-ten.-0-overview-1-user-interface-the-window-the-command-list-the-hotkey-summary-the-key-rules-and-help-2-install-and-launch-seven-tasks-3-read-an-article-properly-4-decide-whether-to-follow-a-link-5-find-things-6-select-and-copy-a-passage-7-gather-files-from-a-page-8-check-accessibility-and-9-conclusion.-build.ps1-now-copies-the-kits-tutorial-tools-in-and-speaks-the-walks-before-compiling-the-installer-the-installer-ships-the-tutorials-and-their-audio-and-repofiles.txt-names-them-for-the-repository."
-id="toc-homerview-has-spoken-tutorials-for-the-first-time-ten-walks-in-the-homer-pattern-of-ten.-0-overview-1-user-interface-the-window-the-command-list-the-hotkey-summary-the-key-rules-and-help-2-install-and-launch-seven-tasks-3-read-an-article-properly-4-decide-whether-to-follow-a-link-5-find-things-6-select-and-copy-a-passage-7-gather-files-from-a-page-8-check-accessibility-and-9-conclusion.-build.ps1-now-copies-the-kits-tutorial-tools-in-and-speaks-the-walks-before-compiling-the-installer-the-installer-ships-the-tutorials-and-their-audio-and-repofiles.txt-names-them-for-the-repository.">HomerView
-has spoken tutorials for the first time: ten walks in the Homer pattern
-of ten. 0 Overview; 1 User Interface, the window, the command list, the
-hotkey summary, the key rules and help; 2 Install and Launch; seven
-tasks, 3 Read an Article Properly, 4 Decide Whether to Follow a Link, 5
-Find Things, 6 Select and Copy a Passage, 7 Gather Files from a Page, 8
-Check Accessibility; and 9 Conclusion. build.ps1 now copies the kit’s
-tutorial tools in and speaks the walks before compiling the installer,
-the installer ships the tutorials and their audio, and RepoFiles.txt
-names them for the repository.</a></li>
-<li><a href="#toggle-punctuation-has-its-own-key"
-id="toc-toggle-punctuation-has-its-own-key">Toggle Punctuation has its
-own key</a></li>
-<li><a href="#the-user-guide-names-the-right-keys"
-id="toc-the-user-guide-names-the-right-keys">The user guide names the
-right keys</a></li>
-<li><a href="#pandoc-is-shared-with-your-other-homer-apps"
-id="toc-pandoc-is-shared-with-your-other-homer-apps">Pandoc is shared
-with your other Homer apps</a></li>
-<li><a href="#homerview-clears-up-after-itself"
-id="toc-homerview-clears-up-after-itself">HomerView clears up after
-itself</a></li>
-<li><a href="#controlf-searches-what-your-screen-reader-shows-you"
-id="toc-controlf-searches-what-your-screen-reader-shows-you">Control+F
-searches what your screen reader shows you</a></li>
-<li><a href="#more-of-homerview-works-in-an-ordinary-edge-window"
-id="toc-more-of-homerview-works-in-an-ordinary-edge-window">More of
-HomerView works in an ordinary Edge window</a></li>
-<li><a href="#alt-and-control-are-left-for-your-desktop-shortcuts"
-id="toc-alt-and-control-are-left-for-your-desktop-shortcuts">Alt and
-Control are left for your desktop shortcuts</a></li>
-<li><a
-href="#the-same-keys-on-jaws-and-nvda-and-one-fewer-key-to-hold-down"
-id="toc-the-same-keys-on-jaws-and-nvda-and-one-fewer-key-to-hold-down">The
-same keys on JAWS and NVDA, and one fewer key to hold down</a></li>
-<li><a href="#every-key-now-belongs-to-the-browser"
-id="toc-every-key-now-belongs-to-the-browser">Every key now belongs to
-the browser</a></li>
-<li><a href="#homerview-works-with-any-chromium-browser"
-id="toc-homerview-works-with-any-chromium-browser">HomerView works with
-any Chromium browser</a></li>
-<li><a href="#version-1.48.5-15-august-2026"
-id="toc-version-1.48.5-15-august-2026">Version 1.48.5 — 15 August
-2026</a>
-<ul>
-<li><a href="#list-names" id="toc-list-names">List Names</a></li>
-<li><a href="#find-contacts-became-a-command-of-its-own"
-id="toc-find-contacts-became-a-command-of-its-own">Find Contacts became
-a command of its own</a></li>
-<li><a href="#one-folder-for-each-page"
-id="toc-one-folder-for-each-page">One folder for each page</a></li>
-<li><a href="#removal-takes-everything-with-it"
-id="toc-removal-takes-everything-with-it">Removal takes everything with
-it</a></li>
-<li><a href="#explore-page-gave-back-its-single-letter"
-id="toc-explore-page-gave-back-its-single-letter">Explore Page gave back
-its single letter</a></li>
-<li><a href="#the-page-is-kept-as-evidence"
-id="toc-the-page-is-kept-as-evidence">The page is kept as
-evidence</a></li>
-<li><a
-href="#nvda-uses-a-browseable-message-where-jaws-uses-a-user-buffer"
-id="toc-nvda-uses-a-browseable-message-where-jaws-uses-a-user-buffer">NVDA
-uses a browseable message where JAWS uses a user buffer</a></li>
-<li><a href="#fixes" id="toc-fixes">Fixes</a></li>
-</ul></li>
-<li><a href="#version-1.48.4-14-august-2026"
-id="toc-version-1.48.4-14-august-2026">Version 1.48.4 — 14 August
-2026</a>
-<ul>
-<li><a href="#the-jaws-scripts-grew-from-six-commands-to-forty-one"
-id="toc-the-jaws-scripts-grew-from-six-commands-to-forty-one">The JAWS
-scripts grew from six commands to forty-one</a></li>
-<li><a href="#web-download" id="toc-web-download">Web Download</a></li>
-<li><a href="#the-accessibility-reports-became-reports"
-id="toc-the-accessibility-reports-became-reports">The accessibility
-reports became reports</a></li>
-<li><a href="#the-alternate-menu-became-a-table"
-id="toc-the-alternate-menu-became-a-table">The Alternate Menu became a
-table</a></li>
-<li><a href="#fixes-worth-naming" id="toc-fixes-worth-naming">Fixes
-worth naming</a></li>
-</ul></li>
-<li><a href="#version-1.48.3-earlier-in-august-2026"
-id="toc-version-1.48.3-earlier-in-august-2026">Version 1.48.3 — earlier
-in August 2026</a></li>
-<li><a href="#version-1.48.2-earlier-in-august-2026"
-id="toc-version-1.48.2-earlier-in-august-2026">Version 1.48.2 — earlier
-in August 2026</a></li>
-<li><a href="#earlier-versions" id="toc-earlier-versions">Earlier
-versions</a></li>
-</ul>
-</nav>
 <main>
+<h1>History</h1>
+<h2
+id="october-2026-homerview-recognizes-its-own-browser-by-process-never-by-name">18
+October 2026 – HomerView recognizes its own browser by process, never by
+name</h2>
+<ul>
+<li><strong>One identity rule, in one place.</strong> A new module,
+identity.py, decides whose window a key or a page belongs to, and both
+places that decided before now ask it. A window is HomerView’s only when
+its process is one of the processes of the browser HomerView launched or
+attached to.</li>
+<li><strong>HomerView’s Chrome is recognized.</strong> The page test
+used to refuse anything not named msedge before it looked at the
+process, so a page in HomerView’s Chrome, Brave or Vivaldi never got
+HomerView’s commands.</li>
+<li><strong>An ordinary window of the same browser is left
+alone.</strong> With no browser process known, the key test used to fall
+back to the browser’s program name, which claimed every ordinary Edge or
+Chrome window. Now, until HomerView’s browser is running, every key
+keeps its normal browser and screen reader meaning.</li>
+<li><strong>Tested on every build.</strong> scripts.py checks 18 cases,
+including Chrome and Chromium sharing a program name and requests made
+stale by a changed tab or page, and the build stops if one fails.</li>
+<li><strong>The Start menu’s shortcuts to the guide, the history and the
+developer notes now open them.</strong> They pointed at the top of the
+program folder, while the installer puts those pages in its help folder,
+so each shortcut led nowhere. The check before push found it and stopped
+the push, as it should.</li>
+<li>Part of the Homer Suite integration (stage 1, the browser-identity
+proof).</li>
+</ul>
 <h2 id="october-2026-consult-copilot-on-jaws">14 October 2026 – Consult
 Copilot on JAWS</h2>
 <ul>

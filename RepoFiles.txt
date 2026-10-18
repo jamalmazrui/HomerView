@@ -37,6 +37,8 @@ scripts\checkJawsScripts.cmd
 scripts\checkJawsScripts.ps1
 scripts\checkParity.cmd
 scripts\checkParity.py
+scripts\testIdentity.cmd
+scripts\testIdentity.py
 
 # The sources the build compiles, and the scripts the installer runs.
 HomerView.cs

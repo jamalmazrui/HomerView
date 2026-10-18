@@ -1,6 +1,15 @@
 ﻿
 
 
+## 18 October 2026 -- HomerView recognizes its own browser by process, never by name
+
+- **One identity rule, in one place.** A new module, identity.py, decides whose window a key or a page belongs to, and both places that decided before now ask it. A window is HomerView's only when its process is one of the processes of the browser HomerView launched or attached to.
+- **HomerView's Chrome is recognized.** The page test used to refuse anything not named msedge before it looked at the process, so a page in HomerView's Chrome, Brave or Vivaldi never got HomerView's commands.
+- **An ordinary window of the same browser is left alone.** With no browser process known, the key test used to fall back to the browser's program name, which claimed every ordinary Edge or Chrome window. Now, until HomerView's browser is running, every key keeps its normal browser and screen reader meaning.
+- **Tested on every build.** scripts\testIdentity.py checks 18 cases, including Chrome and Chromium sharing a program name and requests made stale by a changed tab or page, and the build stops if one fails.
+- **The Start menu's shortcuts to the guide, the history and the developer notes now open them.** They pointed at the top of the program folder, while the installer puts those pages in its help folder, so each shortcut led nowhere. The check before push found it and stopped the push, as it should.
+- Part of the Homer Suite integration (stage 1, the browser-identity proof).
+
 ## 14 October 2026 -- Consult Copilot on JAWS
 
 - **Consult Copilot is on the JAWS menu.** As on NVDA, it puts the page's title, address and main text on the clipboard, ready to paste, then presses Edge's own key for Copilot, Control+Shift+Period, through HomerView's helper; you hear how many characters are on the clipboard.

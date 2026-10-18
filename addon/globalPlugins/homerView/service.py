@@ -22,6 +22,7 @@ import wx
 from pathlib import Path
 
 from . import ace
+from . import identity
 from . import act
 from . import axe
 from . import capture
@@ -187,12 +188,14 @@ class HomerViewService:
         return bool(iProcessId) and iProcessId in self.setProcessIds
 
     def isHomerViewObject(self, obj):
-        appModule = getattr(obj, "appModule", None)
-        sAppName = (getattr(appModule, "appName", "") or "").lower()
-        if sAppName != "msedge":
-            return False
+        # PROCESS IDENTITY DECIDES, NOT THE PROGRAM'S NAME (18 October 2026).
+        # This used to refuse anything not named msedge before looking at the
+        # process, so a page in HomerView's Chrome was never recognized. The
+        # rule now lives in identity.py, shared with the key test in
+        # __init__.py, and is tested by scripts\testIdentity.py on every build.
+        sAppName = (getattr(getattr(obj, "appModule", None), "appName", "") or "").lower()
         iProcessId = getattr(obj, "processID", 0)
-        bMatch = self.isHomerViewProcess(iProcessId)
+        bMatch = identity.isManagedObject(obj, self.setProcessIds)
         homerLog.debug(
             f"Identity test: appName={sAppName} processId={iProcessId} "
             f"known={sorted(self.setProcessIds)} match={bMatch}"

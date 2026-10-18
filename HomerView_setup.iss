@@ -244,9 +244,9 @@ Source: "scripts\installPandoc.ps1"; DestDir: "{app}\scripts"; Flags: ignorevers
 ; A Start Menu group is created only if the user asks for one, since
 ; DisableProgramGroupPage and AllowNoIcons are both yes.
 Name: "{group}\HomerView read me"; Filename: "{app}\ReadMe.htm"
-Name: "{group}\HomerView app guide"; Filename: "{app}\HomerView.htm"
-Name: "{group}\HomerView history of changes"; Filename: "{app}\History.htm"
-Name: "{group}\HomerView developer notes"; Filename: "{app}\Developer.htm"
+Name: "{group}\HomerView app guide"; Filename: "{app}\help\HomerView.htm"
+Name: "{group}\HomerView history of changes"; Filename: "{app}\help\History.htm"
+Name: "{group}\HomerView developer notes"; Filename: "{app}\help\Developer.htm"
 ; A shortcut runs as whoever double-clicks it, so this one can point at the
 ; add-on file directly and let the file association do its work.
 Name: "{group}\Install the HomerView add-on in NVDA"; Filename: "{app}\scripts\installJawsScripts.cmd"; Parameters: "-bNvda -bQuiet"; WorkingDir: "{app}"; Flags: runminimized

@@ -17,6 +17,7 @@ import wx
 from . import logger
 from . import paths
 from .logger import abbreviate, homerLog, logError, logSection, logThreadContext, needsHomerView
+from . import identity
 
 import addonHandler
 
@@ -470,9 +471,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         tested against them, so this costs an integer set lookup.
 
         Before the browser has been launched there are no identifiers to
-        compare, and the name test is the best available answer; it is used
-        only then, and only to decide whether a key is HomerView's, never to
-        decide what to act on.
+        compare, and then no key is HomerView's: see identity.py.
 
         THAT FALLBACK USED TO SAY "msedge" IN SO MANY WORDS, which was wrong
         in two directions once any Chromium browser could be the one: it
@@ -480,20 +479,24 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         ordinary Edge window when it was not. It now asks which browser was
         chosen and compares against that.
         """
+        # NO NAME FALLBACK (18 October 2026). With no process known -- before
+        # launch, after the browser closed -- every key keeps its normal
+        # browser and screen-reader meaning; Connect and Launch are commands.
+        # The old fallback compared program names, which claimed an ordinary
+        # window of the same browser. The rule is identity.keyBelongsToHomerView.
         try:
             focus = api.getFocusObject()
             iProcessId = getattr(focus, "processID", 0)
-            if service.setProcessIds:
-                bMine = iProcessId in service.setProcessIds
-                if not bMine:
-                    homerLog.debug(
-                        f"Focus is process {iProcessId}, not one of HomerView's "
-                        f"{sorted(service.setProcessIds)}"
-                    )
-                return bMine
+            bMine = identity.keyBelongsToHomerView(iProcessId, service.setProcessIds)
+            if not bMine and service.setProcessIds:
+                homerLog.debug(
+                    f"Focus is process {iProcessId}, not one of HomerView's "
+                    f"{sorted(service.setProcessIds)}"
+                )
+            return bMine
         except Exception:
             logError("The focused process could not be identified")
-        return self._focusAppName() == self._chosenBrowserName()
+        return False
 
     def _chosenBrowserName(self):
         """The chosen browser's executable name, as NVDA spells an appName.

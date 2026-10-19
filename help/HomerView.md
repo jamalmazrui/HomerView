@@ -351,7 +351,7 @@ in the order it happened.
 ### HomerView's own documents
 
 - **Control+F1** — this guide
-- **Alt+Shift+F1** — the Quick Start
+- **Alt+Shift+F1** — ReadMe, the quick start
 - **Shift+F1** — the history of changes
 - **Control+Shift+F1** — the developer notes
 - **Alt+F1** — which build is loaded and where everything lives
@@ -378,13 +378,13 @@ one sentence, and names the key. It does not fail quietly.
 
 - About HomerView, Alternate Menu, Hot Key Help, Report Diagnostics
 - Append Clipboard, Clear Clipboard, Copy Append, Save Clipboard, Say Clipboard,
-  Log to Clipboard
-- Choose Browser, HomerView Settings
+  Copy Log
+- Choose Browser, Edit Settings
 - Complete Selection, Copy Selection, Go to Start of Selection, Start Selection
-- Developer Notes, History of Changes, Project Announcement, Quick Start,
+- Developer Notes, History of Changes, Project Announcement, ReadMe,
   Session Log, User Guide
-- Forward Find for Text, Forward Find Again, Reverse Find for Text,
-  Reverse Find Again
+- Forward Find for Text, Search Next, Reverse Find for Text,
+  Search Previous
 - Launch HomerView, Link Target
 - **Open Document.** The file is converted the same way whatever browser you
   use, so this is the same result and not a lesser one.
@@ -437,9 +437,9 @@ on. Each entry gives the NVDA key and the JAWS key.
     - NVDA: Alt+Shift+B
     - JAWS: Alt+Shift+B
     - Lists the browsers on this computer. Pick the one HomerView should use. Edge, Chrome, Brave and Vivaldi all work. B for Browser.
-- **HomerView Settings**
-    - NVDA: Alt+Shift+S
-    - JAWS: Alt+Shift+S
+- **Edit Settings**
+    - NVDA: Alt+Shift+E
+    - JAWS: Alt+Shift+E
     - Opens the settings file in a text editor. Every HomerView preference is in it, and a note beside each one says what it does. S for Settings.
 
 #### Reading the documentation
@@ -456,11 +456,11 @@ on. Each entry gives the NVDA key and the JAWS key.
     - NVDA: Shift+F1
     - JAWS: Shift+F1
     - Display list of fixes and improvements.
-- **Hotkey Document**
+- **Hotkeys**
     - NVDA: no key
     - JAWS: no key, on the Alternate Menu
     - Open the shipped list of every command, key and description. Hotkey Summary on Alt+Shift+H builds the same list from the program itself; this opens the copy that came with it.
-- **Log to Clipboard**
+- **Copy Log**
     - NVDA: Alt+Shift+L
     - JAWS: Alt+Shift+L
     - Copy the HomerView log to the clipboard as a file, so Control+V attaches it to an email rather than typing its name into one. L for Log, beside the other Control+Shift keys that put something somewhere.
@@ -468,7 +468,7 @@ on. Each entry gives the NVDA key and the JAWS key.
     - NVDA: no key
     - JAWS: no key, on the Alternate Menu
     - Open the short description of HomerView, for passing on to somebody who has not met it.
-- **Quick Start**
+- **ReadMe**
     - NVDA: Alt+Shift+F1
     - JAWS: Alt+Shift+F1
     - Open the first ten minutes of HomerView, for somebody new to it.
@@ -515,19 +515,19 @@ on. Each entry gives the NVDA key and the JAWS key.
     - NVDA: Alt+DownArrow
     - JAWS: **not yet on JAWS**
     - Moves to the next sentence and reads it. Alt with an arrow moves by something larger than a line and smaller than a paragraph.
-- **Prior Different Kind**
+- **Previous Different Kind**
     - NVDA: Alt+Shift+Z
     - JAWS: **not yet on JAWS**
     - Moves to the previous thing of a different kind.
-- **Prior Paragraph**
+- **Previous Paragraph**
     - NVDA: Control+UpArrow
     - JAWS: **not yet on JAWS**
     - Moves to the previous paragraph and reads it.
-- **Prior Same Kind**
+- **Previous Same Kind**
     - NVDA: Shift+Z
     - JAWS: **not yet on JAWS**
     - Moves to the previous thing of the same kind as the one you are on.
-- **Prior Sentence**
+- **Previous Sentence**
     - NVDA: Alt+UpArrow
     - JAWS: **not yet on JAWS**
     - Moves to the previous sentence and reads it.
@@ -542,7 +542,7 @@ on. Each entry gives the NVDA key and the JAWS key.
     - NVDA: Control+F
     - JAWS: **not yet on JAWS**
     - Search forward for string, using NVDA's own find so the dialog and its behaviour are the ones you already know.
-- **Forward Find Again**
+- **Search Next**
     - NVDA: F3
     - JAWS: F3
     - Search forward for next match, of whichever kind of find was used last.
@@ -565,7 +565,7 @@ on. Each entry gives the NVDA key and the JAWS key.
     - NVDA: Control+Shift+F
     - JAWS: Control+Shift+F (named "Reverse Find for Text" there)
     - Search backward for string.
-- **Reverse Find Again**
+- **Search Previous**
     - NVDA: Shift+F3
     - JAWS: Shift+F3
     - Search backward for previous match.
@@ -635,7 +635,7 @@ on. Each entry gives the NVDA key and the JAWS key.
     - NVDA: Alt+SemiColon
     - JAWS: **not yet on JAWS**
     - Say current time and date.
-- **Say Url**
+- **Say url**
     - NVDA: Alt+U
     - JAWS: **not yet on JAWS**
     - Say where the link at the cursor would go. U for url.

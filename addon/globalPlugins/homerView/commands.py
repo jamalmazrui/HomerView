@@ -82,7 +82,7 @@ lCommands = [
      "Open Documentation in the HomerView window. F1 is help everywhere, but "
      "plain F1 opens Edge's own help and stays Edge's, so the family here takes "
      "F1 with a modifier."),
-    ("openQuickStart", "Quick Start", ["kb:alt+shift+f1"],
+    ("openQuickStart", "ReadMe", ["kb:alt+shift+f1"],
      "Open the first ten minutes of HomerView, for somebody new to it."),
     ("showHistory", "History of Changes", ["kb:shift+f1"],
      "Display list of fixes and improvements."),
@@ -90,14 +90,14 @@ lCommands = [
      "Display version and release date, and where HomerView keeps its files."),
     ("openDeveloperNotes", "Developer Notes", ["kb:control+shift+f1"],
      "Open the notes on how HomerView is built and why."),
-    ("openHotkeyDocument", "Hotkey Document", [],
+    ("openHotkeyDocument", "Hotkeys", [],
      "Open the shipped list of every command, key and description. Hotkey Summary "
      "on Alt+Shift+H builds the same list from the program itself; this opens the "
      "copy that came with it."),
     ("openAnnouncement", "Project Announcement", [],
      "Open the short description of HomerView, for passing on to somebody who has "
      "not met it."),
-    ("logToClipboard", "Log to Clipboard", ["kb:alt+shift+l"],
+    ("logToClipboard", "Copy Log", ["kb:alt+shift+l"],
      "Copy the HomerView log to the clipboard as a file, so Control+V attaches it "
      "to an email rather than typing its name into one. L for Log, beside the "
      "other Control+Shift keys that put something somewhere."),
@@ -109,7 +109,7 @@ lCommands = [
      "Choose which Chromium browser HomerView drives, from the ones installed "
      "here. B for Browser, and Alt+Shift with a letter is where the settings "
      "commands live because they are used once and then not again for months."),
-    ("openSettings", "HomerView Settings", ["kb:alt+shift+s"],
+    ("openSettings", "Edit Settings", ["kb:alt+shift+e"],
      "Open the settings file, HomerView.inix, in a text editor. Everything the "
      "settings panel changes is in it, and a comment beside each value says what "
      "it does."),
@@ -124,21 +124,21 @@ lCommands = [
     ("nextSentence", "Next Sentence", ["kb:alt+downarrow"],
      "Moves to the next sentence and reads it. Alt with an arrow moves by "
      "something larger than a line and smaller than a paragraph."),
-    ("priorSentence", "Prior Sentence", ["kb:alt+uparrow"],
+    ("priorSentence", "Previous Sentence", ["kb:alt+uparrow"],
      "Moves to the previous sentence and reads it."),
     ("nextParagraph", "Next Paragraph", ["kb:control+downarrow"],
      "Moves to the next paragraph and reads it. Control with an arrow moves by "
      "paragraph in Word and in most editors."),
-    ("priorParagraph", "Prior Paragraph", ["kb:control+uparrow"],
+    ("priorParagraph", "Previous Paragraph", ["kb:control+uparrow"],
      "Moves to the previous paragraph and reads it."),
     ("nextSameType", "Next Same Kind", ["kb:z"],
      "Moves to the next thing of the same kind as the one you are on, whatever "
      "that is. Z because NVDA leaves it free, and JAWS does this with S."),
-    ("priorSameType", "Prior Same Kind", ["kb:shift+z"],
+    ("priorSameType", "Previous Same Kind", ["kb:shift+z"],
      "Moves to the previous thing of the same kind as the one you are on."),
     ("nextDifferentType", "Next Different Kind", ["kb:alt+z"],
      "Moves to the next thing of a different kind, which JAWS does with D."),
-    ("priorDifferentType", "Prior Different Kind", ["kb:alt+shift+z"],
+    ("priorDifferentType", "Previous Different Kind", ["kb:alt+shift+z"],
      "Moves to the previous thing of a different kind."),
     ("goToPercent", "Go to Percent", ["kb:control+g"],
      "Go to percentage point in document, as EdSharp does on the same key."),
@@ -156,9 +156,9 @@ lCommands = [
     ("findByPatternBackwards", "Reverse Find with Regular Expression",
      ["kb:control+shift+f3"],
      "Search backward for regular expression."),
-    ("findAgain", "Forward Find Again", ["kb:f3"],
+    ("findAgain", "Search Next", ["kb:f3"],
      "Search forward for next match, of whichever kind of find was used last."),
-    ("findAgainBackwards", "Reverse Find Again", ["kb:shift+f3"],
+    ("findAgainBackwards", "Search Previous", ["kb:shift+f3"],
      "Search backward for previous match."),
     ("findWordAtCursor", "Forward Find at Cursor", ["kb:alt+f3"],
      "Search forward for chunk or selected text, on the key EdSharp uses for it."),
@@ -201,7 +201,7 @@ lCommands = [
     ("sayYieldPattern", "Yield with Regular Expression", ["kb:control+shift+y"],
      "Count parts of text matching a regular expression, which answers how many "
      "rather than where."),
-    ("urlReference", "Say Url", ["kb:alt+u"],
+    ("urlReference", "Say url", ["kb:alt+u"],
      "Say where the link at the cursor would go. U for url."),
     ("describeLinkTarget", "Link Target", ["kb:alt+l"],
      "Ask what is actually at that link without going there: what kind of thing, "

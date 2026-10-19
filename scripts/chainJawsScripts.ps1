@@ -391,11 +391,13 @@ $lCommonKeys = @(
     "Alt+Shift+B=hVChooseBrowser",
     "Alt+Shift+C=hVFindContacts",
     "Alt+Shift+D=hVDismissDialog",
-    "Alt+Shift+E=hVCheckAccessibilityIbm",
+    # EDIT SETTINGS ON ALT+SHIFT+E (19 October 2026), the Homer suite's key for
+    # it in every app; it was Alt+Shift+S. Check with Equal Access, which had
+    # Alt+Shift+E here, is offered by Check Accessibility, as on NVDA.
+    "Alt+Shift+E=hVOpenSettings",
     "Alt+Shift+H=hVHotKeyHelp",
     "Alt+Shift+L=hVCopyLogToClipboard",
-    "Alt+Shift+R=hVSayDiagnostics",
-    "Alt+Shift+S=hVOpenSettings"
+    "Alt+Shift+R=hVSayDiagnostics"
 )
 
 

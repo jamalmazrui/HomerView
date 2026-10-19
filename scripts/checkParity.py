@@ -37,12 +37,12 @@ for k, l in enumerate(jss[i:].split("\r\n")):
 # JAWS already provides these itself, so HomerView adding them would duplicate
 # a key the reader already has.
 native = {
- "next paragraph", "prior paragraph", "next sentence", "prior sentence",
+ "next paragraph", "previous paragraph", "next sentence", "previous sentence",
  "say time", "voice faster", "voice louder", "voice slower", "voice softer",
  "toggle punctuation", "toggle reading", "list headings", "list links",
  "list form fields", "list elements", "forward find", "say position",
  "select chunk", "say chunk", "go to percent", "go to percent again",
- "next same kind", "prior same kind", "next different kind", "prior different kind",
+ "next same kind", "previous same kind", "next different kind", "previous different kind",
  "speech settings", "say selected", "copy line",
 }
 # Different names for something JAWS already has on the menu.
@@ -53,7 +53,7 @@ alias = {
  "report accessibility": "check accessibility with axe",
  "alternate menu": "alternate menu",
  "hotkey summary": "hot key help",
- "hotkey document": "hot key help",
+ "hotkeys": "hot key help",   # the suite name for the hotkey document (19 October 2026)
  "jump to main": "jump to probable main",
  "yield with regular expression": "yield with pattern",
  "reverse find": "reverse find for text",

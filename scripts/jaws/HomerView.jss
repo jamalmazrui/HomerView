@@ -1348,7 +1348,7 @@ SayMessage (OT_MESSAGE, hVXmlValue (sAnswer, "/root/value"))
 EndScript
 
 
-; Runs IBM's Equal Access checker and saves the results. Alt+Shift+E.
+; Runs IBM's Equal Access checker and saves the results. Offered by Check Accessibility.
 ;
 ; A SECOND ENGINE, NOT A REPLACEMENT. axe checks WCAG; IBM's unified ruleset
 ; folds EN 301 549 and Section 508 in with it, which is the superset several
@@ -1911,7 +1911,7 @@ Var
     string sAnswer,
     string sFile
 hVLogLine ("hVOpenSettings started")
-SayMessage (OT_STATUS, "HomerView Settings")
+SayMessage (OT_STATUS, "Edit Settings")
 Let sAnswer = hVCallBridge ("settingsFile", "")
 Let sFile = hVXmlValue (sAnswer, "/root/value")
 If sFile == "" Then
@@ -3157,9 +3157,9 @@ Let iAdded = UserBufferAddLink ("  Alt+Shift+A         Check the page with axe a
 Let iAdded = UserBufferAddLink ("  Alt+Shift+D         Close a cookie banner or consent wall", "hVHomerViewLink (\"hVDismissDialog\")", "Dismiss Dialog")
 Let iAdded = UserBufferAddLink ("  Alt+Shift+H     This summary", "hVHomerViewLink (\"hVHotKeyHelp\")", "Hotkey Summary")
 Let iAdded = UserBufferAddLink ("  Alt+Shift+B     Choose which browser HomerView drives", "hVHomerViewLink (\"hVChooseBrowser\")", "Choose Browser")
-Let iAdded = UserBufferAddLink ("  Alt+Shift+S     Open the settings file", "hVHomerViewLink (\"hVOpenSettings\")", "HomerView Settings")
+Let iAdded = UserBufferAddLink ("  Alt+Shift+E     Open the settings file", "hVHomerViewLink (\"hVOpenSettings\")", "Edit Settings")
 Let iAdded = UserBufferAddLink ("  Shift+F4        Say the names of the open tabs", "hVHomerViewLink (\"hVSayTabNames\")", "Tab Names")
-Let iAdded = UserBufferAddLink ("  Alt+Shift+L         Copy the log file to the clipboard", "hVHomerViewLink (\"hVCopyLogToClipboard\")", "Log to Clipboard")
+Let iAdded = UserBufferAddLink ("  Alt+Shift+L         Copy the log file to the clipboard", "hVHomerViewLink (\"hVCopyLogToClipboard\")", "Copy Log")
 Let iAdded = UserBufferAddLink ("  Alt+Shift+R         Say what HomerView knows about itself", "hVHomerViewLink (\"hVSayDiagnostics\")", "Diagnostics")
 Let iAdded = Builtin::UserBufferAddText ("")
 Let iAdded = Builtin::UserBufferAddText ("On a web page:")
@@ -3177,7 +3177,7 @@ Let iAdded = UserBufferAddLink ("  Alt+Shift+F     Open this page's folder", "hV
 Let iAdded = UserBufferAddLink ("  Control+O       Open a document as a page", "hVHomerViewLink (\"hVOpenDocument\")", "Open Document")
 Let iAdded = UserBufferAddLink ("  Control+S       Save this page in any format", "hVHomerViewLink (\"hVSavePage\")", "Save Page")
 Let iAdded = UserBufferAddLink ("  Control+F1      The HomerView guide", "hVHomerViewLink (\"hVOpenUserGuide\")", "User Guide")
-Let iAdded = UserBufferAddLink ("  Alt+Shift+F1    The Quick Start", "hVHomerViewLink (\"hVOpenQuickStart\")", "Quick Start")
+Let iAdded = UserBufferAddLink ("  Alt+Shift+F1    The Quick Start", "hVHomerViewLink (\"hVOpenQuickStart\")", "ReadMe")
 Let iAdded = UserBufferAddLink ("  Shift+F1        What changed in each release", "hVHomerViewLink (\"hVShowHistory\")", "History of Changes")
 Let iAdded = UserBufferAddLink ("  Control+Shift+F1 Notes for developers", "hVHomerViewLink (\"hVOpenDeveloperNotes\")", "Developer Notes")
 Let iAdded = UserBufferAddLink ("  Control+Shift+L  This session's log, to read", "hVHomerViewLink (\"hVOpenSessionLog\")", "Session Log")
@@ -3186,8 +3186,8 @@ Let iAdded = UserBufferAddLink ("  Control+F        Find forwards", "hVHomerView
 Let iAdded = UserBufferAddLink ("  Control+Shift+F Find backwards", "hVHomerViewLink (\"hVFindBackwards\")", "Reverse Find for Text")
 Let iAdded = UserBufferAddLink ("  Control+F3      Find forward with a pattern", "hVHomerViewLink (\"hVFindByPattern\")", "Forward Find with Regular Expression")
 Let iAdded = UserBufferAddLink ("  Control+Shift+F3 Find backwards with a pattern", "hVHomerViewLink (\"hVFindByPatternBackwards\")", "Reverse Find with Regular Expression")
-Let iAdded = UserBufferAddLink ("  F3              The next match", "hVHomerViewLink (\"hVFindNext\")", "Forward Find Again")
-Let iAdded = UserBufferAddLink ("  Shift+F3        The previous match", "hVHomerViewLink (\"hVFindPrevious\")", "Reverse Find Again")
+Let iAdded = UserBufferAddLink ("  F3              The next match", "hVHomerViewLink (\"hVFindNext\")", "Search Next")
+Let iAdded = UserBufferAddLink ("  Shift+F3        The previous match", "hVHomerViewLink (\"hVFindPrevious\")", "Search Previous")
 Let iAdded = UserBufferAddLink ("  Control+Shift+E Gather every match of a pattern", "hVHomerViewLink (\"hVExtractByPattern\")", "Extract with Regular Expression")
 Let iAdded = Builtin::UserBufferAddLink ("  Control+Shift+Y Count the matches of a pattern", "hVHomerViewLink (\"hVYieldByPattern\")", "Yield with Pattern")
 Let iAdded = UserBufferAddLink ("  Shift+F9        Extract the main content into a tab", "hVHomerViewLink (\"hVExtractMainContent\")", "Extract Main Content")
@@ -3203,7 +3203,7 @@ Let iAdded = UserBufferAddLink ("  Control+F8      Put the whole page on the cli
 Let iAdded = UserBufferAddLink ("  Alt+F8          Speak the whole page, cursor unmoved", "hVHomerViewLink (\"hVReadAll\")", "Read All")
 Let iAdded = UserBufferAddLink ("  Alt+N           List the names, places and dates", "hVHomerViewLink (\"hVListNames\")", "List Names")
 Let iAdded = UserBufferAddLink ("  Alt+Shift+C         Find who to tell about this site", "hVHomerViewLink (\"hVFindContacts\")", "Find Contacts")
-Let iAdded = UserBufferAddLink ("  Alt+Shift+E         Check the page with IBM Equal Access", "hVHomerViewLink (\"hVCheckAccessibilityIbm\")", "Check Accessibility with IBM")
+Let iAdded = UserBufferAddLink ("  (no key)            Check the page with IBM Equal Access", "hVHomerViewLink (\"hVCheckAccessibilityIbm\")", "Check Accessibility with IBM")
 Let iAdded = Builtin::UserBufferAddText ("")
 Let iAdded = Builtin::UserBufferAddText ("On the Alternate Menu only:")
 Let iAdded = UserBufferAddLink ("  The open tabs, by name and address", "hVHomerViewLink (\"hVListTabs\")", "Tab List")
@@ -3255,7 +3255,7 @@ Var
 Let sTable = "About HomerView, Which build is loaded and where everything lives. (Alt+F1)\thVShowAbout\tA"
     + "\7" + "Append Clipboard, Adds the clipboard to the end of a text file. (Control+Shift+Apostrophe)\thVAppendClipboard\tA"
     + "\7" + "Check Accessibility with axe, Tests the page with Deque axe-core and saves a report. (Alt+Shift+A)\thVCheckAccessibility\tP"
-    + "\7" + "Check with Equal Access, Runs IBM Equal Access and saves every format to Downloads. (Alt+Shift+E)\thVCheckAccessibilityIbm\tP"
+    + "\7" + "Check with Equal Access, Runs IBM Equal Access and saves every format to Downloads. Offered by Check Accessibility.\thVCheckAccessibilityIbm\tP"
     + "\7" + "Choose Browser, Chooses which Chromium browser HomerView drives. (Alt+Shift+B)\thVChooseBrowser\tA"
     + "\7" + "Clear Clipboard, Empties the clipboard so an append starts afresh. (Alt+Shift+Apostrophe)\thVClearClipboard\tA"
     + "\7" + "Complete Selection, Selects from where F8 was pressed to here. (Shift+F8)\thVCompleteSelection\tP"
@@ -3269,29 +3269,29 @@ Let sTable = "About HomerView, Which build is loaded and where everything lives.
     + "\7" + "Extract Main Content, Extracts the readable part of the page into a tab of its own. (Shift+F9)\thVExtractMainContent\tP"
     + "\7" + "Extract with Regular Expression, Gathers every match for reading. (Control+Shift+E)\thVExtractByPattern\tP"
     + "\7" + "Find Contacts, Finds who to tell about this site: email, accessibility statement, contact pages. (Alt+Shift+C)\thVFindContacts\tP"
-    + "\7" + "Forward Find Again, The next match of whichever find was done last. (F3)\thVFindNext\tP"
+    + "\7" + "Search Next, The next match of whichever find was done last. (F3)\thVFindNext\tP"
     + "\7" + "Forward Find at Cursor, Searches forward for the word under the cursor, or the selected text, without asking you to type it. (Alt+F3)\thVFindWordAtCursor\tP"
     + "\7" + "Forward Find for Text, Searches forwards for text, using the JAWS find dialog. (Control+F)\thVFindForwards\tP"
     + "\7" + "Forward Find with Regular Expression, Searches forward for a pattern. (Control+F3)\thVFindByPattern\tP"
     + "\7" + "Go to Start of Selection, Moves back to where you began a selection, so you can hear the start again before completing it with Shift+F8. (Alt+Shift+F8)\thVGoToSelectionStart\tP"
     + "\7" + "History of Changes, What changed in each release. (Shift+F1)\thVShowHistory\tA"
-    + "\7" + "HomerView Settings, Opens the settings file, where every preference lives. (Alt+Shift+S)\thVOpenSettings\tA"
+    + "\7" + "Edit Settings, Opens the settings file, where every preference lives. (Alt+Shift+E)\thVOpenSettings\tA"
     + "\7" + "Hot Key Help, Lists every HomerView command and its key. (Alt+Shift+H)\thVHotKeyHelp\tA"
     + "\7" + "Jump to Probable Main, Moves to the main content, whether the page declares it or not. (Shift+Q)\thVMoveToProbableMain\tP"
     + "\7" + "Launch HomerView, Launches or reconnects HomerView's copy of Microsoft Edge. (Alt+Control+Shift+H)\thVLaunchHomerView\tA"
     + "\7" + "Link Target, Says where the link under the cursor goes and shows its address. (Alt+L)\thVDescribeLinkTarget\tP"
     + "\7" + "List Names, Lists the people, places, organisations and dates a page mentions. (Alt+N)\thVListNames\tP"
-    + "\7" + "Log to Clipboard, Puts the HomerView log on the clipboard, ready to attach to a message. (Alt+Shift+L)\thVCopyLogToClipboard\tA"
+    + "\7" + "Copy Log, Puts the HomerView log on the clipboard, ready to attach to a message. (Alt+Shift+L)\thVCopyLogToClipboard\tA"
     + "\7" + "Open Document, Opens a Word file, PDF, ebook or spreadsheet as a page. (Control+O)\thVOpenDocument\tA"
     + "\7" + "Page Folder, Opens this page's folder in File Explorer, to browse what was saved from it. (Alt+Shift+F)\thVOpenPageFolder\tP"
     + "\7" + "Page Links to Clipboard, Copies the text and address of every link on the page. (Alt+Shift+P)\thVCopyPageLinks\tP"
     + "\7" + "Project Announcement, What HomerView is for, in its own words.\thVOpenAnnouncement\tA"
-    + "\7" + "Quick Start, The short introduction to HomerView. (Alt+Shift+F1)\thVOpenQuickStart\tA"
+    + "\7" + "ReadMe, The short introduction to HomerView. (Alt+Shift+F1)\thVOpenQuickStart\tA"
     + "\7" + "Read All, Speaks the whole page from the top without moving the cursor. (Alt+F8)\thVReadAll\tP"
     + "\7" + "Recent Pages, Opens a page you had open recently. (Alt+R)\thVRecentPages\tA"
     + "\7" + "Report Connection, Says whether HomerView's browser is there to talk to.\thVReportConnection\tA"
     + "\7" + "Report Diagnostics, Says whether the helper, the log folder and the start page are where they should be. (Alt+Shift+R)\thVSayDiagnostics\tA"
-    + "\7" + "Reverse Find Again, The previous match of whichever find was done last. (Shift+F3)\thVFindPrevious\tP"
+    + "\7" + "Search Previous, The previous match of whichever find was done last. (Shift+F3)\thVFindPrevious\tP"
     + "\7" + "Reverse Find at Cursor, Searches backward for the word under the cursor, or the selected text, without asking you to type it. (Alt+Shift+F3)\thVFindWordAtCursorBackwards\tP"
     + "\7" + "Reverse Find for Text, Searches backwards for text, which JAWS has no key for. (Control+Shift+F)\thVFindBackwards\tP"
     + "\7" + "Reverse Find with Regular Expression, Searches backwards for a pattern. (Control+Shift+F3)\thVFindByPatternBackwards\tP"

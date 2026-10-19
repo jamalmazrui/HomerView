@@ -1,6 +1,21 @@
 ﻿
 
 
+## 19 October 2026 -- HomerView speaks the Homer suite's command names
+
+- **Edit Settings, on Alt+Shift+E on both screen readers,** opens the settings file, as Edit Settings does in every Homer app; it was HomerView Settings, on Alt+Shift+S. Check with Equal Access, which had Alt+Shift+E on JAWS only, is offered by Check Accessibility, as it already was on NVDA.
+- **The suite's names:**
+  - Quick Start is ReadMe;
+  - Hotkey Document is Hotkeys;
+  - Log to Clipboard is Copy Log;
+  - Forward and Reverse Find Again are Search Next and Search Previous;
+  - Say Url is Say url;
+  - the Prior commands (Sentence, Paragraph, Same Kind, Different Kind) are Previous.
+  
+  The keys are unchanged.
+- **The NVDA and JAWS lists still agree.** checkParity knows the new names, so it reports the same four genuine gaps as before.
+- **Every place that binds or lists a key says the same.** The JAWS key map, chainJawsScripts' bindings for each browser, the JAWS Hotkey Summary and Alternate Menu, and the NVDA add-on's own lists all give Edit Settings Alt+Shift+E. The JAWS quality check, which compares them, caught the first attempt missing two of these.
+
 ## 18 October 2026 -- HomerView recognizes its own browser by process, never by name
 
 - **One identity rule, in one place.** A new module, identity.py, decides whose window a key or a page belongs to, and both places that decided before now ask it. A window is HomerView's only when its process is one of the processes of the browser HomerView launched or attached to.

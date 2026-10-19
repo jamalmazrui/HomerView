@@ -186,7 +186,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             (_("Ask Copilot about this page"), "Alt+NVDA+P",
              _("Copy the page text and open Edge's Copilot sidebar, ready to paste and ask"),
              "openCopilot"),
-            (_("Quick start"), "",
+            (_("ReadMe"), "Alt+Shift+F1",
              _("Open the HomerView quick start in the HomerView window"), "openQuickStart"),
             (_("User guide"), "Control+F1",
              _("Open the full HomerView user guide in the HomerView window"), "showHelp"),
@@ -201,7 +201,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
              "webUtilities"),
             (_("Choose browser"), "Alt+Shift+B",
              _("Choose which Chromium browser HomerView drives"), "chooseBrowser"),
-            (_("HomerView settings"), "Alt+Shift+S",
+            (_("Edit settings"), "Alt+Shift+E",
              _("Open the settings file, where every preference lives"), "openSettings"),
             (_("Self test"), "",
              _("Check that all three ways of reaching the browser are working"), "selfTest"),
@@ -272,7 +272,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
                 (_("&Look something up..."), _("Define a word, check the weather, find books"),
                  lambda event: self.script_webUtilities(None)),
                 # Translators: An item in the HomerView menu.
-                (_("&Quick start"), _("Open the HomerView quick start"),
+                (_("&ReadMe"), _("Open the HomerView quick start"),
                  lambda event: documents.openDocument("readMe")),
                 # Translators: An item in the HomerView menu.
                 (_("&User guide"), _("Open the full HomerView user guide"),

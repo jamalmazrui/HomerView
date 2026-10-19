@@ -1055,6 +1055,72 @@ def checkKeys():
     return finding("keys", "pass", "0 reserved combinations, 0 access keys claimed twice")
 
 
+def checkSuite():
+    """The Homer Suite's command and key contract, for this app (1.73.1).
+
+    Runs the kit's scripts\\checkKeys.py with --app and --gate. An app on the
+    Homer frame (its source calls MdiFrame.runOrExport) is first started with
+    /exportkeys, which writes every command and key it declares and ends
+    before any window appears, so what is checked is what the program really
+    does. A key bound twice with no reviewed exception, a key Windows or a
+    screen reader takes, or a clash the program reported fails the check.
+    An app neither in the suite manifest nor on the frame is skipped.
+    """
+    sApp = os.path.basename(os.path.normpath(sRoot))
+    # THE DEVELOPMENT KIT, FOUND AS TIDY FINDS IT (1.73.7). This took the folder of the kind.py already loaded, which
+    # can be the installed kit's in Program Files, older than the development kit and without checkKeys.py, so every
+    # app's suite check skipped. kind.findKit prefers the development kit beside or above the project.
+    try:
+        import kind
+        sKit = kind.findKit([sRoot]) or ""
+    except Exception:
+        sKit = ""
+    sKitScripts = os.path.join(sKit, "scripts") if sKit else ""
+    sChecker = os.path.join(sKitScripts, "checkKeys.py") if sKitScripts else ""
+    if not sChecker or not os.path.isfile(sChecker):
+        return finding("suite", "skip", "the kit's checkKeys.py was not found")
+    sManifest = os.path.join(os.path.dirname(sKitScripts), "data", "SuiteCommands.inix")
+    bInManifest = os.path.isfile(sManifest) and ("[" + sApp.lower() + " ") in readText(sManifest).lower()
+    bOnFrame = any("MdiFrame.runOrExport" in readText(sPath) for sPath in sourceFiles() if sPath.lower().endswith(".cs"))
+    if not bInManifest and not bOnFrame:
+        return finding("suite", "skip", "%s is not in the suite manifest and not on the Homer frame" % sApp)
+    lsArgs = [sys.executable, sChecker, "--gate", "--app", sApp]
+    if bOnFrame:
+        sExe = next((s for s in (os.path.join(sRoot, "exec", sApp + ".exe"), os.path.join(sRoot, sApp + ".exe")) if os.path.isfile(s)), "")
+        if not sExe:
+            return finding("suite", "fail", "%s is on the Homer frame but %s.exe was not found to export its keys; build first" % (sApp, sApp))
+        sExport = os.path.join(sLogDir, "%s-keys-%s.inix" % (sApp, datetime.datetime.now().strftime("%Y%m%d-%H%M%S")))
+        try:
+            oRun = subprocess.run([sExe, "/exportkeys", sExport], cwd=os.path.dirname(sExe), capture_output=True, text=True, timeout=120)
+            logLine("suite: %s /exportkeys exit %d" % (sExe, oRun.returncode))
+        except Exception as oError:
+            return finding("suite", "fail", "%s could not export its keys: %s" % (sApp, oError))
+        if oRun.returncode != 0 or not os.path.isfile(sExport):
+            return finding("suite", "fail", "%s did not export its keys (exit %d)" % (sApp, oRun.returncode))
+        lsArgs.append(sExport)
+    try:
+        oResult = subprocess.run(lsArgs, cwd=sRoot, capture_output=True, text=True, timeout=300)
+    except Exception as oError:
+        return finding("suite", "fail", "checkKeys could not run: %s" % oError)
+    for sLine in (oResult.stdout + oResult.stderr).splitlines():
+        logLine("suite: " + sLine)
+    sSummary = next((s for s in oResult.stdout.splitlines() if s.startswith("checkKeys")), "checkKeys gave no summary")
+    if oResult.returncode != 0:
+        return finding("suite", "fail", sSummary + " The checkKeys log in the kit's logs folder names each one.")
+    # THE JAWS KEY MAP HANDS ON WHAT THE SUITE ALLOWS (1.73.5). Tidy writes those lines before every push, so a key
+    # still missing here means tidy could not, and the log of that tidy says why.
+    try:
+        if sKitScripts not in sys.path: sys.path.insert(0, sKitScripts)
+        import jawsKeys
+        lsMissing = jawsKeys.missing(sRoot, sApp, os.path.dirname(sKitScripts))
+    except Exception as oError:
+        lsMissing = []
+        logLine("suite: the JAWS key map could not be read: %s" % oError)
+    if lsMissing:
+        return finding("suite", "fail", "%s The JAWS key map does not hand on %s; tidy writes it, so its log says why it could not." % (sSummary, ", ".join(lsMissing)))
+    return finding("suite", "pass", sSummary)
+
+
 def checkSkillChecks(sKind):
     """THE KIT EATS ITS OWN COOKING (1.64.0): the checks the kit's skills carry run on
     every project the kit checks, so a skill's rules are proved on the kit's own work
@@ -1704,6 +1770,7 @@ def main():
         checkSkillChecks("app")
         checkBuildName()
         checkKeys()
+        checkSuite()
         checkBuild(dArguments.build)
         checkSmoke(dArguments.build)
         checkAccept()

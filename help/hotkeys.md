@@ -44,12 +44,12 @@ category, where every command here can be changed.
 ## Reading the documentation
 
 - **About HomerView**, Alt+F1. Display version and release date, and where HomerView keeps its files.
+- **Copy Log**, Alt+Shift+L. Copy the HomerView log to the clipboard as a file, so Control+V attaches it to an email rather than typing its name into one. L for Log, beside the other Control+Shift keys that put something somewhere.
 - **Developer Notes**, Control+Shift+F1. Open the notes on how HomerView is built and why.
 - **History of Changes**, Shift+F1. Display list of fixes and improvements.
-- **Hotkey Document**, no key. Open the shipped list of every command, key and description. Hotkey Summary on Alt+Shift+H builds the same list from the program itself; this opens the copy that came with it.
-- **Log to Clipboard**, Alt+Shift+L. Copy the HomerView log to the clipboard as a file, so Control+V attaches it to an email rather than typing its name into one. L for Log, beside the other Control+Shift keys that put something somewhere.
+- **Hotkeys**, no key. Open the shipped list of every command, key and description. Hotkey Summary on Alt+Shift+H builds the same list from the program itself; this opens the copy that came with it.
 - **Project Announcement**, no key. Open the short description of HomerView, for passing on to somebody who has not met it.
-- **Quick Start**, Alt+Shift+F1. Open the first ten minutes of HomerView, for somebody new to it.
+- **ReadMe**, Alt+Shift+F1. Open the first ten minutes of HomerView, for somebody new to it.
 - **Session Log**, Control+Shift+L. Open a copy of this session's log, for working out what went wrong.
 - **User Guide**, Control+F1. Open Documentation in the HomerView window. F1 is help everywhere, but plain F1 opens Edge's own help and stays Edge's, so the family here takes F1 with a modifier.
 
@@ -63,21 +63,21 @@ category, where every command here can be changed.
 - **Next Paragraph**, Control+DownArrow. Moves to the next paragraph and reads it. Control with an arrow moves by paragraph in Word and in most editors.
 - **Next Same Kind**, Z. Moves to the next thing of the same kind as the one you are on, whatever that is. Z because NVDA leaves it free, and JAWS does this with S.
 - **Next Sentence**, Alt+DownArrow. Moves to the next sentence and reads it. Alt with an arrow moves by something larger than a line and smaller than a paragraph.
-- **Prior Different Kind**, Alt+Shift+Z. Moves to the previous thing of a different kind.
-- **Prior Paragraph**, Control+UpArrow. Moves to the previous paragraph and reads it.
-- **Prior Same Kind**, Shift+Z. Moves to the previous thing of the same kind as the one you are on.
-- **Prior Sentence**, Alt+UpArrow. Moves to the previous sentence and reads it.
+- **Previous Different Kind**, Alt+Shift+Z. Moves to the previous thing of a different kind.
+- **Previous Paragraph**, Control+UpArrow. Moves to the previous paragraph and reads it.
+- **Previous Same Kind**, Shift+Z. Moves to the previous thing of the same kind as the one you are on.
+- **Previous Sentence**, Alt+UpArrow. Moves to the previous sentence and reads it.
 
 ## Finding text
 
 - **Forward Find**, Control+F. Search forward for string, using NVDA's own find so the dialog and its behaviour are the ones you already know.
-- **Forward Find Again**, F3. Search forward for next match, of whichever kind of find was used last.
 - **Forward Find at Cursor**, Alt+F3. Search forward for chunk or selected text, on the key EdSharp uses for it.
 - **Forward Find with Regular Expression**, Control+F3. Search forward for regular expression, which NVDA's own find cannot do.
 - **Reverse Find**, Control+Shift+F. Search backward for string.
-- **Reverse Find Again**, Shift+F3. Search backward for previous match.
 - **Reverse Find at Cursor**, Alt+Shift+F3. Search backward for chunk or selected text.
 - **Reverse Find with Regular Expression**, Control+Shift+F3. Search backward for regular expression.
+- **Search Next**, F3. Search forward for next match, of whichever kind of find was used last.
+- **Search Previous**, Shift+F3. Search backward for previous match.
 
 ## Listing what is on the page
 
@@ -96,7 +96,7 @@ category, where every command here can be changed.
 - **Say Metadata**, Alt+M. Says what the page claims about itself: author, publisher, date and licence. M for Metadata.
 - **Say Position**, Alt+Delete, or Alt+NumPadDelete. Says the line, column and percentage position of the cursor. Delete sits among the navigation keys, which is where a position question belongs.
 - **Say Time**, Alt+SemiColon. Say current time and date.
-- **Say Url**, Alt+U. Say where the link at the cursor would go. U for url.
+- **Say url**, Alt+U. Say where the link at the cursor would go. U for url.
 - **Say Yield**, Alt+Y. Say number of characters, words, and lines in all or selected text.
 - **Yield Structure**, Alt+Shift+Y. Says how the page is built: how many headings, links, forms and the rest.
 - **Yield with Regular Expression**, Control+Shift+Y. Count parts of text matching a regular expression, which answers how many rather than where.
@@ -158,7 +158,7 @@ category, where every command here can be changed.
 ## Changing how HomerView behaves
 
 - **Choose Browser**, Alt+Shift+B. Choose which Chromium browser HomerView drives, from the ones installed here. B for Browser, and Alt+Shift with a letter is where the settings commands live because they are used once and then not again for months.
-- **HomerView Settings**, Alt+Shift+S. Open the settings file, HomerView.inix, in a text editor. Everything the settings panel changes is in it, and a comment beside each value says what it does.
+- **Edit Settings**, Alt+Shift+E. Open the settings file, HomerView.inix, in a text editor. Everything the settings panel changes is in it, and a comment beside each value says what it does.
 
 ## Now and then
 

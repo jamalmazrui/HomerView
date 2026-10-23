@@ -570,6 +570,14 @@ If oFileSystem.FileExists (sAnswerPath) Then
 EndIf
 ; Nought hides the window; True waits for it to finish.
 Let iExit = hVShellRun (sCommandLine, 0, True)
+; NOT HOMERVIEW'S WINDOW (22 October 2026): the helper answers 3 when the page in front belongs to
+; another window of the same browser, and the key goes on to the browser as though HomerView were not
+; there, as it does under NVDA. Callers take an empty answer as nothing to do.
+If iExit == 3 Then
+    hVLogLine ("callBridge " + sCommand + ": not HomerView's window, so the key goes to the browser")
+    Builtin::TypeCurrentScriptKey ()
+    Return ""
+EndIf
 If oFileSystem.FileExists (sAnswerPath) Then
     ; The fourth argument is -1, which asks the FileSystemObject to read the
     ; file as Unicode. The helper writes UTF-16 and this reads it, which is the

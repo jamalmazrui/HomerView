@@ -693,6 +693,25 @@ namespace Homer
                         XmlAnswer("{\"error\":\"" + sNeedsHomerView + "\"}"));
                     return 1;
                 }
+                // VERIFIED-SESSION ROUTING (22 October 2026, stage 5 of the Homer plan). On NVDA a
+                // HomerView key acts only in HomerView's own browser; on JAWS it acted in any window
+                // of that browser, because JAWS knows a window only by its program's name. So a
+                // command that acts on the page in front first asks whether that page is HomerView's:
+                // the window in front must belong to a browser started with HomerView's own profile.
+                // When it is not, exit code 3 tells the JAWS script to hand the key to the browser,
+                // as though HomerView were not there. If the check itself cannot be made, the
+                // command goes ahead, so this can never lock anyone out.
+                if (Array.IndexOf(aSessionCommands, sCommand) >= 0)
+                {
+                    string sWhy;
+                    if (!ForegroundIsSession(out sWhy))
+                    {
+                        Log("  " + sWhy + "; the key goes to the browser");
+                        WriteResult(sOutputFile, XmlAnswer("{\"error\":\"notHomerView\"}"));
+                        return 3;
+                    }
+                    if (sWhy != "") Log("  " + sWhy);
+                }
                 switch (sCommand)
                 {
                     case "launch":
@@ -4461,6 +4480,48 @@ namespace Homer
         private static extern bool IsWindowVisible(IntPtr hWindow);
         [System.Runtime.InteropServices.DllImport("user32.dll")]
         private static extern IntPtr GetForegroundWindow();
+        // GetWindowThreadProcessId is declared once, further down, with the window-switching calls.
+
+        // The commands that act on the page in front, and so first make sure it is HomerView's.
+        private static readonly string[] aSessionCommands = {
+            "axereport", "closeothertabs", "contacts", "copilot", "countpattern", "downloadlist", "downloadone",
+            "downloadscan", "evaluate", "evaluatetext", "extract", "extractpattern", "findmark", "pagenames",
+            "pagetext", "probe", "savepage", "tablist"
+        };
+
+        // ForegroundIsSession: whether the window in front belongs to HomerView's own browser -- a
+        // process whose command line names HomerView's profile folder. True, with the reason in sWhy,
+        // whenever the question cannot be answered.
+        private static bool ForegroundIsSession(out string sWhy)
+        {
+            sWhy = "";
+            try
+            {
+                uint uProcessId;
+                GetWindowThreadProcessId(GetForegroundWindow(), out uProcessId);
+                if (uProcessId == 0) { sWhy = "no window is in front, so the command goes ahead"; return true; }
+                string sProfile = ProfileFolder().TrimEnd('\\');
+                using (System.Management.ManagementObjectSearcher oSearcher = new System.Management.ManagementObjectSearcher(
+                    "SELECT CommandLine FROM Win32_Process WHERE ProcessId = " + uProcessId))
+                {
+                    foreach (System.Management.ManagementObject oProcess in oSearcher.Get())
+                    {
+                        string sLine = Convert.ToString(oProcess["CommandLine"]) ?? "";
+                        if (sLine.IndexOf(sProfile, StringComparison.OrdinalIgnoreCase) >= 0) return true;
+                        if (sLine.IndexOf(sProfile.Replace('\\', '/'), StringComparison.OrdinalIgnoreCase) >= 0) return true;
+                        sWhy = "the window in front belongs to process " + uProcessId + ", which is not HomerView's browser";
+                        return false;
+                    }
+                }
+                sWhy = "process " + uProcessId + " could not be read, so the command goes ahead";
+                return true;
+            }
+            catch (Exception oError)
+            {
+                sWhy = "the session check failed (" + oError.Message + "), so the command goes ahead";
+                return true;
+            }
+        }
         [System.Runtime.InteropServices.DllImport("user32.dll")]
         private static extern bool BringWindowToTop(IntPtr hWindow);
         [System.Runtime.InteropServices.DllImport("user32.dll")]

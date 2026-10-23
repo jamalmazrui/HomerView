@@ -355,6 +355,7 @@ function buildBridge {
         /reference:System.Runtime.Serialization.dll `
         /reference:System.Xml.dll `
         /reference:System.IO.Compression.dll `
+        /reference:System.Management.dll `
         "/out:$pathBridge" $pathSource $lShared 2>&1 | Out-String
     $iExit = $LASTEXITCODE
     $ErrorActionPreference = "Stop"

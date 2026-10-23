@@ -3,6 +3,9 @@
 
 ## 19 October 2026 -- HomerView speaks the Homer suite's command names
 
+- **Documents open and pages save through the Homer kit's conversion,** as in every Homer app: HomerView carries the kit's conversion.py and its route table in its homer package, where it used to run 2htm.exe or Pandoc itself. A file type the kit cannot convert still opens in the browser, and saving a page as Word goes through the kit too. No console window flashes while a tool runs.
+- **Control+Shift+F1 opens the hotkeys,** every command with its keys, the suite's key for every app's Hotkeys, in NVDA and JAWS alike. The developer notes are on the Alternate Menu.
+- **The build needs HomerDev 1.88.6 or later.**
 - **Edit Settings, on Alt+Shift+E on both screen readers,** opens the settings file, as Edit Settings does in every Homer app; it was HomerView Settings, on Alt+Shift+S. Check with Equal Access, which had Alt+Shift+E on JAWS only, is offered by Check Accessibility, as it already was on NVDA.
 - **The suite's names:**
   - Quick Start is ReadMe;

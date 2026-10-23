@@ -137,7 +137,7 @@ def buildAboutText():
         f"  Generated documents: {pathsModule.getTempFolder()}",
         f"  Downloads: {pathsModule.getDownloadsFolder()}",
         f"  History: {dStore.get('path', '')} ({dStore.get('backend', '')})",
-        f"  Document converter: {convert.findExecutable() or 'not found'}",
+        "  Document converter: the Homer kit's conversion, with conversions.inix",
         f"  Pandoc: {convert.findPandoc() or 'not found'}",
         "",
         "Connection",
@@ -158,7 +158,6 @@ def buildAbout():
     from . import logger
     from .service import service
 
-    pathExecutable = convert.findExecutable()
     dStore = historyStore.describe()
     lParts = [f"<h1>HomerView {escape(readVersion())}</h1>"]
     lParts.append(
@@ -175,7 +174,7 @@ def buildAbout():
         f"using {escape(dStore.get('backend', ''))}</li>"
     )
     lParts.append(
-        f"<li>Document converter: <code>{escape(pathExecutable or 'not found')}</code></li>"
+        "<li>Document converter: the Homer kit's conversion, the same in every Homer app</li>"
     )
     lParts.append("</ul>")
     lParts.append("<h2>What it is connected to</h2><ul>")

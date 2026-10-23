@@ -118,14 +118,12 @@ def saveDocument(cdpSession, sSourcePath, sTargetPath, sFormat):
 
         pathHtml = pathsModule.getTempFolder() / "SaveAs.htm"
         pathHtml.write_text(sBody, encoding="utf-8-sig", newline="\r\n")
-        pathPandoc = convertModule.findPandoc()
-        if not pathPandoc:
-            raise RuntimeError(
-                "Saving as a Word document needs pandoc, which was not found. "
-                "Install it from https://pandoc.org, or save as a web page instead."
-            )
-        convertModule.runConverter(
-            [str(pathPandoc), str(pathHtml), "-o", sTargetPath], Path(sTargetPath), "pandoc")
+        # Through the Homer kit's one conversion (22 October 2026), as every Homer app converts.
+        from .homer import conversion as kitConversion
+        try:
+            kitConversion.convert(str(pathHtml), sTargetPath)
+        except Exception as oError:
+            raise RuntimeError(f"The page could not be saved as a Word document: {oError}. Save it as a web page instead.")
         homerLog.info(f"Wrote {sTargetPath}")
         return {"characters": len(sBody), "format": sFormat,
                 "name": Path(sTargetPath).name, "path": sTargetPath, "pageUrl": sPageUrl}

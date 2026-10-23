@@ -2650,9 +2650,15 @@ hVOpenOwnDocument ("History.htm", "the history of changes")
 EndScript
 
 
-; The notes for anyone working on HomerView itself. Control+Shift+F1.
+; The notes for anyone working on HomerView itself. No key since 22 October 2026; on the menu.
 Script hVOpenDeveloperNotes ()
 hVOpenOwnDocument ("Developer.htm", "the developer notes")
+EndScript
+
+
+; Every HomerView command with its keys. Control+Shift+F1, the suite's key for every app's Hotkeys.
+Script hVOpenHotkeys ()
+hVOpenOwnDocument ("Hotkeys.htm", "the hotkeys")
 EndScript
 
 
@@ -3179,7 +3185,7 @@ Let iAdded = UserBufferAddLink ("  Control+S       Save this page in any format"
 Let iAdded = UserBufferAddLink ("  Control+F1      The HomerView guide", "hVHomerViewLink (\"hVOpenUserGuide\")", "User Guide")
 Let iAdded = UserBufferAddLink ("  Alt+Shift+F1    The Quick Start", "hVHomerViewLink (\"hVOpenQuickStart\")", "ReadMe")
 Let iAdded = UserBufferAddLink ("  Shift+F1        What changed in each release", "hVHomerViewLink (\"hVShowHistory\")", "History of Changes")
-Let iAdded = UserBufferAddLink ("  Control+Shift+F1 Notes for developers", "hVHomerViewLink (\"hVOpenDeveloperNotes\")", "Developer Notes")
+Let iAdded = UserBufferAddLink ("  Control+Shift+F1 Every command with its keys", "hVHomerViewLink (\"hVOpenHotkeys\")", "Hotkeys")
 Let iAdded = UserBufferAddLink ("  Control+Shift+L  This session's log, to read", "hVHomerViewLink (\"hVOpenSessionLog\")", "Session Log")
 Let iAdded = UserBufferAddLink ("  Alt+F1          Which build is loaded", "hVHomerViewLink (\"hVShowAbout\")", "About HomerView")
 Let iAdded = UserBufferAddLink ("  Control+F        Find forwards", "hVHomerViewLink (\"hVFindForwards\")", "Forward Find for Text")
@@ -3263,7 +3269,7 @@ Let sTable = "About HomerView, Which build is loaded and where everything lives.
     + "\7" + "Copy All, Puts the whole page on the clipboard. (Control+F8)\thVCopyAll\tP"
     + "\7" + "Copy Append, Adds the selection or the line to what is on the clipboard. (Alt+C)\thVCopyAppend\tA"
     + "\7" + "Copy Selection, Copies the selection, or the line under the cursor. (Control+C)\thVCopySelection\tP"
-    + "\7" + "Developer Notes, Notes for anyone working on HomerView itself. (Control+Shift+F1)\thVOpenDeveloperNotes\tA"
+    + "\7" + "Developer Notes, Notes for anyone working on HomerView itself.\thVOpenDeveloperNotes\tA"
     + "\7" + "Dismiss Dialog, Closes a cookie banner, newsletter offer or consent wall that Escape will not. (Alt+Shift+D)\thVDismissDialog\tA"
     + "\7" + "Elevate Version, Checks for a newer HomerView and installs it. (Control+F11)\thVElevateVersion\tA"
     + "\7" + "Extract Main Content, Extracts the readable part of the page into a tab of its own. (Shift+F9)\thVExtractMainContent\tP"
@@ -3275,6 +3281,7 @@ Let sTable = "About HomerView, Which build is loaded and where everything lives.
     + "\7" + "Forward Find with Regular Expression, Searches forward for a pattern. (Control+F3)\thVFindByPattern\tP"
     + "\7" + "Go to Start of Selection, Moves back to where you began a selection, so you can hear the start again before completing it with Shift+F8. (Alt+Shift+F8)\thVGoToSelectionStart\tP"
     + "\7" + "History of Changes, What changed in each release. (Shift+F1)\thVShowHistory\tA"
+    + "\7" + "Hotkeys, Every HomerView command with its keys. (Control+Shift+F1)\thVOpenHotkeys\tA"
     + "\7" + "Edit Settings, Opens the settings file, where every preference lives. (Alt+Shift+E)\thVOpenSettings\tA"
     + "\7" + "Hot Key Help, Lists every HomerView command and its key. (Alt+Shift+H)\thVHotKeyHelp\tA"
     + "\7" + "Jump to Probable Main, Moves to the main content, whether the page declares it or not. (Shift+Q)\thVMoveToProbableMain\tP"

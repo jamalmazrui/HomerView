@@ -425,7 +425,8 @@ function buildAddon {
     }
     $pathHomerPackage = Join-Path $pathAddon "globalPlugins\homerView\homer"
     if ($sKitRoot) {
-        foreach ($sModule in @("inix.py", "lbc.py", "say.py", "util.py", "web.py")) {
+        # conversion.py and its route table (22 October 2026): HomerView converts through the kit, as every Homer app does.
+        foreach ($sModule in @("conversion.py", "inix.py", "lbc.py", "say.py", "util.py", "web.py")) {
             $pathFrom = Join-Path $sKitRoot ("exec\Python\" + $sModule)
             if (-not (Test-Path -LiteralPath $pathFrom)) {
                 writeLog ("ERROR: the kit at " + $sKitRoot + " has no exec\Python\" + $sModule)
@@ -434,6 +435,13 @@ function buildAddon {
             Copy-Item -LiteralPath $pathFrom -Destination (Join-Path $pathHomerPackage $sModule) -Force
             writeLog ("  kit module: exec\Python\" + $sModule + " copied into the add-on's homer package")
         }
+        $pathRoutes = Join-Path $sKitRoot "exec\conversions.inix"
+        if (-not (Test-Path -LiteralPath $pathRoutes)) {
+            writeLog ("ERROR: the kit at " + $sKitRoot + " has no exec\conversions.inix")
+            exit 1
+        }
+        Copy-Item -LiteralPath $pathRoutes -Destination (Join-Path $pathHomerPackage "conversions.inix") -Force
+        writeLog "  kit routes: exec\conversions.inix copied beside conversion.py"
     } else {
         writeLog "WARNING: no kit was handed in, so the add-on's homer package keeps the modules it has."
     }

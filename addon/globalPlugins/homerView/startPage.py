@@ -18,7 +18,7 @@ weights have been published, which is not the same thing as the service being
 open. None of them belong here under this rule.
 """
 
-startPageVersion = "9957d639"
+startPageVersion = "a3a96594"
 
 startPageText = """<!doctype html>
 <html lang="en">
@@ -85,7 +85,6 @@ for the full list, including the few that differ.</p>
 <li><strong>Copy All</strong>, Control+F8 &mdash; Copy all text to clipboard.</li>
 <li><strong>Copy Append</strong>, Alt+C &mdash; Append selected text to clipboard, or append current line if no selection.</li>
 <li><strong>Copy Log</strong>, Alt+Shift+L &mdash; Copy the HomerView log to the clipboard as a file, so Control+V attaches it to an email rather than typing its name into one.</li>
-<li><strong>Developer Notes</strong>, Control+Shift+F1 &mdash; Open the notes on how HomerView is built and why.</li>
 <li><strong>Dismiss Dialog</strong>, Alt+Shift+D &mdash; Closes a browser dialog that is blocking the window.</li>
 <li><strong>Edit Settings</strong>, Alt+Shift+E &mdash; Open the settings file, HomerView.inix, in a text editor.</li>
 <li><strong>Elevate Version</strong>, Control+F11 &mdash; Checks whether a newer HomerView exists and installs it.</li>

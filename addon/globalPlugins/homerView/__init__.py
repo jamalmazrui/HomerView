@@ -192,6 +192,8 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
              _("Open the full HomerView user guide in the HomerView window"), "showHelp"),
             (_("History of changes"), "Shift+F1",
              _("Open the HomerView history of changes in the HomerView window"), "showHistory"),
+            (_("Hotkeys"), "Control+Shift+F1",
+             _("Open every HomerView command with its keys, in the HomerView window"), "openHotkeys"),
             (_("Developer notes"), "",
              _("Open the HomerView developer notes in the HomerView window"), "openDeveloperNotes"),
             (_("Elevate version"), "Control+F11, or Alt+NVDA+F11",
@@ -1206,11 +1208,21 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 
 
 
+    # HOTKEYS ON CONTROL+SHIFT+F1 (22 October 2026), the suite's key for every app's Hotkeys, as the
+    # suite manifest has it; the developer notes keep no key and stay on the menu.
+    @script(
+        # Translators: Input help mode message for Hotkeys.
+        description=_("Open every HomerView command with its keys."),
+        category="HomerView",
+        gesture="kb:control+shift+f1",
+    )
+    def script_openHotkeys(self, gesture):
+        documents.openDocument("hotkeys")
+
     @script(
         # Translators: Input help mode message for Developer Notes.
         description=_("Open the notes on how HomerView is built and why."),
         category="HomerView",
-        gesture="kb:control+shift+f1",
     )
     def script_openDeveloperNotes(self, gesture):
         documents.openDocument("developer")

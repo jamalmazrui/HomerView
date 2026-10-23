@@ -75,7 +75,7 @@ if not defined homerDev (
 set "homerVer=0.0.0"
 if exist "!homerDev!\version.txt" set /p homerVer=<"!homerDev!\version.txt"
 rem 1.65.3: the kit's Python modules work in the add-on's package, and the build copies them in.
-set "kitNeeded=1.65.3"
+set "kitNeeded=1.88.6"
 rem TRIMMED BEFORE IT IS COMPARED. FileDir's build of 25 September stopped
 rem with "kit 1.40.1 is older than 1.40.1": the kit's version.txt carried a
 rem trailing space, [version] would not parse "1.40.1 ", PowerShell threw, and

@@ -164,49 +164,6 @@ def runConverter(lArguments, pathTarget, sTool, nBudget=conversionCeilingSeconds
     return completed.returncode == 0 and writtenSince(pathTarget, nStarted)
 
 
-def findExecutable():
-    """Locate 2htm.exe: a shared Homer folder first, then an installed copy."""
-    pathShared = paths.findSharedFile(executableName)
-    if pathShared:
-        homerLog.info(f"2htm found in a shared Homer folder at {pathShared}")
-        return pathShared
-    lCandidates = []
-    for sVariable in ("PROGRAMFILES", "PROGRAMFILES(X86)"):
-        sRoot = os.environ.get(sVariable, "")
-        if sRoot:
-            lCandidates.append(Path(sRoot) / "HomerView" / executableName)
-            lCandidates.append(Path(sRoot) / "2htm" / executableName)
-    lCandidates.append(Path(r"C:\HomerView") / executableName)
-    lCandidates.append(Path(r"C:\2htm") / executableName)
-    # The add-on's own folder, last, for a portable install with no installer.
-    lCandidates.append(Path(__file__).resolve().parents[2] / executableName)
-
-    for pathCandidate in lCandidates:
-        try:
-            if pathCandidate.is_file():
-                homerLog.info(f"2htm found at {pathCandidate}")
-                return pathCandidate
-        except OSError:
-            continue
-        homerLog.debug(f"2htm not at {pathCandidate}")
-
-    pathRegistered = findRegisteredExecutable()
-    if pathRegistered:
-        return pathRegistered
-
-    sPath = os.environ.get("PATH", "")
-    for sFolder in sPath.split(os.pathsep):
-        try:
-            pathCandidate = Path(sFolder) / executableName
-            if pathCandidate.is_file():
-                homerLog.info(f"2htm found on the path at {pathCandidate}")
-                return pathCandidate
-        except OSError:
-            continue
-    homerLog.warning("2htm could not be found anywhere")
-    return None
-
-
 def findPandoc():
     """Locate pandoc: a bundled copy in a Homer program folder, or an installed one."""
     pathShared = paths.findSharedFile(pandocName)
@@ -238,57 +195,6 @@ def findPandoc():
     return None
 
 
-def convertWithPandoc(pathSource, pathFolder):
-    """Convert a format pandoc knows and 2htm does not."""
-    pathPandoc = findPandoc()
-    if not pathPandoc:
-        raise ConversionError(
-            f"{pathSource.suffix} needs pandoc, which was not found. Install it from "
-            "https://pandoc.org, or place pandoc.exe in the Homer program folder."
-        )
-    pathTarget = pathFolder / f"{pathSource.stem}.htm"
-    lArguments = [
-        str(pathPandoc), str(pathSource), "--standalone", "--to=html5",
-        f"--metadata=title:{pathSource.stem}", "-o", str(pathTarget),
-    ]
-    homerLog.info(f"Running: {lArguments}")
-    nStarted = time.time()
-    completed = subprocess.run(
-        lArguments, capture_output=True, text=True,
-        timeout=conversionBudget(pathSource),
-        creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
-    )
-    if completed.stderr:
-        homerLog.warning(f"Pandoc reported: {abbreviate(completed.stderr, 800)}")
-    if completed.returncode != 0 or not writtenSince(pathTarget, nStarted):
-        raise ConversionError(f"{pathSource.name} could not be converted by pandoc (exit code {completed.returncode})")
-    homerLog.info(f"Pandoc wrote {pathTarget}, {pathTarget.stat().st_size} bytes")
-    return pathTarget
-
-
-def findRegisteredExecutable():
-    """Look for an install location recorded by 2htm's own installer."""
-    for iHive in (winreg.HKEY_LOCAL_MACHINE, winreg.HKEY_CURRENT_USER):
-        try:
-            with winreg.OpenKey(iHive, uninstallKey) as keyRoot:
-                iCount = winreg.QueryInfoKey(keyRoot)[0]
-                for iIndex in range(iCount):
-                    sSubKey = winreg.EnumKey(keyRoot, iIndex)
-                    if "2htm" not in sSubKey.lower():
-                        continue
-                    with winreg.OpenKey(keyRoot, sSubKey) as key:
-                        sLocation = winreg.QueryValueEx(key, "InstallLocation")[0]
-                    pathCandidate = Path(sLocation) / executableName
-                    if pathCandidate.is_file():
-                        homerLog.info(f"2htm found through the registry at {pathCandidate}")
-                        return pathCandidate
-        except OSError:
-            continue
-        except Exception:
-            continue
-    return None
-
-
 def needsConversion(pathSource):
     sExtension = pathSource.suffix.lstrip(".").lower()
     if sExtension in lNativeExtensions:
@@ -297,8 +203,8 @@ def needsConversion(pathSource):
 
 
 def isConvertible(pathSource):
-    sExtension = pathSource.suffix.lstrip(".").lower()
-    return sExtension in lConvertibleExtensions
+    from .homer import conversion as kitConversion
+    return kitConversion.canConvert(str(pathSource), "htm")
 
 
 def convertToHtml(sSourcePath, bPlainText=False):
@@ -318,66 +224,32 @@ def convertToHtml(sSourcePath, bPlainText=False):
         homerLog.info(f"{pathSource.name} needs no conversion; the browser reads it directly")
         return pathSource, False
 
-    sExtension = pathSource.suffix.lstrip(".").lower()
-    if sExtension in lPandocExtensions:
-        logSection("Converting with pandoc")
-        return convertWithPandoc(pathSource, paths.getTempFolder()), True
-
-    if not isConvertible(pathSource):
-        # Everything else goes straight to the browser, which is what the
-        # native Control+O does with it. Images, audio, video, JSON, source
-        # files and anything Edge renders open exactly as they would have;
-        # anything it cannot render, it offers to download, also as before.
-        # This is what makes taking Control+O honest: nothing that worked
-        # before stops working.
+    # THROUGH THE HOMER KIT'S ONE CONVERSION (22 October 2026), as every Homer app converts: the kit's
+    # conversion.py, carried in the homer package, picks the way from conversions.inix -- Pandoc, Office,
+    # its own readers -- where HomerView ran 2htm.exe or Pandoc itself. A type the kit cannot convert is
+    # opened in the browser, as before.
+    from .homer import conversion as kitConversion
+    sExtension = "txt" if bPlainText else "htm"
+    if not kitConversion.canConvert(str(pathSource), sExtension):
         homerLog.info(
-            f"{pathSource.suffix or 'This file'} has no converter, so it is opened "
+            f"{pathSource.suffix or 'This file'} has no conversion in the Homer kit, so it is opened "
             "in the browser as the native command would"
         )
         return pathSource, False
-
-    pathExecutable = findExecutable()
-    if not pathExecutable:
-        raise ConversionError(
-            "2htm was not found. Install it from https://github.com/JamalMazrui/2htm, "
-            "or place 2htm.exe in the HomerView installation folder."
-        )
-
-    pathFolder = paths.getTempFolder()
-    sExtension = "txt" if bPlainText else "htm"
-    pathTarget = pathFolder / f"{pathSource.stem}.{sExtension}"
+    pathTarget = paths.getTempFolder() / f"{pathSource.stem}.{sExtension}"
     try:
         if pathTarget.exists():
             pathTarget.unlink()
     except OSError:
         pass
-
-    lArguments = [str(pathExecutable), str(pathSource), "-o", str(pathFolder), "-f"]
-    if bPlainText:
-        lArguments.append("-p")
-    homerLog.info(f"Running: {lArguments}")
+    logSection("Converting through the Homer kit")
     try:
-        completed = subprocess.run(
-            lArguments,
-            capture_output=True,
-            text=True,
-            timeout=conversionBudget(pathSource),
-            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
-        )
-    except subprocess.TimeoutExpired:
-        raise ConversionError(f"Converting {pathSource.name} took too long and was stopped")
-    homerLog.info(f"2htm exit code {completed.returncode}")
-    if completed.stdout:
-        homerLog.debug(f"2htm said: {abbreviate(completed.stdout, 800)}")
-    if completed.stderr:
-        homerLog.warning(f"2htm reported: {abbreviate(completed.stderr, 800)}")
-
+        dDone = kitConversion.convert(str(pathSource), str(pathTarget))
+    except Exception as oError:
+        raise ConversionError(f"{pathSource.name} could not be converted: {oError}")
     if not pathTarget.is_file():
-        raise ConversionError(
-            f"{pathSource.name} could not be converted. "
-            "Office documents need the matching Office program installed."
-        )
-    homerLog.info(f"Converted to {pathTarget}, {pathTarget.stat().st_size} bytes")
+        raise ConversionError(f"{pathSource.name} could not be converted.")
+    homerLog.info(f"Converted to {pathTarget} by {dDone.get('route', '?')}, {pathTarget.stat().st_size} bytes")
     return pathTarget, True
 
 

@@ -353,9 +353,9 @@ in the order it happened.
 - **Control+F1** — this guide
 - **Alt+Shift+F1** — ReadMe, the quick start
 - **Shift+F1** — the history of changes
-- **Control+Shift+F1** — the developer notes
+- **Control+Shift+F1** — the hotkeys, every command with its keys
 - **Alt+F1** — which build is loaded and where everything lives
-- The hotkey document and the project announcement are on the Alternate Menu
+- The developer notes and the project announcement are on the Alternate Menu
 
 ### What needs HomerView's own browser
 

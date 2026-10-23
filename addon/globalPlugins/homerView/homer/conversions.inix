@@ -1,0 +1,360 @@
+﻿; conversions.inix -- the one routing table for converting a file in any Homer program.
+;
+; ONE SECTION PER CONVERSION, NAMED <source>2<target> (kit 1.74.0): pdf2txt,
+; pdf2docx, docx2md. Read by the kit's Python conversion.py and C# Conversion.cs,
+; so a route is decided once, for every app in either language.
+;
+; ways = the engines to try, best first, separated by commas; the first whose
+;   engines are all present is used. A way can take steps joined by >, each an
+;   engine, with :type naming what it hands on (pdfstructure:md > pandoc).
+; note = why the ways are in that order, from testing.
+;
+; THE SOURCE AND THE TARGET BOTH DECIDE. pdf2txt wants speed and takes the text
+; layer only; pdf2docx wants structure and pays for it. A quick read (FileDir's
+; ? key) never uses ocr, which can take minutes.
+;
+; Only approved components: Pandoc, NuGet and PyPI packages, and Tesseract for
+; scanned pages. Microsoft Office, driven by COM, is always last, and only where
+; nothing approved will do; when it is needed and missing, an Alert box says so.
+; Engines:
+;   copy          the file as it is
+;   ocr           a scanned PDF read by Tesseract (Python; C# through the kit's PdfReader)
+;   officecom     Microsoft Office, the last resort
+;   pandoc        Pandoc
+;   pdfstructure  a PDF's text with headings, lists and tables worked out: C# uses
+;                 the kit's PdfReader (HomerScribe's reader) where an app compiles
+;                 it, else pymupdf4llm; Python uses pdfminer
+;   pdftext       a PDF's text layer as it is, the quickest
+;   table         rows and columns, through the kit's Table class (C#)
+;   zipxml        the text of a Word, Excel, PowerPoint or OpenDocument file, read
+;                 straight from the XML inside it: no other program at all
+
+[csv2docx]
+ways = table
+
+[csv2htm]
+ways = table, table:md > markdown
+note = The second way needs no Pandoc, as 2htm never did (1.87.4).
+
+[csv2inix]
+ways = table
+
+[csv2md]
+ways = table
+
+[csv2tsv]
+ways = table
+
+[csv2txt]
+ways = copy
+
+[csv2xlsx]
+ways = table
+note = A table written by the kit's Table class (1.80.0), every value kept as text.
+
+[doc2docx]
+ways = officecom
+
+[doc2htm]
+ways = officecom
+
+[doc2md]
+ways = officecom:docx > pandoc
+
+[doc2pdf]
+ways = officecom
+
+[doc2txt]
+ways = officecom
+note = A 1997 Word file has no free reader yet, so Office is the only way; without Office an Alert box says so and how to avoid it.
+
+[docx2doc]
+ways = officecom
+note = A 1997 Word file can only be written by Word; .docx is its free successor.
+
+[docx2docx]
+ways = copy
+
+[docx2epub]
+ways = pandoc
+
+[docx2htm]
+ways = pandoc, officecom
+
+[docx2md]
+ways = pandoc, zipxml
+
+[docx2odt]
+ways = pandoc
+
+[docx2pdf]
+ways = officecom
+
+[docx2txt]
+ways = zipxml, pandoc, officecom
+note = Read straight from the XML inside the file: no other program starts, so it is the quickest.
+
+[epub2docx]
+ways = pandoc
+
+[epub2htm]
+ways = pandoc
+
+[epub2md]
+ways = pandoc
+
+[epub2txt]
+ways = pandoc
+
+[htm2doc]
+ways = officecom
+
+[htm2docx]
+ways = pandoc
+
+[htm2htm]
+ways = page
+note = A web page put in the Homer page form, 2htm's (1.87.0): styles, scripts and comments removed, one H1, main labelled by it.
+
+[htm2md]
+ways = pandoc
+
+[htm2pdf]
+ways = officecom
+
+[htm2txt]
+ways = pandoc, page
+
+[html2docx]
+ways = pandoc
+
+[html2md]
+ways = pandoc
+
+[html2pdf]
+ways = officecom
+
+[html2txt]
+ways = pandoc
+
+[inix2csv]
+ways = table
+
+[inix2md]
+ways = table
+
+[inix2tsv]
+ways = table
+
+[inix2txt]
+ways = table
+note = An inix table as a Markdown table, plain text a reader takes in order (1.87.3).
+
+[inix2xlsx]
+ways = table
+note = A table written by the kit's Table class (1.80.0), every value kept as text.
+
+[json2htm]
+ways = json
+note = A JSON file as a readable page of nested lists and tables, 2htm's (1.87.0).
+
+[json2txt]
+ways = json
+
+[md2csv]
+ways = table
+
+[md2doc]
+ways = pandoc:docx > officecom
+
+[md2docx]
+ways = pandoc
+
+[md2epub]
+ways = pandoc
+
+[md2htm]
+ways = pandoc, markdown
+note = markdown is the kit's own writer (1.81.0), for a computer without Pandoc.
+
+[md2inix]
+ways = table
+
+[md2odt]
+ways = pandoc
+
+[md2pdf]
+ways = pandoc:docx > officecom
+
+[md2pptx]
+ways = pandoc
+
+[md2rtf]
+ways = pandoc
+
+[md2tsv]
+ways = table
+
+[md2txt]
+ways = pandoc, copy
+
+[md2xlsx]
+ways = table
+note = A table written by the kit's Table class (1.80.0), every value kept as text.
+
+[odp2md]
+ways = zipxml
+
+[odp2txt]
+ways = zipxml
+
+[ods2md]
+ways = zipxml
+
+[ods2txt]
+ways = zipxml
+
+[odt2doc]
+ways = officecom
+
+[odt2docx]
+ways = pandoc
+
+[odt2htm]
+ways = pandoc, zipxml:md > markdown
+
+[odt2md]
+ways = pandoc
+
+[odt2pdf]
+ways = officecom
+
+[odt2txt]
+ways = zipxml, pandoc
+
+[pdf2docx]
+ways = pdfstructure:md > pandoc, ocr:md > pandoc, officecom
+note = As pdf2md, then Pandoc writes the Word file; a document of scans is read by OCR first; Office only when nothing else can.
+
+[pdf2htm]
+ways = pdfstructure:md > pandoc, pdfstructure:md > markdown, ocr:md > pandoc, ocr:md > markdown, officecom
+
+[pdf2md]
+ways = pdfstructure, ocr
+note = Structure matters more than speed: the PDF's own tags where they carry it, else headings from type sizes, lists and reading order. C# uses the kit's PdfReader, HomerScribe's reader, where an app compiles it (kit 1.75.0), else pymupdf4llm; Python uses pdfminer. A document of scans fails pdfstructure so ocr reads it.
+
+[pdf2txt]
+ways = pdftext, ocr, officecom
+note = FileDir's ? key and every quick read: the text layer only, no structure. C# reads it in-process with PdfPig when PdfPig is beside the program, else PyMuPDF's plain text; Python uses pypdf.
+
+[ppt2htm]
+ways = officecom:pptx > zipxml:md > pandoc
+note = An old PowerPoint file made a .pptx by PowerPoint, the last resort, then read as the .pptx route reads it.
+
+[ppt2md]
+ways = officecom:pptx > zipxml
+
+[ppt2pdf]
+ways = officecom
+
+[ppt2pptx]
+ways = officecom
+
+[ppt2txt]
+ways = officecom:pptx > zipxml
+
+[pptx2htm]
+ways = zipxml:md > pandoc, zipxml:md > markdown
+
+[pptx2md]
+ways = zipxml
+
+[pptx2pdf]
+ways = officecom
+
+[pptx2txt]
+ways = zipxml
+
+[rtf2doc]
+ways = officecom
+
+[rtf2docx]
+ways = pandoc, officecom
+
+[rtf2htm]
+ways = pandoc, officecom
+
+[rtf2md]
+ways = pandoc, officecom:docx > pandoc
+
+[rtf2txt]
+ways = pandoc, officecom
+
+[tsv2csv]
+ways = table
+
+[tsv2htm]
+ways = table, table:md > markdown
+note = The second way needs no Pandoc, as 2htm never did (1.87.4).
+
+[tsv2inix]
+ways = table
+
+[tsv2md]
+ways = table
+
+[tsv2txt]
+ways = copy
+
+[tsv2xlsx]
+ways = table
+note = A table written by the kit's Table class (1.80.0), every value kept as text.
+
+[txt2doc]
+ways = officecom
+
+[txt2docx]
+ways = pandoc
+
+[txt2htm]
+ways = pandoc, markdown
+
+[txt2md]
+ways = copy
+
+[xls2csv]
+ways = officecom
+
+[xls2htm]
+ways = officecom:xlsx > table, officecom:xlsx > zipxml:md > pandoc
+note = An old Excel file made an .xlsx by Excel, the last resort, then read as the .xlsx route reads it.
+
+[xls2md]
+ways = officecom:xlsx > table, officecom:xlsx > zipxml
+
+[xls2txt]
+ways = officecom:xlsx > zipxml
+
+[xls2xlsx]
+ways = officecom
+
+[xlsx2csv]
+ways = table, zipxml
+
+[xlsx2docx]
+ways = table
+
+[xlsx2htm]
+ways = table, zipxml:md > pandoc, zipxml:md > markdown
+
+[xlsx2inix]
+ways = table
+
+[xlsx2md]
+ways = table, zipxml
+
+[xlsx2tsv]
+ways = table
+
+[xlsx2txt]
+ways = table, zipxml

@@ -128,6 +128,30 @@ function chosenBrowserExe {
     return "msedge.exe"
 }
 
+# activeBrowserExes: CHOOSE ACTIVE BROWSERS (22 October 2026, stage 5 of the Homer plan). HomerView's
+# keys are bound in the browser it drives and in every browser named by activeBrowsers in
+# HomerView.inix, a comma-separated list of executable names (chrome.exe, brave.exe), so changing
+# the driven browser needs no reinstall. This is safe now that the helper routes a page command
+# only to HomerView's own session (verified-session routing): in any other window of an active
+# browser, the key goes on to the browser. The driven browser comes first.
+function activeBrowserExes {
+    param([string] $sChosen)
+    $lExes = @($sChosen)
+    $pathInix = Join-Path $env:LOCALAPPDATA "HomerView\HomerView.inix"
+    if (Test-Path $pathInix) {
+        foreach ($sLine in (Get-Content $pathInix -ErrorAction SilentlyContinue)) {
+            if ($sLine -match '^\s*activeBrowsers\s*=\s*(.*?)\s*$') {
+                foreach ($sOne in ($Matches[1] -split ',')) {
+                    $sName = [System.IO.Path]::GetFileName($sOne.Trim())
+                    if ($sName -and -not ($lExes | Where-Object { $_ -ieq $sName })) { $lExes += $sName }
+                }
+            }
+        }
+    }
+    writeLog ("  active browsers: " + ($lExes -join ", "))
+    return ,$lExes
+}
+
 function writeLog {
     param([string] $sMessage)
     $sStamped = "{0}  {1}" -f (Get-Date -Format "yyyy-MM-dd HH:mm:ss"), $sMessage
@@ -566,6 +590,7 @@ $iFailed = 0
 # same browser. Reading the setting per folder would let a file changed while
 # this runs leave two JAWS versions pointing at different browsers.
 $sBrowserExe = chosenBrowserExe $sBrowserExe
+$lBrowserExes = activeBrowserExes $sBrowserExe
 writeLog ""
 
 foreach ($folderVersion in $lVersions) {
@@ -766,23 +791,20 @@ foreach ($folderVersion in $lVersions) {
         # HomerView.exe, which reconnects and raises the window or starts the
         # browser, so it needs no screen reader at all -- which is why one
         # shortcut serves JAWS and NVDA alike.
-        $sBrowserBase = [System.IO.Path]::GetFileNameWithoutExtension($sBrowserExe)
-        $sConfigBase = browserConfigName $pathUser $pathShared $sBrowserBase
-        $pathBrowserJss = Join-Path $pathUser "$sConfigBase.jss"
-        $pathBrowserJkm = Join-Path $pathUser "$sConfigBase.jkm"
-
-        # A BROWSER THAT IS NOT THE ONE WE LAST WROTE FOR HAS TO BE CLEARED
-        # FIRST. Changing the setting from Edge to Chrome leaves Edge's key map
-        # holding thirty-nine keys that answer to scripts Chrome's script file
-        # loads, and the reader has two browsers claiming Control+O. The
-        # manifest records which browser this folder was done for, so the
-        # question can be asked rather than assumed.
-        $sPreviousBase = ""
-        foreach ($sLine in $lManifest) {
-            if ($sLine -match '^browser\|(.+)$') { $sPreviousBase = $Matches[1] }
+        # A BROWSER THAT IS NO LONGER ACTIVE HAS TO BE CLEARED FIRST: its key map would still
+        # hold keys answering to scripts it no longer loads. The manifest records each browser
+        # this folder was done for ("browser|<name>"), so the question is asked, not assumed.
+        $lConfigBases = @()
+        foreach ($sOneExe in $lBrowserExes) {
+            $lConfigBases += browserConfigName $pathUser $pathShared ([System.IO.Path]::GetFileNameWithoutExtension($sOneExe))
         }
-        if ($sPreviousBase -and $sPreviousBase -ne $sConfigBase) {
-            writeLog "  this folder was set up for $sPreviousBase and the browser is now $sConfigBase"
+        $lPreviousBases = @()
+        foreach ($sLine in $lManifest) {
+            if ($sLine -match '^browser\|(.+)$') { $lPreviousBases += $Matches[1] }
+        }
+        foreach ($sPreviousBase in $lPreviousBases) {
+            if ($lConfigBases | Where-Object { $_ -ieq $sPreviousBase }) { continue }
+            writeLog "  this folder was set up for $sPreviousBase, which is no longer an active browser"
             foreach ($sSuffix in @("jkm", "jss", "jsb")) {
                 $pathOld = Join-Path $pathUser "$sPreviousBase.$sSuffix"
                 if (-not (Test-Path $pathOld)) { continue }
@@ -794,8 +816,16 @@ foreach ($folderVersion in $lVersions) {
                     writeLog "    took $iOut of our lines back out of $sPreviousBase.jkm"
                 }
             }
-            $lManifest = @($lManifest | Where-Object { $_ -notlike "*|$sPreviousBase.*" -and $_ -notlike "browser|*" })
+            $lManifest = @($lManifest | Where-Object { $_ -notlike "*|$sPreviousBase.*" -and $_ -ne "browser|$sPreviousBase" })
         }
+        $iFolderMissing = 0
+        # EACH ACTIVE BROWSER, the same steps as when there was only one.
+        foreach ($sBrowserExe in $lBrowserExes) {
+        writeLog "  browser $sBrowserExe"
+        $sBrowserBase = [System.IO.Path]::GetFileNameWithoutExtension($sBrowserExe)
+        $sConfigBase = browserConfigName $pathUser $pathShared $sBrowserBase
+        $pathBrowserJss = Join-Path $pathUser "$sConfigBase.jss"
+        $pathBrowserJkm = Join-Path $pathUser "$sConfigBase.jkm"
 
         # THE SCRIPT FILE, WHICH LAYERS RATHER THAN REPLACES. The scripting
         # documentation's own word for it: "when one script set is loaded on
@@ -1051,6 +1081,9 @@ foreach ($folderVersion in $lVersions) {
             $iMissing += 1
         }
 
+        $iFolderMissing += $iMissing
+        }
+
         # AND THE OTHER HALF OF THE PROMISE, CHECKED RATHER THAN ASSERTED.
         # Nothing of ours should be in the default key map, including anything
         # an older release put there. Saying so in the log every run is what
@@ -1074,10 +1107,10 @@ foreach ($folderVersion in $lVersions) {
             writeLog "    there is no user default.jkm here, which is how HomerView leaves it"
         }
 
-        if ($iMissing -gt 0) {
+        if ($iFolderMissing -gt 0) {
             $iFailed += 1
         } else {
-            writeLog "    all $($lAllKeys.Count) keys read back correctly from $sConfigBase.jkm"
+            writeLog "    all $($lAllKeys.Count) keys read back correctly for $($lBrowserExes.Count) browser(s)"
             $iDone += 1
         }
 

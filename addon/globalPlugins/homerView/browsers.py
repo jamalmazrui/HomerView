@@ -244,3 +244,20 @@ def rememberBrowser(sName, sPath):
     settings.setValue("Preferences", "browser", sName)
     settings.setValue("Preferences", "browserPath", sPath)
     homerLog.info(f"The browser is now {sName} at {sPath}")
+
+
+def activeBrowsers():
+    """The executable names of the browsers HomerView's keys are bound in besides the one it drives
+    (Choose Active Browsers, 22 October 2026), from activeBrowsers in HomerView.inix."""
+    from . import settings
+
+    sList = settings.getValue("Preferences", "activeBrowsers", "")
+    return [s.strip() for s in sList.split(",") if s.strip()]
+
+
+def rememberActiveBrowsers(lExeNames):
+    """Write the active browsers where the JAWS installer reads them, as executable names."""
+    from . import settings
+
+    settings.setValue("Preferences", "activeBrowsers", ", ".join(lExeNames))
+    homerLog.info("The active browsers are now " + (", ".join(lExeNames) or "only the one HomerView drives"))

@@ -3,6 +3,7 @@
 
 ## 19 October 2026 -- HomerView speaks the Homer suite's command names
 
+- **Choose Active Browsers,** on the Alternate Menu: tick the other installed browsers HomerView's keys should work in, besides the one it drives, so changing the browser it drives needs no setting up again. The JAWS keys are written into each one; in a window HomerView did not open, a key does what the browser itself does. Kept as activeBrowsers in HomerView.inix, which JAWS users without NVDA can set with Edit Settings, Alt+Shift+E; it takes effect when the JAWS keys are next written, such as by Choose Browser.
 - **On JAWS, HomerView's page keys act only in HomerView's own browser,** as they always have on NVDA. A window of the same browser that HomerView did not start -- your everyday Chrome or Edge -- gets the key as though HomerView were not there. The helper checks that the window in front belongs to the browser started with HomerView's own profile; if that check cannot be made, the command goes ahead.
 - **Documents open and pages save through the Homer kit's conversion,** as in every Homer app: HomerView carries the kit's conversion.py and its route table in its homer package, where it used to run 2htm.exe or Pandoc itself. A file type the kit cannot convert still opens in the browser, and saving a page as Word goes through the kit too. No console window flashes while a tool runs.
 - **Control+Shift+F1 opens the hotkeys,** every command with its keys, the suite's key for every app's Hotkeys, in NVDA and JAWS alike. The developer notes are on the Alternate Menu.

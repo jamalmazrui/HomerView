@@ -201,6 +201,8 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             (_("Look something up"), "Alt+Q, or Alt+NVDA+Q",
              _("Define a word, check the weather, find books, and more, with no account needed"),
              "webUtilities"),
+            (_("Choose active browsers"), "",
+             _("Choose which other installed browsers HomerView's keys work in"), "chooseActiveBrowsers"),
             (_("Choose browser"), "Alt+Shift+B",
              _("Choose which Chromium browser HomerView drives"), "chooseBrowser"),
             (_("Edit settings"), "Alt+Shift+E",
@@ -1324,6 +1326,19 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         else:
             # Translators: Reported when the clipboard would not take the file.
             ui.message(_("Clipboard refused"))
+
+    @script(
+        # Translators: Input help mode message for Choose Active Browsers.
+        description=_("Choose which other installed browsers HomerView's keys work in. On the menu; no key."),
+        category="HomerView",
+    )
+    def script_chooseActiveBrowsers(self, gesture):
+        homerLog.info("Command: choose the active browsers")
+        from . import browserDialog
+        from .homer import lbc
+
+        # After the script returns, as every dialog here does.
+        lbc.afterScript(lambda: wx.CallAfter(browserDialog.chooseActiveBrowsers))
 
     @script(
         # Translators: Input help mode message for Choose Browser.

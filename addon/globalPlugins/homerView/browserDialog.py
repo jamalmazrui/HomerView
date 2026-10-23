@@ -123,6 +123,79 @@ class BrowserDialog(wx.Dialog):
         self.listBrowsers.SetFocus()
 
 
+class ActiveBrowsersDialog(wx.Dialog):
+    """Tick the browsers HomerView's keys work in, besides the one it drives."""
+
+    def __init__(self, lFound, sDrivenPath, lActive):
+        # Translators: Title of the dialog for choosing the browsers HomerView works in.
+        super().__init__(gui.mainFrame, title=_("HomerView active browsers"))
+        self.lOthers = [d for d in lFound if not (sDrivenPath and d["path"].lower() == sDrivenPath.lower())]
+        boxOuter = wx.BoxSizer(wx.VERTICAL)
+        # Translators: Introduction in the active browsers dialog.
+        labelPrompt = wx.StaticText(self, label=_(
+            "HomerView's keys always work in the browser it drives. Tick any other browser to have "
+            "them there too, so you can change the browser it drives without setting anything up "
+            "again. In a window HomerView did not open, the keys do what the browser itself does."))
+        labelPrompt.Wrap(dialogWidth)
+        boxOuter.Add(labelPrompt, 0, wx.ALL, 10)
+        # Translators: Label of the list of other browsers, each with a check box.
+        labelList = wx.StaticText(self, label=_("&Other browsers on this computer:"))
+        boxOuter.Add(labelList, 0, wx.LEFT | wx.RIGHT, 10)
+        self.listBrowsers = wx.CheckListBox(
+            self, choices=["%s  --  %s" % (d["name"], d["path"]) for d in self.lOthers], size=(dialogWidth, 200))
+        lActiveLower = [s.lower() for s in lActive]
+        for iIndex, dBrowser in enumerate(self.lOthers):
+            if Path(dBrowser["path"]).name.lower() in lActiveLower:
+                self.listBrowsers.Check(iIndex, True)
+        boxOuter.Add(self.listBrowsers, 1, wx.EXPAND | wx.ALL, 10)
+        boxOuter.Add(self.CreateButtonSizer(wx.OK | wx.CANCEL), 0, wx.EXPAND | wx.ALL, 10)
+        self.SetSizerAndFit(boxOuter)
+        if self.lOthers:
+            self.listBrowsers.SetSelection(0)
+        self.listBrowsers.SetFocus()
+
+    def ticked(self):
+        return [Path(self.lOthers[i]["path"]).name for i in range(len(self.lOthers)) if self.listBrowsers.IsChecked(i)]
+
+
+def chooseActiveBrowsers():
+    """CHOOSE ACTIVE BROWSERS (22 October 2026, stage 5 of the Homer plan): which installed browsers
+    HomerView's keys work in, kept in HomerView.inix as activeBrowsers. The JAWS key maps are written
+    for each; NVDA needs nothing, since it attaches to HomerView's own browser wherever it runs."""
+    gui.mainFrame.prePopup()
+    try:
+        lFound = browsers.findBrowsers()
+        _sName, sDriven = browsers.chosenBrowser()
+        lActive = browsers.activeBrowsers()
+        dialog = ActiveBrowsersDialog(lFound, sDriven, lActive)
+        if not dialog.lOthers:
+            dialog.Destroy()
+            gui.messageBox(
+                # Translators: Reported when no browser other than the driven one is installed.
+                _("No other Chromium browser is installed, so HomerView works in the one it drives."),
+                _("HomerView active browsers"), wx.OK | wx.ICON_INFORMATION)
+            return
+        iResult = dialog.ShowModal()
+        lTicked = dialog.ticked()
+        dialog.Destroy()
+    finally:
+        gui.mainFrame.postPopup()
+    if iResult != wx.ID_OK:
+        homerLog.info("The active browsers were not changed")
+        return
+    if sorted(s.lower() for s in lTicked) == sorted(s.lower() for s in lActive):
+        homerLog.info("The same active browsers were chosen, so nothing is changed")
+        return
+    browsers.rememberActiveBrowsers(lTicked)
+    bJaws, _sOutput = rewriteJawsKeys(sDriven) if sDriven else (False, "")
+    # Translators: Reported after the active browsers have been changed.
+    sMessage = _("HomerView's keys will work in {count} browser(s) besides the one it drives.").format(count=len(lTicked))
+    if bJaws:
+        # Translators: Told to the user when the JAWS keys have been rewritten.
+        sMessage += "\n\n" + _("The JAWS keys have been rewritten. Restart JAWS for them to take effect.")
+    gui.messageBox(sMessage, _("HomerView active browsers"), wx.OK | wx.ICON_INFORMATION)
+
+
 def rewriteJawsKeys(sBrowserPath):
     """Bind the JAWS keys inside the new browser instead of the old one.
 

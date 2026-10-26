@@ -145,12 +145,20 @@ def loadKind():
     # first, put at the front of the path and imported, so the check crashed on a kind function it lacked (HomerScribe,
     # EdSharp and FileDir, 9 October). Folders named HomerDev\scripts, and the HomerDev variable's, now come first; a
     # copy beside this script or in the project serves only when no kit is found.
-    sKitVar = os.path.normcase(os.path.abspath(os.path.join(os.environ.get("HomerDev", ""), "scripts"))) if os.environ.get("HomerDev") else ""
-    def kitFirst(sDir):
-        sNorm = os.path.normcase(os.path.abspath(sDir)) if sDir else ""
-        if sKitVar and sNorm == sKitVar: return 0
-        return 1 if sNorm.endswith(os.path.normcase(os.path.join("HomerDev", "scripts"))) else 2
-    lsDirs = sorted(lsDirs, key=kitFirst)
+    # THE NEWEST KIT'S KIND.PY (1.93.4). The HomerDev variable's folder came first, and it names the installed kit in
+    # Program Files, 1.77.6, whose kind.findKit took any folder with exec\\CSharp\\Lbc.cs for the kit; one was left at
+    # the top of C:\\, so every app's check of 25 October was built "against the kit at C:\\" and could not find the
+    # skills' scripts there, though C:\\HomerDev held 1.93.3. The folders are now ranked as the build scripts, tidy and
+    # kind.findKit rank kits: a real kit (HomerDev.cs at the top of its scripts folder's parent) before any copy, then
+    # the highest version.txt, then a folder named HomerDev, then a git repository.
+    def kitRank(sDir):
+        if not sDir: return (False, (), False, False)
+        sParent = os.path.dirname(os.path.abspath(sDir))
+        bKit = os.path.isfile(os.path.join(sParent, "HomerDev.cs"))
+        try: tVersion = tuple(int(s) for s in re.findall(r"\d+", open(os.path.join(sParent, "version.txt"), encoding="utf-8-sig").read())[:3]) if bKit else ()
+        except (OSError, ValueError): tVersion = ()
+        return (bKit, tVersion, os.path.basename(sParent).lower() == "homerdev", os.path.isdir(os.path.join(sParent, ".git")))
+    lsDirs = sorted(lsDirs, key=kitRank, reverse=True)
     for sDir in lsDirs:
         if sDir and os.path.isfile(os.path.join(sDir, "kind.py")):
             if sDir in sys.path: sys.path.remove(sDir)
@@ -1119,6 +1127,11 @@ def checkConversions():
     if lsMissing:
         logLine("conversion: the build compiles Conversion but not " + ", ".join(lsMissing))
         return finding("conversion", "fail", "the build compiles Conversion without the rest of the bundle: " + ", ".join(lsMissing))
+    # QUALITY WITH CONVERSION (1.92.0): Quality.cs holds extCheck's rules, which judge every file Conversion
+    # makes; an app that compiles Conversion without it still converts, with fewer checks, so this warns.
+    bNoQuality = bool(re.search(r"\bConversion(\.cs)?\b", sBuildText)) and not re.search(r"\bQuality(\.cs)?\b", sBuildText)
+    if not lsHits and bNoQuality:
+        return finding("conversion", "warn", "the build compiles Conversion without Quality, so the files it makes are not judged by extCheck's rules; add Quality to homerModules")
     if not lsHits:
         return finding("conversion", "pass", "every conversion goes through the kit's Conversion, with the whole bundle")
     sCount = countNoun(len(lsHits), "line") + " of private conversion code"
@@ -1250,7 +1263,16 @@ def checkSkillChecks(sKind):
         elif iCode != 0: lsFailed.append("checkDb fails " + os.path.relpath(sDb, sRoot) + ("" if re.search(r"\b[1-9]\d* failures?\b", sOut) else " (exit code %d, no summary: a crash)" % iCode))
     if os.path.isdir(os.path.join(sRoot, "logs")) and glob.glob(os.path.join(sRoot, "logs", "*.log")):
         runSkill("homer-build-release", "summarizeLogs.py", [os.path.join(sRoot, "logs"), "--skip=" + os.path.basename(sLogPath)])
-    sRan = "checkDocs" + (", checkDb on %d database%s" % (len(lsDatabases), "" if len(lsDatabases) == 1 else "s") if lsDatabases else "") + ", summarizeLogs"
+    # THE LAUNCH DIALOG (23 October 2026). checkLaunch (homer-launch-dialog) fails a launch app -- 2htm, BatCon,
+    # extCheck, HomerScribe, urlCheck, urlFido and any new one -- that does not build its dialog with the kit's
+    # LaunchDialog, does not end with the Results box, or keeps a retired control; it exits 0 for any other app.
+    # Retired names left in the documents are warnings in the log, not a failure.
+    if sKind == "app":
+        iCode, sOut = runSkill("homer-launch-dialog", "checkLaunch.py", [sRoot, "--app", appName()])
+        if iCode is None: lsFailed.append("checkLaunch could not run")
+        elif iCode != 0:
+            lsFailed.append("checkLaunch fails the launch dialog: " + "; ".join(s[5:] for s in sOut.splitlines() if s.startswith("FAIL "))[:600])
+    sRan = "checkDocs" + (", checkDb on %d database%s" % (len(lsDatabases), "" if len(lsDatabases) == 1 else "s") if lsDatabases else "") + ", checkLaunch, summarizeLogs"
     if lsFailed:
         return finding("skills", "fail", "; ".join(lsFailed) + "; the log has each finding")
     return finding("skills", "pass", "ran " + sRan + ((" -- " + "; ".join(lsNotes) + "; the log names each") if lsNotes else ""))

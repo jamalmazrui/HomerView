@@ -1,6 +1,12 @@
 ﻿
 
 
+## 26 October 2026 -- the kit converts
+
+- **Documents are converted by the HomerDev kit's Conversion,** like every Homer app's. HomerView found Pandoc and 2htm itself and ran them in turn, and the kit's check stopped its release on those six lines. Opening a document now asks the kit whether it can become a web page, and converts it the best way it knows, falling back through Markdown or a web page when there is no direct way; saving a page in another format goes through it too. The kit logs every way it tries and finishes each page for a screen reader. A type it cannot make a page of opens in the browser as before.
+- **The build compiles the kit's conversion classes,** finds the newest kit (the HomerDev variable named an older installed one, which was taken first), and puts the kit's route table, conversions.inix, beside HomerView.exe, where the installer now ships it.
+- **The build references the three assemblies the kit's classes need by path:** UIAutomationProvider and UIAutomationTypes for Lbc.cs and Say.cs, System.Speech for Voice.cs. The first build with the kit's Conversion stopped on "Automation does not exist in the namespace System.Windows"; build.ps1 now finds them as the kit's build.py does, and stops with a plain message if one is missing.
+
 ## 19 October 2026 -- HomerView speaks the Homer suite's command names
 
 - **Choose Active Browsers,** on the Alternate Menu: tick the other installed browsers HomerView's keys should work in, besides the one it drives, so changing the browser it drives needs no setting up again. The JAWS keys are written into each one; in a window HomerView did not open, a key does what the browser itself does. Kept as activeBrowsers in HomerView.inix, which JAWS users without NVDA can set with Edit Settings, Alt+Shift+E; it takes effect when the JAWS keys are next written, such as by Choose Browser.

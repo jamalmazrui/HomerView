@@ -350,12 +350,47 @@ function buildBridge {
     #
     # The one thing that changes is below: PowerShell does not wait for a
     # windows program the way it waits for a console one.
+    # THE KIT'S CLASSES NEED THREE REFERENCE ASSEMBLIES BY PATH (26 October 2026). Lbc.cs and Say.cs use Windows UI
+    # Automation (UIAutomationProvider, UIAutomationTypes) and Voice.cs uses System.Speech; csc does not find them by
+    # name, and the first build after the kit's Conversion came in stopped on "Automation does not exist in the
+    # namespace System.Windows". They are found as the kit's build.py finds them: the reference assemblies for the
+    # newest .NET Framework 4.x, then System.Speech in the assembly cache, then the runtime's WPF folder.
+    $lExtraRefs = @()
+    $sRefBase = Join-Path ${env:ProgramFiles(x86)} "Reference Assemblies\Microsoft\Framework\.NETFramework"
+    foreach ($sName in @("System.Speech.dll", "UIAutomationProvider.dll", "UIAutomationTypes.dll")) {
+        $sFound = ""
+        foreach ($sVersion in @("v4.8.1", "v4.8", "v4.7.2", "v4.7.1", "v4.7", "v4.6.2")) {
+            $sTry = Join-Path (Join-Path $sRefBase $sVersion) $sName
+            if (Test-Path -LiteralPath $sTry) { $sFound = $sTry; break }
+        }
+        if (-not $sFound) {
+            foreach ($sTry in @((Join-Path $env:SystemRoot ("Microsoft.NET\assembly\GAC_MSIL\System.Speech\v4.0_4.0.0.0__31bf3856ad364e35\" + $sName)),
+                                (Join-Path $env:SystemRoot ("Microsoft.NET\Framework64\v4.0.30319\WPF\" + $sName)))) {
+                if (Test-Path -LiteralPath $sTry) { $sFound = $sTry; break }
+            }
+        }
+        if (-not $sFound) {
+            writeLog "ERROR: the .NET Framework reference assembly $sName was not found; the kit's classes need it."
+            Write-Host "$sName was not found. Install the .NET Framework 4.8 Developer Pack, then build again."
+            exit 1
+        }
+        writeLog "  reference: $sFound"
+        $lExtraRefs += "/reference:$sFound"
+    }
     $sOutput = & $pathCompiler /nologo /target:winexe /platform:x64 `
+        $lExtraRefs `
         /reference:System.Windows.Forms.dll `
         /reference:System.Runtime.Serialization.dll `
         /reference:System.Xml.dll `
         /reference:System.IO.Compression.dll `
         /reference:System.Management.dll `
+        /reference:System.Data.dll `
+        /reference:System.Drawing.dll `
+        /reference:System.Web.dll `
+        /reference:System.Web.Extensions.dll `
+        /reference:System.Net.Http.dll `
+        /reference:System.IO.Compression.FileSystem.dll `
+        /reference:Microsoft.VisualBasic.dll `
         "/out:$pathBridge" $pathSource $lShared 2>&1 | Out-String
     $iExit = $LASTEXITCODE
     $ErrorActionPreference = "Stop"
@@ -443,6 +478,12 @@ function buildAddon {
         }
         Copy-Item -LiteralPath $pathRoutes -Destination (Join-Path $pathHomerPackage "conversions.inix") -Force
         writeLog "  kit routes: exec\conversions.inix copied beside conversion.py"
+        # AND BESIDE HOMERVIEW.EXE (26 October 2026): its conversions now go through the kit's Conversion.cs, which
+        # reads its ways from conversions.inix beside the program; without this copy it would find an older kit's.
+        $pathExecHere = Join-Path $pathRoot "exec"
+        if (-not (Test-Path -LiteralPath $pathExecHere)) { New-Item -ItemType Directory -Path $pathExecHere | Out-Null }
+        Copy-Item -LiteralPath $pathRoutes -Destination (Join-Path $pathExecHere "conversions.inix") -Force
+        writeLog "  kit routes: exec\conversions.inix copied beside HomerView.exe"
     } else {
         writeLog "WARNING: no kit was handed in, so the add-on's homer package keeps the modules it has."
     }

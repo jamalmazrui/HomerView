@@ -62,9 +62,14 @@ echo Command line: %0 %*>> "%log%"
 echo Build log: %log%
 
 rem ---- the Homer Development Kit -------------------------------------
+rem THE NEWEST KIT FOUND IS USED (HomerDev 1.93.8), as every Homer app's build chooses it: the HomerDev variable and
+rem C:\HomerDev are each considered and the higher version wins. The variable names an installed kit in Program Files
+rem that lags C:\HomerDev, and was taken first.
+set "sKitFromEnv=%HomerDev%"
 set "homerDev="
-if defined HomerDev if exist "%HomerDev%\exec\CSharp\Inix.cs" set "homerDev=%HomerDev%"
-if not defined homerDev if exist "C:\HomerDev\exec\CSharp\Inix.cs" set "homerDev=C:\HomerDev"
+set "sKitVersion="
+call :considerKit "%sKitFromEnv%"
+call :considerKit "C:\HomerDev"
 if not defined homerDev if exist "%CD%\exec\CSharp\Inix.cs" set "homerDev=%CD%"
 if not defined homerDev (
   echo %app% needs the Homer Development Kit and cannot find it.
@@ -108,11 +113,18 @@ rem inner quotes did not survive the cmd-to-PowerShell boundary: the engine
 rem received the paths bare, found no quotes to split on, compiled with no
 rem kit sources at all, and csc answered "InixCodec does not exist". A
 rem semicolon cannot appear in a Windows path, so it crosses intact.
-set "homerSources=!homerDev!\exec\CSharp\Inix.cs;!homerDev!\exec\CSharp\Web.cs"
-for %%F in ("!homerDev!\exec\CSharp\Inix.cs" "!homerDev!\exec\CSharp\Web.cs") do (
-  if not exist %%F (
-    echo The kit at !homerDev! has no %%~nxF, and HomerView.cs calls into it.
-    echo ERROR: missing kit source %%F>> "%log%"
+rem THE KIT'S CONVERSION IS COMPILED IN (26 October 2026). HomerView found Pandoc and 2htm itself; the kit's check
+rem stopped its release, since every Homer app converts with the kit's Conversion. These are the classes the kit's own
+rem build compiles together as the conversion set: everything Conversion needs, and Quality, which judges what it makes.
+set "homerSources="
+for %%M in (Conversion ConversionMedia ConversionPage Elevate Inix KeyName Lbc Log Media Paths Quality Say Table Util Voice Web) do (
+  if defined homerSources (set "homerSources=!homerSources!;!homerDev!\exec\CSharp\%%M.cs") else (set "homerSources=!homerDev!\exec\CSharp\%%M.cs")
+)
+for %%F in (Conversion ConversionMedia ConversionPage Elevate Inix KeyName Lbc Log Media Paths Quality Say Table Util Voice Web) do (
+  set "sOne=!homerDev!\exec\CSharp\%%F.cs"
+  if not exist "!sOne!" (
+    echo The kit at !homerDev! has no %%F.cs, and HomerView.cs calls into it.
+    echo ERROR: missing kit source !sOne!>> "%log%"
     exit /b 1
   )
 )
@@ -267,3 +279,19 @@ if not "!exitCode!"=="0" (
 >> "%log%" echo !sIso! INFO  build end result=succeeded
 echo Build finished. The log is %log%
 endlocal & exit /b 0
+
+:considerKit
+rem One kit candidate: used when it is a kit -- HomerDev.cs at its top, exec\CSharp\Lbc.cs inside -- and newer than
+rem the kit chosen so far.
+set "sTry=%~1"
+if not defined sTry goto :eof
+if "!sTry:~-1!"=="\" set "sTry=!sTry:~0,-1!"
+if not exist "!sTry!\HomerDev.cs" goto :eof
+if not exist "!sTry!\exec\CSharp\Lbc.cs" goto :eof
+set "sTryVersion=0.0.0"
+if exist "!sTry!\version.txt" for /f "usebackq delims=" %%v in (`powershell -NoProfile -Command "(Get-Content -Raw -LiteralPath '!sTry!\version.txt').Trim([char]0xFEFF, ' ', [char]13, [char]10)"`) do set "sTryVersion=%%v"
+>> "%log%" echo Kit candidate: !sTry! version !sTryVersion!
+if not defined homerDev (set "homerDev=!sTry!" & set "sKitVersion=!sTryVersion!" & goto :eof)
+powershell -NoProfile -Command "try { if ([version]'!sTryVersion!' -gt [version]'!sKitVersion!') { exit 0 } else { exit 1 } } catch { exit 1 }"
+if not errorlevel 1 (set "homerDev=!sTry!" & set "sKitVersion=!sTryVersion!")
+goto :eof

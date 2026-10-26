@@ -2938,53 +2938,6 @@ namespace Homer
         }
 
         /// <summary>
-        /// Where a converter lives, following the NVDA side's own search.
-        ///
-        /// CONVERTERS ARE FOUND, NOT BUNDLED. A program folder is replaced
-        /// wholesale on update, and some managed environments will not execute
-        /// from a roaming profile. So HomerView looks where these things
-        /// already are and says plainly when one is absent.
-        /// </summary>
-        private static string FindConverter(string sName)
-        {
-            var lCandidates = new List<string>();
-            string sHere = AppFolder();
-            lCandidates.Add(Path.Combine(sHere, sName));
-            foreach (string sVariable in new string[] {
-                "PROGRAMFILES", "PROGRAMFILES(X86)", "LOCALAPPDATA" })
-            {
-                string sRoot = Environment.GetEnvironmentVariable(sVariable);
-                if (string.IsNullOrEmpty(sRoot)) continue;
-                foreach (string sFolder in new string[] {
-                    "HomerView", "Homer", "Pandoc", "2htm" })
-                    lCandidates.Add(Path.Combine(Path.Combine(sRoot, sFolder), sName));
-            }
-            lCandidates.Add(Path.Combine("C:\\HomerView", sName));
-            lCandidates.Add(Path.Combine("C:\\2htm", sName));
-            foreach (string sFolder in
-                (Environment.GetEnvironmentVariable("PATH") ?? "").Split(';'))
-            {
-                if (sFolder.Trim() == "") continue;
-                try { lCandidates.Add(Path.Combine(sFolder.Trim(), sName)); }
-                catch (Exception) { }
-            }
-            foreach (string sCandidate in lCandidates)
-            {
-                try
-                {
-                    if (File.Exists(sCandidate))
-                    {
-                        Log("  " + sName + " found at " + sCandidate);
-                        return sCandidate;
-                    }
-                }
-                catch (Exception) { }
-            }
-            Log("  " + sName + " was not found anywhere");
-            return "";
-        }
-
-        /// <summary>
         /// Runs a converter and comes back, whatever it does.
         ///
         /// THIS DEADLOCKED, AND IT IS THE CLASSIC ONE. It read the whole of the
@@ -3045,23 +2998,6 @@ namespace Homer
             }
         }
 
-        // Which converter handles which format, in the order the NVDA side
-        // prefers. Anything not listed the browser opens by itself.
-        private static string[] ConvertersFor(string sExtension)
-        {
-            switch (sExtension)
-            {
-                case ".docx": case ".odt": case ".rtf": case ".md":
-                case ".markdown": case ".epub": case ".txt2":
-                    return new string[] { "pandoc.exe", "2htm.exe" };
-                case ".pdf": case ".doc": case ".ppt": case ".pptx":
-                case ".xls": case ".xlsx": case ".csv":
-                    return new string[] { "2htm.exe" };
-                default:
-                    return new string[] { };
-            }
-        }
-
         /// <summary>
         /// Turns a document into a temporary web page, and says where it is.
         ///
@@ -3080,8 +3016,13 @@ namespace Homer
                 || sExtension == ".xml" || sExtension == ".svg")
                 return "{\"value\":" + Quote(sPath) + "}";
 
-            string[] lConverters = ConvertersFor(sExtension);
-            if (lConverters.Length == 0)
+            // THE KIT CONVERTS (26 October 2026). HomerView found Pandoc and 2htm itself and ran them in turn; the kit's
+            // shared Conversion now does every Homer app's converting, so the kit's check stopped this release on those
+            // six lines. Homer.Conversion takes the best way for each pair from exec\conversions.inix, beside this
+            // program, falls back through Markdown or a web page when there is no direct way, logs every way it tries,
+            // and finishes the page for a screen reader. A type it cannot make a page of is handed to the browser as it
+            // is, as before.
+            if (!Homer.Conversion.canConvert(sPath, "htm"))
                 return "{\"value\":" + Quote(sPath) + "}";
 
             string sFolder = Path.Combine(
@@ -3097,72 +3038,20 @@ namespace Homer
             try { if (File.Exists(sTarget)) File.Delete(sTarget); }
             catch (Exception) { }
 
-            var lTried = new List<string>();
-            foreach (string sConverter in lConverters)
+            string sError = "";
+            try
             {
-                string sProgram = FindConverter(sConverter);
-                if (sProgram == "") { lTried.Add(sConverter + " is not installed"); continue; }
-                try
+                Log("  converting " + sPath + " to " + sTarget + " with the kit's Conversion");
+                if (Homer.Conversion.convert(sPath, sTarget, out sError) && File.Exists(sTarget) && new FileInfo(sTarget).Length > 0)
                 {
-                    // THE TWO PROGRAMS TAKE THEIR OUTPUT DIFFERENTLY, and I had
-                    // assumed they were alike.
-                    //
-                    // pandoc takes -o with a FILE. 2htm takes -o with a
-                    // DIRECTORY and names the file itself, <basename>.htm.
-                    // Passing 2htm the target path as a second positional
-                    // argument made it read that path as ANOTHER SOURCE FILE,
-                    // which is why it answered "File not found:
-                    // ...\temp\WCAG 2.2 Manual Checks.htm" -- a file it was
-                    // being asked to convert rather than to write.
-                    //
-                    // -f because 2htm SKIPS an input whose .htm already exists
-                    // in the output folder. Without it, a second run on the
-                    // same document silently leaves the first conversion in
-                    // place, which looks like success and is not.
-                    string sArguments = sConverter == "pandoc.exe"
-                        ? "\"" + sPath + "\" -s -o \"" + sTarget + "\""
-                        : "\"" + sPath + "\" -o \"" + sFolder + "\" -f -l";
-                    Log("  converting with " + sProgram + " " + sArguments);
-                    int iExit = RunAndWait(sProgram, sArguments, ConvertBudget(sPath));
-                    // ITS OWN LOG, FOLDED INTO OURS.
-                    //
-                    // Twice now a conversion has failed with an exit code and
-                    // NOTHING ELSE: 2htm printed nothing on either stream, so
-                    // the log said only that it had failed. -l makes it write
-                    // 2htm.log beside the output, and reading that in is the
-                    // difference between "it failed" and knowing why.
-                    string sTheirLog = Path.Combine(sFolder, "2htm.log");
-                    if (sConverter == "2htm.exe" && File.Exists(sTheirLog))
-                    {
-                        try
-                        {
-                            string sTheirs = File.ReadAllText(sTheirLog);
-                            Log("  2htm's own log, " + sTheirs.Length.ToString() + " characters:");
-                            foreach (string sLine in sTheirs.Split('\n'))
-                                if (sLine.Trim() != "") Log("    | " + sLine.TrimEnd());
-                        }
-                        catch (Exception oError)
-                        { Log("  its log could not be read: " + oError.Message); }
-                    }
-                    if (File.Exists(sTarget) && new FileInfo(sTarget).Length > 0)
-                    {
-                        Log("  wrote " + sTarget + ", "
-                            + new FileInfo(sTarget).Length.ToString() + " bytes");
-                        return "{\"value\":" + Quote(sTarget) + "}";
-                    }
-                    lTried.Add(sConverter + " ended with code " + iExit.ToString()
-                        + " and wrote nothing");
-                }
-                catch (Exception oError)
-                {
-                    lTried.Add(sConverter + " failed: " + oError.Message);
+                    Log("  wrote " + sTarget + ", " + new FileInfo(sTarget).Length.ToString() + " bytes");
+                    return "{\"value\":" + Quote(sTarget) + "}";
                 }
             }
+            catch (Exception oError) { sError = oError.Message; }
+            Log("  the conversion failed: " + sError);
             return "{\"error\":" + Quote("This " + sExtension.TrimStart('.')
-                + " file could not be converted in " + ConvertBudget(sPath).ToString()
-                + " seconds. " + string.Join("; ", lTried.ToArray())
-                + ". Converters are found rather than bundled, so installing pandoc "
-                + "or 2htm makes this work.") + "}";
+                + " file could not be made into a web page. " + sError) + "}";
         }
 
         /// <summary>
@@ -3209,24 +3098,19 @@ namespace Homer
                     File.WriteAllText(sPath, sHtml, new UTF8Encoding(true));
                     return "{\"value\":" + Quote("Saved " + Path.GetFileName(sPath)) + "}";
                 }
-                // Anything else goes through pandoc, from a temporary copy of
-                // the page rather than from the address, so what is saved is
-                // the page as read rather than as fetched again.
-                string sPandoc = FindConverter("pandoc.exe");
-                if (sPandoc == "")
-                    return "{\"error\":\"That format needs pandoc. Name it .htm instead.\"}";
+                // Anything else goes through the kit's Conversion (26 October 2026),
+                // from a temporary copy of the page rather than from the address,
+                // so what is saved is the page as read rather than as fetched again.
                 string sTemp = Path.Combine(
                     Path.Combine(Directory.GetParent(ProfileFolder()).FullName, "temp"),
                     "SavePage.htm");
                 Directory.CreateDirectory(Path.GetDirectoryName(sTemp));
                 File.WriteAllText(sTemp, sHtml, new UTF8Encoding(true));
-                int iExit = RunAndWait(sPandoc,
-                    "\"" + sTemp + "\" -s -o \"" + sPath + "\"",
-                    ConvertBudget(sTemp));
-                if (File.Exists(sPath) && new FileInfo(sPath).Length > 0)
+                string sError;
+                Log("  saving " + sPath + " from the page with the kit's Conversion");
+                if (Homer.Conversion.convert(sTemp, sPath, out sError) && File.Exists(sPath) && new FileInfo(sPath).Length > 0)
                     return "{\"value\":" + Quote("Saved " + Path.GetFileName(sPath)) + "}";
-                return "{\"error\":" + Quote("pandoc ended with code "
-                    + iExit.ToString() + " and wrote nothing.") + "}";
+                return "{\"error\":" + Quote("It could not be saved as " + sExtension.TrimStart('.') + ". " + sError) + "}";
             }
             catch (Exception oError)
             {

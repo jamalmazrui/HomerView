@@ -13,11 +13,21 @@
 ; layer only; pdf2docx wants structure and pays for it. A quick read (FileDir's
 ; ? key) never uses ocr, which can take minutes.
 ;
+; ANY TWO TYPES, THROUGH MARKDOWN (1.90.0): a pair with no section here, or whose
+; every way fails, is made in two of these sections' own steps through md, else
+; htm -- pdf2xlsx is pdf2md then md2xlsx, json2pdf is json2htm then htm2pdf. So a
+; section is needed only where a direct way is better than the two steps.
+;
+; .htm, NEVER .html (1.90.0): every Homer program reads .html as .htm and names
+; what it makes .htm, so there are no html2 sections; they could not be reached.
+;
 ; Only approved components: Pandoc, NuGet and PyPI packages, and Tesseract for
 ; scanned pages. Microsoft Office, driven by COM, is always last, and only where
 ; nothing approved will do; when it is needed and missing, an Alert box says so.
 ; Engines:
 ;   copy          the file as it is
+;   edge          Microsoft Edge, which comes with Windows, printing a web page to a
+;                 tagged PDF (1.90.0): a PDF needs no Office
 ;   ocr           a scanned PDF read by Tesseract (Python; C# through the kit's PdfReader)
 ;   officecom     Microsoft Office, the last resort
 ;   pandoc        Pandoc
@@ -25,6 +35,10 @@
 ;                 the kit's PdfReader (HomerScribe's reader) where an app compiles
 ;                 it, else pymupdf4llm; Python uses pdfminer
 ;   pdftext       a PDF's text layer as it is, the quickest
+;   records       contact cards, calendars, playlists, feed lists and subtitles to and
+;                 from a table: one Python script, run by both languages (1.93.0)
+;   sqlite        a table to an SQLite database, or a database to Markdown: one
+;                 Python script, run by both languages (1.90.0)
 ;   table         rows and columns, through the kit's Table class (C#)
 ;   zipxml        the text of a Word, Excel, PowerPoint or OpenDocument file, read
 ;                 straight from the XML inside it: no other program at all
@@ -88,7 +102,8 @@ ways = pandoc, zipxml
 ways = pandoc
 
 [docx2pdf]
-ways = officecom
+ways = officecom, pandoc:htm > edge
+note = Word's own export keeps the most of a Word file's layout, so it is first; without Office, Pandoc makes a page and Edge prints it (1.90.0).
 
 [docx2txt]
 ways = zipxml, pandoc, officecom
@@ -120,22 +135,11 @@ note = A web page put in the Homer page form, 2htm's (1.87.0): styles, scripts a
 ways = pandoc
 
 [htm2pdf]
-ways = officecom
+ways = edge, officecom
+note = Edge prints the page (1.90.0); Word only when Edge is missing.
 
 [htm2txt]
 ways = pandoc, page
-
-[html2docx]
-ways = pandoc
-
-[html2md]
-ways = pandoc
-
-[html2pdf]
-ways = officecom
-
-[html2txt]
-ways = pandoc
 
 [inix2csv]
 ways = table
@@ -184,7 +188,8 @@ ways = table
 ways = pandoc
 
 [md2pdf]
-ways = pandoc:docx > officecom
+ways = markdown:htm > edge, pandoc:htm > edge, pandoc:docx > officecom
+note = No Office needed (1.90.0): the kit's own Markdown writer makes the page, and Edge, which comes with Windows, prints it to a tagged PDF. Pandoc's page is the second way, and Word the last.
 
 [md2pptx]
 ways = pandoc
@@ -227,7 +232,8 @@ ways = pandoc, zipxml:md > markdown
 ways = pandoc
 
 [odt2pdf]
-ways = officecom
+ways = officecom, pandoc:htm > edge
+note = As docx2pdf.
 
 [odt2txt]
 ways = zipxml, pandoc
@@ -358,3 +364,111 @@ ways = table
 
 [xlsx2txt]
 ways = table, zipxml
+
+[csv2db]
+ways = sqlite
+note = A database of one table named after the file, its fields from the first row (1.90.0).
+
+[db2md]
+ways = sqlite
+note = Each table under its own heading, so the md hub takes a database anywhere (1.90.0).
+
+[inix2db]
+ways = table:csv > sqlite
+note = Through comma-separated values, as every table type (1.90.0).
+
+[md2db]
+ways = table:csv > sqlite
+note = The Markdown's first table (1.90.0).
+
+[tsv2db]
+ways = table:csv > sqlite
+note = As inix2db.
+
+[xlsx2db]
+ways = table:csv > sqlite
+note = The first sheet, as inix2db.
+
+[asx2csv]
+ways = records
+note = Each record a row, under its own field names (1.93.0).
+
+[ics2csv]
+ways = records
+note = Each record a row, under its own field names (1.93.0).
+
+[m3u2csv]
+ways = records
+note = Each record a row, under its own field names (1.93.0).
+
+[m3u82csv]
+ways = records
+note = Each record a row, under its own field names (1.93.0).
+
+[opml2csv]
+ways = records
+note = Each record a row, under its own field names (1.93.0).
+
+[pls2csv]
+ways = records
+note = Each record a row, under its own field names (1.93.0).
+
+[srt2csv]
+ways = records
+note = Each record a row, under its own field names (1.93.0).
+
+[vcf2csv]
+ways = records
+note = Each record a row, under its own field names (1.93.0).
+
+[vcs2csv]
+ways = records
+note = Each record a row, under its own field names (1.93.0).
+
+[vtt2csv]
+ways = records
+note = Each record a row, under its own field names (1.93.0).
+
+[wpl2csv]
+ways = records
+note = Each record a row, under its own field names (1.93.0).
+
+[xspf2csv]
+ways = records
+note = Each record a row, under its own field names (1.93.0).
+
+[csv2ics]
+ways = records
+note = A row for each record; field names are matched loosely, so Email, E-mail and Email Address all work (1.93.0).
+
+[csv2m3u]
+ways = records
+note = A row for each record; field names are matched loosely, so Email, E-mail and Email Address all work (1.93.0).
+
+[csv2m3u8]
+ways = records
+note = A row for each record; field names are matched loosely, so Email, E-mail and Email Address all work (1.93.0).
+
+[csv2opml]
+ways = records
+note = A row for each record; field names are matched loosely, so Email, E-mail and Email Address all work (1.93.0).
+
+[csv2pls]
+ways = records
+note = A row for each record; field names are matched loosely, so Email, E-mail and Email Address all work (1.93.0).
+
+[csv2srt]
+ways = records
+note = A row for each record; field names are matched loosely, so Email, E-mail and Email Address all work (1.93.0).
+
+[csv2vcf]
+ways = records
+note = A row for each record; field names are matched loosely, so Email, E-mail and Email Address all work (1.93.0).
+
+[csv2vtt]
+ways = records
+note = A row for each record; field names are matched loosely, so Email, E-mail and Email Address all work (1.93.0).
+
+[csv2xspf]
+ways = records
+note = A row for each record; field names are matched loosely, so Email, E-mail and Email Address all work (1.93.0).

@@ -197,6 +197,8 @@ Source: "2htm.exe"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexi
 ; itself, and the scripts are copied into every JAWS version by the script
 ; below rather than by this section, because they must be compiled in place.
 Source: "exec\HomerView.exe"; DestDir: "{app}\exec"; Flags: ignoreversion skipifsourcedoesntexist
+; The kit's route table, read by the kit's Conversion compiled into HomerView.exe (26 October 2026).
+Source: "exec\conversions.inix"; DestDir: "{app}\exec"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "HomerView.cs"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "scripts\jaws\*"; Excludes: "*.jsb"; DestDir: "{app}\scripts\jaws"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "scripts\installJawsScripts.ps1"; DestDir: "{app}\scripts"; Flags: ignoreversion skipifsourcedoesntexist

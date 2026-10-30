@@ -1,6 +1,15 @@
 ﻿
 
 
+## 30 October 2026 -- more fixes from an audit by another AI
+
+- **Two documents with the same name keep their own pages.** A\report.docx and B\report.docx were converted to one temporary address, so reloading the first could show the second. Each source now has a folder of its own.
+
+## 30 October 2026 -- fixes from an audit by another AI
+
+- **Submit Form acts only on the page you are on.** It needs the tab that has the focus, and stops if the window or tab changed between the key press and the moment it runs, saying why. Act on the page needs the focused tab too.
+- **Submit Form never guesses a button.** It uses the button in focus, or the form's only one. With several and none in focus, nothing is sent, and their names are said, so you can move to the one you mean.
+
 ## 26 October 2026 -- the kit converts
 
 - **Documents are converted by the HomerDev kit's Conversion,** like every Homer app's. HomerView found Pandoc and 2htm itself and ran them in turn, and the kit's check stopped its release on those six lines. Opening a document now asks the kit whether it can become a web page, and converts it the best way it knows, falling back through Markdown or a web page when there is no direct way; saving a page in another format goes through it too. The kit logs every way it tries and finishes each page for a screen reader. A type it cannot make a page of opens in the browser as before.

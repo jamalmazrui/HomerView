@@ -1306,7 +1306,8 @@ def submitForm():
         ui.message(needsHomerView)
         return
     logSection("Command: submit the form")
-    service.submit("submitForm", service.taskSubmitForm, reportSubmitted,
+    oStamp = service.currentStamp()
+    service.submit("submitForm", lambda: service.taskSubmitForm(oStamp), reportSubmitted,
                    lambda exception: ui.message(str(exception)))
 
 
@@ -1322,6 +1323,13 @@ def reportSubmitted(dResult):
     elif sOutcome == "noForm":
         # Translators: Reported when the focus is not inside a form.
         ui.message(_("The cursor is not in a form"))
+    elif sOutcome == "ambiguous":
+        # Translators: Reported when a form has several buttons that send it and none is in focus.
+        ui.message(_("Nothing was sent. This form has several buttons that send it: {names}. Move to the one you mean and press it.").format(
+            names=", ".join(s for s in (dResult or {}).get("labels", []) if s) or _("unnamed buttons")))
+    elif sOutcome == "stale":
+        # Translators: Reported when the page changed between the key press and the submission.
+        ui.message(_("Nothing was sent, since {reason}.").format(reason=(dResult or {}).get("reason", "")))
     else:
         # Translators: Reported when a form could not be submitted.
         ui.message(_("That form could not be submitted"))

@@ -236,12 +236,17 @@ def convertToHtml(sSourcePath, bPlainText=False):
             "in the browser as the native command would"
         )
         return pathSource, False
-    pathTarget = paths.getTempFolder() / f"{pathSource.stem}.{sExtension}"
-    try:
-        if pathTarget.exists():
-            pathTarget.unlink()
-    except OSError:
-        pass
+    # A FOLDER OF ITS OWN FOR EACH SOURCE (30 October 2026, from an audit by another AI). Every converted
+    # document went to the temporary folder under its own stem, so A\report.docx and B\report.docx shared one
+    # address: a tab showing the first could reload as the second, and the second's conversion deleted the first's
+    # file first. Each source now has a folder named for its full path, so the address stays its own; the file
+    # keeps the source's name, so the page title and the tab still read as the document. The old file is not
+    # deleted first: the kit replaces it only with a whole new one.
+    import hashlib
+    sKey = hashlib.sha1(str(pathSource.resolve()).lower().encode("utf-8")).hexdigest()[:12]
+    pathFolder = paths.getTempFolder() / sKey
+    pathFolder.mkdir(parents=True, exist_ok=True)
+    pathTarget = pathFolder / f"{pathSource.stem}.{sExtension}"
     logSection("Converting through the Homer kit")
     try:
         dDone = kitConversion.convert(str(pathSource), str(pathTarget))

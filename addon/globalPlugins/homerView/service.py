@@ -15,6 +15,7 @@ Every task is logged with its outcome and its duration, so a sluggish command
 can be traced to the step that cost the time.
 """
 
+import ctypes
 import queue
 import threading
 import time
@@ -570,7 +571,31 @@ class HomerViewService:
         )
         return dSummary
 
-    def taskSubmitForm(self):
+    # STAMPED WHEN ASKED, CHECKED BEFORE ACTING (30 October 2026, from an audit by another AI). identity.TargetStamp
+    # was tested but no queued request carried one, so a form could be submitted after the person had moved to
+    # another window or tab. A change to the page now carries a stamp made on the key press, read without the
+    # browser: the connection, the window in front, and that window's title, which names the tab and page. Before
+    # it acts, the stamp is compared with what is in front then, and a stale request is not made. The page's own
+    # document generation is not yet known here, so it is 0 on both sides.
+    def currentStamp(self):
+        hWindow = 0
+        sTitle = ""
+        try:
+            hWindow = ctypes.windll.user32.GetForegroundWindow() or 0
+            bufTitle = ctypes.create_unicode_buffer(512)
+            ctypes.windll.user32.GetWindowTextW(hWindow, bufTitle, 512)
+            sTitle = bufTitle.value
+        except Exception:
+            logError("Reading the window in front raised")
+        oSocket = self.cdpSession.webSocket
+        return identity.TargetStamp(str(id(oSocket)) if oSocket else "", hWindow, sTitle, 0)
+
+    def taskSubmitForm(self, oStamp=None):
+        if oStamp is not None:
+            sReason = oStamp.staleReason(self.currentStamp())
+            if sReason:
+                homerLog.info(f"Submit form not made: {sReason}")
+                return {"outcome": "stale", "reason": sReason}
         return formSubmit.submitFocusedForm(self.cdpSession)
 
     def taskPageInformation(self):

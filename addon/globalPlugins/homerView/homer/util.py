@@ -23,6 +23,29 @@ sEndOfDocument = "\r\n----------\r\nEnd of Document\r\n"
 sSectionBreak = "\r\n----------\r\n\f\r\n"
 
 
+
+# STORED PARTS (kit 1.94.0, matching Util.cs): parts joined by ASCII 31, the
+# unit separator; shown with a space, exported with "; ", spoken one part per
+# say call (say.sayParts(aPartsOf(sValue))).
+sPartSeparator = chr(31)
+sExportSeparator = "; "
+sScreenSeparator = " "
+
+def aPartsOf(sValue):
+    if not sValue: return []
+    return sValue.split(sPartSeparator)
+
+def sJoinParts(lParts):
+    return sPartSeparator.join(lParts)
+
+def sScreenText(sValue):
+    if not sValue or sPartSeparator not in sValue: return sValue or ""
+    return sScreenSeparator.join(aPartsOf(sValue))
+
+def sExportText(sValue):
+    if not sValue or sPartSeparator not in sValue: return sValue or ""
+    return sExportSeparator.join(aPartsOf(sValue))
+
 def formatBytes(lBytes):
     """A size as a person would say it rather than as a number of bytes."""
     try:

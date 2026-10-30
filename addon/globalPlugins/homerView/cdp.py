@@ -334,7 +334,7 @@ class CdpSession:
         self.dPageSessions.pop(sTargetId, None)
         return self.call("Target.closeTarget", {"targetId": sTargetId})
 
-    def findActivePageSession(self):
+    def findActivePageSession(self, bRequireFocus=False):
         """Return the target and session for the page the user is looking at.
 
         document.hasFocus is true only for the active tab of the focused window,
@@ -378,6 +378,13 @@ class CdpSession:
             except CdpError as exception:
                 homerLog.warning(f"CDP focus test skipped for {dTarget.get('targetId')}: {exception}")
                 continue
+        # A CHANGE NEEDS THE TAB IN FRONT (30 October 2026, from an audit by another AI). Reading may use the
+        # first usable tab when none proves it has focus; a command that changes the page -- submitting a form,
+        # acting on a control -- passes bRequireFocus and stops instead, so it never acts on a page the person
+        # is not on.
+        if bRequireFocus:
+            homerLog.warning("CDP active page: none focused, so the change is not made")
+            raise CdpError("No HomerView page has the focus, so nothing was changed")
         dFallback = dFallback or lTargets[0]
         homerLog.info(f"CDP active page: none focused, using {abbreviate(dFallback.get('url', ''), 300)}")
         return dFallback, self.attachToTarget(dFallback["targetId"])

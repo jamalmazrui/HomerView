@@ -256,26 +256,57 @@ def zipDocx(oZip, bMarkdown):
     return lsOut
 
 
+def xlsxSheets(oZip):
+    """Each worksheet as (name, part path), in the workbook's own order.
+
+    BY THE WORKBOOK, NOT THE FILE NAME (1.94.1, from an audit by another AI). The first sheet was taken to be
+    sheet1.xml, but a workbook names its sheets in xl/workbook.xml and finds each part through its relationship,
+    so a sheet moved, renamed or deleted in Excel read the wrong one. The relationship is followed; a workbook
+    without one falls back to sheetN.xml, as before."""
+    sR = "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}"
+    sP = "{http://schemas.openxmlformats.org/package/2006/relationships}"
+    lsNames = set(oZip.namelist())
+    dTargets = {}
+    if "xl/_rels/workbook.xml.rels" in lsNames:
+        for oRel in ET.fromstring(oZip.read("xl/_rels/workbook.xml.rels")).iter(sP + "Relationship"):
+            sTarget = (oRel.get("Target") or "").replace("\\", "/")
+            sTarget = sTarget.lstrip("/") if sTarget.startswith("/") else "xl/" + sTarget
+            dTargets[oRel.get("Id")] = sTarget
+    lSheets = []
+    if "xl/workbook.xml" in lsNames:
+        for iSheet, oSheet in enumerate(ET.fromstring(oZip.read("xl/workbook.xml")).iter(sS + "sheet"), 1):
+            sPath = dTargets.get(oSheet.get(sR + "id"), "xl/worksheets/sheet%d.xml" % iSheet)
+            if sPath in lsNames: lSheets.append((oSheet.get("name") or "Sheet%d" % iSheet, sPath))
+    if not lSheets and "xl/worksheets/sheet1.xml" in lsNames: lSheets.append(("Sheet1", "xl/worksheets/sheet1.xml"))
+    return lSheets
+
+
+def xlsxRows(oZip, sPath, lsShared):
+    """A worksheet's rows, each cell in its own column: a blank cell keeps its place, so A, blank, C stays three
+    cells, not two (1.94.1, from an audit by another AI). Shared strings, inline strings and numbers are read."""
+    llRows = []
+    for oRow in ET.fromstring(oZip.read(sPath)).iter(sS + "row"):
+        lsCells = []
+        for oCell in oRow.iter(sS + "c"):
+            iColumn = xlsxIndex(oCell.get("r", ""))
+            if iColumn < 0: iColumn = len(lsCells)
+            while iColumn > len(lsCells): lsCells.append("")
+            oValue = oCell.find(sS + "v"); oInline = oCell.find(sS + "is")
+            sValue = oValue.text if oValue is not None else ("".join(o.text or "" for o in oInline.iter(sS + "t")) if oInline is not None else "")
+            if oCell.get("t") == "s" and sValue: sValue = lsShared[int(sValue)]
+            lsCells.append(sValue or "")
+        llRows.append(lsCells)
+    return llRows
+
+
 def zipXlsx(oZip, bMarkdown, bCsv=False):
     lsShared = []
     if "xl/sharedStrings.xml" in oZip.namelist():
         for oItem in ET.fromstring(oZip.read("xl/sharedStrings.xml")).iter(sS + "si"):
             lsShared.append("".join(o.text or "" for o in oItem.iter(sS + "t")))
-    oBook = ET.fromstring(oZip.read("xl/workbook.xml"))
-    lsNames = [o.get("name") for o in oBook.iter(sS + "sheet")]
     lsOut = []
-    for iSheet, sName in enumerate(lsNames, 1):
-        sPath = "xl/worksheets/sheet%d.xml" % iSheet
-        if sPath not in oZip.namelist(): continue
-        llRows = []
-        for oRow in ET.fromstring(oZip.read(sPath)).iter(sS + "row"):
-            lsCells = []
-            for oCell in oRow.iter(sS + "c"):
-                oValue = oCell.find(sS + "v"); oInline = oCell.find(sS + "is")
-                sValue = oValue.text if oValue is not None else ("".join(o.text or "" for o in oInline.iter(sS + "t")) if oInline is not None else "")
-                if oCell.get("t") == "s" and sValue: sValue = lsShared[int(sValue)]
-                lsCells.append(sValue or "")
-            llRows.append(lsCells)
+    for sName, sPath in xlsxSheets(oZip):
+        llRows = xlsxRows(oZip, sPath, lsShared)
         if bCsv:
             import csv, io
             oBuffer = io.StringIO(); csv.writer(oBuffer, lineterminator="\n").writerows(llRows)
@@ -285,7 +316,7 @@ def zipXlsx(oZip, bMarkdown, bCsv=False):
             if llRows:
                 iWidth = max(len(r) for r in llRows)
                 for i, lsRow in enumerate(llRows):
-                    lsOut.append("| " + " | ".join((lsRow + [""] * iWidth)[:iWidth]).replace("\n", " ") + " |")
+                    lsOut.append("| " + " | ".join(c.replace("|", "\\|") for c in (lsRow + [""] * iWidth)[:iWidth]).replace("\n", " ") + " |")
                     if i == 0: lsOut.append("|" + "---|" * iWidth)
             lsOut.append("")
         else:
@@ -552,7 +583,8 @@ def tableRead(sSource):
                 if llCells: break
                 continue
             if re.match(r"^\|?[\s:\-|]+\|?$", sLine): continue
-            llCells.append([c.strip() for c in sLine.strip("|").split("|")])
+            # An escaped pipe stays in its cell (1.94.1, from an audit by another AI), as Table.cs reads it.
+            llCells.append(markdownCells(sLine))
         if not llCells: raise ValueError("no table was found in this Markdown file")
         return llCells[0], llCells[1:]
     if sType == "xlsx":
@@ -562,17 +594,9 @@ def tableRead(sSource):
             if "xl/sharedStrings.xml" in oZip.namelist():
                 for oItem in ET.fromstring(oZip.read("xl/sharedStrings.xml")).iter(sS + "si"):
                     lsShared.append("".join(o.text or "" for o in oItem.iter(sS + "t")))
-            llRows = []
-            for oRow in ET.fromstring(oZip.read("xl/worksheets/sheet1.xml")).iter(sS + "row"):
-                lsCells = []
-                for oCell in oRow.iter(sS + "c"):
-                    iColumn = xlsxIndex(oCell.get("r", ""))
-                    while iColumn > len(lsCells): lsCells.append("")
-                    oValue = oCell.find(sS + "v"); oInline = oCell.find(sS + "is")
-                    sValue = oValue.text if oValue is not None else ("".join(o.text or "" for o in oInline.iter(sS + "t")) if oInline is not None else "")
-                    if oCell.get("t") == "s" and sValue: sValue = lsShared[int(sValue)]
-                    lsCells.append(sValue or "")
-                llRows.append(lsCells)
+            lSheets = xlsxSheets(oZip)
+            if not lSheets: raise ValueError("no worksheet was found in this workbook")
+            llRows = xlsxRows(oZip, lSheets[0][1], lsShared)   # the workbook's first sheet
         llRows = [r for r in llRows if any(c != "" for c in r)]
         return (llRows[0], llRows[1:]) if llRows else ([], [])
     raise ValueError("the table engine reads csv, tsv, inix, md and xlsx, not " + sType)
@@ -1227,7 +1251,7 @@ def writeRecords(lRows):
                 if re.match(r'^[\d.]+$', d.get('Seconds', '')): ET.SubElement(oTrack, 'duration').text = str(int(float(d['Seconds']) * 1000))
             lOut = ['<?xml version="1.0" encoding="UTF-8"?>', ET.tostring(oList, encoding='unicode')]
     elif sKind == 'opml':
-        oOpml = ET.Element('opml', {'version': '2.0'}); ET.SubElement(ET.SubElement(oOpml, 'head'), 'title').text = os.path.splitext(os.path.basename(sOut[:-5] if sOut.lower().endswith('.part') else sOut))[0]
+        oOpml = ET.Element('opml', {'version': '2.0'}); ET.SubElement(ET.SubElement(oOpml, 'head'), 'title').text = re.sub(r'\.homer-staging(-\d+)?$', '', os.path.splitext(os.path.basename(sOut[:-5] if sOut.lower().endswith('.part') else sOut))[0])
         oBody = ET.SubElement(oOpml, 'body'); dGroups = {}
         for d in lRows:
             if not d.get('Feed', '').strip(): continue
@@ -1558,34 +1582,42 @@ def convertByRoute(sSource, sOut, sTo, lRoutes):
         if lsMissing: lsTried.append("%s: %s not present" % (sName, ", ".join(lsMissing))); continue
         dtStart = time.time()
         sDir = tempfile.mkdtemp(prefix="homerRoute-")
+        sStage = stagingPath(sOut)
+        intendFor(sStage, sOut)
         try:
             sCurrent = sSource
             for i, (sEngine, sHands) in enumerate(lSteps):
                 sStepTo = sHands if (i < len(lSteps) - 1 and sHands) else sTo
-                sStepOut = os.path.join(sDir, "step%d.%s" % (i, sStepTo)) if i < len(lSteps) - 1 else sOut + ".part"
+                sStepOut = os.path.join(sDir, "step%d.%s" % (i, sStepTo)) if i < len(lSteps) - 1 else sStage
                 dEngines[sEngine](sCurrent, sStepTo, sStepOut)
                 sCurrent = sStepOut
-            os.replace(sOut + ".part", sOut)
             # Every web page in the Homer form (1.87.1), unless page or json made it already.
             if typeOf(sOut) == "htm" and lSteps[-1][0] not in ("page", "json"):
-                try: pageFinish(sOut)
+                try: pageFinish(sStage)
                 except Exception as oError: say("Page form not applied to %s: %s" % (os.path.basename(sOut), oError))
             # Text in the Homer encoding (1.80.0), as Conversion.cs does: UTF-8 with a byte order mark and CRLF.
             if typeOf(sOut) in ("csv", "htm", "html", "inix", "md", "tsv", "txt"):
-                sMade = decodeText(open(sOut, "rb").read()).replace("\r\n", "\n").replace("\r", "\n")
-                open(sOut, "w", encoding="utf-8-sig", newline="\r\n").write(sMade)
+                sMade = decodeText(open(sStage, "rb").read()).replace("\r\n", "\n").replace("\r", "\n")
+                open(sStage, "w", encoding="utf-8-sig", newline="\r\n").write(sMade)
             # Every file finished for a screen reader, then checked (1.91.0): see finishOutput. The middle file of a
             # two-step conversion is not, since the next step reads it, not a person.
-            if os.path.abspath(sOut) not in setIntermediates: finishOutput(sOut)
+            if os.path.abspath(sOut) not in setIntermediates: finishOutput(sStage)
+            # FINISHED, THEN SWAPPED IN (1.94.1, from an audit by another AI). The engine's file replaced the target
+            # first and was finished there, so a failure while finishing -- a full disk, an interrupted rewrite --
+            # left a changed or partial file under the real name of a conversion that had failed, and the next way
+            # was tried over it. Everything now happens to a staging file beside the target, with the target's own
+            # extension, and one replace makes it the target only when it is whole.
+            os.replace(sStage, sOut)
             iMs = int((time.time() - dtStart) * 1000)
             say("%s -> %s by %s in %d ms" % (sSource, sOut, sName, iMs))
             return {"path": sOut, "route": sName, "ms": iMs, "skipped": lsTried}
         except Exception as oError:
             lsTried.append("%s: %s" % (sName, oError))
-            try: os.remove(sOut + ".part")
+            try: os.remove(sStage)
             except OSError: pass
         finally:
             shutil.rmtree(sDir, ignore_errors=True)
+            dIntendedNames.pop(os.path.abspath(sStage), None)
     raise RuntimeError("could not convert %s to .%s: %s" % (sSource, sTo, "; ".join(lsTried)))
 
 
@@ -1610,7 +1642,31 @@ import html as htmlModule
 import locale
 
 
+# THE NAME A FILE IS MADE FOR (1.94.1, from an audit by another AI). A file finished under a staging name -- this
+# module's own, or a caller's such as BatCon's -- took its document title from that name. A caller names the final
+# path with intendFor, and the title comes from it.
+dIntendedNames = {}
+
+
+def intendFor(sStage, sFinal):
+    """Say that the file at sStage is being made to become sFinal, so its title comes from sFinal's name."""
+    dIntendedNames[os.path.abspath(sStage)] = os.path.abspath(sFinal)
+
+
+def stagingPath(sOut):
+    """A free name beside sOut with sOut's own extension, for a file to be finished before it replaces sOut."""
+    sRoot, sExt = os.path.splitext(sOut)
+    iTry = 0
+    while True:
+        sStage = "%s.homer-staging%s%s" % (sRoot, "" if iTry == 0 else "-%d" % iTry, sExt)
+        if not os.path.exists(sStage): return sStage
+        iTry += 1
+
+
 def documentTitle(sPath):
+    for _ in range(5):   # a chain is followed: a caller stages its result, and the route stages that file
+        if os.path.abspath(sPath) not in dIntendedNames: break
+        sPath = dIntendedNames[os.path.abspath(sPath)]
     sStem = os.path.splitext(os.path.basename(sPath))[0].replace("_", " ").strip()
     return sStem or "Untitled"
 

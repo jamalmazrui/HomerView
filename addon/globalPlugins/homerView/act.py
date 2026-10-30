@@ -335,7 +335,7 @@ def findOllama():
 def survey(cdpSession):
     """Return the page's actionable controls, with the session to act on."""
     logSection("Command: act on the page")
-    dTarget, sSessionId = cdpSession.findActivePageSession()
+    dTarget, sSessionId = cdpSession.findActivePageSession(bRequireFocus=True)
     lSurvey = cdpSession.evaluate(sSessionId, surveyScript, actTimeoutSeconds) or []
     homerLog.info(f"Survey found {len(lSurvey)} actionable controls")
     return lSurvey, sSessionId

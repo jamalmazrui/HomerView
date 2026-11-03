@@ -1,6 +1,10 @@
 ﻿
 
 
+## 2 November 2026 -- HomerView's keys join the kit's framework
+
+- **HomerView's keys follow the framework every Homer app's screen reader scripts share.** Each key has a way and a scope, the same in JAWS and NVDA. HomerView's commands are captured and act only here: on a page, or in HomerView's own browser. Elsewhere the key goes on to whatever has focus, exactly as before. The NVDA add-on now carries the kit's keys.py, copied in by the build with the kit's other modules, and tests its browser scope with the kit's shared onlyHere. The JAWS script and key map say the same in their headers. Nothing HomerView does has changed. Needs kit 1.97.1, whose installer also offers the add-on as an Update, ticked, whenever its files differ from the installed ones, even at the same version.
+
 ## 30 October 2026 -- more fixes from an audit by another AI
 
 - **Two documents with the same name keep their own pages.** A\report.docx and B\report.docx were converted to one temporary address, so reloading the first could show the second. Each source now has a folder of its own.

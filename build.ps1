@@ -462,7 +462,7 @@ function buildAddon {
     $pathHomerPackage = Join-Path $pathAddon "globalPlugins\homerView\homer"
     if ($sKitRoot) {
         # conversion.py and its route table (22 October 2026): HomerView converts through the kit, as every Homer app does.
-        foreach ($sModule in @("conversion.py", "inix.py", "lbc.py", "say.py", "util.py", "web.py")) {
+        foreach ($sModule in @("conversion.py", "inix.py", "keys.py", "lbc.py", "say.py", "util.py", "web.py")) {
             $pathFrom = Join-Path $sKitRoot ("exec\Python\" + $sModule)
             if (-not (Test-Path -LiteralPath $pathFrom)) {
                 writeLog ("ERROR: the kit at " + $sKitRoot + " has no exec\Python\" + $sModule)

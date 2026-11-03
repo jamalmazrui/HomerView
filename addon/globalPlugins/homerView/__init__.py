@@ -18,6 +18,16 @@ from . import logger
 from . import paths
 from .logger import abbreviate, homerLog, logError, logSection, logThreadContext, needsHomerView
 from . import identity
+# THE KIT'S KEY HANDLING (2 November 2026). HomerView's keys follow the same
+# framework as every Homer app's screen reader scripts, in JAWS and NVDA alike
+# (the homer-screen-reader skill's key-handling reference): each key has a WAY
+# -- capture, pass quietly, pass then speak, speak then pass -- and a WHERE --
+# everywhere, or only here with a fallback elsewhere. HomerView's commands are
+# captured: the script does the work, through HomerView's own code. They act
+# only here -- on a page in browse mode, or in HomerView's own browser -- and
+# elsewhere the key goes on to whatever has focus, as though it were not bound.
+# keys.py is the kit module both apps share; the build copies it into homer.
+from .homer import keys
 
 import addonHandler
 
@@ -429,7 +439,8 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             functionScript is not None
             and getattr(functionScript, "__name__", "") == "script_outsideBrowseMode"
         ):
-            if not self._focusIsHomerViewEdge():
+            # Way: capture. Where: only here, in HomerView's own browser; elsewhere the key goes on.
+            if keys.onlyHere(functionScript, self._focusIsHomerViewEdge()) is None:
                 return None
             try:
                 treeInterceptor = getattr(api.getFocusObject(), "treeInterceptor", None)
@@ -443,8 +454,9 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             functionScript is not None
             and getattr(functionScript, "__name__", "")
             in setBrowserScopedScripts
-            and not self._focusIsHomerViewEdge()
+            and keys.onlyHere(functionScript, self._focusIsHomerViewEdge()) is None
         ):
+            # Way: capture. Where: only here, in HomerView's own browser; elsewhere the key goes on.
             # Outside HomerView's own browser this key belongs to whatever has
             # focus. Testing for Edge by name was not enough: an ordinary Edge
             # window is also called msedge, so Control+S in a browser HomerView

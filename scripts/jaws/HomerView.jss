@@ -78,6 +78,16 @@
 ;    every Function comes before every Script, and each group is in
 ;    alphabetical order, which happens to put callBridge and xmlValue above
 ;    runScript where they are needed.
+;
+; KEY HANDLING (2 November 2026). HomerView's keys follow the framework every
+; Homer app's screen reader scripts share, in JAWS and NVDA alike (the kit's
+; homer-screen-reader skill, references\key-handling.md): each key has a WAY --
+; capture, pass quietly, pass then speak, speak then pass -- and a WHERE --
+; everywhere, or only here with a fallback elsewhere. HomerView's scripts
+; capture their keys, doing the work through HomerView's bridge program, and act
+; only here: when the page in front is not HomerView's, callBridge passes the key
+; on to the browser with TypeCurrentScriptKey, as though HomerView were not
+; there. The NVDA add-on does the same through the kit's keys.py.
 
 Include "hjconst.jsh"
 
@@ -574,6 +584,7 @@ Let iExit = hVShellRun (sCommandLine, 0, True)
 ; another window of the same browser, and the key goes on to the browser as though HomerView were not
 ; there, as it does under NVDA. Callers take an empty answer as nothing to do.
 If iExit == 3 Then
+    ; Way: capture. Where: only here; elsewhere the key passes on, quietly.
     hVLogLine ("callBridge " + sCommand + ": not HomerView's window, so the key goes to the browser")
     Builtin::TypeCurrentScriptKey ()
     Return ""

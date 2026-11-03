@@ -1,9 +1,12 @@
 ﻿
 
 
-## 2 November 2026 -- HomerView's keys join the kit's framework
+## 2 November 2026 -- Say Address on Alt+A, and Save Page that says why
 
-- **HomerView's keys follow the framework every Homer app's screen reader scripts share.** Each key has a way and a scope, the same in JAWS and NVDA. HomerView's commands are captured and act only here: on a page, or in HomerView's own browser. Elsewhere the key goes on to whatever has focus, exactly as before. The NVDA add-on now carries the kit's keys.py, copied in by the build with the kit's other modules, and tests its browser scope with the kit's shared onlyHere. The JAWS script and key map say the same in their headers. Nothing HomerView does has changed. Needs kit 1.97.1, whose installer also offers the add-on as an Update, ticked, whenever its files differ from the installed ones, even at the same version.
+- **Say Address is Alt+A and Say Yield is Alt+Y on JAWS too,** the keys NVDA already used. Both were on the JAWS menu only, while the menu's own summary named Insert+A for the address, a JAWS key HomerView never bound, so pressing it did nothing of HomerView's. Yield Structure stays on the menu, since its NVDA key, Alt+Shift+Y, is JAWS's table cell up in the laptop layout. NVDA's menu named its address key as NVDA+A; it now says Alt+A.
+- **Save Page in a window that is not HomerView's is the browser's own Control+S again,** as every page command is. It was asking HomerView's browser for the page title first, and with none running, three presses on 2 November opened nothing and said nothing.
+- **Save Page says why it could not start,** rather than logging "no file was chosen" and staying silent. Only Cancel is silent.
+- **A closed browser is said plainly.** The port file outlives HomerView's browser, so a command after it closed failed with "Unable to connect to the remote server" and a stack trace in the log. It now says HomerView's browser is not running.
 
 ## 30 October 2026 -- more fixes from an audit by another AI
 

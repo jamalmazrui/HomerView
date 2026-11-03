@@ -540,6 +540,13 @@ function browserConfigName {
 # application key map could not resolve, one for keys still in default.jkm --
 # are gone with the approach that needed them.
 $lPageKeys = @(
+    # SAY ADDRESS AND SAY YIELD ON NVDA'S KEYS (2 November 2026). Both were on the JAWS menu only, so Insert+A,
+    # which the guide's own summary named, did nothing of HomerView's: JAWS keeps its reader keys, and HomerView never
+    # bound one. NVDA has them on Alt+A and Alt+Y, which nothing in Edge, Windows or JAWS claims, so JAWS now takes the
+    # same two keys, one key per command on both readers. Yield Structure stays on the menu: its NVDA key,
+    # Alt+Shift+Y, is JAWS's table cell up in the laptop layout (KeyOwnership.inix).
+    "Alt+A=hVSayAddress",
+    "Alt+Y=hVSayYield",
     "Control+Shift+L=hVOpenSessionLog",
     "Alt+F1=hVShowAbout",
     "Alt+M=hVSayMetadata",

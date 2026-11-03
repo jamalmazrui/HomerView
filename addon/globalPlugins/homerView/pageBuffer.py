@@ -1103,7 +1103,7 @@ class HomerViewBuffer:
             self._homer("appendClipboard", _("Append the clipboard to a text file")),
             self._homer("hotkeySummary", _("Show every HomerView command as a document")),
             alternateMenu.CommandEntry(
-                _("Report the page address"), "NVDA+A",
+                _("Report the page address"), "Alt+A",
                 _("Say the web address, spell it when pressed twice, copy it when pressed three times"),
                 lambda: reportPageAddress(self), pageScopeName),
             alternateMenu.CommandEntry(

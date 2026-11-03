@@ -21,7 +21,7 @@
 ; installed, and every command says so rather than failing quietly.
 ;
 ; What is NOT here matters as much as what is. JAWS already moves to the main
-; region with Q, says the web address with JAWSKey+A, lists headings, links and
+; region with Q, says the web address with Alt+A, lists headings, links and
 ; form fields with JAWSKey+F5, F6 and F7, and finds with Control+F. HomerView
 ; on NVDA has its own versions of those only because NVDA lacks them. Taking a
 ; key a JAWS user already knows and giving it something almost the same would
@@ -78,16 +78,6 @@
 ;    every Function comes before every Script, and each group is in
 ;    alphabetical order, which happens to put callBridge and xmlValue above
 ;    runScript where they are needed.
-;
-; KEY HANDLING (2 November 2026). HomerView's keys follow the framework every
-; Homer app's screen reader scripts share, in JAWS and NVDA alike (the kit's
-; homer-screen-reader skill, references\key-handling.md): each key has a WAY --
-; capture, pass quietly, pass then speak, speak then pass -- and a WHERE --
-; everywhere, or only here with a fallback elsewhere. HomerView's scripts
-; capture their keys, doing the work through HomerView's bridge program, and act
-; only here: when the page in front is not HomerView's, callBridge passes the key
-; on to the browser with TypeCurrentScriptKey, as though HomerView were not
-; there. The NVDA add-on does the same through the kit's keys.py.
 
 Include "hjconst.jsh"
 
@@ -584,7 +574,6 @@ Let iExit = hVShellRun (sCommandLine, 0, True)
 ; another window of the same browser, and the key goes on to the browser as though HomerView were not
 ; there, as it does under NVDA. Callers take an empty answer as nothing to do.
 If iExit == 3 Then
-    ; Way: capture. Where: only here; elsewhere the key passes on, quietly.
     hVLogLine ("callBridge " + sCommand + ": not HomerView's window, so the key goes to the browser")
     Builtin::TypeCurrentScriptKey ()
     Return ""
@@ -2324,11 +2313,20 @@ EndScript
 ; offers and is why the key is taken.
 Script hVSavePage ()
 Var
-    string sAnswer, string sPath
+    string sAnswer, string sError, string sPath
 hVLogLine ("hVSavePage started")
 Let sAnswer = hVCallBridge ("saveDialog", "Save this page as\tWeb page|*.htm|Word document|*.docx|OpenDocument text|*.odt|Markdown|*.md|EPUB ebook|*.epub|All files|*.*\t")
 Let sPath = hVXmlValue (sAnswer, "/root/value")
 If sPath == "" Then
+    ; A REFUSAL IS SAID, NOT SWALLOWED (2 November 2026). Three Save Page presses that morning each failed with
+    ; "Unable to connect to the remote server", and the script logged "no file was chosen" and said nothing, so the
+    ; key seemed dead. Only Cancel is silent now; any other answer is spoken.
+    Let sError = hVXmlValue (sAnswer, "/root/error")
+    If sError != "" && sError != "Cancelled." Then
+        hVLogLine ("hVSavePage: the dialog was refused: " + sError)
+        hVSayOrShow ("Save Page could not start: " + sError)
+        Return
+    EndIf
     hVLogLine ("hVSavePage: no file was chosen")
     Return
 EndIf
@@ -3190,7 +3188,9 @@ Let iAdded = Builtin::UserBufferAddText ("")
 Let iAdded = Builtin::UserBufferAddText ("On a web page:")
 Let iAdded = UserBufferAddLink ("  Shift+Q         Move to the main content, declared or not", "hVHomerViewLink (\"hVMoveToProbableMain\")", "Jump to Probable Main")
 Let iAdded = UserBufferAddLink ("  Alt+L           Where this link goes, and its address", "hVHomerViewLink (\"hVDescribeLinkTarget\")", "Link Target")
+Let iAdded = UserBufferAddLink ("  Alt+A           Say the page's web address; press twice to show it", "hVHomerViewLink (\"hVSayAddress\")", "Say Address")
 Let iAdded = UserBufferAddLink ("  Alt+M           What the page says about itself", "hVHomerViewLink (\"hVSayMetadata\")", "Say Metadata")
+Let iAdded = UserBufferAddLink ("  Alt+Y           How many characters, words and lines", "hVHomerViewLink (\"hVSayYield\")", "Say Yield")
 Let iAdded = UserBufferAddLink ("  Alt+Shift+P     Copy every link on the page to the clipboard", "hVHomerViewLink (\"hVCopyPageLinks\")", "Page Links to Clipboard")
 Let iAdded = UserBufferAddLink ("  Alt+Shift+W     Fetch the files this page links to", "hVHomerViewLink (\"hVDownloadFiles\")", "Web Download")
 Let iAdded = Builtin::UserBufferAddLink ("  Alt+R           Open a page you had open recently", "hVHomerViewLink (\"hVRecentPages\")", "Recent Pages")
@@ -3234,7 +3234,7 @@ Let iAdded = Builtin::UserBufferAddText ("On the Alternate Menu only:")
 Let iAdded = UserBufferAddLink ("  The open tabs, by name and address", "hVHomerViewLink (\"hVListTabs\")", "Tab List")
 Let iAdded = Builtin::UserBufferAddText ("")
 Let iAdded = Builtin::UserBufferAddText ("JAWS already does these, so HomerView does not: the element lists on")
-Let iAdded = Builtin::UserBufferAddText ("JAWSKey+F5, F6 and F7, the main region on Q, the address on JAWSKey+A,")
+Let iAdded = Builtin::UserBufferAddText ("JAWSKey+F5, F6 and F7, the main region on Q, the address on Alt+A,")
 Let iAdded = Builtin::UserBufferAddText ("find on Control+F, and the page summary on JAWSKey+F3.")
 Let iActivated = Builtin::UserBufferActivate ()
 JAWSTopOfFile ()
@@ -3323,10 +3323,10 @@ Let sTable = "About HomerView, Which build is loaded and where everything lives.
     + "\7" + "Reverse Find with Regular Expression, Searches backwards for a pattern. (Control+Shift+F3)\thVFindByPatternBackwards\tP"
     + "\7" + "Save Clipboard, Saves the clipboard to a text file. (Control+Apostrophe)\thVSaveClipboard\tA"
     + "\7" + "Save Page, Saves this page as html, Word, Markdown or an ebook. (Control+S)\thVSavePage\tP"
-    + "\7" + "Say Address, Says the page's web address; press again to show it.\thVSayAddress\tA"
+    + "\7" + "Say Address, Says the page's web address; press again to show it. (Alt+A)\thVSayAddress\tA"
     + "\7" + "Say Clipboard, Says what is on the clipboard, paths or text. (Alt+Apostrophe)\thVSayClipboard\tA"
     + "\7" + "Say Metadata, Shows what the page says about itself. (Alt+M)\thVSayMetadata\tP"
-    + "\7" + "Say Yield, Says how many characters, words and lines the selection or the page holds.\thVSayYield\tP"
+    + "\7" + "Say Yield, Says how many characters, words and lines the selection or the page holds. (Alt+Y)\thVSayYield\tP"
     + "\7" + "Session Log, Opens this session's log to read. (Control+Shift+L)\thVOpenSessionLog\tA"
     + "\7" + "Start Selection, Marks where a selection begins, to be finished with Shift+F8. (F8)\thVStartSelection\tP"
     + "\7" + "Submit Form, Submits the form holding the focused field, from any field.\thVSubmitForm\tP"

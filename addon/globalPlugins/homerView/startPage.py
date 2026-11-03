@@ -18,7 +18,7 @@ weights have been published, which is not the same thing as the service being
 open. None of them belong here under this rule.
 """
 
-startPageVersion = "a3a96594"
+startPageVersion = "565bab1f"
 
 startPageText = """<!doctype html>
 <html lang="en">
@@ -107,8 +107,10 @@ for the full list, including the few that differ.</p>
 <li><strong>Reverse Find with Regular Expression</strong>, Control+Shift+F3 &mdash; Search backward for regular expression.</li>
 <li><strong>Save Clipboard</strong>, Control+Apostrophe &mdash; Saves the clipboard to a text file, proposing a name.</li>
 <li><strong>Save Page</strong>, Control+S &mdash; Saves the page in any of nine formats.</li>
+<li><strong>Say Address</strong>, Alt+A &mdash; Says the web address of this page.</li>
 <li><strong>Say Clipboard</strong>, Alt+Apostrophe &mdash; Say clipboard text, or spell if repeated.</li>
 <li><strong>Say Metadata</strong>, Alt+M &mdash; Says what the page claims about itself: author, publisher, date and licence.</li>
+<li><strong>Say Yield</strong>, Alt+Y &mdash; Say number of characters, words, and lines in all or selected text.</li>
 <li><strong>Search Next</strong>, F3 &mdash; Search forward for next match, of whichever kind of find was used last.</li>
 <li><strong>Search Previous</strong>, Shift+F3 &mdash; Search backward for previous match.</li>
 <li><strong>Session Log</strong>, Control+Shift+L &mdash; Open a copy of this session's log, for working out what went wrong.</li>

@@ -74,9 +74,6 @@
 
 ; or none does, and nothing says why.
 
-; Each key names a script in HomerView.jss that captures it and acts only
-; here, passing it on to the browser elsewhere: the kit's framework, the same
-; ways and scopes as every Homer app's JAWS and NVDA scripts.
 [Common Keys]
 Alt+Control+Shift+H=hVLaunchHomerView
 Alt+F10=hVShowHomerViewMenu
@@ -90,6 +87,7 @@ Alt+Shift+R=hVSayDiagnostics
 Alt+Shift+E=hVOpenSettings
 
 [Virtual Keys]
+Alt+A=hVSayAddress
 Alt+Apostrophe=hVSayClipboard
 Alt+C=hVCopyAppend
 Alt+F1=hVShowAbout
@@ -106,6 +104,7 @@ Alt+Shift+F3=hVFindWordAtCursorBackwards
 Alt+Shift+F8=hVGoToSelectionStart
 Alt+Shift+P=hVCopyPageLinks
 Alt+Shift+W=hVDownloadFiles
+Alt+Y=hVSayYield
 Control+Apostrophe=hVSaveClipboard
 Control+C=hVCopySelection
 Control+F=hVFindForwards

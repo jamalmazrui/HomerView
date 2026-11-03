@@ -869,6 +869,17 @@ namespace Homer
             }
             catch (Exception exception)
             {
+                // A PORT NOBODY ANSWERS IS A CLOSED BROWSER, NOT A CRASH (2 November 2026). The port file outlives the
+                // browser that wrote it, so a command run after HomerView's browser closed met "Unable to connect to
+                // the remote server" -- four times that day in the log, with a stack trace, and spoken to the reader
+                // in those words. It is said now as what it means.
+                System.Net.WebException exceptionWeb = exception as System.Net.WebException;
+                if (exceptionWeb != null && exceptionWeb.Status == System.Net.WebExceptionStatus.ConnectFailure)
+                {
+                    Log("  nothing answers on port " + iDebugPort + ", so HomerView's browser has closed since it wrote its port file");
+                    WriteResult(sOutputFile, XmlAnswer("{\"error\":\"" + sNeedsHomerView + "\"}"));
+                    return 1;
+                }
                 // The failure goes in the file too. A JAWS script that finds no
                 // file cannot tell a crash from a command still running, and
                 // would wait the full timeout to learn nothing.
@@ -2896,7 +2907,11 @@ namespace Homer
                                 matchFirst.Groups[1].Value;
                         if (sStart == "")
                         {
-                            string sTitleNow = Tidy(EvaluateText("(() => document.title)()"));
+                            // THE TITLE IS A CONVENIENCE, NEVER A CONDITION (2 November 2026): when the browser could
+                            // not be reached the exception escaped to the catch below and no dialog appeared at all.
+                            string sTitleNow = "";
+                            try { sTitleNow = Tidy(EvaluateText("(() => document.title)()")); }
+                            catch (Exception exceptionTitle) { Log("  the page title could not be read, so the name box starts empty: " + exceptionTitle.Message); }
                             if (sTitleNow != "" && !sTitleNow.StartsWith("ERROR:"))
                             {
                                 sStart = Path.Combine(DownloadsFolder(), SafeStem(sTitleNow));
@@ -4370,7 +4385,10 @@ namespace Homer
         private static readonly string[] aSessionCommands = {
             "axereport", "closeothertabs", "contacts", "copilot", "countpattern", "downloadlist", "downloadone",
             "downloadscan", "evaluate", "evaluatetext", "extract", "extractpattern", "findmark", "pagenames",
-            "pagetext", "probe", "savepage", "tablist"
+            "pagetext", "probe", "savedialog", "savepage", "tablist"
+            // savedialog joined on 2 November 2026: Control+S in an ordinary Edge window opened nothing and said
+            // nothing, three times, because the dialog first asked HomerView's browser for the page title and no
+            // HomerView browser was there. In a window that is not HomerView's, Control+S is the browser's again.
         };
 
         // ForegroundIsSession: whether the window in front belongs to HomerView's own browser -- a

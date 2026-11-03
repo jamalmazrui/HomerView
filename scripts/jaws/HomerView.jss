@@ -2198,6 +2198,16 @@ EndScript
 
 Script hVStartSelection ()
 hVLogLine ("hVStartSelection started")
+; JAWS'S OWN F8 STAYS WITHIN REACH (2 November 2026). In the virtual cursor JAWS binds F8 to SelectHTMLElement,
+; which selects the whole element at the cursor -- a table from its first line, or one cell -- and HomerView took
+; the key for Start Selection, the Homer F8 family's command. A Homer app must not take a reader's key away, so
+; pressed twice, as IsSameScript counts it, F8 runs JAWS's own Select HTML Element. The installer's key audit
+; listed the overlap.
+If Builtin::IsSameScript () > 0 Then
+    hVLogLine ("hVStartSelection pressed twice, so JAWS's own SelectHTMLElement runs")
+    PerformScript SelectHTMLElement ()
+    Return
+EndIf
 ; SaveCurrentLocation DID NOT DO IT. Its own description says it remembers the
 ; cursor's location for a later selection, and in an edit control it does --
 ; but in a VIRTUAL BUFFER the mechanism JAWS itself uses is a TEMPORARY
@@ -3219,7 +3229,7 @@ Let iAdded = UserBufferAddLink ("  Alt+Apostrophe  Say what is on the clipboard"
 Let iAdded = UserBufferAddLink ("  Control+Apostrophe Save the clipboard to a file", "hVHomerViewLink (\"hVSaveClipboard\")", "Save Clipboard")
 Let iAdded = UserBufferAddLink ("  Control+Shift+Apostrophe Add the clipboard to a file", "hVHomerViewLink (\"hVAppendClipboard\")", "Append Clipboard")
 Let iAdded = UserBufferAddLink ("  Alt+Shift+Apostrophe Empty the clipboard", "hVHomerViewLink (\"hVClearClipboard\")", "Clear Clipboard")
-Let iAdded = UserBufferAddLink ("  F8              Start a selection here", "hVHomerViewLink (\"hVStartSelection\")", "Start Selection")
+Let iAdded = UserBufferAddLink ("  F8              Start a selection here; twice, JAWS selects the element", "hVHomerViewLink (\"hVStartSelection\")", "Start Selection")
 Let iAdded = UserBufferAddLink ("  Shift+F8        Select from there to here", "hVHomerViewLink (\"hVCompleteSelection\")", "Complete Selection")
 Let iAdded = UserBufferAddLink ("  Control+C       Copy the selection, or this line", "hVHomerViewLink (\"hVCopySelection\")", "Copy Selection")
 Let iAdded = UserBufferAddLink ("  Alt+C           Add it to what is on the clipboard", "hVHomerViewLink (\"hVCopyAppend\")", "Copy Append")
@@ -3327,7 +3337,7 @@ Let sTable = "About HomerView, Which build is loaded and where everything lives.
     + "\7" + "Say Metadata, Shows what the page says about itself. (Alt+M)\thVSayMetadata\tP"
     + "\7" + "Say Yield, Says how many characters, words and lines the selection or the page holds. (Alt+Y)\thVSayYield\tP"
     + "\7" + "Session Log, Opens this session's log to read. (Control+Shift+L)\thVOpenSessionLog\tA"
-    + "\7" + "Start Selection, Marks where a selection begins, to be finished with Shift+F8. (F8)\thVStartSelection\tP"
+    + "\7" + "Start Selection, Marks where a selection begins, to be finished with Shift+F8; pressed twice, JAWS's own Select HTML Element. (F8)\thVStartSelection\tP"
     + "\7" + "Submit Form, Submits the form holding the focused field, from any field.\thVSubmitForm\tP"
     + "\7" + "Tab Close Others, Closes every tab but the one you are on.\thVTabCloseOthers\tA"
     + "\7" + "Tab List, Lists the open tabs by name and address.\thVListTabs\tA"

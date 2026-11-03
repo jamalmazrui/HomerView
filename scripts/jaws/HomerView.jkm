@@ -87,7 +87,6 @@ Alt+Shift+R=hVSayDiagnostics
 Alt+Shift+E=hVOpenSettings
 
 [Virtual Keys]
-Alt+A=hVSayAddress
 Alt+Apostrophe=hVSayClipboard
 Alt+C=hVCopyAppend
 Alt+F1=hVShowAbout

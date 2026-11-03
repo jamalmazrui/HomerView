@@ -540,12 +540,11 @@ function browserConfigName {
 # application key map could not resolve, one for keys still in default.jkm --
 # are gone with the approach that needed them.
 $lPageKeys = @(
-    # SAY ADDRESS AND SAY YIELD ON NVDA'S KEYS (2 November 2026). Both were on the JAWS menu only, so Insert+A,
-    # which the guide's own summary named, did nothing of HomerView's: JAWS keeps its reader keys, and HomerView never
-    # bound one. NVDA has them on Alt+A and Alt+Y, which nothing in Edge, Windows or JAWS claims, so JAWS now takes the
-    # same two keys, one key per command on both readers. Yield Structure stays on the menu: its NVDA key,
-    # Alt+Shift+Y, is JAWS's table cell up in the laptop layout (KeyOwnership.inix).
-    "Alt+A=hVSayAddress",
+    # SAY YIELD ON NVDA'S KEY (2 November 2026). It was on the JAWS menu only; NVDA has it on Alt+Y, which nothing in
+    # Edge, Windows or JAWS claims. Say Address takes NO key here: JAWS+A is JAWS's own address bar command, and
+    # HomerView must leave every JAWS and NVDA key in Edge working. The address command stays on the menu, and NVDA,
+    # which has no such key of its own, has it on Alt+A. Yield Structure stays on the menu: its NVDA key, Alt+Shift+Y,
+    # is JAWS's table cell up in the laptop layout (KeyOwnership.inix).
     "Alt+Y=hVSayYield",
     "Control+Shift+L=hVOpenSessionLog",
     "Alt+F1=hVShowAbout",
@@ -852,6 +851,32 @@ foreach ($folderVersion in $lVersions) {
         if ($pathShared -and (Test-Path (Join-Path $pathShared "$sConfigBase.jsb"))) {
             $sFactoryJsbSeen = Join-Path $pathShared "$sConfigBase.jsb"
         }
+        # THE LAYER IS FOUND BY WHAT IT DOCUMENTS (2 November 2026). JAWS 2025.2508 ships an msedge.jkm and the Chrome
+        # script set in its shared folder, with no msedge.jsb beside them. The fallback below then wrote Use
+        # "default.jsb", and JAWS+A in Edge said "unknown script call to: addressbar": the factory key map still bound
+        # JAWS+A to AddressBar, and the set that defines it was no longer loaded. So the browser's factory key map is read,
+        # each shared .jsd is asked how many of the scripts it binds it documents, and the best one that is not this
+        # file's own name is the layer. default.jsb is used only when no other set documents any of them.
+        $sLayer = if ($sFactoryJsbSeen) { $sConfigBase } else { "default" }
+        $pathFactoryJkm = if ($pathShared) { Join-Path $pathShared "$sConfigBase.jkm" } else { "" }
+        if ((-not $sFactoryJsbSeen) -and $pathFactoryJkm -and (Test-Path $pathFactoryJkm)) {
+            $lBound = @()
+            foreach ($sLine in (Get-Content $pathFactoryJkm)) {
+                if ($sLine -match '^\s*[^;\[][^=]*=\s*([A-Za-z_][A-Za-z0-9_]*)\s*$') { $lBound += $Matches[1].ToLower() }
+            }
+            $lBound = @($lBound | Sort-Object -Unique)
+            $iBest = 0
+            foreach ($fileJsd in @(Get-ChildItem -Path $pathShared -Filter "*.jsd" -File -ErrorAction SilentlyContinue)) {
+                $sBase = [System.IO.Path]::GetFileNameWithoutExtension($fileJsd.Name)
+                if ($sBase -ieq $sConfigBase) { continue }
+                $lDocumented = @()
+                foreach ($oMatch in ([regex]'(?im)^:\s*Script\s+([A-Za-z_][A-Za-z0-9_]*)').Matches((Get-Content $fileJsd.FullName -Raw))) { $lDocumented += $oMatch.Groups[1].Value.ToLower() }
+                $iCount = @($lBound | Where-Object { $lDocumented -contains $_ }).Count
+                writeLog "      $($fileJsd.Name) documents $iCount of the $($lBound.Count) scripts $sConfigBase.jkm binds"
+                if (($iCount -gt $iBest) -or (($iCount -eq $iBest) -and ($iCount -gt 0) -and ($sLayer -ieq "default"))) { $iBest = $iCount; $sLayer = $sBase }
+            }
+            writeLog "      the layer under HomerView is $sLayer.jsb"
+        }
 
         # A FILE OF OURS FROM EITHER RELEASE THAT GOT THE Use LINE WRONG IS
         # DELETED HERE, so the branch below writes a correct one. Two releases
@@ -890,6 +915,12 @@ foreach ($folderVersion in $lVersions) {
                 if ($sNamed -ieq "HomerView") { continue }
                 if (($sNamed -ieq $sConfigBase) -and (-not $sFactoryJsbSeen)) { continue }
                 $bLayered = $true
+            }
+            # A file of ours over the wrong layer is rewritten too: one that Uses default.jsb where a factory set
+            # documents the browser's own keys cut those keys off (JAWS+A, 2 November 2026).
+            if (($sCheck -match [regex]::Escape($sMarker)) -and $bLayered -and ($sCheck -notmatch ('(?im)^\s*use\s+"' + [regex]::Escape($sLayer) + '\.jsb"'))) {
+                writeLog "    $sConfigBase.jss is ours but does not use $sLayer.jsb; rewriting it"
+                $bLayered = $false
             }
             if (($sCheck -match [regex]::Escape($sMarker)) -and (-not $bLayered)) {
                 writeLog "    $sConfigBase.jss is ours and does not use $sConfigBase.jsb; rewriting it"
@@ -932,6 +963,9 @@ foreach ($folderVersion in $lVersions) {
             If ($sFactoryJsb) {
                 $lJss += "Use `"$sConfigBase.jsb`""
                 writeLog "    extending the factory $sConfigBase.jsb at $sFactoryJsb"
+            } elseif ($sLayer -ine "default") {
+                $lJss += "Use `"$sLayer.jsb`""
+                writeLog "    extending the factory $sLayer.jsb, which documents the keys $sConfigBase.jkm binds"
             } else {
                 $lJss += 'Use "default.jsb"'
                 writeLog "    JAWS ships no $sConfigBase.jsb, so the default set is the layer to extend"

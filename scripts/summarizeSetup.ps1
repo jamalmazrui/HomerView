@@ -100,3 +100,18 @@ Add-Type -AssemblyName System.Windows.Forms | Out-Null
 [System.Windows.Forms.MessageBox]::Show($sMessage, "HomerView Setup Results",
     [System.Windows.Forms.MessageBoxButtons]::OK,
     [System.Windows.Forms.MessageBoxIcon]::Information) | Out-Null
+
+# THEN THE LAUNCH, IF ITS BOX WAS TICKED (2 November 2026). The finish page's Launch entry leaves a marker; HomerView
+# starts here, after the Results box has been read and closed, so the box is never hidden behind the browser, and
+# with the same "launch" argument the desktop shortcut uses.
+$pathFlag = Join-Path $pathFolder "HomerView_launch.flag"
+if (Test-Path -LiteralPath $pathFlag) {
+    Remove-Item -LiteralPath $pathFlag -Force -ErrorAction SilentlyContinue
+    $pathExe = Join-Path (Split-Path -Parent $PSScriptRoot) "exec\HomerView.exe"
+    try {
+        Start-Process -FilePath $pathExe -ArgumentList "launch" -WorkingDirectory (Split-Path -Parent $PSScriptRoot)
+        Add-Content -LiteralPath $pathLog -Value ("Launched " + $pathExe + " launch, as the Launch box asked") -Encoding UTF8
+    } catch {
+        Add-Content -LiteralPath $pathLog -Value ("The Launch box was ticked, but " + $pathExe + " did not start: " + $_) -Encoding UTF8
+    }
+}

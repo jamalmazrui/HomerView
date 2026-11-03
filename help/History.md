@@ -1,9 +1,12 @@
 ﻿
 
 
-## 2 November 2026 -- Say Address on Alt+A, and Save Page that says why
+## 2 November 2026 -- JAWS keeps its own keys, and Launch starts HomerView again
 
-- **Say Address is Alt+A and Say Yield is Alt+Y on JAWS too,** the keys NVDA already used. Both were on the JAWS menu only, while the menu's own summary named Insert+A for the address, a JAWS key HomerView never bound, so pressing it did nothing of HomerView's. Yield Structure stays on the menu, since its NVDA key, Alt+Shift+Y, is JAWS's table cell up in the laptop layout. NVDA's menu named its address key as NVDA+A; it now says Alt+A.
+- **JAWS+A says the address bar again in Edge.** HomerView's scripts for Edge were layered on JAWS's default set alone, because JAWS 2025.2508 ships Edge's key map and the Chrome script set with no msedge.jsb beside them. JAWS's own Edge keys then pointed at scripts that were no longer loaded, and JAWS+A said "unknown script call to: addressbar". The installer now reads Edge's factory key map, finds the script set that documents its keys, and layers HomerView on that one, rewriting the file an earlier release wrote.
+- **No HomerView address key on JAWS,** since JAWS+A is JAWS's own; Say Address stays on the menu. NVDA, which has no such key, keeps Alt+A, which is none of NVDA's own. NVDA's menu named it NVDA+A; it now says Alt+A.
+- **Say Yield is Alt+Y on JAWS too,** NVDA's key for it, which nothing in Edge, Windows or JAWS claims. Yield Structure stays on the menu, since its NVDA key, Alt+Shift+Y, is JAWS's table cell up in the laptop layout.
+- **Launch is back on the finish page, ticked.** The installer had no Launch entry, so pressing Enter installed and closed, and HomerView never started. Now the box leaves a marker, and HomerView starts after the Results box is closed, as the person who ran Setup, as the Homer installer pattern asks.
 - **Save Page in a window that is not HomerView's is the browser's own Control+S again,** as every page command is. It was asking HomerView's browser for the page title first, and with none running, three presses on 2 November opened nothing and said nothing.
 - **Save Page says why it could not start,** rather than logging "no file was chosen" and staying silent. Only Cancel is silent.
 - **A closed browser is said plainly.** The port file outlives HomerView's browser, so a command after it closed failed with "Unable to connect to the remote server" and a stack trace in the log. It now says HomerView's browser is not running.

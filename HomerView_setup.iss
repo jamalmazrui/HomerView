@@ -476,6 +476,16 @@ Filename: "{app}\scripts\installPandoc.cmd"; Parameters: "noPause"; \
   WorkingDir: "{app}\scripts"; Description: "{code:labelPandoc}"; \
   Flags: postinstall skipifsilent runascurrentuser waituntilterminated unchecked; \
   Check: isReinstallPandoc
+;
+; LAUNCH, TICKED, AFTER THE RESULTS BOX (2 November 2026). This installer had no Launch entry at all, so pressing
+; Enter on the finish page installed the scripts and closed, and HomerView never started -- the Homer pattern says
+; Launch is ticked and starts the program after the Results box is read. The entry only leaves a marker; the summary
+; helper shows the Results box and then starts HomerView, as the person who ran Setup. TWO pairs of quotes, since the
+; value starts with one.
+FileName: "{cmd}"; \
+  Parameters: "/c md ""{localappdata}\{#AppName}\logs"" 2>nul & echo launch > ""{localappdata}\{#AppName}\logs\{#AppName}_launch.flag"""; \
+  Description: "Launch {#AppName} (desktop hotkey Alt+Control+Shift+H)"; \
+  Flags: postinstall skipifsilent runhidden runasoriginaluser
 
 [UninstallRun]
 ; Take the JAWS scripts back out. Ours to remove, since we put them there, and
@@ -999,7 +1009,9 @@ var
   iResult: Integer;
 begin
   try
-    Exec(ExpandConstant('{cmd}'),
+    { AS THE PERSON, NOT THE ADMINISTRATOR (2 November 2026): the helper now starts HomerView after its box, and a
+      program started from an elevated process runs elevated, with the wrong profile's settings. }
+    ExecAsOriginalUser(ExpandConstant('{cmd}'),
       '/c ""' + ExpandConstant('{app}\scripts\summarizeSetup.cmd') + '" "' + sFolder + '""',
       ExpandConstant('{app}'), SW_HIDE, ewNoWait, iResult);
   except

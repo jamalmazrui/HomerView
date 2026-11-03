@@ -865,15 +865,44 @@ foreach ($folderVersion in $lVersions) {
                 if ($sLine -match '^\s*[^;\[][^=]*=\s*([A-Za-z_][A-Za-z0-9_]*)\s*$') { $lBound += $Matches[1].ToLower() }
             }
             $lBound = @($lBound | Sort-Object -Unique)
-            $iBest = 0
-            foreach ($fileJsd in @(Get-ChildItem -Path $pathShared -Filter "*.jsd" -File -ErrorAction SilentlyContinue)) {
-                $sBase = [System.IO.Path]::GetFileNameWithoutExtension($fileJsd.Name)
-                if ($sBase -ieq $sConfigBase) { continue }
-                $lDocumented = @()
-                foreach ($oMatch in ([regex]'(?im)^:\s*Script\s+([A-Za-z_][A-Za-z0-9_]*)').Matches((Get-Content $fileJsd.FullName -Raw))) { $lDocumented += $oMatch.Groups[1].Value.ToLower() }
-                $iCount = @($lBound | Where-Object { $lDocumented -contains $_ }).Count
-                writeLog "      $($fileJsd.Name) documents $iCount of the $($lBound.Count) scripts $sConfigBase.jkm binds"
-                if (($iCount -gt $iBest) -or (($iCount -eq $iBest) -and ($iCount -gt 0) -and ($sLayer -ieq "default"))) { $iBest = $iCount; $sLayer = $sBase }
+            # WHAT ONLY THE BROWSER'S OWN SET CAN SUPPLY (2 November 2026, second fix). Counting how many bound scripts
+            # each .jsd documents chose Virtual.jsb (26 of 38): the virtual cursor's scripts, which JAWS loads anyway,
+            # and JAWS+A still said "unknown script call to: addressbar". The scripts that matter are the ones default.jsd
+            # and Virtual.jsd do NOT document -- the browser's own -- and the layer is the set that documents those.
+            $lAlways = @()
+            foreach ($sAlways in @("default", "Virtual")) {
+                $pathAlways = Join-Path $pathShared "$sAlways.jsd"
+                if (Test-Path $pathAlways) {
+                    foreach ($oMatch in ([regex]'(?im)^:\s*Script\s+([A-Za-z_][A-Za-z0-9_]*)').Matches((Get-Content $pathAlways -Raw))) { $lAlways += $oMatch.Groups[1].Value.ToLower() }
+                }
+            }
+            $lOwn = @($lBound | Where-Object { $lAlways -notcontains $_ })
+            writeLog "      $($lOwn.Count) of the $($lBound.Count) scripts $sConfigBase.jkm binds are the browser's own: $($lOwn -join ', ')"
+            # THE CHROMIUM FAMILY'S OWN SET FIRST. JAWS runs Edge, Chrome, Brave and Vivaldi on its Chrome script set,
+            # and ships Chrome.jkm and Chrome.jsd beside msedge.jkm; so for those browsers Chrome is the layer whenever
+            # JAWS ships it and this file is not itself chrome. The count below decides only for other browsers.
+            $bChromium = @("msedge", "brave", "vivaldi") -contains $sConfigBase.ToLower()
+            if ($bChromium -and (Test-Path (Join-Path $pathShared "Chrome.jsd"))) {
+                $sLayer = "Chrome"
+                writeLog "      Chrome.jsd is here, and $sConfigBase is a Chromium browser, so JAWS's Chrome set is the layer"
+            } else {
+                $iBest = 0
+                foreach ($fileJsd in @(Get-ChildItem -Path $pathShared -Filter "*.jsd" -File -ErrorAction SilentlyContinue)) {
+                    $sBase = [System.IO.Path]::GetFileNameWithoutExtension($fileJsd.Name)
+                    if (@($sConfigBase, "default", "Virtual") -contains $sBase) { continue }
+                    $lDocumented = @()
+                    foreach ($oMatch in ([regex]'(?im)^:\s*Script\s+([A-Za-z_][A-Za-z0-9_]*)').Matches((Get-Content $fileJsd.FullName -Raw))) { $lDocumented += $oMatch.Groups[1].Value.ToLower() }
+                    $iCount = @($lOwn | Where-Object { $lDocumented -contains $_ }).Count
+                    if ($iCount -gt 0) { writeLog "      $($fileJsd.Name) documents $iCount of the browser's own scripts" }
+                    if ($iCount -gt $iBest) { $iBest = $iCount; $sLayer = $sBase }
+                }
+            }
+            $pathLayerJsd = Join-Path $pathShared "$sLayer.jsd"
+            if (($sLayer -ine "default") -and (Test-Path $pathLayerJsd)) {
+                $lLayerDoc = @()
+                foreach ($oMatch in ([regex]'(?im)^:\s*Script\s+([A-Za-z_][A-Za-z0-9_]*)').Matches((Get-Content $pathLayerJsd -Raw))) { $lLayerDoc += $oMatch.Groups[1].Value.ToLower() }
+                $lCovered = @($lOwn | Where-Object { $lLayerDoc -contains $_ })
+                writeLog "      $sLayer.jsd documents $($lCovered.Count) of them: $($lCovered -join ', ') (a set may define more than its .jsd documents)"
             }
             writeLog "      the layer under HomerView is $sLayer.jsb"
         }

@@ -355,9 +355,12 @@ HomerView’s scripts for Edge were layered on JAWS’s default set alone,
 because JAWS 2025.2508 ships Edge’s key map and the Chrome script set
 with no msedge.jsb beside them. JAWS’s own Edge keys then pointed at
 scripts that were no longer loaded, and JAWS+A said “unknown script call
-to: addressbar”. The installer now reads Edge’s factory key map, finds
-the script set that documents its keys, and layers HomerView on that
-one, rewriting the file an earlier release wrote.</li>
+to: addressbar”. The installer now layers HomerView on JAWS’s Chrome
+set, which JAWS uses for every Chromium browser, and rewrites the file
+an earlier release wrote. (A first attempt chose the set whose
+documentation named the most of Edge’s keys, which picked Virtual.jsb,
+the virtual cursor’s scripts, and JAWS+A still failed. The log now names
+the scripts only the browser’s own set supplies.)</li>
 <li><strong>No HomerView address key on JAWS,</strong> since JAWS+A is
 JAWS’s own; Say Address stays on the menu. NVDA, which has no such key,
 keeps Alt+A, which is none of NVDA’s own. NVDA’s menu named it NVDA+A;

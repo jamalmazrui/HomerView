@@ -123,6 +123,18 @@ function sourcesFingerprint() {
         $aBytes = [IO.File]::ReadAllBytes($oFile.FullName)
         $oBuffer.Write($aBytes, 0, $aBytes.Length)
     }
+    # THE SCRIPTS THAT INSTALL THEM COUNT TOO (2 November 2026). A fix to chainJawsScripts.ps1 changed how the scripts
+    # are chained but not the scripts themselves, so the fingerprint matched, the installer offered the JAWS scripts as
+    # an unticked Reinstall, and the fix never ran.
+    foreach ($sName in @("chainJawsScripts.ps1", "installJawsScripts.ps1")) {
+        $pathOne = Join-Path $pathHere $sName
+        if (Test-Path -LiteralPath $pathOne) {
+            $aName = [Text.Encoding]::UTF8.GetBytes($sName.ToLowerInvariant())
+            $oBuffer.Write($aName, 0, $aName.Length)
+            $aBytes = [IO.File]::ReadAllBytes($pathOne)
+            $oBuffer.Write($aBytes, 0, $aBytes.Length)
+        }
+    }
     $oHash = [Security.Cryptography.SHA256]::Create()
     return (($oHash.ComputeHash($oBuffer.ToArray()) | ForEach-Object { $_.ToString("x2") }) -join "")
 }

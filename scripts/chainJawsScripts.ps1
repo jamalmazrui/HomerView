@@ -148,6 +148,29 @@ function activeBrowserExes {
             }
         }
     }
+    # EVERY INSTALLED CHROMIUM BROWSER, NOT ONE CHOSEN (2 November 2026). HomerView's keys act only in a window of
+    # HomerView's own browser profile -- in any other window the helper answers 3 and the key goes to the browser --
+    # so binding them in Edge, Chrome, Brave and Vivaldi at once costs nothing and makes the choice of browser a
+    # question of which one HomerView launches, not of which one JAWS knows. Firefox is not Chromium and is never
+    # included. HomerView.inix may say chromiumBrowsers = chosen to go back to the chosen browser alone.
+    $bAll = $true
+    if (Test-Path $pathInix) {
+        foreach ($sLine in (Get-Content $pathInix -ErrorAction SilentlyContinue)) {
+            if ($sLine -match '^\s*chromiumBrowsers\s*=\s*chosen\s*$') { $bAll = $false }
+        }
+    }
+    if ($bAll) {
+        foreach ($sName in @("brave.exe", "chrome.exe", "msedge.exe", "vivaldi.exe")) {
+            $bFound = $false
+            foreach ($sHive in @("HKLM:", "HKCU:")) {
+                if (Test-Path "$sHive\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\$sName") { $bFound = $true }
+            }
+            if ($bFound -and -not ($lExes | Where-Object { $_ -ieq $sName })) {
+                $lExes += $sName
+                writeLog "  $sName is installed, so HomerView's keys are bound in it too"
+            }
+        }
+    }
     writeLog ("  active browsers: " + ($lExes -join ", "))
     return ,$lExes
 }
@@ -161,6 +184,44 @@ function writeLog {
 
 try { Add-Content -Path $pathLog -Value "" -Encoding UTF8 } catch {
     Write-Host "The log could not be started at $pathLog : $($_.Exception.Message)"
+}
+
+# KEYS JAWS ALREADY USES, NAMED BEFORE ANY ARE TAKEN (2 November 2026). Every HomerView key is looked up in JAWS's
+# own key maps for this browser and in default.jkm, shared and user, both sections, and each one JAWS already binds is
+# logged with JAWS's script, so a key HomerView takes from the reader is a choice on record, never an accident. The
+# factory key maps and ConfigNames.ini are copied beside the log as well, so they can be read without the machine.
+function auditKeys {
+    param([string] $pathUser, [string] $pathShared, [string] $sConfigBase, [string] $sVersion)
+    $dJaws = @{}
+    foreach ($pathMap in @((Join-Path $pathShared "$sConfigBase.jkm"), (Join-Path $pathShared "default.jkm"), (Join-Path $pathUser "default.jkm"))) {
+        if (-not (Test-Path $pathMap)) { continue }
+        $sSection = ""
+        foreach ($sLine in (Get-Content $pathMap -ErrorAction SilentlyContinue)) {
+            if ($sLine -match '^\s*\[(.+)\]\s*$') { $sSection = $Matches[1]; continue }
+            if ($sLine -match '^\s*([^;=][^=]*?)\s*=\s*(\S+)\s*$') {
+                $sKey = ($Matches[1] -replace '\s', '').ToLower() -replace 'insert\+', 'jawskey+'
+                if ($Matches[2] -like "hV*") { continue }
+                if (-not $dJaws.ContainsKey($sKey)) { $dJaws[$sKey] = "$($Matches[2]) in $(Split-Path $pathMap -Leaf) [$sSection]" }
+            }
+        }
+    }
+    $iTaken = 0
+    foreach ($sPair in ($lCommonKeys + $lPageKeys)) {
+        $sKey = (($sPair -split '=', 2)[0] -replace '\s', '').ToLower()
+        if ($dJaws.ContainsKey($sKey)) {
+            $iTaken += 1
+            writeLog "      KEY TAKEN FROM JAWS: $sPair -- JAWS binds $($dJaws[$sKey])"
+        }
+    }
+    writeLog "      $iTaken of HomerView's $(($lCommonKeys + $lPageKeys).Count) keys are keys JAWS itself binds here"
+    try {
+        $pathCopies = Join-Path (Split-Path -Parent $pathLog) "jaws-$sVersion"
+        New-Item -ItemType Directory -Force -Path $pathCopies | Out-Null
+        foreach ($pathOne in @((Join-Path $pathShared "$sConfigBase.jkm"), (Join-Path $pathShared "default.jkm"), (Join-Path $pathShared "ConfigNames.ini"), (Join-Path $pathUser "ConfigNames.ini"))) {
+            if (Test-Path $pathOne) { Copy-Item -LiteralPath $pathOne -Destination (Join-Path $pathCopies ((Split-Path (Split-Path $pathOne -Parent) -Leaf) + "-" + (Split-Path $pathOne -Leaf))) -Force }
+        }
+        writeLog "      JAWS's own key maps for review were copied to $pathCopies"
+    } catch { writeLog "      the key maps could not be copied for review: $_" }
 }
 
 # Adds lines inside a named section of an ini-style file, rather than at the
@@ -851,61 +912,46 @@ foreach ($folderVersion in $lVersions) {
         if ($pathShared -and (Test-Path (Join-Path $pathShared "$sConfigBase.jsb"))) {
             $sFactoryJsbSeen = Join-Path $pathShared "$sConfigBase.jsb"
         }
-        # THE LAYER IS FOUND BY WHAT IT DOCUMENTS (2 November 2026). JAWS 2025.2508 ships an msedge.jkm and the Chrome
-        # script set in its shared folder, with no msedge.jsb beside them. The fallback below then wrote Use
-        # "default.jsb", and JAWS+A in Edge said "unknown script call to: addressbar": the factory key map still bound
-        # JAWS+A to AddressBar, and the set that defines it was no longer loaded. So the browser's factory key map is read,
-        # each shared .jsd is asked how many of the scripts it binds it documents, and the best one that is not this
-        # file's own name is the layer. default.jsb is used only when no other set documents any of them.
-        $sLayer = if ($sFactoryJsbSeen) { $sConfigBase } else { "default" }
-        $pathFactoryJkm = if ($pathShared) { Join-Path $pathShared "$sConfigBase.jkm" } else { "" }
-        if ((-not $sFactoryJsbSeen) -and $pathFactoryJkm -and (Test-Path $pathFactoryJkm)) {
-            $lBound = @()
-            foreach ($sLine in (Get-Content $pathFactoryJkm)) {
-                if ($sLine -match '^\s*[^;\[][^=]*=\s*([A-Za-z_][A-Za-z0-9_]*)\s*$') { $lBound += $Matches[1].ToLower() }
-            }
-            $lBound = @($lBound | Sort-Object -Unique)
-            # WHAT ONLY THE BROWSER'S OWN SET CAN SUPPLY (2 November 2026, second fix). Counting how many bound scripts
-            # each .jsd documents chose Virtual.jsb (26 of 38): the virtual cursor's scripts, which JAWS loads anyway,
-            # and JAWS+A still said "unknown script call to: addressbar". The scripts that matter are the ones default.jsd
-            # and Virtual.jsd do NOT document -- the browser's own -- and the layer is the set that documents those.
-            $lAlways = @()
-            foreach ($sAlways in @("default", "Virtual")) {
-                $pathAlways = Join-Path $pathShared "$sAlways.jsd"
-                if (Test-Path $pathAlways) {
-                    foreach ($oMatch in ([regex]'(?im)^:\s*Script\s+([A-Za-z_][A-Za-z0-9_]*)').Matches((Get-Content $pathAlways -Raw))) { $lAlways += $oMatch.Groups[1].Value.ToLower() }
-                }
-            }
-            $lOwn = @($lBound | Where-Object { $lAlways -notcontains $_ })
-            writeLog "      $($lOwn.Count) of the $($lBound.Count) scripts $sConfigBase.jkm binds are the browser's own: $($lOwn -join ', ')"
-            # THE CHROMIUM FAMILY'S OWN SET FIRST. JAWS runs Edge, Chrome, Brave and Vivaldi on its Chrome script set,
-            # and ships Chrome.jkm and Chrome.jsd beside msedge.jkm; so for those browsers Chrome is the layer whenever
-            # JAWS ships it and this file is not itself chrome. The count below decides only for other browsers.
-            $bChromium = @("msedge", "brave", "vivaldi") -contains $sConfigBase.ToLower()
-            if ($bChromium -and (Test-Path (Join-Path $pathShared "Chrome.jsd"))) {
-                $sLayer = "Chrome"
-                writeLog "      Chrome.jsd is here, and $sConfigBase is a Chromium browser, so JAWS's Chrome set is the layer"
-            } else {
-                $iBest = 0
-                foreach ($fileJsd in @(Get-ChildItem -Path $pathShared -Filter "*.jsd" -File -ErrorAction SilentlyContinue)) {
-                    $sBase = [System.IO.Path]::GetFileNameWithoutExtension($fileJsd.Name)
-                    if (@($sConfigBase, "default", "Virtual") -contains $sBase) { continue }
-                    $lDocumented = @()
-                    foreach ($oMatch in ([regex]'(?im)^:\s*Script\s+([A-Za-z_][A-Za-z0-9_]*)').Matches((Get-Content $fileJsd.FullName -Raw))) { $lDocumented += $oMatch.Groups[1].Value.ToLower() }
-                    $iCount = @($lOwn | Where-Object { $lDocumented -contains $_ }).Count
-                    if ($iCount -gt 0) { writeLog "      $($fileJsd.Name) documents $iCount of the browser's own scripts" }
-                    if ($iCount -gt $iBest) { $iBest = $iCount; $sLayer = $sBase }
-                }
-            }
-            $pathLayerJsd = Join-Path $pathShared "$sLayer.jsd"
-            if (($sLayer -ine "default") -and (Test-Path $pathLayerJsd)) {
-                $lLayerDoc = @()
-                foreach ($oMatch in ([regex]'(?im)^:\s*Script\s+([A-Za-z_][A-Za-z0-9_]*)').Matches((Get-Content $pathLayerJsd -Raw))) { $lLayerDoc += $oMatch.Groups[1].Value.ToLower() }
-                $lCovered = @($lOwn | Where-Object { $lLayerDoc -contains $_ })
-                writeLog "      $sLayer.jsd documents $($lCovered.Count) of them: $($lCovered -join ', ') (a set may define more than its .jsd documents)"
-            }
-            writeLog "      the layer under HomerView is $sLayer.jsb"
+        # THE ANCHOR IS THE BROWSER'S OWN NAME (2 November 2026, the third and settled fix). Doug Lee's chaining
+        # convention, used by his scripts for Visual Studio Code, Teams and Slack and spelled out in his Common Script
+        # Elements: a chain file in the user folder named for the program begins with Use "<that name>.jsb", which loads
+        # JAWS's FACTORY copy of the same name, then Uses each added set, then a filler function. An earlier release
+        # judged that first line a self-reference, because on that machine JAWS shipped no Edge script set at all; there
+        # the line really had nothing to load. JAWS 2025 ships Edge's own key map, msedge.jkm, and so its own script
+        # set; with no Use of it, JAWS+A still pointed at AddressBar and nothing defined it ("unknown script call to:
+        # addressbar"). Two guesses at a substitute layer, Virtual and then Chrome, failed the same way. So: when JAWS
+        # ships any factory file under this name -- key map, documentation, source or binary -- the factory set exists
+        # and the chain file Uses it first. Only when JAWS ships nothing under the name is default.jsb the layer.
+        # WHERE JAWS KEEPS ITS OWN FILES, per the JAWS scripting manual ("Localization: JAWS Folder Restructure") and
+        # Doug Lee's getSharedPath in JAWSUtil.vbs: key maps and documentation in Scripts\<language>, compiled .jsb
+        # files and their sources one level up in Scripts itself. Every earlier search looked only in Scripts\enu, which
+        # is why a factory msedge.jsb was never seen.
+        $sLayer = "default"
+        $lFactoryFolders = @()
+        if ($pathShared) {
+            $lFactoryFolders += $pathShared
+            $lFactoryFolders += (Split-Path -Parent $pathShared)
+            $lFactoryFolders += ((Split-Path -Parent $pathShared) -replace '\\Scripts$', '\Settings') + "\" + (Split-Path -Leaf $pathShared)
         }
+        foreach ($pathFactory in $lFactoryFolders) {
+            foreach ($sExtension in @("jsb", "jkm", "jsd", "jss")) {
+                $pathFound = Join-Path $pathFactory "$sConfigBase.$sExtension"
+                if (Test-Path $pathFound) {
+                    writeLog "      JAWS ships $pathFound"
+                    if ($sLayer -ieq "default") {
+                        $sLayer = $sConfigBase
+                        if (-not $sFactoryJsbSeen) { $sFactoryJsbSeen = $pathFound }
+                    }
+                    # What JAWS's own source for this browser builds on, read rather than guessed.
+                    if ($sExtension -eq "jss") {
+                        foreach ($oUse in ([regex]'(?im)^\s*use\s+"([^"]+)"').Matches((Get-Content $pathFound -Raw))) { writeLog "        it Uses $($oUse.Groups[1].Value)" }
+                    }
+                }
+            }
+        }
+        if ($sLayer -ine "default") { writeLog "      so the factory $sConfigBase set exists and the chain file Uses it first, as Doug Lee's chain files do" }
+        writeLog "      the layer under HomerView is $sLayer.jsb"
+        auditKeys $pathUser $pathShared $sConfigBase $sVersion
 
         # A FILE OF OURS FROM EITHER RELEASE THAT GOT THE Use LINE WRONG IS
         # DELETED HERE, so the branch below writes a correct one. Two releases
@@ -988,24 +1034,26 @@ foreach ($folderVersion in $lVersions) {
             # browser set WHEN THERE IS ONE, and the default set otherwise. That
             # also generalises to Chrome, Brave and Vivaldi without another line,
             # since the same question is asked about whichever browser is chosen.
+            # DOUG LEE'S CHAIN-MANAGER FORMAT (2 November 2026), from JAWSUtil.vbs, his reference implementation since
+            # 2009: the header line, the base Use line that loads JAWS's own set of the same name, each member's Use
+            # line with its priority as a comment, and a filler function. Written this way, his installers and ours
+            # recognize the file as a chain and add to it rather than replace it, so HomerView can share Edge's chain
+            # with any other script set that follows the convention. HomerView takes the default priority, 5.
+            $lJss = @("; JAWS Script Chain Manager File - DO NOT EDIT UNLESS YOU KNOW WHAT YOU'RE DOING", $sMarker, "")
             $sFactoryJsb = $sFactoryJsbSeen
             If ($sFactoryJsb) {
-                $lJss += "Use `"$sConfigBase.jsb`""
-                writeLog "    extending the factory $sConfigBase.jsb at $sFactoryJsb"
-            } elseif ($sLayer -ine "default") {
-                $lJss += "Use `"$sLayer.jsb`""
-                writeLog "    extending the factory $sLayer.jsb, which documents the keys $sConfigBase.jkm binds"
+                $lJss += "use `"$sConfigBase.jsb`""
+                writeLog "    extending the factory $sConfigBase set found at $sFactoryJsb"
             } else {
-                $lJss += 'Use "default.jsb"'
-                writeLog "    JAWS ships no $sConfigBase.jsb, so the default set is the layer to extend"
-                writeLog "      (naming $sConfigBase.jsb here would point this file at itself)"
+                $lJss += 'use "default.jsb"'
+                writeLog "    JAWS ships nothing under the name $sConfigBase, so the default set is the layer to extend"
             }
-            $lJss += 'Use "HomerView.jsb"'
+            $lJss += 'use "HomerView.jsb"  ; 5'
             $lJss += ""
-            $lJss += "; A script file must define something, or it will not compile."
-            $lJss += "void function hVBrowserFiller ()"
+            $lJss += "void function filler()"
+            $lJss += "; Filler to make some JAWS versions compile this file successfully."
             $lJss += "return"
-            $lJss += "EndFunction"
+            $lJss += "endFunction"
             Set-Content -Path $pathBrowserJss -Value $lJss -Encoding UTF8
             writeLog "    wrote $sConfigBase.jss, layering HomerView over the browser's own scripts"
             $lManifest += "created|$sConfigBase.jss"

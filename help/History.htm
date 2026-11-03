@@ -350,17 +350,40 @@ id="november-2026-jaws-keeps-its-own-keys-and-launch-starts-homerview-again">2
 November 2026 – JAWS keeps its own keys, and Launch starts HomerView
 again</h2>
 <ul>
-<li><strong>JAWS+A says the address bar again in Edge.</strong>
-HomerView’s scripts for Edge were layered on JAWS’s default set alone,
-because JAWS 2025.2508 ships Edge’s key map and the Chrome script set
-with no msedge.jsb beside them. JAWS’s own Edge keys then pointed at
-scripts that were no longer loaded, and JAWS+A said “unknown script call
-to: addressbar”. The installer now layers HomerView on JAWS’s Chrome
-set, which JAWS uses for every Chromium browser, and rewrites the file
-an earlier release wrote. (A first attempt chose the set whose
-documentation named the most of Edge’s keys, which picked Virtual.jsb,
-the virtual cursor’s scripts, and JAWS+A still failed. The log now names
-the scripts only the browser’s own set supplies.)</li>
+<li><strong>JAWS+A says the address bar again in Edge, and every other
+key JAWS’s own Edge scripts provide works again.</strong> HomerView’s
+Edge script file now begins the way Doug Lee’s chain files do: Use
+“msedge.jsb”, which loads JAWS’s own Edge scripts, then Use
+“HomerView.jsb”. It had Used only JAWS’s default set, so every key in
+JAWS’s Edge key map that calls an Edge script, JAWS+A among them, said
+“unknown script call”. Two substitutes tried first, the Virtual and
+Chrome sets, failed the same way. An older release had judged the right
+line a self-reference, true only on a JAWS that shipped no Edge scripts
+at all; the rule now is to Use the browser’s own name whenever JAWS
+ships any file under it.</li>
+<li><strong>HomerView’s Edge file is now a chain file in Doug Lee’s
+format,</strong> the one his JAWSUtil.vbs has written since 2009: a
+header line, Use of JAWS’s own set of the same name, HomerView’s Use
+line with its priority, and a filler function. Script sets that follow
+the convention can now share Edge’s chain with HomerView rather than
+replace it. JAWS’s own files are now looked for where the JAWS scripting
+manual says they are, compiled scripts in Scripts and key maps in
+Scripts, and the log names each one found and what JAWS’s own Edge
+source Uses.</li>
+<li><strong>The JAWS scripts are reinstalled when their installer
+changes.</strong> Their fingerprint covered the script files but not
+chainJawsScripts or installJawsScripts, so the last fix was offered as
+an unticked Reinstall and never ran.</li>
+<li><strong>Every installed Chromium browser gets HomerView’s
+keys,</strong> Edge, Chrome, Brave and Vivaldi, never Firefox.
+HomerView’s keys act only in its own browser’s window and pass to the
+browser everywhere else, so binding them in each browser costs nothing;
+HomerView.inix’s chromiumBrowsers = chosen goes back to one.</li>
+<li><strong>Keys JAWS already uses are named in the log.</strong> The
+installer looks every HomerView key up in JAWS’s own key maps for the
+browser and in default.jkm, and logs each one HomerView takes, with
+JAWS’s script; JAWS’s key maps and ConfigNames.ini are copied beside the
+log for review.</li>
 <li><strong>No HomerView address key on JAWS,</strong> since JAWS+A is
 JAWS’s own; Say Address stays on the menu. NVDA, which has no such key,
 keeps Alt+A, which is none of NVDA’s own. NVDA’s menu named it NVDA+A;

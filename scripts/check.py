@@ -1683,6 +1683,107 @@ def checkSmoke(bBuild):
     return finding("smoke", "fail", "%s --help returned %d" % (sExe, iCode))
 
 
+def checkAccessibility(bScan):
+    """ACCESSIBILITY SCAN (5 November 2026): a windowed program is started, its window scanned with Axe.Windows --
+    the rule engine of Accessibility Insights for Windows -- and closed by WM_CLOSE, nothing pressed. The verdict is a
+    warning at most, never a failure: a finding is a question to review, and the report says what to check first --
+    above all, never an accessible name where a label before the control, its own caption, or the window title
+    already names it, which the reader would then say twice. Findings reviewed and accepted go in a11yAccepted.txt."""
+    # AT EVERY PUSH, SAID ALOUD (5 November 2026, night). It had opened DbDo silently for a minute, through a
+    # command-line tool that scans a whole program; the kit's axeWindow now scans the main window by its handle, says
+    # why the program opens and how the scan goes every 10 seconds, and gives up after two minutes, saying so.
+    if not bScan:
+        return finding("accessibility", "skip", "--noscan was given")
+    if os.name != "nt":
+        return finding("accessibility", "skip", "scans need Windows")
+    lsExe = [s for s in glob.glob(os.path.join(sRoot, "exec", "*.exe")) + glob.glob(os.path.join(sRoot, "*.exe"))
+             if not s.lower().endswith("_setup.exe")]
+    sApp = appName()
+    lsOwn = [s for s in lsExe if os.path.splitext(os.path.basename(s))[0].lower() == sApp.lower()]
+    lsExe = lsOwn or lsExe
+    if not lsExe or not isWindowed(lsExe[0]):
+        return finding("accessibility", "skip", "no windowed program here to scan")
+    oAxe = None
+    sKit = ""
+    try:
+        import kind
+        sKit = kind.findKit([sRoot]) or ""
+    except Exception:
+        sKit = ""
+    for sFolder in (os.path.dirname(os.path.abspath(__file__)), os.path.join(sKit, "scripts") if sKit else ""):
+        if sFolder and os.path.isfile(os.path.join(sFolder, "axeWindow.py")) and os.path.isfile(os.path.join(sFolder, "axeScan.py")):
+            if sFolder not in sys.path: sys.path.insert(0, sFolder)
+            import importlib
+            oAxe = importlib.import_module("axeWindow")
+            break
+    if oAxe is None:
+        return finding("accessibility", "skip", "the kit's axeWindow.py was not found")
+    oAxe.useLog(logLine)
+    try:
+        sVerdict, sEvidence, sReport = oAxe.scanProgramWindow(os.path.abspath(lsExe[0]), sRoot, sApp, os.path.join(sRoot, "logs"))
+    except Exception as oError:
+        logLine("accessibility scan: " + traceback.format_exc())
+        return finding("accessibility", "skip", "the scan could not run: %s" % oError)
+    return finding("accessibility", sVerdict, sEvidence)
+
+
+def checkKitClasses():
+    """ONE COPY OF EACH SHARED CLASS (5 November 2026). Every Homer app is to use the kit's classes, compiled from
+    C:\\HomerDev\\exec\\CSharp, not keep its own. This lists each class an app defines under a name the kit already
+    provides -- its own MdiFrame, MdiChild, Util or KeyMap beside the kit's -- so the integration still to do is named
+    at every push until none is left. A warning, not a failure: each is moved to the kit's in its own step."""
+    sKit = ""
+    try:
+        import kind
+        sKit = kind.findKit([sRoot]) or ""
+    except Exception:
+        sKit = ""
+    if not sKit or os.path.normcase(os.path.abspath(sKit)) == os.path.normcase(os.path.abspath(sRoot)):
+        return finding("kit classes", "skip", "this is the kit itself, or the kit was not found")
+    # TOP-LEVEL CLASSES ONLY (6 November 2026): DbDo's KeyBinding and Result are helpers nested inside its own classes and
+    # only share a name with the kit's; counting them overstated the work left. A class counts when it sits at the
+    # file's outermost class indentation -- column 0, or inside one namespace.
+    oClass = re.compile(r"^([ \t]*)(?:public\s+|internal\s+)?(?:static\s+|sealed\s+|abstract\s+|partial\s+)*class\s+([A-Za-z_]\w*)", re.M)
+    def topClasses(sText):
+        lFound = [(len(m.group(1).expandtabs(4)), m.group(2)) for m in oClass.finditer(sText)]
+        if not lFound: return []
+        iTop = min(i for i, _ in lFound)
+        return [sName for i, sName in lFound if i == iTop]
+    setKit = set()
+    for sPath in glob.glob(os.path.join(sKit, "exec", "CSharp", "*.cs")):
+        setKit.update(topClasses(readText(sPath)))
+    dOwn = {}
+    for sPath in glob.glob(os.path.join(sRoot, "*.cs")):
+        for sName in topClasses(readText(sPath)):
+            if sName in setKit: dOwn.setdefault(sName, os.path.basename(sPath))
+    if not dOwn:
+        return finding("kit classes", "pass", "no class here repeats one of the kit's %d" % len(setKit))
+    return finding("kit classes", "warn", "%d class%s here repeat%s the kit's, to move to the kit's: %s" % (
+        len(dOwn), "" if len(dOwn) == 1 else "es", "s" if len(dOwn) == 1 else "",
+        ", ".join("%s (%s)" % (k, v) for k, v in sorted(dOwn.items()))))
+
+
+def checkWalk():
+    """A WALK IS AN OCCASIONAL TEST; THE GATE SAYS WHEN ONE IS DUE (5 November 2026). recordWalk drives the app through
+    the real screen reader and writes logs\\<App>-recordWalk-<time>.md. This reads the newest: a pass when it is under
+    two weeks old and heard every expected line; a warning when it missed some, or is older; not checked when the app
+    has no walks. Nothing to remember: the gate says when to run scripts\\recordWalk."""
+    if not os.path.isdir(os.path.join(sRoot, "scripts", "walks")):
+        return finding("walk", "skip", "this app has no walks in scripts\\walks")
+    lsReports = glob.glob(os.path.join(sRoot, "logs", appName() + "-recordWalk-*.md"))
+    if not lsReports:
+        return finding("walk", "warn", "no walk has been recorded; run scripts\\recordWalk with the app installed")
+    sNewest = max(lsReports, key=os.path.getmtime)
+    nDays = (time.time() - os.path.getmtime(sNewest)) / 86400.0
+    oMatch = re.search(r"\*\*(\d+) of (\d+) expected lines heard", readText(sNewest))
+    sHeard = ("%s of %s lines heard" % (oMatch.group(1), oMatch.group(2))) if oMatch else "its count not read"
+    if oMatch and oMatch.group(1) != oMatch.group(2):
+        return finding("walk", "warn", "the newest walk, %s, %s; read it, or run scripts\\recordWalk again" % (os.path.basename(sNewest), sHeard))
+    if nDays > 14:
+        return finding("walk", "warn", "the newest walk is %d days old (%s); run scripts\\recordWalk" % (int(nDays), sHeard))
+    return finding("walk", "pass", "the newest walk, %d day%s old, %s" % (int(nDays), "" if int(nDays) == 1 else "s", sHeard))
+
+
 def checkAccept():
     """The app's own acceptance criteria, which only the app can state."""
     sPath = os.path.join(sRoot, "accept.inix")
@@ -1798,6 +1899,8 @@ def main():
     oParser.add_argument("--build", action="store_true",
                          help="build the app first, and count the build as evidence")
     oParser.add_argument("--path", default="", help="the app folder; this one by default")
+    oParser.add_argument("--scan", action="store_true", help=argparse.SUPPRESS)   # kept for old command lines; scans are on
+    oParser.add_argument("--noscan", action="store_true", help="leave out the accessibility scan of the program's window")
     oParser.add_argument("--quiet", action="store_true", help="write the report, say little")
     oParser.add_argument("--fresh", action="store_true",
                          help="run every check even when a pass with exactly these files is on record")
@@ -1831,6 +1934,17 @@ def main():
         sayLine("This is the kit; running checkHomerDev, which builds the samples ...")
         iCode = subprocess.call([sys.executable, sChecker], cwd=sRoot)
         logLine("checkHomerDev exit code %d" % iCode)
+        # THE KIT'S OWN WINDOW IS SCANNED TOO (6 November 2026). The kit's gate stopped after checkHomerDev, so
+        # HomerDev.exe -- the program that opens after installing the kit -- was never scanned, though every app's is.
+        # It gets the same scan, with the same five-minute limit, spoken progress and fingerprint; a warning never
+        # fails the kit's push, which checkHomerDev's result decides.
+        try:
+            checkAccessibility("--noscan" not in [sArg.lower() for sArg in sys.argv[1:]])
+            sName, sVerdict, sEvidence = lsFindings[-1]
+            if sVerdict in ("warn", "fail"): sayLine("  warning: %s -- %s" % (sName, sEvidence))
+            else: logLine("the kit's own program: %s %s" % (sVerdict, sEvidence))
+        except Exception:
+            logLine("the kit's own program could not be scanned: " + traceback.format_exc())
         logLine("check end")
         return iCode
 
@@ -1914,6 +2028,9 @@ def main():
         checkConversions()
         checkBuild(dArguments.build)
         checkSmoke(dArguments.build)
+        checkAccessibility(not dArguments.noscan)
+        checkWalk()
+        checkKitClasses()
         checkAccept()
 
     sReport = writeReport()

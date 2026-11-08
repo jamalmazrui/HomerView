@@ -899,8 +899,8 @@ sSqliteScript = r'''import csv, io, os, re, sqlite3, sys
 sIn, sOut = sys.argv[1], sys.argv[2]
 # A DATABASE IN DBDO'S FORM (kit 1.91.0, the homer-db skill): a plural lower-case table named for the
 # file, <singular>_id, added and edited, the data fields, url, notes, tags, look, prime and marked in
-# that order, the edited and maps triggers, a unique prime index, and DbDo's lookups, maps and views.
-lsTypes = ['BLOB', 'BOOLEAN', 'INTEGER', 'NUMERIC', 'REAL', 'TEXT', 'TEXTLINE', 'TEXTMARKDOWN', 'TEXTMEMO', 'TEXTTIME']
+# that order, the edited and maps triggers, a unique prime index, and DbDo's defs and maps (no views table, retired 4 November 2026).
+lsTypes = ['BLOB', 'BOOLEAN', 'INTEGER', 'NUMERIC', 'REAL', 'TEXT', 'BLOBDOCX', 'BLOBEPUB', 'BLOBGIF', 'BLOBJPG', 'BLOBM4A', 'BLOBMP3', 'BLOBMP4', 'BLOBOGG', 'BLOBPDF', 'BLOBPNG', 'BLOBPPTX', 'BLOBWAV', 'BLOBWEBM', 'BLOBWEBP', 'BLOBXLSX', 'BLOBZIP', 'TEXTCSV', 'TEXTDBDO', 'TEXTEMAIL', 'TEXTHTML', 'TEXTICS', 'TEXTINIX', 'TEXTJSCRIPT', 'TEXTJSON', 'TEXTLINE', 'TEXTM3U', 'TEXTMARKDOWN', 'TEXTMEMO', 'TEXTPATH', 'TEXTPHONE', 'TEXTSQL', 'TEXTSRT', 'TEXTSVG', 'TEXTTIME', 'TEXTTSV', 'TEXTURL', 'TEXTVCAL', 'TEXTVCARD', 'TEXTVTT', 'TEXTXML']  # Homer.ColumnTypes, 5 November 2026
 lsKinds = ['affiliated_with', 'located_at', 'member_of', 'part_of', 'related_to']
 lsHousekeeping = ['added', 'edited', 'look', 'prime', 'marked']
 dIrregular = {'people': 'person', 'children': 'child', 'men': 'man', 'women': 'woman', 'data': 'data'}
@@ -957,7 +957,7 @@ if open(sIn, 'rb').read(16) != b'SQLite format 3\x00':
     llAll = [r for r in llAll if any(v.strip() for v in r)]
     if not llAll: raise SystemExit('the table is empty')
     sTable = plural(snake(os.path.basename(sOut).split('.')[0]) or 'record')
-    if sTable in ('lookups', 'maps', 'views'): sTable = 'user_' + sTable
+    if sTable in ('defs', 'maps'): sTable = 'user_' + sTable
     lsReserved = lsHousekeeping + [singular(sTable) + '_id']
     lsFields = []
     for i, sField in enumerate(llAll[0]):
@@ -972,11 +972,11 @@ if open(sIn, 'rb').read(16) != b'SQLite format 3\x00':
     dTypes = {s: kind([r[i] for r in llRows]) for i, s in enumerate(lsFields)}
     if os.path.exists(sOut): os.remove(sOut)
     oDb = sqlite3.connect(sOut)
-    oDb.execute('CREATE TABLE lookups (lookup_id INTEGER PRIMARY KEY AUTOINCREMENT, added TEXTTIME NOT NULL DEFAULT CURRENT_TIMESTAMP, edited TEXTTIME NOT NULL DEFAULT CURRENT_TIMESTAMP, '
+    oDb.execute('CREATE TABLE defs (def_id INTEGER PRIMARY KEY AUTOINCREMENT, added TEXTTIME NOT NULL DEFAULT CURRENT_TIMESTAMP, edited TEXTTIME NOT NULL DEFAULT CURRENT_TIMESTAMP, '
         'src TEXTLINE, tbl TEXTLINE, fld TEXTLINE, val TEXTLINE, ordinal INTEGER, descrip TEXTMEMO, url TEXTLINE, notes TEXTMARKDOWN, tags TEXTMEMO, '
         "look TEXT GENERATED ALWAYS AS (rtrim(iif(tbl IS NOT NULL AND length(tbl)>0, tbl || ' | ', '') || iif(fld IS NOT NULL AND length(fld)>0, fld || ' | ', '') || iif(val IS NOT NULL AND length(val)>0, val || ' | ', ''), ' | ')) STORED, "
         "prime TEXT GENERATED ALWAYS AS (coalesce(src,'') || '|' || coalesce(tbl,'') || '|' || coalesce(fld,'') || '|' || coalesce(val,'')) STORED, marked INTEGER NOT NULL DEFAULT 0)")
-    oDb.execute('CREATE UNIQUE INDEX idx_lookups_prime ON lookups (prime)')
+    oDb.execute('CREATE UNIQUE INDEX idx_defs_prime ON defs (prime)')
     oDb.execute('CREATE TABLE maps (map_id INTEGER PRIMARY KEY AUTOINCREMENT, added TEXTTIME NOT NULL DEFAULT CURRENT_TIMESTAMP, edited TEXTTIME NOT NULL DEFAULT CURRENT_TIMESTAMP, '
         'tbl1 TEXTLINE, prime1 TEXTLINE, kind TEXTLINE, tbl2 TEXTLINE, prime2 TEXTLINE, notes TEXTMARKDOWN, tags TEXTMEMO, '
         "look TEXT GENERATED ALWAYS AS (coalesce(tbl1,'') || ' ' || coalesce(prime1,'') || ' | ' || coalesce(kind,'') || ' | ' || coalesce(tbl2,'') || ' ' || coalesce(prime2,'')) STORED, "
@@ -984,14 +984,13 @@ if open(sIn, 'rb').read(16) != b'SQLite format 3\x00':
     oDb.execute('CREATE UNIQUE INDEX idx_maps_prime ON maps (prime)')
     oDb.execute('CREATE INDEX idx_maps_1 ON maps (tbl1, prime1)')
     oDb.execute('CREATE INDEX idx_maps_2 ON maps (tbl2, prime2)')
-    oDb.execute('CREATE TABLE views (tbl TEXTLINE NOT NULL, fld TEXTLINE NOT NULL, val TEXTLINE, PRIMARY KEY (tbl, fld))')
-    for sOwn, sOwnId, lsOwn in (('lookups', 'lookup_id', ['src', 'tbl', 'fld', 'val', 'ordinal', 'descrip', 'url', 'notes', 'tags']), ('maps', 'map_id', ['tbl1', 'prime1', 'kind', 'tbl2', 'prime2', 'notes', 'tags'])):
+    for sOwn, sOwnId, lsOwn in (('defs', 'def_id', ['src', 'tbl', 'fld', 'val', 'ordinal', 'descrip', 'url', 'notes', 'tags']), ('maps', 'map_id', ['tbl1', 'prime1', 'kind', 'tbl2', 'prime2', 'notes', 'tags'])):
         oDb.execute('CREATE TRIGGER %s AFTER UPDATE OF %s ON %s FOR EACH ROW WHEN %s BEGIN UPDATE %s SET edited = CURRENT_TIMESTAMP WHERE %s = NEW.%s; END'
             % (q('trg_' + sOwn + '_edited'), ', '.join(lsOwn), sOwn, ' OR '.join('OLD.%s IS NOT NEW.%s' % (s, s) for s in lsOwn), sOwn, sOwnId, sOwnId))
     lsSeeds = [('DbDo', '*', 'type', s) for s in lsTypes] + [('DbDo', 'maps', 'kind', s) for s in lsKinds]
     for sTbl, sFld in sorted(set((t, f) for _, t, f, _ in lsSeeds)):
         lsVals = sorted(v for _, t, f, v in lsSeeds if t == sTbl and f == sFld)
-        oDb.executemany('INSERT INTO lookups (src, tbl, fld, val, ordinal) VALUES (?, ?, ?, ?, ?)', [('DbDo', sTbl, sFld, v, i + 1) for i, v in enumerate(lsVals)])
+        oDb.executemany('INSERT INTO defs (src, tbl, fld, val, ordinal) VALUES (?, ?, ?, ?, ?)', [('DbDo', sTbl, sFld, v, i + 1) for i, v in enumerate(lsVals)])
     standardTable(oDb, sTable, lsData, dTypes, lsData[:3], True)
     iSkipped = 0
     for r in llRows:
@@ -1009,7 +1008,7 @@ else:
     lsOut = ['# ' + os.path.splitext(os.path.basename(sIn))[0], '']
     for (sTable,) in oDb.execute("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name COLLATE NOCASE"):
         # DbDo's own tables are kept off every list, as DbDo keeps them.
-        if sTable in ('lookups', 'maps', 'views'): continue
+        if sTable in ('defs', 'maps'): continue
         oCursor = oDb.execute('SELECT * FROM %s' % q(sTable))
         lsFields = [d[0] for d in oCursor.description]
         llRows = oCursor.fetchall()

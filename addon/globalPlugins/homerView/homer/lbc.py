@@ -47,9 +47,109 @@ exists at all:
 # than a hand-kept copy that had missed the kit's fixes.
 import configparser
 import os
+import re
+import time
 from collections import OrderedDict
 
 import wx
+
+# ---- Where Am I and Shift+F1, as in the C# Lbc (3 November 2026) ----------------------------------------------------
+# Alt+Shift+Slash, Alt and the question mark, says where you are in every Lbc dialog of every Homer app: once, the dialog,
+# what it is for and the control with focus; twice, every control and what it holds; three times, the keys. Shift+F1
+# says what a control does: once a sentence, twice its whole tip, three times its keys. A press within 1.2 seconds of
+# the last press of the same key counts as the next, up to three. The C# Lbc's LbcHints holds the same rules.
+dPress = {"sKey": "", "nAt": 0.0, "iCount": 0}
+
+
+def pressCount(sKey):
+    """How many times in a row this key has been pressed, up to three."""
+    nNow = time.monotonic()
+    if sKey == dPress["sKey"] and nNow - dPress["nAt"] <= 1.2:
+        dPress["iCount"] = min(dPress["iCount"] + 1, 3)
+    else:
+        dPress["iCount"] = 1
+    dPress["sKey"], dPress["nAt"] = sKey, nNow
+    return dPress["iCount"]
+
+
+def firstSentence(sText):
+    sAll = (sText or "").strip()
+    oMatch = re.search(r"[.?!](\s)", sAll)
+    return sAll[:oMatch.start() + 1] if oMatch else sAll
+
+
+def plainName(sLabel):
+    return (sLabel or "").replace("&", "").strip().rstrip(":.").strip()
+
+
+def roleOf(control):
+    if isinstance(control, wx.Button): return "button"
+    if isinstance(control, wx.CheckListBox): return "check list"
+    if isinstance(control, wx.CheckBox): return "check box"
+    if isinstance(control, wx.RadioButton): return "radio button"
+    if isinstance(control, wx.ListBox): return "list"
+    if isinstance(control, wx.ComboBox): return "combo box"
+    if isinstance(control, (wx.SpinCtrl, wx.Slider)): return "slider"
+    if isinstance(control, wx.TextCtrl): return "multi-line edit" if control.IsMultiLine() else "edit"
+    if isinstance(control, wx.StaticText): return "text"
+    return type(control).__name__.lower() if control else ""
+
+
+def brief(sText):
+    sOne = re.sub(r"\s+", " ", sText or "").strip()
+    return sOne if len(sOne) <= 80 else sOne[:77] + "..."
+
+
+def valueOf(control):
+    """What a control holds now, in a few words."""
+    if control is None: return ""
+    lParts = []
+    if isinstance(control, wx.CheckListBox):
+        lParts.append("%d of %d checked" % (len(control.GetCheckedItems()), control.GetCount()))
+    elif isinstance(control, wx.CheckBox):
+        lParts.append("checked" if control.GetValue() else "not checked")
+    elif isinstance(control, wx.RadioButton):
+        lParts.append("selected" if control.GetValue() else "not selected")
+    elif isinstance(control, wx.ListBox):
+        iAt = control.GetSelection()
+        lParts.append("nothing selected, %d item%s" % (control.GetCount(), "" if control.GetCount() == 1 else "s") if iAt < 0
+                      else "%s, %d of %d" % (brief(control.GetString(iAt)), iAt + 1, control.GetCount()))
+    elif isinstance(control, wx.ComboBox):
+        lParts.append(brief(control.GetValue()) or "blank")
+    elif isinstance(control, (wx.SpinCtrl, wx.Slider)):
+        lParts.append(str(control.GetValue()))
+    elif isinstance(control, wx.TextCtrl):
+        sText = control.GetValue()
+        lParts.append(brief(sText) or "blank")
+        if control.IsMultiLine() and control.GetNumberOfLines() > 1: lParts.append("%d lines" % control.GetNumberOfLines())
+        if not control.IsEditable(): lParts.append("read only")
+    if not control.IsEnabled(): lParts.append("unavailable")
+    return ", ".join(p for p in lParts if p)
+
+
+def keysFor(control):
+    """The keys that work in a control, by its kind: Shift+F1 pressed three times."""
+    if isinstance(control, wx.Button): return "Space or Enter presses it."
+    if isinstance(control, wx.CheckListBox): return "Arrows move, Space ticks or clears, and a letter jumps to an item that starts with it."
+    if isinstance(control, wx.CheckBox): return "Space ticks or clears it."
+    if isinstance(control, wx.RadioButton): return "Arrows choose among the group."
+    if isinstance(control, wx.ListBox): return "Arrows move, Home and End go to the first and last, and a letter jumps."
+    if isinstance(control, wx.ComboBox): return "Alt+Down Arrow opens the choices, arrows move among them, and typing chooses one."
+    if isinstance(control, (wx.SpinCtrl, wx.Slider)): return "Arrows move by one step, Page Up and Page Down by more."
+    if isinstance(control, wx.TextCtrl):
+        return ("Type to edit; Enter starts a new line, and Control+Home and Control+End go to the top and bottom."
+                if control.IsMultiLine() else "Type to edit; F4 offers choices where there are any, and Control+Enter presses the default button.")
+    return "Tab moves on."
+
+
+def hintFor(control, sTip, iLevel):
+    """Shift+F1: once a sentence, twice the whole tip, three times the keys."""
+    if iLevel >= 3: return keysFor(control)
+    if iLevel == 2 and (sTip or "").strip(): return sTip.strip()
+    sFirst = firstSentence(sTip)
+    if sFirst: return sFirst
+    sName = plainName(control.GetLabel() if control else "")
+    return (sName + ", " + roleOf(control) + ". No hint is written for it yet.") if sName else "No hint for this control."
 
 borderPad = 2
 buttonWidth = 100
@@ -574,7 +674,7 @@ class Dialog(wx.Dialog):
                 setClipboard(clipboardJoin(sText))
                 sayModule.say("Appended to clipboard")
             elif bShift and iKey == wx.WXK_F1:
-                sayModule.say(self.dTips.get(textCtrl) or "No tip for this field")
+                sayModule.say(hintFor(textCtrl, self.dTips.get(textCtrl), pressCount("Shift+F1")))
             elif iKey == wx.WXK_F4 and self.dLookups.get(textCtrl):
                 sChoice = dialogChoose(
                     "Choose a value", "", sorted(self.dLookups[textCtrl], key=str.lower))
@@ -880,10 +980,60 @@ class Dialog(wx.Dialog):
             except ImportError:
                 import say as sayModule
             control = self.FindFocus()
-            sayModule.say(self.dTips.get(control) or "No tip for this control")
+            sayModule.say(hintFor(control, self.dTips.get(control), pressCount("Shift+F1")))
 
         self.Bind(wx.EVT_MENU, onTip, id=iTipId)
         return wx.AcceleratorEntry(wx.ACCEL_SHIFT, wx.WXK_F1, iTipId)
+
+    def _bindWhereKey(self):
+        """Alt+Shift+Slash says where you are, the same key as in every Homer app."""
+        iWhereId = wx.NewIdRef()
+
+        def onWhere(event):
+            try:
+                from . import say as sayModule
+            except ImportError:
+                import say as sayModule
+            sayModule.say(self.whereAmI(self.FindFocus(), pressCount("Alt+Shift+Slash")))
+
+        self.Bind(wx.EVT_MENU, onWhere, id=iWhereId)
+        return wx.AcceleratorEntry(wx.ACCEL_ALT | wx.ACCEL_SHIFT, ord("/"), iWhereId)
+
+    def _controlName(self, sKey, control):
+        sName = plainName(control.GetLabel()) if isinstance(control, (wx.Button, wx.CheckBox, wx.RadioButton)) else ""
+        if not sName and sKey and not re.match(r"^(text|button|listBox|comboBox|checkBox|choice|panel|staticText)\d*$", sKey, re.I):
+            sName = plainName(sKey).replace("_", " ")
+        return sName or roleOf(control)
+
+    def whereAmI(self, controlFocus, iLevel):
+        """Once, the dialog, its purpose and the focus; twice, every control; three times, the keys."""
+        lControls = [(k, c) for k, c in self.dControls.items() if not isinstance(c, wx.StaticText) and c.IsShown()]
+        sTitle = self.GetTitle().strip()
+        if iLevel >= 3:
+            return (sTitle + " keys: Control+Enter accepts; Escape cancels; F1 opens help; Tab and Shift+Tab move between the controls, "
+                    "and an underlined letter with Alt goes straight to one. Shift+F1 says what a control does, twice its whole description, "
+                    "three times its keys. Alt+Shift+Slash says where you are, twice every control, three times these keys.")
+        if iLevel == 2:
+            lParts = []
+            for sKey, control in lControls:
+                sValue = valueOf(control)
+                lParts.append(self._controlName(sKey, control) + " " + roleOf(control) + (", " + sValue if sValue else ""))
+            return "%s, %d control%s: %s." % (sTitle, len(lParts), "" if len(lParts) == 1 else "s", "; ".join(lParts))
+        lSentences = [(sTitle + " dialog.") if sTitle else "Dialog."]
+        for child in self.GetChildren():
+            if isinstance(child, wx.StaticText):
+                sText = child.GetLabel().replace("&", "").strip()
+                if sText and not sText.endswith(":"):
+                    lSentences.append(firstSentence(sText))
+                    break
+        lOrder = [c for _k, c in lControls]
+        if controlFocus is not None:
+            sKey = next((k for k, c in lControls if c is controlFocus), "")
+            sValue = valueOf(controlFocus)
+            sFocus = "On " + self._controlName(sKey, controlFocus) + " " + roleOf(controlFocus) + (", " + sValue if sValue else "")
+            if controlFocus in lOrder: sFocus += ", %d of %d" % (lOrder.index(controlFocus) + 1, len(lOrder))
+            lSentences.append(sFocus + ".")
+        return " ".join(lSentences)
 
     def _bindSubmitKeys(self):
         """Control+Enter accepts the dialog, whatever has focus.
@@ -914,6 +1064,7 @@ class Dialog(wx.Dialog):
         self.SetAcceleratorTable(wx.AcceleratorTable([
             wx.AcceleratorEntry(wx.ACCEL_CTRL, wx.WXK_RETURN, iSubmitId),
             self._bindHelpKey(),
+            self._bindWhereKey(),
         ]))
 
     def _submit(self):

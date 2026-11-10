@@ -3,6 +3,7 @@
 
 ## 10 November 2026 -- The help keys of every Homer app
 
+- **The Alternate Menu shows each command's real keys.** Its list of HomerView's own commands had six keys typed by hand that had drifted from what NVDA binds -- Extract Main Content said Alt+NVDA+X but is Shift+F9; Download Files said Alt+NVDA+W but is Alt+Shift+W; Ask Copilot said Alt+NVDA+P but is Alt+NVDA+C; Recent Pages and the log showed none. The keys now come from the one table.
 - **History is Control+Shift+F1 on every list of keys:** the NVDA menu, the start page, JAWS's menu and its key chain, which still said Shift+F1 and stopped the release's check.
 - **The release builds again.** The guide named the Developer Notes' key in words its check did not accept, and left Y off Explore Page; both now match the table of keys.
 - **Control+Shift+F1 opens the History of Changes,** as in DbDo, EdSharp and FileDir, with NVDA and with JAWS. It was Shift+F1. The Hotkeys document and the developer notes stay on the menu without keys; Alt+Shift+H still lists every key.

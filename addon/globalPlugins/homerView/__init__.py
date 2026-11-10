@@ -76,6 +76,17 @@ addonHandler.initTranslation()
 # to homerCommands.<name>(treeInterceptor); this looks the interceptor up from
 # the focus instead of from self, and calls exactly that. No second
 # implementation to drift.
+def tableKeys(sScript, sFallback):
+    """A command's keys from commands.py, as "Y, or Alt+NVDA+E"; sFallback when the table has none for it."""
+    try:
+        from .pageBuffer import describeGesture
+        lKeys = commands.byScript().get(sScript, {}).get("keys", [])
+        if lKeys: return ", or ".join(describeGesture(s) for s in lKeys)
+    except Exception:
+        logError("The keys of " + sScript + " could not be read from the table")
+    return sFallback
+
+
 dOutsideBrowseMode = {
     "kb:control+f8": "copyAll",
     "kb:alt+m": "pageInformation",
@@ -220,6 +231,11 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             (_("Self test"), "",
              _("Check that all three ways of reaching the browser are working"), "selfTest"),
         ):
+            # THE KEYS FROM THE ONE TABLE (10 November 2026). These keys were typed here a second time, beside
+            # commands.py, and History's drifted (Shift+F1 here, Control+Shift+F1 there) until a release check
+            # caught it. A script the table knows takes its keys from there, written as the Hotkeys document writes
+            # them; the text above stays only for a script the table does not have.
+            sGesture = tableKeys(sScript, sGesture)
             functionScript = getattr(self, "script_" + sScript, None)
             if functionScript:
                 service.registerGlobalCommand(

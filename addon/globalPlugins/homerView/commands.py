@@ -78,6 +78,10 @@ lCommands = [
      "window, as EdSharp does on the same key."),
 
     # --- The documentation, all on F1, as Windows programs have always done
+    # CONTROL+F1 STAYS THE USER GUIDE (10 November 2026). Elsewhere in Homer, Control+F1 is the Key Describer and F1
+    # the guide. Here plain F1 is Edge's and stays Edge's, so the guide cannot move to it, and the describer a screen
+    # reader user wants in a browser is the screen reader's own keyboard help, Insert+1 in NVDA and JAWS alike. So
+    # HomerView keeps the guide on Control+F1: an exception, like Alt+Shift+Slash for Where Am I, for the same reason.
     ("showHelp", "User Guide", ["kb:control+f1"],
      "Open Documentation in the HomerView window. F1 is help everywhere, but "
      "plain F1 opens Edge's own help and stays Edge's, so the family here takes "

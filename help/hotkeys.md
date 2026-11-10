@@ -45,8 +45,8 @@ category, where every command here can be changed.
 
 - **About HomerView**, Alt+F1. Display version and release date, and where HomerView keeps its files.
 - **Copy Log**, Alt+Shift+L. Copy the HomerView log to the clipboard as a file, so Control+V attaches it to an email rather than typing its name into one. L for Log, beside the other Control+Shift keys that put something somewhere.
-- **Developer Notes**, Control+Shift+F1. Open the notes on how HomerView is built and why.
-- **History of Changes**, Shift+F1. Display list of fixes and improvements.
+- **Developer Notes**, no key. Open the notes on how HomerView is built and why.
+- **History of Changes**, Control+Shift+F1. Display list of fixes and improvements.
 - **Hotkeys**, no key. Open the shipped list of every command, key and description. Hotkey Summary on Alt+Shift+H builds the same list from the program itself; this opens the copy that came with it.
 - **Project Announcement**, no key. Open the short description of HomerView, for passing on to somebody who has not met it.
 - **ReadMe**, Alt+Shift+F1. Open the first ten minutes of HomerView, for somebody new to it.
@@ -81,7 +81,7 @@ category, where every command here can be changed.
 
 ## Listing what is on the page
 
-- **Explore Page**, Alt+NVDA+E. Describes how the page is laid out, including what a sighted person can see that your reading order never mentions. E for Explore. It gave up its bare Y: a single letter in browse mode reads as a navigation key, and this command does not move anywhere.
+- **Explore Page**, Y, or Alt+NVDA+E. Describes how the page is laid out, including what a sighted person can see that your reading order never mentions. E for Explore. It gave up its bare Y: a single letter in browse mode reads as a navigation key, and this command does not move anywhere.
 - **List Elements**, Alt+NVDA+L. Lists any kind of element, including kinds NVDA's own Elements List does not offer. L for List.
 - **List Form Fields**, NVDA+F5. List the form fields on the page, on the key JAWS uses for its form field list.
 - **List Headings**, NVDA+F6. List the headings on the page, on the key JAWS uses for its heading list.

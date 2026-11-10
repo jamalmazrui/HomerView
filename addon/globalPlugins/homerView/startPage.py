@@ -18,7 +18,7 @@ weights have been published, which is not the same thing as the service being
 open. None of them belong here under this rule.
 """
 
-startPageVersion = "fb7df7cb"
+startPageVersion = "a44b31c9"
 
 startPageText = """<!doctype html>
 <html lang="en">
@@ -93,7 +93,7 @@ for the full list, including the few that differ.</p>
 <li><strong>Forward Find at Cursor</strong>, Alt+F3 &mdash; Search forward for chunk or selected text, on the key EdSharp uses for it.</li>
 <li><strong>Forward Find with Regular Expression</strong>, Control+F3 &mdash; Search forward for regular expression, which NVDA's own find cannot do.</li>
 <li><strong>Go to Start of Selection</strong>, Alt+Shift+F8 &mdash; Return to start position of selection.</li>
-<li><strong>History of Changes</strong>, Shift+F1 &mdash; Display list of fixes and improvements.</li>
+<li><strong>History of Changes</strong>, Control+Shift+F1 &mdash; Display list of fixes and improvements.</li>
 <li><strong>Launch HomerView</strong>, Alt+Control+Shift+H &mdash; Launches or reconnects the HomerView copy of Microsoft Edge.</li>
 <li><strong>Link Target</strong>, Alt+L &mdash; Ask what is actually at that link without going there: what kind of thing, how big, and whether it ends up where it claims.</li>
 <li><strong>List Names</strong>, Alt+N &mdash; Lists the people, places, organisations and dates a page mentions, saved as Names.htm in the page's folder and opened.</li>

@@ -1,6 +1,13 @@
 ﻿
 
 
+## 10 November 2026 -- The help keys of every Homer app
+
+- **History is Control+Shift+F1 on every list of keys:** the NVDA menu, the start page, JAWS's menu and its key chain, which still said Shift+F1 and stopped the release's check.
+- **The release builds again.** The guide named the Developer Notes' key in words its check did not accept, and left Y off Explore Page; both now match the table of keys.
+- **Control+Shift+F1 opens the History of Changes,** as in DbDo, EdSharp and FileDir, with NVDA and with JAWS. It was Shift+F1. The Hotkeys document and the developer notes stay on the menu without keys; Alt+Shift+H still lists every key.
+- **One table of keys.** The keys a HomerView page answers are now made from the same table as the Hotkeys document and the Alternate Menu, so none of them can disagree; the page had kept a second copy that had drifted by four keys.
+
 ## 2 November 2026 -- JAWS keeps its own keys, and Launch starts HomerView again
 
 - **JAWS+A says the address bar again in Edge, and every other key JAWS's own Edge scripts provide works again.** HomerView's Edge script file now begins the way Doug Lee's chain files do: Use "msedge.jsb", which loads JAWS's own Edge scripts, then Use "HomerView.jsb". It had Used only JAWS's default set, so every key in JAWS's Edge key map that calls an Edge script, JAWS+A among them, said "unknown script call". Two substitutes tried first, the Virtual and Chrome sets, failed the same way. An older release had judged the right line a self-reference, true only on a JAWS that shipped no Edge scripts at all; the rule now is to Use the browser's own name whenever JAWS ships any file under it.

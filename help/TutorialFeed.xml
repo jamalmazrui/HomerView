@@ -5,7 +5,7 @@
     <link>Tutorials.htm</link>
     <description>Spoken walks through HomerView, the browser companion that does what a screen reader cannot. Ten walks, each under five minutes, in the order a new person meets them.</description>
     <language>en-us</language>
-    <lastBuildDate>Sun, 08 Nov 2026 22:00:24 +0000</lastBuildDate>
+    <lastBuildDate>Tue, 10 Nov 2026 16:25:59 +0000</lastBuildDate>
     <itunes:author>Jamal Mazrui</itunes:author>
     <itunes:explicit>false</itunes:explicit>
     <itunes:category text="Technology"/>
@@ -33,8 +33,8 @@
       <description>HomerView_setup.exe is downloaded from the HomerView page on GitHub. Full transcript: Tutorials.htm#0b-2-install-and-launch</description>
       <link>Tutorials.htm#0b-2-install-and-launch</link>
       <guid isPermaLink="false">homer-tutorial_2_install_and_launch</guid>
-      <enclosure url="tutorials/2_Install_and_Launch.mp3" length="1280835" type="audio/mpeg"/>
-      <itunes:duration>00:03:06</itunes:duration>
+      <enclosure url="tutorials/2_Install_and_Launch.mp3" length="1280758" type="audio/mpeg"/>
+      <itunes:duration>00:03:07</itunes:duration>
       <itunes:explicit>false</itunes:explicit>
     </item>
     <item>

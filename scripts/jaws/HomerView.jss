@@ -2671,7 +2671,7 @@ hVOpenOwnDocument ("ReadMe.htm", "the Quick Start")
 EndScript
 
 
-; What has changed, release by release. Shift+F1.
+; What has changed, release by release. Control+Shift+F1, the suite's key for History (10 November 2026).
 Script hVShowHistory ()
 hVOpenOwnDocument ("History.htm", "the history of changes")
 EndScript
@@ -2683,7 +2683,7 @@ hVOpenOwnDocument ("Developer.htm", "the developer notes")
 EndScript
 
 
-; Every HomerView command with its keys. Control+Shift+F1, the suite's key for every app's Hotkeys.
+; Every HomerView command with its keys. No key, as in every Homer app; Alt+Shift+H lists the keys.
 Script hVOpenHotkeys ()
 hVOpenOwnDocument ("Hotkeys.htm", "the hotkeys")
 EndScript
@@ -3212,8 +3212,8 @@ Let iAdded = UserBufferAddLink ("  Control+O       Open a document as a page", "
 Let iAdded = UserBufferAddLink ("  Control+S       Save this page in any format", "hVHomerViewLink (\"hVSavePage\")", "Save Page")
 Let iAdded = UserBufferAddLink ("  Control+F1      The HomerView guide", "hVHomerViewLink (\"hVOpenUserGuide\")", "User Guide")
 Let iAdded = UserBufferAddLink ("  Alt+Shift+F1    The Quick Start", "hVHomerViewLink (\"hVOpenQuickStart\")", "ReadMe")
-Let iAdded = UserBufferAddLink ("  Shift+F1        What changed in each release", "hVHomerViewLink (\"hVShowHistory\")", "History of Changes")
-Let iAdded = UserBufferAddLink ("  Control+Shift+F1 Every command with its keys", "hVHomerViewLink (\"hVOpenHotkeys\")", "Hotkeys")
+Let iAdded = UserBufferAddLink ("  Control+Shift+F1 What changed in each release", "hVHomerViewLink (\"hVShowHistory\")", "History of Changes")
+Let iAdded = UserBufferAddLink ("  Every command with its keys", "hVHomerViewLink (\"hVOpenHotkeys\")", "Hotkeys")
 Let iAdded = UserBufferAddLink ("  Control+Shift+L  This session's log, to read", "hVHomerViewLink (\"hVOpenSessionLog\")", "Session Log")
 Let iAdded = UserBufferAddLink ("  Alt+F1          Which build is loaded", "hVHomerViewLink (\"hVShowAbout\")", "About HomerView")
 Let iAdded = UserBufferAddLink ("  Control+F        Find forwards", "hVHomerViewLink (\"hVFindForwards\")", "Forward Find for Text")
@@ -3308,8 +3308,8 @@ Let sTable = "About HomerView, Which build is loaded and where everything lives.
     + "\7" + "Forward Find for Text, Searches forwards for text, using the JAWS find dialog. (Control+F)\thVFindForwards\tP"
     + "\7" + "Forward Find with Regular Expression, Searches forward for a pattern. (Control+F3)\thVFindByPattern\tP"
     + "\7" + "Go to Start of Selection, Moves back to where you began a selection, so you can hear the start again before completing it with Shift+F8. (Alt+Shift+F8)\thVGoToSelectionStart\tP"
-    + "\7" + "History of Changes, What changed in each release. (Shift+F1)\thVShowHistory\tA"
-    + "\7" + "Hotkeys, Every HomerView command with its keys. (Control+Shift+F1)\thVOpenHotkeys\tA"
+    + "\7" + "History of Changes, What changed in each release. (Control+Shift+F1)\thVShowHistory\tA"
+    + "\7" + "Hotkeys, Every HomerView command with its keys.\thVOpenHotkeys\tA"
     + "\7" + "Edit Settings, Opens the settings file, where every preference lives. (Alt+Shift+E)\thVOpenSettings\tA"
     + "\7" + "Hot Key Help, Lists every HomerView command and its key. (Alt+Shift+H)\thVHotKeyHelp\tA"
     + "\7" + "Jump to Probable Main, Moves to the main content, whether the page declares it or not. (Shift+Q)\thVMoveToProbableMain\tP"

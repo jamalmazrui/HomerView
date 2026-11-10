@@ -40,6 +40,7 @@ from scriptHandler import getLastScriptRepeatCount, script, willSayAllResume
 
 from . import alternateMenu
 from . import clipboardTools
+from . import commands
 from . import find
 from . import homerCommands
 from . import homerText
@@ -75,80 +76,10 @@ maximumLoggedLandmarks = 40
 # The Homer interface keys, as settled by FxMax and IEMax for virtual mode.
 # They live on the browse mode class, so they exist only inside HomerView pages
 # and cannot shadow anything in Edge, in other browsers, or in Windows.
-dHomerGestures = {
-    "kb:f3": "findAgain",
-    "kb:f4": "chooseTab",
-    "kb:f8": "startSelection",
-    "kb:j": "moveToMainContent",
-    "kb:scrolllock": "toggleSayAll",
-    "kb:y": "explorePage",
-    "kb:z": "nextSameType",
-    "kb:NVDA+f5": "listFormFields",
-    "kb:NVDA+f6": "listHeadings",
-    "kb:alt+'": "quoteClipboard",
-    "kb:alt+;": "sayTime",
-    "kb:alt+`": "speakLouder",
-    "kb:alt+a": "reportPageAddress",
-    "kb:alt+c": "copyAppend",
-    "kb:alt+delete": "sayPosition",
-    "kb:alt+downarrow": "nextSentence",
-    "kb:alt+f1": "showAbout",
-    "kb:alt+f3": "findWordAtCursor",
-    "kb:alt+f8": "readAll",
-    "kb:alt+g": "goToPercentAgain",
-    "kb:alt+i": "actOnPage",
-    "kb:alt+l": "describeLinkTarget",
-    "kb:alt+m": "pageInformation",
-    "kb:alt+numpadDelete": "sayPosition",
-    "kb:alt+u": "urlReference",
-    "kb:alt+uparrow": "priorSentence",
-    "kb:alt+y": "sayYield",
-    "kb:alt+z": "nextDifferentType",
-    "kb:control+'": "saveClipboard",
-    "kb:control+`": "speakFaster",
-    "kb:control+c": "copyLineOrSelection",
-    "kb:control+downarrow": "nextParagraph",
-    "kb:control+f": "findText",
-    "kb:control+f1": "showHelp",
-    "kb:control+f3": "findByPattern",
-    "kb:control+f8": "copyAll",
-    "kb:control+g": "goToPercent",
-    "kb:control+o": "openOtherFormat",
-    "kb:control+space": "selectChunk",
-    "kb:control+uparrow": "priorParagraph",
-    "kb:shift+`": "reportSpeechSettings",
-    "kb:shift+backspace": "sayChunk",
-    "kb:shift+f1": "showHistory",
-    "kb:shift+f3": "findAgainBackwards",
-    "kb:shift+f4": "sayTabs",
-    "kb:shift+f8": "completeSelection",
-    "kb:shift+j": "proxyMainContent",
-    "kb:shift+space": "saySelected",
-    "kb:shift+z": "priorSameType",
-    # Punctuation takes the screen reader key, as EdSharp's JAWS+Grave does:
-    # Control+Shift+Grave is Voice Slower, and this dictionary, which held both,
-    # kept only the later one, so punctuation had no key (26 September 2026).
-    "kb:NVDA+`": "togglePunctuation",
-    "kb:NVDA+alt+e": "explorePage",
-    "kb:NVDA+alt+j": "moveToMainContent",
-    "kb:NVDA+alt+l": "listAnyElements",
-    "kb:NVDA+shift+f7": "listLinks",
-    "kb:alt+shift+'": "clearClipboard",
-    "kb:alt+shift+`": "speakSofter",
-    "kb:alt+shift+f3": "findWordAtCursorBackwards",
-    "kb:alt+shift+f8": "goToSelectionStart",
-    "kb:alt+shift+a": "runAccessibilityCheck",
-    "kb:alt+shift+h": "hotkeySummary",
-    "kb:alt+shift+p": "pageUrls",
-    "kb:alt+shift+y": "sayYieldStructure",
-    "kb:alt+shift+z": "priorDifferentType",
-    "kb:control+shift+'": "appendClipboard",
-    "kb:control+shift+`": "speakSlower",
-    "kb:control+shift+f": "findTextBackwards",
-    "kb:control+shift+f3": "findByPatternBackwards",
-    "kb:control+shift+f4": "closeOtherTabs",
-    "kb:control+shift+y": "sayYieldPattern",
-}
+# ONE TABLE (10 November 2026). These keys were written out here a second time, beside commands.py, which says every
+# binding comes from it; the two had already drifted (Y here only, three keys there only). The page's keys are now
+# made from commands.py, so the Hotkeys document, the Alternate Menu and the keys NVDA binds cannot disagree.
+dHomerGestures = dict(commands.pageGestures())
 
 # How a key is written when a person is going to read it.
 #

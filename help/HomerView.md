@@ -352,8 +352,8 @@ in the order it happened.
 
 - **Control+F1** — this guide
 - **Alt+Shift+F1** — ReadMe, the quick start
-- **Shift+F1** — the history of changes
-- **Control+Shift+F1** — the hotkeys, every command with its keys
+- **Control+Shift+F1** — the history of changes, as in every Homer app
+- **Hotkeys** — every command with its keys, from the menu
 - **Alt+F1** — which build is loaded and where everything lives
 - The developer notes and the project announcement are on the Alternate Menu
 
@@ -453,12 +453,12 @@ on. Each entry gives the NVDA key and the JAWS key.
     - JAWS: Alt+F1
     - Display version and release date, and where HomerView keeps its files.
 - **Developer Notes**
-    - NVDA: Control+Shift+F1
-    - JAWS: Control+Shift+F1
+    - NVDA: no key
+    - JAWS: no key, on the Alternate Menu
     - Open the notes on how HomerView is built and why.
 - **History of Changes**
-    - NVDA: Shift+F1
-    - JAWS: Shift+F1
+    - NVDA: Control+Shift+F1
+    - JAWS: Control+Shift+F1
     - Display list of fixes and improvements.
 - **Hotkeys**
     - NVDA: no key
@@ -585,7 +585,7 @@ on. Each entry gives the NVDA key and the JAWS key.
 #### Listing what is on the page
 
 - **Explore Page**
-    - NVDA: Alt+NVDA+E
+    - NVDA: Alt+NVDA+E or Y
     - JAWS: **not yet on JAWS**
     - Describes how the page is laid out, including what a sighted person can see that your reading order never mentions. E for Explore. It gave up its bare Y: a single letter in browse mode reads as a navigation key, and this command does not move anywhere.
 - **List Elements**

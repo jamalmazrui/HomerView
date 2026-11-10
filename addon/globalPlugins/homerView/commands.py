@@ -84,11 +84,11 @@ lCommands = [
      "F1 with a modifier."),
     ("openQuickStart", "ReadMe", ["kb:alt+shift+f1"],
      "Open the first ten minutes of HomerView, for somebody new to it."),
-    ("showHistory", "History of Changes", ["kb:shift+f1"],
+    ("showHistory", "History of Changes", ["kb:control+shift+f1"],
      "Display list of fixes and improvements."),
     ("showAbout", "About HomerView", ["kb:alt+f1"],
      "Display version and release date, and where HomerView keeps its files."),
-    ("openDeveloperNotes", "Developer Notes", ["kb:control+shift+f1"],
+    ("openDeveloperNotes", "Developer Notes", [],
      "Open the notes on how HomerView is built and why."),
     ("openHotkeyDocument", "Hotkeys", [],
      "Open the shipped list of every command, key and description. Hotkey Summary "
@@ -176,7 +176,7 @@ lCommands = [
     ("listAnyElements", "List Elements", ["kb:NVDA+alt+l"],
      "Lists any kind of element, including kinds NVDA's own Elements List does "
      "not offer. L for List."),
-    ("explorePage", "Explore Page", ["kb:NVDA+alt+e"],
+    ("explorePage", "Explore Page", ["kb:y", "kb:NVDA+alt+e"],
      "Describes how the page is laid out, including what a sighted person can see "
      "that your reading order never mentions. E for Explore. It gave up its bare "
      "Y: a single letter in browse mode reads as a navigation key, and this "
@@ -463,7 +463,10 @@ setAnywhereScripts = {
     "webUtilities",
 }
 
+# chooseBrowser, openSettings and openPageFolder are bound by @script on the global plugin (10 November 2026), so the
+# page's bindings, now made from this table, leave them out rather than bind them twice.
 setGlobalScripts = {
+    "chooseBrowser", "openPageFolder", "openSettings",
     "downloadFiles", "extractMainContent", "logToClipboard", "openDeveloperNotes",
     "openLog",
     "openQuickStart", "saveAs", "submitForm",

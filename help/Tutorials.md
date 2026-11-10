@@ -399,7 +399,7 @@ Confirm the wording with a live run: buildTutorials -live.
 
 ### Step 13: Alt+F1
 
-Shift plus F1 opens the history of changes, and Alt plus F1 says the version and where HomerView keeps its files.
+Control plus Shift plus F1 opens the history of changes, and Alt plus F1 says the version and where HomerView keeps its files.
 
 Screen reader:
 

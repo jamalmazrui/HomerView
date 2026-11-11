@@ -659,7 +659,7 @@ class HomerViewBuffer:
         self.runSafely("hotkeySummary", lambda: alternateMenu.showHotkeySummary(self.buildCommandEntries()))
 
     @script(
-        description=_("Carries out instructions written in ordinary words, such as click sign in. I for Invoke."),
+        description=_("Carries out instructions written in ordinary words, such as click sign in. I for Instruct."),
         category="HomerView",
     )
     def script_actOnPage(self, gesture):
@@ -880,6 +880,11 @@ class HomerViewBuffer:
         self.runSafely("elevateVersion", homerCommands.elevateVersion)
 
     @script(description=_("Open Documentation in the HomerView window. F1 is help everywhere, but plain F1 opens Edge's own help and stays Edge's, so the family here takes F1 with a modifier."), category="HomerView")
+    def script_keyDescriber(self, gesture):
+        """Control+F1, as in every Homer app: NVDA's input help, which says each key's command instead of running it."""
+        import globalCommands
+        globalCommands.commands.script_toggleInputHelp(gesture)
+
     def script_showHelp(self, gesture):
         self.runSafely("showHelp", lambda: homerCommands.showDocument("help"))
 

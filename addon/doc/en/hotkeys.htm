@@ -215,8 +215,6 @@ clipboard</a></li>
 the page</a></li>
 <li><a href="#the-window-and-its-tabs"
 id="toc-the-window-and-its-tabs">The window and its tabs</a></li>
-<li><a href="#adjusting-the-voice"
-id="toc-adjusting-the-voice">Adjusting the voice</a></li>
 <li><a href="#changing-how-homerview-behaves"
 id="toc-changing-how-homerview-behaves">Changing how HomerView
 behaves</a></li>
@@ -250,42 +248,32 @@ You can give it a key in NVDA’s Input Gestures dialog, under the
 HomerView category, where every command here can be changed.</p>
 <h2 id="starting-homerview">Starting HomerView</h2>
 <ul>
-<li><strong>Alternate Menu</strong>, Alt+F10. Present all commands in a
-single, alphabetized list. F10 opens a menu bar in Windows, and this is
-the menu HomerView has instead.</li>
-<li><strong>Hotkey Summary</strong>, Alt+Shift+H. Display this list of
-command names, hot keys, and descriptions in a new window, as EdSharp
-does on the same key.</li>
-<li><strong>Launch HomerView</strong>, Alt+Control+Shift+H. Launches or
-reconnects the HomerView copy of Microsoft Edge. H for HomerView, and it
-works anywhere because nothing is running yet.</li>
+<li><strong>Alternate Menu</strong>, Alt+F10. Pick any command from one
+list, in menu, name or key order.</li>
+<li><strong>Hotkey Summary</strong>, Alt+Shift+H. List every command
+with its key and description.</li>
+<li><strong>Launch HomerView</strong>, Alt+Control+Shift+H. Start
+HomerView, or switch to it, from its desktop shortcut.</li>
 </ul>
 <h2 id="reading-the-documentation">Reading the documentation</h2>
 <ul>
 <li><strong>About HomerView</strong>, Alt+F1. Display version and
 release date, and where HomerView keeps its files.</li>
-<li><strong>Copy Log</strong>, Alt+Shift+L. Copy the HomerView log to
-the clipboard as a file, so Control+V attaches it to an email rather
-than typing its name into one. L for Log, beside the other Control+Shift
-keys that put something somewhere.</li>
+<li><strong>Copy Log</strong>, Alt+Shift+L. Copy the session log to the
+clipboard as a file.</li>
 <li><strong>Developer Notes</strong>, no key. Open the notes on how
 HomerView is built and why.</li>
-<li><strong>History of Changes</strong>, Control+Shift+F1. Display list
-of fixes and improvements.</li>
-<li><strong>Hotkeys</strong>, no key. Open the shipped list of every
-command, key and description. Hotkey Summary on Alt+Shift+H builds the
-same list from the program itself; this opens the copy that came with
-it.</li>
+<li><strong>History of Changes</strong>, Control+Shift+F1. Open the
+history of HomerView’s changes, newest first.</li>
+<li><strong>Hotkeys</strong>, no key. Open the list of every command and
+key.</li>
 <li><strong>Project Announcement</strong>, no key. Open the short
 description of HomerView, for passing on to somebody who has not met
 it.</li>
-<li><strong>ReadMe</strong>, Alt+Shift+F1. Open the first ten minutes of
-HomerView, for somebody new to it.</li>
+<li><strong>ReadMe</strong>, Alt+Shift+F1. Open the quick start.</li>
 <li><strong>Session Log</strong>, Control+Shift+L. Open a copy of this
 session’s log, for working out what went wrong.</li>
-<li><strong>User Guide</strong>, Control+F1. Open Documentation in the
-HomerView window. F1 is help everywhere, but plain F1 opens Edge’s own
-help and stays Edge’s, so the family here takes F1 with a modifier.</li>
+<li><strong>User Guide</strong>, no key. Open the HomerView guide.</li>
 </ul>
 <h2 id="moving-through-a-page">Moving through a page</h2>
 <ul>
@@ -335,10 +323,10 @@ string.</li>
 backward for chunk or selected text.</li>
 <li><strong>Reverse Find with Regular Expression</strong>,
 Control+Shift+F3. Search backward for regular expression.</li>
-<li><strong>Search Next</strong>, F3. Search forward for next match, of
-whichever kind of find was used last.</li>
-<li><strong>Search Previous</strong>, Shift+F3. Search backward for
-previous match.</li>
+<li><strong>Search Next</strong>, F3. Repeat the last search,
+forward.</li>
+<li><strong>Search Previous</strong>, Shift+F3. Repeat the last search,
+backward.</li>
 </ul>
 <h2 id="listing-what-is-on-the-page">Listing what is on the page</h2>
 <ul>
@@ -371,16 +359,14 @@ page. Twice spells it, three times copies it. A for Address.</li>
 address from anywhere in the window, including the address bar.</li>
 <li><strong>Say Metadata</strong>, Alt+M. Says what the page claims
 about itself: author, publisher, date and licence. M for Metadata.</li>
-<li><strong>Say Position</strong>, Alt+Delete, or Alt+NumPadDelete. Says
-the line, column and percentage position of the cursor. Delete sits
-among the navigation keys, which is where a position question
-belongs.</li>
-<li><strong>Say Time</strong>, Alt+SemiColon. Say current time and
-date.</li>
+<li><strong>Say Position</strong>, Alt+Delete, or Alt+NumPadDelete. Say
+the current position: the line, the column and the percent.</li>
+<li><strong>Say Time</strong>, Alt+SemiColon. Say the date and
+time.</li>
 <li><strong>Say url</strong>, Alt+U. Say where the link at the cursor
 would go. U for url.</li>
-<li><strong>Say Yield</strong>, Alt+Y. Say number of characters, words,
-and lines in all or selected text.</li>
+<li><strong>Say Yield</strong>, Alt+Y. Say how many characters, words
+and lines are in all or the selected text.</li>
 <li><strong>Yield Structure</strong>, Alt+Shift+Y. Says how the page is
 built: how many headings, links, forms and the rest.</li>
 <li><strong>Yield with Regular Expression</strong>, Control+Shift+Y.
@@ -393,33 +379,32 @@ many rather than where.</li>
 cursor.</li>
 <li><strong>Say Chunk</strong>, Shift+Backspace. Say chunk at cursor, or
 spell if repeated.</li>
-<li><strong>Say Selected</strong>, Shift+Space. Say selected text, or
-spell if repeated.</li>
+<li><strong>Say Selected</strong>, Shift+Space. Say the selected
+text.</li>
 <li><strong>Toggle Reading</strong>, ScrollLock. Starts reading
 continuously, or stops if it is already reading. Scroll Lock because
 nothing else in Edge, NVDA or Windows wants it.</li>
 </ul>
 <h2 id="selecting-and-the-clipboard">Selecting and the clipboard</h2>
 <ul>
-<li><strong>Append Clipboard</strong>, Control+Shift+Apostrophe. Adds
-the clipboard to the end of a text file rather than replacing it.</li>
-<li><strong>Clear Clipboard</strong>, Alt+Shift+Apostrophe. Empties the
-clipboard, so an append starts afresh.</li>
+<li><strong>Append Clipboard</strong>, Control+Shift+Apostrophe. Add the
+clipboard text to the end of a file you name.</li>
+<li><strong>Clear Clipboard</strong>, Alt+Shift+Apostrophe. Empty the
+clipboard.</li>
 <li><strong>Complete Selection</strong>, Shift+F8. Select text from
 starting point to cursor.</li>
 <li><strong>Copy All</strong>, Control+F8. Copy all text to
 clipboard.</li>
-<li><strong>Copy Append</strong>, Alt+C. Append selected text to
-clipboard, or append current line if no selection.</li>
+<li><strong>Copy Append</strong>, Alt+C. Add the selected text or the
+current line to the end of the clipboard.</li>
 <li><strong>Copy Line</strong>, Control+C. Copy selected text to
 clipboard, or copy current line if no selection.</li>
 <li><strong>Go to Start of Selection</strong>, Alt+Shift+F8. Return to
 start position of selection.</li>
-<li><strong>Save Clipboard</strong>, Control+Apostrophe. Saves the
-clipboard to a text file, proposing a name.</li>
-<li><strong>Say Clipboard</strong>, Alt+Apostrophe. Say clipboard text,
-or spell if repeated. The apostrophe is a quotation mark, and a
-clipboard holds a quotation.</li>
+<li><strong>Save Clipboard</strong>, Control+Apostrophe. Save the
+clipboard text to a file you name.</li>
+<li><strong>Say Clipboard</strong>, Alt+Apostrophe. Say the clipboard
+text.</li>
 <li><strong>Select Chunk</strong>, Control+Space. Select contiguous
 sequence of non-blank characters at cursor, or select the next chunk if
 a selection already exists.</li>
@@ -450,8 +435,8 @@ HomerView’s, which works on pages Edge will not.</li>
 this site: email addresses, the accessibility statement, contact pages
 and social media. Looks at this page, the home page, and the addresses a
 statement usually lives at.</li>
-<li><strong>Invoke Script</strong>, Alt+I. Carries out instructions
-written in ordinary words, such as click sign in. I for Invoke.</li>
+<li><strong>Instruct Page</strong>, Alt+I. Carries out instructions
+written in ordinary words, such as click sign in. I for Instruct.</li>
 <li><strong>List Names</strong>, Alt+N. Lists the people, places,
 organisations and dates a page mentions, saved as Names.htm in the
 page’s folder and opened. A rule-based engine reads the text, so it
@@ -472,8 +457,8 @@ ways.</li>
 <li><strong>Submit Form</strong>, Control+Enter. Submits the form you
 are filling in, from any field in it, so you need not find the
 button.</li>
-<li><strong>Web Download</strong>, Alt+Shift+W. Pick files to download
-from a web page, on the key EdSharp uses for it.</li>
+<li><strong>Web Download</strong>, Alt+Shift+W. Download files linked
+from a web page.</li>
 </ul>
 <h2 id="the-window-and-its-tabs">The window and its tabs</h2>
 <ul>
@@ -486,22 +471,6 @@ other keys for what F4 does there.</li>
 <li><strong>Tab Names</strong>, Shift+F4. Says the names of the open
 tabs without moving the keyboard anywhere.</li>
 </ul>
-<h2 id="adjusting-the-voice">Adjusting the voice</h2>
-<ul>
-<li><strong>Speech Settings</strong>, Shift+Accent. Reports the
-punctuation level, the rate and the volume.</li>
-<li><strong>Toggle Punctuation</strong>, NVDA+Accent. Toggle the voice
-between all and no punctuation.</li>
-<li><strong>Voice Faster</strong>, Control+Accent. Increase the voice
-rate. The accent key carries the whole speech family, as it does in
-EdSharp.</li>
-<li><strong>Voice Louder</strong>, Alt+Accent. Increase the voice
-volume.</li>
-<li><strong>Voice Slower</strong>, Control+Shift+Accent. Decrease the
-voice rate.</li>
-<li><strong>Voice Softer</strong>, Alt+Shift+Accent. Decrease the voice
-volume.</li>
-</ul>
 <h2 id="changing-how-homerview-behaves">Changing how HomerView
 behaves</h2>
 <ul>
@@ -509,14 +478,13 @@ behaves</h2>
 browser HomerView drives, from the ones installed here. B for Browser,
 and Alt+Shift with a letter is where the settings commands live because
 they are used once and then not again for months.</li>
-<li><strong>Edit Settings</strong>, Alt+Shift+E. Open the settings file,
-HomerView.inix, in a text editor. Everything the settings panel changes
-is in it, and a comment beside each value says what it does.</li>
+<li><strong>Edit Settings</strong>, Alt+Shift+E. Edit HomerView’s
+settings file.</li>
 </ul>
 <h2 id="now-and-then">Now and then</h2>
 <ul>
 <li><strong>Elevate Version</strong>, Control+F11, or Alt+NVDA+F11.
-Checks whether a newer HomerView exists and installs it.</li>
+Download and install the latest HomerView.</li>
 <li><strong>Recent Pages</strong>, Alt+R. Open a page from the list of
 those recently used, on the key EdSharp uses for its recent files.</li>
 <li><strong>Report Connection</strong>, no key. Says whether HomerView
@@ -526,6 +494,8 @@ reaching the browser are working.</li>
 </ul>
 <h2 id="everything-else">Everything else</h2>
 <ul>
+<li><strong>Key Describer Toggle</strong>, Control+F1. Turn key
+describing on or off: a key says its command instead of running it.</li>
 <li><strong>Page Folder</strong>, Alt+Shift+F. Open this page’s folder
 in File Explorer, to browse what was saved from it. Nothing is created:
 if nothing has been saved from this page, it says so. Alt+Shift+F,

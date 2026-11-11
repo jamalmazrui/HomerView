@@ -209,7 +209,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
              "openCopilot"),
             (_("ReadMe"), "Alt+Shift+F1",
              _("Open the HomerView quick start in the HomerView window"), "openQuickStart"),
-            (_("User guide"), "Control+F1",
+            (_("User guide"), "",
              _("Open the full HomerView user guide in the HomerView window"), "showHelp"),
             (_("History of changes"), "Control+Shift+F1",
              _("Open the HomerView history of changes in the HomerView window"), "showHistory"),
@@ -310,6 +310,16 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
                 # Translators: An item in the HomerView menu.
                 (_("&History of changes"), _("Open the HomerView history of changes"),
                  lambda event: documents.openDocument("history")),
+                # EVERY DOCUMENT HERE (10 November 2026): each document HomerView ships is an item of its own.
+                # Translators: An item in the HomerView menu.
+                (_("Hot&keys"), _("Open the list of every command and key"),
+                 lambda event: documents.openDocument("hotkeys")),
+                # Translators: An item in the HomerView menu.
+                (_("&Developer notes"), _("Open the notes for developers"),
+                 lambda event: documents.openDocument("developer")),
+                # Translators: An item in the HomerView menu.
+                (_("Announce&ment"), _("Open the announcement of this version"),
+                 lambda event: documents.openDocument("announce")),
                 # Translators: An item in the HomerView menu.
                 (_("Check for a &newer version..."), _("Check for a newer HomerView and install it"),
                  lambda event: self.script_elevateVersion(None)),

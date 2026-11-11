@@ -68,43 +68,35 @@ page and the long one for everywhere else.
 lCommands = [
     # --- Getting started, and finding your way about ---------------------
     ("launchHomerView", "Launch HomerView", ["kb:alt+control+shift+h"],
-     "Launches or reconnects the HomerView copy of Microsoft Edge. "
-     "H for HomerView, and it works anywhere because nothing is running yet."),
+     "Start HomerView, or switch to it, from its desktop shortcut."),
     ("alternateMenu", "Alternate Menu", ["kb:alt+f10"],
-     "Present all commands in a single, alphabetized list. F10 opens a menu bar "
-     "in Windows, and this is the menu HomerView has instead."),
+     "Pick any command from one list, in menu, name or key order."),
     ("hotkeySummary", "Hotkey Summary", ["kb:alt+shift+h"],
-     "Display this list of command names, hot keys, and descriptions in a new "
-     "window, as EdSharp does on the same key."),
+     "List every command with its key and description."),
 
     # --- The documentation, all on F1, as Windows programs have always done
-    # CONTROL+F1 STAYS THE USER GUIDE (10 November 2026). Elsewhere in Homer, Control+F1 is the Key Describer and F1
-    # the guide. Here plain F1 is Edge's and stays Edge's, so the guide cannot move to it, and the describer a screen
-    # reader user wants in a browser is the screen reader's own keyboard help, Insert+1 in NVDA and JAWS alike. So
-    # HomerView keeps the guide on Control+F1: an exception, like Alt+Shift+Slash for Where Am I, for the same reason.
-    ("showHelp", "User Guide", ["kb:control+f1"],
-     "Open Documentation in the HomerView window. F1 is help everywhere, but "
-     "plain F1 opens Edge's own help and stays Edge's, so the family here takes "
-     "F1 with a modifier."),
+    # CONTROL+F1 IS THE KEY DESCRIBER, AS IN EVERY HOMER APP (10 November 2026, Jamal's ruling): it turns the screen
+    # reader's own key describing on or off -- NVDA's input help, JAWS's keyboard help. Plain F1 stays Edge's, so the
+    # guide has no key: it is an item of the menu, like the other documents.
+    ("keyDescriber", "Key Describer Toggle", ["kb:control+f1"],
+     "Turn key describing on or off: a key says its command instead of running it."),
+    ("showHelp", "User Guide", [],
+     "Open the HomerView guide."),
     ("openQuickStart", "ReadMe", ["kb:alt+shift+f1"],
-     "Open the first ten minutes of HomerView, for somebody new to it."),
+     "Open the quick start."),
     ("showHistory", "History of Changes", ["kb:control+shift+f1"],
-     "Display list of fixes and improvements."),
+     "Open the history of HomerView's changes, newest first."),
     ("showAbout", "About HomerView", ["kb:alt+f1"],
      "Display version and release date, and where HomerView keeps its files."),
     ("openDeveloperNotes", "Developer Notes", [],
      "Open the notes on how HomerView is built and why."),
     ("openHotkeyDocument", "Hotkeys", [],
-     "Open the shipped list of every command, key and description. Hotkey Summary "
-     "on Alt+Shift+H builds the same list from the program itself; this opens the "
-     "copy that came with it."),
+     "Open the list of every command and key."),
     ("openAnnouncement", "Project Announcement", [],
      "Open the short description of HomerView, for passing on to somebody who has "
      "not met it."),
     ("logToClipboard", "Copy Log", ["kb:alt+shift+l"],
-     "Copy the HomerView log to the clipboard as a file, so Control+V attaches it "
-     "to an email rather than typing its name into one. L for Log, beside the "
-     "other Control+Shift keys that put something somewhere."),
+     "Copy the session log to the clipboard as a file."),
     ("openLog", "Session Log", ["kb:control+shift+l"],
      "Open a copy of this session's log, for working out what went wrong."),
 
@@ -114,9 +106,7 @@ lCommands = [
      "here. B for Browser, and Alt+Shift with a letter is where the settings "
      "commands live because they are used once and then not again for months."),
     ("openSettings", "Edit Settings", ["kb:alt+shift+e"],
-     "Open the settings file, HomerView.inix, in a text editor. Everything the "
-     "settings panel changes is in it, and a comment beside each value says what "
-     "it does."),
+     "Edit HomerView's settings file."),
 
     # --- Moving through a page -------------------------------------------
     ("moveToMainContent", "Jump to Main", ["kb:j", "kb:NVDA+alt+j"],
@@ -161,9 +151,9 @@ lCommands = [
      ["kb:control+shift+f3"],
      "Search backward for regular expression."),
     ("findAgain", "Search Next", ["kb:f3"],
-     "Search forward for next match, of whichever kind of find was used last."),
+     "Repeat the last search, forward."),
     ("findAgainBackwards", "Search Previous", ["kb:shift+f3"],
-     "Search backward for previous match."),
+     "Repeat the last search, backward."),
     ("findWordAtCursor", "Forward Find at Cursor", ["kb:alt+f3"],
      "Search forward for chunk or selected text, on the key EdSharp uses for it."),
     ("findWordAtCursorBackwards", "Reverse Find at Cursor", ["kb:alt+shift+f3"],
@@ -196,10 +186,9 @@ lCommands = [
      "Says what the page claims about itself: author, publisher, date and licence. "
      "M for Metadata."),
     ("sayPosition", "Say Position", ["kb:alt+delete", "kb:alt+numpadDelete"],
-     "Says the line, column and percentage position of the cursor. Delete sits "
-     "among the navigation keys, which is where a position question belongs."),
+     "Say the current position: the line, the column and the percent."),
     ("sayYield", "Say Yield", ["kb:alt+y"],
-     "Say number of characters, words, and lines in all or selected text."),
+     "Say how many characters, words and lines are in all or the selected text."),
     ("sayYieldStructure", "Yield Structure", ["kb:alt+shift+y"],
      "Says how the page is built: how many headings, links, forms and the rest."),
     ("sayYieldPattern", "Yield with Regular Expression", ["kb:control+shift+y"],
@@ -214,7 +203,7 @@ lCommands = [
      "Copy every link address on the page to the clipboard, as EdSharp copies a "
      "path on the same key."),
     ("sayTime", "Say Time", ["kb:alt+;"],
-     "Say current time and date."),
+     "Say the date and time."),
 
     # --- Reading -----------------------------------------------------------
     ("readAll", "Read All", ["kb:alt+f8"],
@@ -223,7 +212,7 @@ lCommands = [
      "Starts reading continuously, or stops if it is already reading. Scroll Lock "
      "because nothing else in Edge, NVDA or Windows wants it."),
     ("saySelected", "Say Selected", ["kb:shift+space"],
-     "Say selected text, or spell if repeated."),
+     "Say the selected text."),
     ("sayChunk", "Say Chunk", ["kb:shift+backspace"],
      "Say chunk at cursor, or spell if repeated."),
 
@@ -243,16 +232,15 @@ lCommands = [
     ("copyLineOrSelection", "Copy Line", ["kb:control+c"],
      "Copy selected text to clipboard, or copy current line if no selection."),
     ("copyAppend", "Copy Append", ["kb:alt+c"],
-     "Append selected text to clipboard, or append current line if no selection."),
+     "Add the selected text or the current line to the end of the clipboard."),
     ("quoteClipboard", "Say Clipboard", ["kb:alt+'"],
-     "Say clipboard text, or spell if repeated. The apostrophe is a quotation "
-     "mark, and a clipboard holds a quotation."),
+     "Say the clipboard text."),
     ("saveClipboard", "Save Clipboard", ["kb:control+'"],
-     "Saves the clipboard to a text file, proposing a name."),
+     "Save the clipboard text to a file you name."),
     ("appendClipboard", "Append Clipboard", ["kb:control+shift+'"],
-     "Adds the clipboard to the end of a text file rather than replacing it."),
+     "Add the clipboard text to the end of a file you name."),
     ("clearClipboard", "Clear Clipboard", ["kb:alt+shift+'"],
-     "Empties the clipboard, so an append starts afresh."),
+     "Empty the clipboard."),
 
     # --- Doing things to the page -------------------------------------------
     ("openOtherFormat", "Open Document", ["kb:control+o"],
@@ -267,7 +255,7 @@ lCommands = [
      "search, save or send. F9 is Edge's own reading view, and Shift+F9 is "
      "HomerView's, which works on pages Edge will not."),
     ("downloadFiles", "Web Download", ["kb:alt+shift+w"],
-     "Pick files to download from a web page, on the key EdSharp uses for it."),
+     "Download files linked from a web page."),
     ("openPageFolder", "Page Folder", ["kb:alt+shift+f"],
      "Open this page's folder in File Explorer, to browse what was saved from it. "
      "Nothing is created: if nothing has been saved from this page, it says so. "
@@ -275,9 +263,11 @@ lCommands = [
     ("submitForm", "Submit Form", ["kb:control+enter"],
      "Submits the form you are filling in, from any field in it, so you need not "
      "find the button."),
-    ("actOnPage", "Invoke Script", ["kb:alt+i"],
+    # INSTRUCT PAGE, NOT INVOKE SCRIPT (10 November 2026): DbDo and EdSharp invoke a script file; this carries out
+    # instructions in ordinary words, a different command, so it has a name of its own.
+    ("actOnPage", "Instruct Page", ["kb:alt+i"],
      "Carries out instructions written in ordinary words, such as click sign in. "
-     "I for Invoke."),
+     "I for Instruct."),
     ("runAccessibilityCheck", "Check Accessibility", ["kb:alt+shift+a"],
      "Tests the page for accessibility problems, asking which engine to use, and "
      "offers to report what it finds to whoever publishes the site. A for "
@@ -302,24 +292,12 @@ lCommands = [
      "Closes every tab but the one you are reading. Control+F4 closes one tab, so "
      "Control+Shift+F4 closes the rest."),
 
-    # --- Speech, all on the accent key ----------------------------------------
-    ("speakFaster", "Voice Faster", ["kb:control+`"],
-     "Increase the voice rate. The accent key carries the whole speech family, "
-     "as it does in EdSharp."),
-    ("speakSlower", "Voice Slower", ["kb:control+shift+`"],
-     "Decrease the voice rate."),
-    ("speakLouder", "Voice Louder", ["kb:alt+`"],
-     "Increase the voice volume."),
-    ("speakSofter", "Voice Softer", ["kb:alt+shift+`"],
-     "Decrease the voice volume."),
-    ("togglePunctuation", "Toggle Punctuation", ["kb:NVDA+`"],
-     "Toggle the voice between all and no punctuation."),
-    ("reportSpeechSettings", "Speech Settings", ["kb:shift+`"],
-     "Reports the punctuation level, the rate and the volume."),
+    # --- No speech keys (10 November 2026, Jamal's ruling): every message is chosen and short, and the screen
+    # reader's own keys set its voice, so the voice rate, volume and punctuation keys are freed.
 
     # --- Occasional, and reached from the Alternate Menu ----------------------
     ("elevateVersion", "Elevate Version", ["kb:control+f11", "kb:NVDA+alt+f11"],
-     "Checks whether a newer HomerView exists and installs it."),
+     "Download and install the latest HomerView."),
     ("recentPages", "Recent Pages", ["kb:alt+r"],
      "Open a page from the list of those recently used, on the key EdSharp uses "
      "for its recent files."),
@@ -391,9 +369,6 @@ lGroups = [
         "accessibilityReport", "findContacts", "listNames"]),
     ("The window and its tabs", [
         "chooseTab", "sayTabs", "closeOtherTabs"]),
-    ("Adjusting the voice", [
-        "speakFaster", "speakSlower", "speakLouder", "speakSofter",
-        "togglePunctuation", "reportSpeechSettings"]),
     ("Changing how HomerView behaves", [
         "chooseBrowser", "openSettings"]),
     ("Now and then", [

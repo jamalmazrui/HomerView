@@ -3,6 +3,10 @@
 
 ## 10 November 2026 -- The help keys of every Homer app
 
+- **HomerView speaks the suite's language.** Every command it shares with DbDo, EdSharp and FileDir has the suite's description, from one catalog, so About, Copy Log, the clipboard commands and the rest read the same in all four. Invoke Script is now Instruct Page, on the same Alt+I, since it carries out instructions in ordinary words rather than running a script file.
+- **JAWS's Key Describer knows Control+F1.** The new Key Describer Toggle had no description in HomerView.jsd, so the build's quality check stopped it.
+- **The voice keys are gone, and the accent key is free:** Voice Faster, Voice Slower, Voice Louder, Voice Softer, Toggle Punctuation and Speech Settings. NVDA's and JAWS's own keys set the voice.
+- **Control+F1 turns key describing on or off, as in every Homer app:** NVDA's input help, or JAWS's keyboard help. The user guide has no key; it is on the menu with every other document -- Hotkeys, Developer notes and the Announcement join NVDA's HomerView menu.
 - **Control+F1 stays the user guide,** an exception to the suite's Key Describer key, as Alt+Shift+Slash is to its Where Am I: plain F1 is Edge's, and the screen reader's own keyboard help, Insert+1, describes keys here.
 - **The Alternate Menu shows each command's real keys.** Its list of HomerView's own commands had six keys typed by hand that had drifted from what NVDA binds -- Extract Main Content said Alt+NVDA+X but is Shift+F9; Download Files said Alt+NVDA+W but is Alt+Shift+W; Ask Copilot said Alt+NVDA+P but is Alt+NVDA+C; Recent Pages and the log showed none. The keys now come from the one table.
 - **History is Control+Shift+F1 on every list of keys:** the NVDA menu, the start page, JAWS's menu and its key chain, which still said Shift+F1 and stopped the release's check.

@@ -480,10 +480,14 @@ on. Each entry gives the NVDA key and the JAWS key.
     - NVDA: Control+Shift+L
     - JAWS: Control+Shift+L
     - Open a copy of this session's log, for working out what went wrong.
-- **User Guide**
+- **Key Describer Toggle**
     - NVDA: Control+F1
     - JAWS: Control+F1
-    - Open Documentation in the HomerView window. F1 is help everywhere, but plain F1 opens Edge's own help and stays Edge's, so the family here takes F1 with a modifier.
+    - Turn key describing on or off: a key says its command instead of running it.
+- **User Guide**
+    - NVDA: no key
+    - JAWS: no key, on the Alternate Menu
+    - Open the HomerView guide.
 
 #### Moving through a page
 
@@ -752,10 +756,10 @@ on. Each entry gives the NVDA key and the JAWS key.
     - NVDA: Alt+Shift+C
     - JAWS: Alt+Shift+C
     - Finds who to tell about this site: email addresses, the accessibility statement, contact pages and social media.
-- **Invoke Script**
+- **Instruct Page**
     - NVDA: Alt+I
     - JAWS: **not yet on JAWS**
-    - Carries out instructions written in ordinary words, such as click sign in. I for Invoke.
+    - Carries out instructions written in ordinary words, such as click sign in. I for Instruct.
 - **Open Document**
     - NVDA: Control+O
     - JAWS: Control+O
@@ -802,33 +806,6 @@ on. Each entry gives the NVDA key and the JAWS key.
     - NVDA: Shift+F4
     - JAWS: Shift+F4
     - Says the names of the open tabs without moving the keyboard anywhere.
-
-#### Adjusting the voice
-
-- **Speech Settings**
-    - NVDA: Shift+Accent
-    - JAWS: **not yet on JAWS**
-    - Reports the punctuation level, the rate and the volume.
-- **Toggle Punctuation**
-    - NVDA: NVDA+GraveAccent
-    - JAWS: **not yet on JAWS**
-    - Toggle the voice between all and no punctuation.
-- **Voice Faster**
-    - NVDA: Control+Accent
-    - JAWS: **not yet on JAWS**
-    - Increase the voice rate. The accent key carries the whole speech family, as it does in EdSharp.
-- **Voice Louder**
-    - NVDA: Alt+Accent
-    - JAWS: **not yet on JAWS**
-    - Increase the voice volume.
-- **Voice Slower**
-    - NVDA: Control+Shift+Accent
-    - JAWS: **not yet on JAWS**
-    - Decrease the voice rate.
-- **Voice Softer**
-    - NVDA: Alt+Shift+Accent
-    - JAWS: **not yet on JAWS**
-    - Decrease the voice volume.
 
 #### Now and then
 

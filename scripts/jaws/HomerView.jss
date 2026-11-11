@@ -1912,7 +1912,7 @@ EndIf
 EndScript
 
 
-; Opens HomerView's guide. Control+F1, the key the NVDA side uses.
+; Opens HomerView's guide. No key: Control+F1 is the Key Describer, as in every Homer app (10 November 2026).
 Script hVOpenSettings ()
 Var
     int iExit,
@@ -3210,7 +3210,7 @@ Let iAdded = Builtin::UserBufferAddLink ("  Alt+Shift+F3    Reverse Find at Curs
 Let iAdded = UserBufferAddLink ("  Alt+Shift+F     Open this page's folder", "hVHomerViewLink (\"hVOpenPageFolder\")", "Page Folder")
 Let iAdded = UserBufferAddLink ("  Control+O       Open a document as a page", "hVHomerViewLink (\"hVOpenDocument\")", "Open Document")
 Let iAdded = UserBufferAddLink ("  Control+S       Save this page in any format", "hVHomerViewLink (\"hVSavePage\")", "Save Page")
-Let iAdded = UserBufferAddLink ("  Control+F1      The HomerView guide", "hVHomerViewLink (\"hVOpenUserGuide\")", "User Guide")
+Let iAdded = UserBufferAddLink ("  Control+F1      Key describing on or off", "hVHomerViewLink (\"hVKeyDescriber\")", "User Guide")
 Let iAdded = UserBufferAddLink ("  Alt+Shift+F1    The Quick Start", "hVHomerViewLink (\"hVOpenQuickStart\")", "ReadMe")
 Let iAdded = UserBufferAddLink ("  Control+Shift+F1 What changed in each release", "hVHomerViewLink (\"hVShowHistory\")", "History of Changes")
 Let iAdded = UserBufferAddLink ("  Every command with its keys", "hVHomerViewLink (\"hVOpenHotkeys\")", "Hotkeys")
@@ -3342,7 +3342,8 @@ Let sTable = "About HomerView, Which build is loaded and where everything lives.
     + "\7" + "Tab Close Others, Closes every tab but the one you are on.\thVTabCloseOthers\tA"
     + "\7" + "Tab List, Lists the open tabs by name and address.\thVListTabs\tA"
     + "\7" + "Tab Names, Says the names of the open tabs without moving anywhere. (Shift+F4)\thVSayTabNames\tA"
-    + "\7" + "User Guide, Opens the HomerView guide. (Control+F1)\thVOpenUserGuide\tA"
+    + "\7" + "User Guide, Opens the HomerView guide.\thVOpenUserGuide\tA"
+    + "\7" + "Key Describer Toggle, Turns key describing on or off: a key says its command instead of running it. (Control+F1)\thVKeyDescriber\tA"
     + "\7" + "Web Download, Fetches the files this page links to, with the browser's own cookies. (Alt+Shift+W)\thVDownloadFiles\tP"
     + "\7" + "Yield Structure, Says how many links, headings, landmarks, tables, frames and form fields the page holds.\thVSayYieldStructure\tP"
     + "\7" + "Yield with Pattern, Says how many times a pattern matches. (Control+Shift+Y)\thVYieldByPattern\tP"
@@ -3452,3 +3453,9 @@ Builtin::UserBufferDeactivate ()
 ; the answer and there is nothing to keep in step.
 PerformScriptByName (sName)
 EndFunction
+
+; KEY DESCRIBER (10 November 2026): Control+F1 in every Homer app turns key describing on or off; here JAWS's own
+; keyboard help does it, the one Insert+1 starts.
+Script hVKeyDescriber ()
+PerformScript KeyboardHelp ()
+EndScript

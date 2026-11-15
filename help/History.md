@@ -1,6 +1,10 @@
 ﻿
 
 
+## 15 November 2026 -- Edit Settings on Alt+Shift+E under NVDA
+
+- Under NVDA, Edit Settings answered Alt+Shift+S, while HomerView's own command table, its help and the other Homer apps give Alt+Shift+E. The NVDA add-on now binds Alt+Shift+E.
+
 ## 10 November 2026 -- The help keys of every Homer app
 
 - **HomerView speaks the suite's language.** Every command it shares with DbDo, EdSharp and FileDir has the suite's description, from one catalog, so About, Copy Log, the clipboard commands and the rest read the same in all four. Invoke Script is now Instruct Page, on the same Alt+I, since it carries out instructions in ordinary words rather than running a script file.

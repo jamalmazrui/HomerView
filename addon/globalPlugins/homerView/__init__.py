@@ -1398,7 +1398,9 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         # Translators: Input help mode message for HomerView Settings.
         description=_("Open the HomerView settings file, where every preference lives."),
         category="HomerView",
-        gesture="kb:alt+shift+s",
+        # ALT+SHIFT+E, AS THE TABLE AND THE SUITE SAY (15 November 2026, the keyboard audit's HV01): this said Alt+Shift+S,
+        # so under NVDA Edit Settings answered a key no document named, and Alt+Shift+E did nothing.
+        gesture="kb:alt+shift+e",
     )
     def script_openSettings(self, gesture):
         homerLog.info("Command: open the settings file")

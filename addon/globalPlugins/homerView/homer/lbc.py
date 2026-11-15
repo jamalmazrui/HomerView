@@ -130,8 +130,8 @@ def valueOf(control):
 def keysFor(control):
     """The keys that work in a control, by its kind: Shift+F1 pressed three times."""
     if isinstance(control, wx.Button): return "Space or Enter presses it."
-    if isinstance(control, wx.CheckListBox): return "Arrows move, Space ticks or clears, and a letter jumps to an item that starts with it."
-    if isinstance(control, wx.CheckBox): return "Space ticks or clears it."
+    if isinstance(control, wx.CheckListBox): return "Arrows move, Space marks or unmarks, and a letter jumps to an item that starts with it."
+    if isinstance(control, wx.CheckBox): return "Space marks or unmarks it."
     if isinstance(control, wx.RadioButton): return "Arrows choose among the group."
     if isinstance(control, wx.ListBox): return "Arrows move, Home and End go to the first and last, and a letter jumps."
     if isinstance(control, wx.ComboBox): return "Alt+Down Arrow opens the choices, arrows move among them, and typing chooses one."

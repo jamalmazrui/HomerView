@@ -1337,10 +1337,10 @@ dEngines = {"copy": engineCopy, "edge": engineEdge, "records": engineRecords, "s
 # ---------- the media half, as ConversionMedia.cs does it (1.86.0) ----------
 #
 # PYTHON CONVERTS MEDIA AS C# DOES, with the same tools called the same way:
-#   audio or video -> a document: ffmpeg takes the sound as 16 kHz mono WAV, Whisper transcribes
-#     it (whisper-cli -m <model> -f <wav> -nt -np -l auto), and the transcript, as Markdown, goes
-#     to the target through the route table. A video goes first to HomerScribe, when installed,
-#     for what is said and what can be seen; without it, the transcript alone.
+#   audio or video -> a document, and video -> described audio: the media script below (1.219.0),
+#     the same in both languages: Whisper for what is said, with its times; for a video, Ollama's
+#     local vision model for each scene, in time order with the speech; for described audio, each
+#     description spoken in a pause made at the end of a sentence. No other Homer app is needed.
 #   a document -> audio: its text spoken by Windows' own speech synthesis, through PowerShell,
 #     encoded by ffmpeg; -> video: the same speech over a plain black picture.
 #   audio or video -> audio or video: ffmpeg.
@@ -1421,37 +1421,345 @@ def mediaCan(sSource, sTo):
     return False
 
 
-def transcribeTo(sSource, sOut, sTo, sDir):
-    sFfmpeg = ffmpegProgram()
-    if not sFfmpeg: raise RuntimeError("ffmpeg is not installed, and it is what takes the sound out for Whisper")
-    sProgram, sModel = whisperProgram(), whisperModel()
+# THE MEDIA AND PDF SCRIPTS (1.219.0): HomerScribe's transcribing and describing, and the PDF finishing the
+# Matterhorn Protocol asks for, as two Python scripts every Homer app runs -- this module and Conversion.cs hold each
+# word for word, and the kit's build fails if they differ, as for the SQLite and records scripts.
+sMediaScript = r'''import base64, glob, json, os, re, shutil, subprocess, sys, tempfile, time, urllib.request
+# THE MEDIA SCRIPT (kit 1.219.0, the author's request of 12 November 2026): what HomerScribe did, now the kit's, so
+# BatCon and every Homer app transcribe and describe with no other Homer app installed. Both languages run THIS SAME
+# SCRIPT, held word for word in conversion.py and Conversion.cs as sMediaScript; the kit's build fails if they differ.
+#   python <script> <source> <target>
+#   sound to a text target: the transcript, as Markdown, paragraphs by pause, a time heading every five minutes
+#   video to a text target:  what is said and what is seen, in time order, a heading at each scene, as Markdown
+#   video to a sound target: the sound with each scene's description spoken in a pause made for it -- extended
+#                            description, so the programme is never talked over -- at the end of a sentence
+# A text target is written as Markdown at the target's path; the caller turns it into .docx, .htm, .pdf and the rest
+# by the kit's own conversion, so every transcript is as accessible as anything else the kit makes.
+# Tools, all machine-wide and approved: ffmpeg; Whisper (whisper-cli) for speech; Ollama's local vision model for
+# pictures, over its local web interface, never its command; Windows speech for the spoken descriptions.
+lsAudio = ['aac', 'aif', 'aiff', 'flac', 'm4a', 'mp3', 'ogg', 'opus', 'wav', 'wma']
+lsVideo = ['3gp', 'avi', 'flv', 'm2ts', 'm4v', 'mkv', 'mov', 'mp4', 'mpeg', 'mpg', 'ogv', 'ts', 'webm', 'wmv']
+lsVisionModels = ['qwen2.5vl', 'gemma3', 'llama3.2-vision', 'llava', 'minicpm-v', 'moondream']
+iNoWindow = getattr(subprocess, 'CREATE_NO_WINDOW', 0)
+sOllama = 'http://127.0.0.1:11434'
+
+
+def note(sText):
+    sys.stderr.write(time.strftime('%H:%M:%S ') + sText + '\n'); sys.stderr.flush()
+
+
+def tool(lsCommand, iMinutes):
+    oDone = subprocess.run(lsCommand, capture_output=True, text=True, errors='replace', timeout=iMinutes * 60, creationflags=iNoWindow)
+    if oDone.returncode != 0: raise RuntimeError('%s failed (exit code %d): %s' % (os.path.basename(lsCommand[0]), oDone.returncode, (oDone.stderr or oDone.stdout).strip()[-300:]))
+    return (oDone.stdout or '') + (oDone.stderr or '')
+
+
+def findProgram(sName, lsPlaces):
+    for sPath in lsPlaces:
+        if sPath and os.path.isfile(sPath): return sPath
+    return shutil.which(sName) or ''
+
+
+def ffmpegPath():
+    sFiles, sLocal = os.environ.get('ProgramFiles', r'C:\Program Files'), os.environ.get('LOCALAPPDATA', '')
+    return findProgram('ffmpeg', [os.path.join(sFiles, 'ffmpeg', 'bin', 'ffmpeg.exe'), os.path.join(sLocal, 'Microsoft', 'WinGet', 'Links', 'ffmpeg.exe')])
+
+
+def whisperPaths():
+    sProgram = findProgram('whisper-cli', [os.path.join(os.environ.get('ProgramFiles', r'C:\Program Files'), 'Whisper', 'whisper-cli.exe')])
+    if not sProgram: return '', ''
+    lsModels = [s for s in sorted(glob.glob(os.path.join(os.path.dirname(sProgram), 'ggml-*.bin'))) if 'silero' not in os.path.basename(s).lower()]
+    lsModels.sort(key=lambda s: (0 if 'large-v3-turbo' in s else 1 if 'large' in s else 2 if 'medium' in s else 3))
+    return sProgram, (lsModels[0] if lsModels else '')
+
+
+def seconds(sClock):
+    h, m, s = sClock.replace(',', '.').split(':')
+    return int(h) * 3600 + int(m) * 60 + float(s)
+
+
+def clock(nSeconds):
+    i = int(nSeconds); h, m, s = i // 3600, (i % 3600) // 60, i % 60
+    return '%d:%02d:%02d' % (h, m, s) if h else '%d:%02d' % (m, s)
+
+
+def speech(sSource, sWork):
+    """[(start, end, words)] for what is said, by Whisper; [] when nothing is said."""
+    sFfmpeg = ffmpegPath()
+    if not sFfmpeg: raise RuntimeError('ffmpeg is not installed, and it is what takes the sound out')
+    sProgram, sModel = whisperPaths()
     if not sProgram: raise RuntimeError("Whisper is not installed; HomerDev's setup program offers it")
-    if not sModel: raise RuntimeError("Whisper has no speech model; run HomerDev's setup program again and leave Whisper ticked")
-    sWav = os.path.join(sDir, "sound.wav")
-    runTool([sFfmpeg, "-nostdin", "-y", "-i", sSource, "-vn", "-ar", "16000", "-ac", "1", "-c:a", "pcm_s16le", sWav], "ffmpeg", 120)
-    sText = runTool([sProgram, "-m", sModel, "-f", sWav, "-nt", "-np", "-l", "auto"], "Whisper", 360).strip()
-    if not sText: raise RuntimeError("Whisper heard no words")
-    lsSentences = re.split(r"(?<=[.!?])\s+", sText)
-    sMd = "# Transcript of %s\r\n\r\n" % os.path.splitext(os.path.basename(sSource))[0]
-    sMd += "".join(" ".join(lsSentences[i:i + 5]) + "\r\n\r\n" for i in range(0, len(lsSentences), 5))
-    return finishFromMarkdown(sMd, sOut, sTo, sDir)
+    if not sModel: raise RuntimeError("Whisper has no speech model; run HomerDev's setup program again and leave Whisper marked")
+    sWav = os.path.join(sWork, 'sound.wav')
+    note('Taking the sound out.')
+    tool([sFfmpeg, '-nostdin', '-y', '-i', sSource, '-vn', '-ar', '16000', '-ac', '1', '-c:a', 'pcm_s16le', sWav], 240)
+    note('Listening with Whisper; a long recording takes a while.')
+    sBase = os.path.join(sWork, 'words')
+    tool([sProgram, '-m', sModel, '-f', sWav, '-l', 'auto', '-osrt', '-of', sBase, '-np'], 600)
+    sSrt = open(sBase + '.srt', encoding='utf-8', errors='replace').read() if os.path.isfile(sBase + '.srt') else ''
+    lOut = []
+    for oCue in re.finditer(r'(\d+:\d+:\d+[,.]\d+)\s*-->\s*(\d+:\d+:\d+[,.]\d+)\s*\n(.*?)(?:\n\s*\n|\Z)', sSrt.replace('\r\n', '\n'), re.S):
+        sWords = re.sub(r'\s+', ' ', oCue.group(3)).strip()
+        if sWords and not re.fullmatch(r'\[[^\]]*\]|\([^)]*\)', sWords): lOut.append((seconds(oCue.group(1)), seconds(oCue.group(2)), sWords))
+    note('%d stretches of speech heard.' % len(lOut))
+    return lOut
 
 
-def describeVideoTo(sSource, sOut, sTo, sDir):
-    sScribe = homerProgram("HomerScribe")
-    if not sScribe: raise RuntimeError("HomerScribe is not installed")
-    sResults = os.path.join(sDir, "scribe")
-    os.makedirs(sResults, exist_ok=True)
-    try: runTool([sScribe, sSource, "--describe", "--transcribe", "--output-dir", sResults], "HomerScribe", 600)
-    except RuntimeError: pass
-    sFolder = os.path.join(sResults, os.path.splitext(os.path.basename(sSource))[0])
-    sDescribed, sTranscribed = os.path.join(sFolder, "described.md"), os.path.join(sFolder, "transcribed.md")
-    if not os.path.isfile(sDescribed): raise RuntimeError("HomerScribe made no description")
-    def demoted(sText): return re.sub(r"(?m)^(#{1,4})(\s)", r"##\1\2", sText.replace("\r\n", "\n")).replace("\n", "\r\n").strip()
-    sMd = "# %s\r\n\r\n" % os.path.splitext(os.path.basename(sSource))[0]
-    if os.path.isfile(sTranscribed): sMd += "## What is said\r\n\r\n" + demoted(decodeText(open(sTranscribed, "rb").read())) + "\r\n\r\n"
-    sMd += "## What can be seen\r\n\r\n" + demoted(decodeText(open(sDescribed, "rb").read())) + "\r\n"
-    return finishFromMarkdown(sMd, sOut, sTo, sDir)
+def visionModel():
+    try:
+        with urllib.request.urlopen(sOllama + '/api/tags', timeout=10) as oResponse: lsNames = [d.get('name', '') for d in json.load(oResponse).get('models', [])]
+    except Exception:
+        raise RuntimeError("Ollama is not running, and it is what describes pictures; HomerDev's setup program offers it")
+    for sWant in lsVisionModels:
+        for sName in lsNames:
+            if sName == sWant or sName.startswith(sWant + ':'): return sName
+    raise RuntimeError('Ollama has no model that sees pictures; one such as %s is needed' % lsVisionModels[0])
+
+
+def scenes(sSource, sWork):
+    """[(time, picture)] at each change of scene, at least one every 30 seconds, never two within 6."""
+    sFfmpeg = ffmpegPath()
+    sDir = os.path.join(sWork, 'frames'); os.makedirs(sDir, exist_ok=True)
+    sSelect = "select='isnan(prev_selected_t)+gte(t-prev_selected_t\\,30)+gt(scene\\,0.3)*gte(t-prev_selected_t\\,6)',scale=768:-2,showinfo"
+    note('Finding the scenes.')
+    sLog = tool([sFfmpeg, '-nostdin', '-y', '-i', sSource, '-vf', sSelect, '-vsync', 'vfr', '-q:v', '4', os.path.join(sDir, 'f%05d.jpg')], 600)
+    lnTimes = [float(s) for s in re.findall(r'pts_time:([\d.]+)', sLog)]
+    lsFiles = sorted(glob.glob(os.path.join(sDir, 'f*.jpg')))
+    note('%d scenes to look at.' % min(len(lnTimes), len(lsFiles)))
+    return list(zip(lnTimes, lsFiles))
+
+
+def describe(sModel, sPicture, sBefore):
+    sPrompt = ('You describe a video for a listener who is blind. In one to three plain sentences, in the present tense, say what '
+               'can be seen in this frame that matters: the people, what they do, the setting, and any words shown on screen. '
+               'Do not begin with "The image shows" or anything like it. ' + ('Just before, the listener heard: "%s". If nothing '
+               'that matters has changed since then, answer only SAME.' % sBefore if sBefore else ''))
+    dBody = {'model': sModel, 'prompt': sPrompt, 'images': [base64.b64encode(open(sPicture, 'rb').read()).decode('ascii')], 'stream': False}
+    oRequest = urllib.request.Request(sOllama + '/api/generate', data=json.dumps(dBody).encode('utf-8'), headers={'Content-Type': 'application/json'})
+    with urllib.request.urlopen(oRequest, timeout=600) as oResponse: sText = json.load(oResponse).get('response', '').strip()
+    sText = re.sub(r'^(?:the |this )?(?:image|picture|frame|scene|screenshot)\s+(?:shows|depicts|displays)\s+', '', sText, flags=re.I)
+    return sText[:1].upper() + sText[1:] if sText else ''
+
+
+def descriptions(sSource, sWork):
+    """[(time, words)] for what is seen, a scene that has not changed left out."""
+    sModel = visionModel()
+    lScenes, lOut, sBefore, nStarted = scenes(sSource, sWork), [], '', time.time()
+    for i, (nTime, sPicture) in enumerate(lScenes, 1):
+        sText = describe(sModel, sPicture, sBefore)
+        if sText and not re.fullmatch(r'same\.?', sText.strip(), re.I): lOut.append((nTime, sText)); sBefore = sText
+        if time.time() - nStarted > 10 or i == len(lScenes):
+            note('Described %d of %d scenes, %d%%.' % (i, len(lScenes), 100 * i // max(1, len(lScenes)))); nStarted = time.time()
+    return lOut
+
+
+def paragraphs(lSpeech):
+    """Speech as paragraphs: a new one after a pause of two seconds or more, or once one runs past 600 characters."""
+    lOut, sNow, nEnd = [], '', None
+    for nStart, nStop, sWords in lSpeech:
+        if sNow and (nStart - nEnd >= 2 or len(sNow) > 600): lOut.append(sNow); sNow = ''
+        sNow = (sNow + ' ' + sWords).strip(); nEnd = nStop
+    return lOut + ([sNow] if sNow else [])
+
+
+def transcript(sTitle, lSpeech):
+    lsOut = ['# ' + sTitle, '', 'What is said in the recording, as heard by Whisper.', '']
+    nLength = lSpeech[-1][1] if lSpeech else 0
+    if nLength <= 600:
+        lsOut += [s + '\n' for s in paragraphs(lSpeech)]
+        return '\n'.join(lsOut)
+    for iBlock in range(0, int(nLength // 300) + 1):
+        lPart = [t for t in lSpeech if iBlock * 300 <= t[0] < (iBlock + 1) * 300]
+        if lPart: lsOut += ['## ' + clock(iBlock * 300), ''] + [s + '\n' for s in paragraphs(lPart)]
+    return '\n'.join(lsOut)
+
+
+def integrated(sTitle, lSpeech, lSeen):
+    """What is said and what is seen, in time order: a heading at each described scene, its description, then the
+    speech until the next one. Speech before the first scene sits under 0:00."""
+    lsOut = ['# ' + sTitle, '', 'What is said and what can be seen, in time order. Each heading is the time a scene begins; '
+             '"Seen" is what a vision model saw there, and the paragraphs after it are what is said.', '']
+    lnMarks = [0.0] + [t for t, _ in lSeen if t > 0]
+    dSeen = dict(lSeen)
+    for i, nMark in enumerate(lnMarks):
+        nNext = lnMarks[i + 1] if i + 1 < len(lnMarks) else float('inf')
+        lPart = [t for t in lSpeech if nMark <= t[0] < nNext]
+        sSeen = dSeen.get(nMark, '')
+        if not sSeen and not lPart: continue
+        lsOut += ['## ' + clock(nMark), '']
+        if sSeen: lsOut += ['*Seen:* ' + sSeen, '']
+        lsOut += [s + '\n' for s in paragraphs(lPart)]
+    return '\n'.join(lsOut)
+
+
+def speak(sText, sWav):
+    sTxt = sWav + '.txt'
+    open(sTxt, 'w', encoding='utf-8-sig').write(sText)
+    sScript = ("Add-Type -AssemblyName System.Speech; $o = New-Object System.Speech.Synthesis.SpeechSynthesizer; "
+               "$o.SetOutputToWaveFile('%s'); $o.Speak([IO.File]::ReadAllText('%s')); $o.SetOutputToNull(); $o.Dispose()"
+               % (sWav.replace("'", "''"), sTxt.replace("'", "''")))
+    tool(['powershell', '-NoProfile', '-NonInteractive', '-Command', sScript], 5)
+
+
+def insertionPoints(lSpeech, lSeen):
+    """Each description's place: its scene's time, moved to the end of the sentence being spoken there."""
+    lOut = []
+    for nTime, sText in lSeen:
+        for nStart, nStop, _ in lSpeech:
+            if nStart < nTime < nStop: nTime = nStop; break
+        lOut.append((nTime, sText))
+    return sorted(lOut)
+
+
+def describedSound(sSource, sTarget, lSpeech, lSeen, sWork):
+    sFfmpeg = ffmpegPath()
+    sAll = os.path.join(sWork, 'all.wav')
+    tool([sFfmpeg, '-nostdin', '-y', '-i', sSource, '-vn', '-ar', '44100', '-ac', '2', '-c:a', 'pcm_s16le', sAll], 240)
+    lsParts, nFrom = [], 0.0
+    for i, (nAt, sText) in enumerate(insertionPoints(lSpeech, lSeen)):
+        if nAt > nFrom:
+            sPart = os.path.join(sWork, 'part%05d.wav' % (2 * i))
+            tool([sFfmpeg, '-nostdin', '-y', '-ss', '%.3f' % nFrom, '-to', '%.3f' % nAt, '-i', sAll, '-c:a', 'pcm_s16le', sPart], 30)
+            lsParts.append(sPart)
+        sSaid, sSaid2 = os.path.join(sWork, 'said%05d.wav' % i), os.path.join(sWork, 'part%05d.wav' % (2 * i + 1))
+        speak(sText, sSaid)
+        tool([sFfmpeg, '-nostdin', '-y', '-i', sSaid, '-ar', '44100', '-ac', '2', '-c:a', 'pcm_s16le', sSaid2], 5)
+        lsParts.append(sSaid2); nFrom = nAt
+    sRest = os.path.join(sWork, 'rest.wav')
+    tool([sFfmpeg, '-nostdin', '-y', '-ss', '%.3f' % nFrom, '-i', sAll, '-c:a', 'pcm_s16le', sRest], 30)
+    lsParts.append(sRest)
+    sList = os.path.join(sWork, 'parts.txt')
+    open(sList, 'w', encoding='utf-8').write(''.join("file '%s'\n" % s.replace("'", "'\\''") for s in lsParts))
+    note('Joining the sound and %d spoken descriptions.' % len(lSeen))
+    tool([sFfmpeg, '-nostdin', '-y', '-f', 'concat', '-safe', '0', '-i', sList, sTarget], 120)
+
+
+def main():
+    sSource, sTarget = os.path.abspath(sys.argv[1]), os.path.abspath(sys.argv[2])
+    sFrom, sTo = os.path.splitext(sSource)[1].lower().lstrip('.'), os.path.splitext(sTarget)[1].lower().lstrip('.')
+    sTitle = os.path.splitext(os.path.basename(sSource))[0].replace('_', ' ')
+    sWork = tempfile.mkdtemp(prefix='homerMedia-')
+    try:
+        if sFrom in lsVideo and sTo in lsAudio:
+            lSpeech = speech(sSource, sWork)
+            describedSound(sSource, sTarget, lSpeech, descriptions(sSource, sWork), sWork)
+        elif sFrom in lsVideo:
+            lSpeech = speech(sSource, sWork)
+            try: lSeen = descriptions(sSource, sWork)
+            except Exception as oError: note('No descriptions: %s; the transcript alone.' % oError); lSeen = []
+            if not lSpeech and not lSeen: raise RuntimeError('nothing was heard or seen')
+            open(sTarget, 'w', encoding='utf-8-sig', newline='\r\n').write(integrated(sTitle, lSpeech, lSeen) if lSeen else transcript(sTitle, lSpeech))
+        elif sFrom in lsAudio:
+            lSpeech = speech(sSource, sWork)
+            if not lSpeech: raise RuntimeError('Whisper heard no words')
+            open(sTarget, 'w', encoding='utf-8-sig', newline='\r\n').write(transcript(sTitle, lSpeech))
+        else:
+            raise RuntimeError('%s is neither sound nor video' % os.path.basename(sSource))
+    except Exception as oError:
+        sys.stderr.write(str(oError) + '\n'); sys.exit(1)
+    finally:
+        shutil.rmtree(sWork, ignore_errors=True)
+
+
+if __name__ == '__main__':
+    main()
+'''
+
+sPdfScript = r'''import os, shutil, sys, tempfile
+# THE PDF FINISHING SCRIPT (kit 1.219.0): what the Matterhorn Protocol (PDF/UA) asks that a program can set without
+# judgement, set on every PDF a Homer app makes, by both languages, held word for word in conversion.py and
+# Conversion.cs as sPdfScript. What it sets, only where missing: the title, and the flag that shows it in place of the
+# file's name; the language; the flag saying a tagged PDF is marked; and, on a page with links or form fields, a tab
+# order that follows the document's structure. Never the tags themselves: Edge and Word write those, and a structure
+# guessed afterwards would be worse than none. Saved incrementally, so the tags and outline stay exactly as written.
+#   python <script> <pdf> <title|language>
+sPath = sys.argv[1]
+sTitle, _, sLanguage = (sys.argv[2] if len(sys.argv) > 2 else '').partition('|')
+sTitle = sTitle.strip() or os.path.splitext(os.path.basename(sPath))[0].replace('_', ' ')
+sLanguage = sLanguage.strip() or 'en-US'
+lsDone = []
+try:
+    try:
+        import pymupdf
+    except ImportError:
+        import fitz as pymupdf
+    oDoc = pymupdf.open(sPath)
+    iCatalog = oDoc.pdf_catalog()
+    dMeta = dict(oDoc.metadata or {})
+    if not (dMeta.get('title') or '').strip():
+        dMeta['title'] = sTitle; oDoc.set_metadata(dMeta); lsDone.append('title')
+    if oDoc.xref_get_key(iCatalog, 'Lang')[0] == 'null':
+        oDoc.xref_set_key(iCatalog, 'Lang', pymupdf.get_pdf_str(sLanguage)); lsDone.append('language')
+    sKind, sValue = oDoc.xref_get_key(iCatalog, 'ViewerPreferences')
+    if 'DisplayDocTitle true' not in sValue.replace('/', ' ').replace('  ', ' '):
+        if sKind == 'xref': oDoc.xref_set_key(int(sValue.split()[0]), 'DisplayDocTitle', 'true')
+        else: oDoc.xref_set_key(iCatalog, 'ViewerPreferences', '<</DisplayDocTitle true>>')
+        lsDone.append('title shown')
+    if oDoc.xref_get_key(iCatalog, 'StructTreeRoot')[0] != 'null' and 'Marked true' not in oDoc.xref_get_key(iCatalog, 'MarkInfo')[1].replace('/', ' '):
+        oDoc.xref_set_key(iCatalog, 'MarkInfo', '<</Marked true>>'); lsDone.append('marked')
+    iTabs = 0
+    for oPage in oDoc:
+        if oDoc.xref_get_key(oPage.xref, 'Annots')[0] != 'null' and oDoc.xref_get_key(oPage.xref, 'Tabs')[1] != '/S':
+            oDoc.xref_set_key(oPage.xref, 'Tabs', '/S'); iTabs += 1
+    if iTabs: lsDone.append('tab order on %d page%s' % (iTabs, '' if iTabs == 1 else 's'))
+    if lsDone:
+        if oDoc.can_save_incrementally(): oDoc.saveIncr()
+        else:
+            sTemp = sPath + '.finishing.pdf'; oDoc.save(sTemp, garbage=0); oDoc.close(); shutil.move(sTemp, sPath)
+except ImportError:
+    from pypdf import PdfReader, PdfWriter
+    from pypdf.generic import BooleanObject, DictionaryObject, NameObject, TextStringObject
+    oReader = PdfReader(sPath)
+    oWriter = PdfWriter(clone_from=oReader)
+    oRoot = oWriter._root_object
+    if not ((oReader.metadata or {}).get('/Title') or '').strip():
+        oWriter.add_metadata({'/Title': sTitle}); lsDone.append('title')
+    if '/Lang' not in oRoot:
+        oRoot[NameObject('/Lang')] = TextStringObject(sLanguage); lsDone.append('language')
+    oPrefs = oRoot.get('/ViewerPreferences')
+    oPrefs = oPrefs.get_object() if oPrefs is not None else None
+    if oPrefs is None or not oPrefs.get('/DisplayDocTitle'):
+        if oPrefs is None: oPrefs = DictionaryObject(); oRoot[NameObject('/ViewerPreferences')] = oPrefs
+        oPrefs[NameObject('/DisplayDocTitle')] = BooleanObject(True); lsDone.append('title shown')
+    if '/StructTreeRoot' in oRoot:
+        oMark = oRoot.get('/MarkInfo')
+        if oMark is None or not oMark.get_object().get('/Marked'):
+            oRoot[NameObject('/MarkInfo')] = DictionaryObject({NameObject('/Marked'): BooleanObject(True)}); lsDone.append('marked')
+    iTabs = 0
+    for oPage in oWriter.pages:
+        if '/Annots' in oPage and oPage.get('/Tabs') != '/S':
+            oPage[NameObject('/Tabs')] = NameObject('/S'); iTabs += 1
+    if iTabs: lsDone.append('tab order on %d page%s' % (iTabs, '' if iTabs == 1 else 's'))
+    if lsDone:
+        sTemp = sPath + '.finishing.pdf'
+        with open(sTemp, 'wb') as oFile: oWriter.write(oFile)
+        shutil.move(sTemp, sPath)
+print(', '.join(lsDone))
+'''
+
+
+def runSharedScript(sCode, lsArgs, iMinutes):
+    """Runs one of the scripts both languages share: (exit code, output, messages)."""
+    sScript = os.path.join(tempfile.gettempdir(), "homerScript_%d_%d.py" % (os.getpid(), int(time.time() * 1000)))
+    open(sScript, "w", encoding="utf-8").write(sCode)
+    try:
+        oDone = subprocess.run([sys.executable, sScript] + lsArgs, capture_output=True, text=True, errors="replace", timeout=iMinutes * 60, creationflags=iNoWindow)
+        for sLine in (oDone.stderr or "").splitlines(): say(sLine)
+        return oDone.returncode, (oDone.stdout or "").strip(), (oDone.stderr or "").strip()
+    finally:
+        try: os.remove(sScript)
+        except OSError: pass
+
+
+def mediaScriptTo(sSource, sOut, sTo, sDir):
+    """The media script's way: a text target is made as Markdown, then by the kit's own conversion."""
+    sMade = os.path.join(sDir, "made.md") if sTo in lsTranscriptTargets else sOut
+    iCode, sText, sMessages = runSharedScript(sMediaScript, [sSource, sMade], 600)
+    if iCode != 0: raise RuntimeError(sMessages.splitlines()[-1] if sMessages else "the media script failed")
+    if sTo in lsTranscriptTargets:
+        if sTo in ("md", "txt"): shutil.copyfile(sMade, sOut)
+        else: convert(sMade, sOut)
+    return True
 
 
 def finishFromMarkdown(sMd, sOut, sTo, sDir):
@@ -1489,14 +1797,18 @@ def mediaConvert(sSource, sOut, sTo):
     sCategory = mediaCategory(sSource)
     sDir = tempfile.mkdtemp(prefix="homerMedia-")
     try:
-        if sCategory == "video" and sTo in lsTranscriptTargets:
+        # SOUND AND VIDEO TO WORDS, AND VIDEO TO DESCRIBED SOUND (1.219.0), the kit's own, no other Homer app needed:
+        # sound to a document is its transcript; video to a document is what is said and seen, in time order; video to
+        # sound is the sound with each scene described in a pause made for it. A video that cannot be described still
+        # gives its sound, as before, and the reason is logged.
+        if sCategory and sTo in lsTranscriptTargets:
+            mediaScriptTo(sSource, sOut, sTo, sDir)
+            return "transcribe and describe (Whisper and Ollama)" if sCategory == "video" else "transcribe (Whisper)"
+        if sCategory == "video" and sTo in lsAudioSources:
             try:
-                describeVideoTo(sSource, sOut, sTo, sDir); return "describe (HomerScribe)"
+                mediaScriptTo(sSource, sOut, sTo, sDir); return "described sound (Whisper, Ollama and Windows speech)"
             except Exception as oError:
-                say("Described video: %s; the transcript alone instead" % oError)
-                transcribeTo(sSource, sOut, sTo, sDir); return "transcribe (Whisper)"
-        if sCategory == "audio" and sTo in lsTranscriptTargets:
-            transcribeTo(sSource, sOut, sTo, sDir); return "transcribe (Whisper)"
+                say("Described sound: %s; the sound alone instead" % oError)
         if not sCategory and sTo in lsSpeechAudioTargets + lsSpeechVideoTargets and textCanBeSpoken(sSource):
             speakTo(sSource, sOut, sTo, sDir); return "speak (Windows)"
         if sCategory and sTo in lsAudioSources + lsVideoSources and (sCategory == "video" or sTo in lsAudioSources):
@@ -1513,6 +1825,33 @@ def canConvert(sSource, sTarget):
     """Whether convert can make sTarget's type from sSource's: the route table, through a hub, or the media half."""
     sTo = typeOf(sTarget) if (os.path.splitext(sTarget)[1] or "/" in sTarget or os.sep in sTarget) else typeOf(sTarget.lstrip("."))
     return bool(loadTable().get(typeOf(sSource), {}).get(sTo)) or bool(hubFor(typeOf(sSource), sTo)) or mediaCan(sSource, sTo)
+
+
+def targetsFor(sSource):
+    """What a file can become, as extensions, by the same rule as Conversion.cs's targetsFor (1.220.0): the routes the
+    table names for its type, and what the media half makes of it; its own type left out. Alphabetical."""
+    sFrom = typeOf(sSource)
+    setOut = set(t for t in loadTable().get(sFrom, {}) if t != sFrom)
+    setOut |= set(t for t in lsTranscriptTargets + lsAudioSources + lsVideoSources + lsSpeechAudioTargets + lsSpeechVideoTargets
+                  if t != sFrom and mediaCan(sSource, t))
+    return sorted(setOut)
+
+
+def targetsForPaths(lsPaths):
+    """What EVERY one of several sources can become (1.220.0, "only offer valid conversions"), as Conversion.cs's
+    targetsForPaths: one file of each type asked, a target kept only if every type reaches it, the first type's order
+    kept; a type with no targets at all is passed over rather than emptying the list."""
+    lsOrder, setTypes, bFirst = [], set(), True
+    for sPath in lsPaths or []:
+        sType = typeOf(sPath)
+        if not sType or sType in setTypes: continue
+        setTypes.add(sType)
+        lsHere = targetsFor(sPath)
+        if not lsHere:
+            say("targetsForPaths: no target for .%s, so it does not narrow the list" % sType); continue
+        if bFirst: lsOrder, bFirst = list(lsHere), False
+        else: lsOrder = [t for t in lsOrder if t in lsHere]
+    return lsOrder
 
 
 # THROUGH MARKDOWN (1.90.0), as Conversion.cs does: a pair the table does not name, or whose every way fails,
@@ -1847,6 +2186,12 @@ def checkPdfTags(sPath, lsFindings):
     if not re.search(r"/Title\s*(?:\(\s*[^)\s]|<\s*[0-9A-Fa-f]{4})", sBytes) and not re.search(r"<dc:title>\s*<rdf:Alt>\s*<rdf:li[^>]*>\s*[^<\s]", sBytes):
         lsFindings.append("MissingDocumentTitle: the PDF has no title, so a reader announces its file name")
     if "/Outlines" not in sBytes: lsFindings.append("NoBookmarks: the PDF has no bookmarks to move by its headings")
+    # The title shown, and pictures described (1.218.0, from Vispero's guide to testing PDFs): without
+    # /DisplayDocTitle true a viewer shows the file's name in place of its title; a figure tag with no /Alt is a
+    # picture a screen reader passes over in silence.
+    if not re.search(r"/DisplayDocTitle\s*true", sBytes): lsFindings.append("TitleNotDisplayed: the PDF does not ask viewers to show its title in place of its file name")
+    iFigures = len(re.findall(r"/S\s*/Figure\b", sBytes)); iAlts = len(re.findall(r"/Alt\s*[(<]", sBytes))
+    if iFigures > iAlts: lsFindings.append("FigureWithoutAlt: %d of %d pictures have no alternative text" % (iFigures - iAlts, iFigures))
 
 
 def checkPage(sPath, lsFindings):
@@ -2113,7 +2458,12 @@ def finishOutput(sPath):
         elif sType == "epub": finishEpub(sPath, lsFindings)
         elif sType == "md": finishMarkdown(sPath, lsFindings)
         elif sType == "htm": checkPage(sPath, lsFindings)
-        elif sType == "pdf": checkPdfTags(sPath, lsFindings)
+        elif sType == "pdf":
+            # WHAT PDF/UA ASKS THAT NEEDS NO JUDGEMENT IS SET (1.219.0): title shown, language, marked, tab order.
+            iCode, sDone, sMessages = runSharedScript(sPdfScript, [sPath, documentTitle(sPath) + "|" + documentLanguage()], 5)
+            if iCode == 0 and sDone: lsFindings.append("PdfFinished: fixed, " + sDone)
+            elif iCode != 0: lsFindings.append("PdfNotFinished: " + (sMessages.splitlines()[-1] if sMessages else "the PDF script failed"))
+            checkPdfTags(sPath, lsFindings)
     except Exception as oError:
         say("Finishing %s for a screen reader failed: %s" % (os.path.basename(sPath), oError))
     for sFinding in lsFindings: say("Quality %s: %s" % (os.path.basename(sPath), sFinding))

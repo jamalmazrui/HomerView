@@ -1,6 +1,10 @@
 ﻿
 
 
+## 15 November 2026 -- The kit being developed wins a tie
+
+- When the installed kit in Program Files has the same version as C:\HomerDev, the build now uses C:\HomerDev, the one being developed.
+
 ## 15 November 2026 -- Edit Settings on Alt+Shift+E under NVDA
 
 - Under NVDA, Edit Settings answered Alt+Shift+S, while HomerView's own command table, its help and the other Homer apps give Alt+Shift+E. The NVDA add-on now binds Alt+Shift+E.

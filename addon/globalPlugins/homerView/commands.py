@@ -49,10 +49,13 @@ Beyond that, in order:
 
 ## What a description says
 
-Present tense, one sentence, a full stop, and a verb somewhere in it, though
-not necessarily at the front. Where the key is not obvious the description says
-why that key, because the reader who has to look a command up should come away
-able to remember it.
+Worded as the rest of the Homer Suite words them, so a person hears one voice
+in DbDo, EdSharp, FileDir and HomerView: it begins with the verb, as an
+instruction ("Say the web address of this page."), never "Says ...", and ends
+with a full stop. Where the key is not obvious, a second short sentence says why
+that key, because the reader who has to look a command up should come away able
+to remember it. (Until 17 November 2026 a third of these began "Says", "Moves",
+"Lists"; the suite audit made them alike.)
 
 ## The shape of the key tells you where it works
 
@@ -114,30 +117,30 @@ lCommands = [
 
     # --- Moving through a page -------------------------------------------
     ("moveToMainContent", "Jump to Main", ["kb:j", "kb:NVDA+alt+j"],
-     "Jumps to the main content the page declares. J for Jump, and it is one of "
+     "Jump to the main content the page declares. J for Jump, and it is one of "
      "only three letters NVDA leaves free in a page."),
     ("proxyMainContent", "Jump to Probable Main", ["kb:shift+j"],
-     "Finds the main content of a page that declares none, by weighing every part "
+     "Find the main content of a page that declares none, by weighing every part "
      "of it, and says that it inferred rather than was told."),
     ("nextSentence", "Next Sentence", ["kb:alt+downarrow"],
-     "Moves to the next sentence and reads it. Alt with an arrow moves by "
+     "Move to the next sentence and reads it. Alt with an arrow moves by "
      "something larger than a line and smaller than a paragraph."),
     ("priorSentence", "Previous Sentence", ["kb:alt+uparrow"],
-     "Moves to the previous sentence and reads it."),
+     "Move to the previous sentence and reads it."),
     ("nextParagraph", "Next Paragraph", ["kb:control+downarrow"],
-     "Moves to the next paragraph and reads it. Control with an arrow moves by "
+     "Move to the next paragraph and reads it. Control with an arrow moves by "
      "paragraph in Word and in most editors."),
     ("priorParagraph", "Previous Paragraph", ["kb:control+uparrow"],
-     "Moves to the previous paragraph and reads it."),
+     "Move to the previous paragraph and reads it."),
     ("nextSameType", "Next Same Kind", ["kb:z"],
-     "Moves to the next thing of the same kind as the one you are on, whatever "
+     "Move to the next thing of the same kind as the one you are on, whatever "
      "that is. Z because NVDA leaves it free, and JAWS does this with S."),
     ("priorSameType", "Previous Same Kind", ["kb:shift+z"],
-     "Moves to the previous thing of the same kind as the one you are on."),
+     "Move to the previous thing of the same kind as the one you are on."),
     ("nextDifferentType", "Next Different Kind", ["kb:alt+z"],
-     "Moves to the next thing of a different kind, which JAWS does with D."),
+     "Move to the next thing of a different kind, which JAWS does with D."),
     ("priorDifferentType", "Previous Different Kind", ["kb:alt+shift+z"],
-     "Moves to the previous thing of a different kind."),
+     "Move to the previous thing of a different kind."),
     ("goToPercent", "Go to Percent", ["kb:control+g"],
      "Go to percentage point in document, as EdSharp does on the same key."),
     ("goToPercentAgain", "Go to Percent Again", ["kb:alt+g"],
@@ -172,29 +175,29 @@ lCommands = [
     ("listLinks", "List Links", ["kb:NVDA+shift+f7"],
      "List the links on the page, beside the key JAWS uses for its link list."),
     ("listAnyElements", "List Elements", ["kb:NVDA+alt+l"],
-     "Lists any kind of element, including kinds NVDA's own Elements List does "
+     "List any kind of element, including kinds NVDA's own Elements List does "
      "not offer. L for List."),
     ("explorePage", "Explore Page", ["kb:y", "kb:NVDA+alt+e"],
-     "Describes how the page is laid out, including what a sighted person can see "
+     "Describe how the page is laid out, including what a sighted person can see "
      "that your reading order never mentions. E for Explore. It gave up its bare "
      "Y: a single letter in browse mode reads as a navigation key, and this "
      "command does not move anywhere."),
 
     # --- Asking about the page --------------------------------------------
     ("reportPageAddress", "Say Address", ["kb:alt+a"],
-     "Says the web address of this page. Twice spells it, three times copies it. "
+     "Say the web address of this page. Twice spells it, three times copies it. "
      "A for Address."),
     ("reportAddressAnywhere", "Say Address Anywhere", ["kb:NVDA+alt+u"],
-     "Says the web address from anywhere in the window, including the address bar."),
+     "Say the web address from anywhere in the window, including the address bar."),
     ("pageInformation", "Say Metadata", ["kb:alt+m"],
-     "Says what the page claims about itself: author, publisher, date and licence. "
+     "Say what the page claims about itself: author, publisher, date and licence. "
      "M for Metadata."),
     ("sayPosition", "Say Position", ["kb:alt+delete", "kb:alt+numpadDelete"],
      "Say the current position: the line, the column and the percent."),
     ("sayYield", "Say Yield", ["kb:alt+y"],
      "Say how many characters, words and lines are in all or the selected text."),
     ("sayYieldStructure", "Yield Structure", ["kb:alt+shift+y"],
-     "Says how the page is built: how many headings, links, forms and the rest."),
+     "Say how the page is built: how many headings, links, forms and the rest."),
     ("sayYieldPattern", "Yield with Regex", ["kb:control+shift+y"],
      "Count parts of text matching a regular expression, which answers how many "
      "rather than where."),
@@ -213,7 +216,7 @@ lCommands = [
     ("readAll", "Read All", ["kb:alt+f8"],
      "Say all text, without moving the cursor."),
     ("toggleSayAll", "Toggle Reading", ["kb:scrolllock"],
-     "Starts reading continuously, or stops if it is already reading. Scroll Lock "
+     "Start reading continuously, or stops if it is already reading. Scroll Lock "
      "because nothing else in Edge, NVDA or Windows wants it."),
     ("saySelected", "Say Selected", ["kb:shift+space"],
      "Say the selected text."),
@@ -248,14 +251,14 @@ lCommands = [
 
     # --- Doing things to the page -------------------------------------------
     ("openOtherFormat", "Open Document", ["kb:control+o"],
-     "Opens a Word file, spreadsheet, slide deck, PDF or ebook, converting it to a "
+     "Open a Word file, spreadsheet, slide deck, PDF or ebook, converting it to a "
      "page so every command here works on it. Control+O opens in every program; "
      "this one opens more."),
     ("saveAs", "Save Page", ["kb:control+s"],
-     "Saves the page in any of nine formats. Control+S saves in every program; "
+     "Save the page in any of nine formats. Control+S saves in every program; "
      "this one saves more ways."),
     ("extractMainContent", "Extract Main Content", ["kb:shift+f9"],
-     "Extracts the readable part of the page into a page of its own that you can "
+     "Extract the readable part of the page into a page of its own that you can "
      "search, save or send. F9 is Edge's own reading view, and Shift+F9 is "
      "HomerView's, which works on pages Edge will not."),
     ("downloadFiles", "Web Download", ["kb:alt+shift+w"],
@@ -272,35 +275,35 @@ lCommands = [
      "Nothing is created: if nothing has been saved from this page, it says so. "
      "Alt+Shift+F, beside Alt+Shift+W which fills the folder."),
     ("submitForm", "Submit Form", ["kb:control+enter"],
-     "Submits the form you are filling in, from any field in it, so you need not "
+     "Submit the form you are filling in, from any field in it, so you need not "
      "find the button."),
     # INSTRUCT PAGE, NOT INVOKE SCRIPT (10 November 2026): DbDo and EdSharp invoke a script file; this carries out
     # instructions in ordinary words, a different command, so it has a name of its own.
     ("actOnPage", "Instruct Page", ["kb:alt+i"],
-     "Carries out instructions written in ordinary words, such as click sign in. "
+     "Carry out instructions written in ordinary words, such as click sign in. "
      "I for Instruct."),
     ("runAccessibilityCheck", "Check Accessibility", ["kb:alt+shift+a"],
-     "Tests the page for accessibility problems, asking which engine to use, and "
+     "Test the page for accessibility problems, asking which engine to use, and "
      "offers to report what it finds to whoever publishes the site. A for "
      "Accessibility."),
     ("openCopilot", "Consult Copilot", ["kb:NVDA+alt+c"],
-     "Copies the page text and opens Edge's Copilot sidebar, ready for a question. "
+     "Copy the page text and opens Edge's Copilot sidebar, ready for a question. "
      "C for Copilot."),
     ("webUtilities", "Query Web", ["kb:alt+q", "kb:NVDA+alt+q"],
-     "Looks something up using free services that need no account: a definition, "
+     "Look something up using free services that need no account: a definition, "
      "a place, the weather, a book. Q for Query."),
     ("dismissDialog", "Dismiss Dialog", ["kb:alt+shift+d"],
-     "Closes a browser dialog that is blocking the window. D for Dismiss, and it "
+     "Close a browser dialog that is blocking the window. D for Dismiss, and it "
      "works anywhere because a dialog is what has the focus."),
 
     # --- The window and its tabs ---------------------------------------------
     ("chooseTab", "Tab List", ["kb:f4"],
-     "Lists the HomerView tabs and switches to the one you choose. F4 is the Homer "
+     "List the HomerView tabs and switches to the one you choose. F4 is the Homer "
      "window list, and Edge has two other keys for what F4 does there."),
     ("sayTabs", "Tab Names", ["kb:shift+f4"],
-     "Says the names of the open tabs without moving the keyboard anywhere."),
+     "Say the names of the open tabs without moving the keyboard anywhere."),
     ("closeOtherTabs", "Tab Close Others", ["kb:control+shift+f4"],
-     "Closes every tab but the one you are reading. Control+F4 closes one tab, so "
+     "Close every tab but the one you are reading. Control+F4 closes one tab, so "
      "Control+Shift+F4 closes the rest."),
 
     # --- No speech keys (10 November 2026, Jamal's ruling): every message is chosen and short, and the screen
@@ -313,29 +316,29 @@ lCommands = [
      "Open a page from the list of those recently used, on the key EdSharp uses "
      "for its recent files."),
     ("reportConnection", "Report Connection", [],
-     "Says whether HomerView is connected to the browser, and how."),
+     "Say whether HomerView is connected to the browser, and how."),
     ("selfTest", "Self Test", [],
-     "Checks that all three ways of reaching the browser are working."),
+     "Check that all three ways of reaching the browser are working."),
 ]
 
 # Anything reached only from within another command, so it needs a name and a
 # description but no key of its own.
 lFolded = [
     ("listNames", "List Names", ["kb:alt+n"],
-     "Lists the people, places, organisations and dates a page mentions, saved "
+     "List the people, places, organisations and dates a page mentions, saved "
      "as Names.htm in the page's folder and opened. A rule-based engine reads "
      "the text, so it guesses; the report says so."),
     ("findContacts", "Find Contacts", ["kb:alt+shift+c"],
-     "Finds who to tell about this site: email addresses, the accessibility "
+     "Find who to tell about this site: email addresses, the accessibility "
      "statement, contact pages and social media. Looks at this page, the home "
      "page, and the addresses a statement usually lives at."),
     ("accessibilityReport", "Report Accessibility",
-     "Tests the page and writes a report addressed to whoever publishes the site. "
+     "Test the page and write a report addressed to whoever publishes the site. "
      "Reached by Check Accessibility once an engine is chosen."),
     ("runAxe", "Check with Axe",
-     "Tests the page with Deque's axe-core engine. Offered by Check Accessibility."),
+     "Test the page with Deque's axe-core engine. Offered by Check Accessibility."),
     ("runIbmChecker", "Check with Equal Access",
-     "Tests the page with IBM's Equal Access engine. Offered by Check Accessibility."),
+     "Test the page with IBM's Equal Access engine. Offered by Check Accessibility."),
 ]
 
 

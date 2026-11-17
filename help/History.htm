@@ -190,6 +190,14 @@
 <h1>History</h1>
 <nav id="TOC" role="doc-toc" aria-label="Contents">
 <ul>
+<li><a href="#november-2026-descriptions-in-the-suites-words"
+id="toc-november-2026-descriptions-in-the-suites-words">17 November 2026
+– Descriptions in the suite’s words</a></li>
+<li><a
+href="#november-2026-both-keys-in-the-key-file-and-jaws-names-that-match"
+id="toc-november-2026-both-keys-in-the-key-file-and-jaws-names-that-match">17
+November 2026 – Both keys in the key file, and JAWS names that
+match</a></li>
 <li><a href="#november-2026-two-handoffs-and-regex-in-the-names"
 id="toc-november-2026-two-handoffs-and-regex-in-the-names">17 November
 2026 – Two handoffs, and Regex in the names</a></li>
@@ -362,6 +370,44 @@ versions</a></li>
 </ul>
 </nav>
 <main>
+<h2 id="november-2026-descriptions-in-the-suites-words">17 November 2026
+– Descriptions in the suite’s words</h2>
+<ul>
+<li><strong>Every description begins with its verb, as an
+instruction,</strong> as DbDo’s, EdSharp’s and FileDir’s do: “Say the
+web address of this page”, not “Says the web address of this page”.
+Thirty-six had begun with “Says”, “Moves”, “Lists” or the like. The rule
+in commands.py says so now.</li>
+<li>HomerView now needs HomerDev 1.246.0.</li>
+</ul>
+<h2
+id="november-2026-both-keys-in-the-key-file-and-jaws-names-that-match">17
+November 2026 – Both keys in the key file, and JAWS names that
+match</h2>
+<ul>
+<li><strong>configs.inix lists every NVDA key of a command,</strong>
+joined by “or”, where it gave only the first, and says in the
+description when JAWS uses another key: “Under JAWS, Shift+Q.” It had
+put both readers’ keys in one malformed key field.</li>
+<li><strong>The guide’s JAWS column is right again.</strong> It now
+gives the keys HomerView’s JAWS scripts really bind, such as Alt+F3 and
+Alt+Shift+F3 for Forward and Reverse Find at Cursor, Alt+Y for Say Yield
+and Alt+R for Recent Pages; says which commands are on the HomerView
+menu only under JAWS; and says where HomerView leaves a move, such as by
+paragraph, to JAWS’s own command.</li>
+<li><strong>The JAWS scripts use the NVDA names:</strong> Forward Find,
+Reverse Find, Search Next, Search Previous, Copy Line, Copy Log and
+ReadMe, where they said Forward Find for Text, Reverse Find for Text,
+Forward Find Again, Reverse Find Again, Copy Selection, Log to Clipboard
+and Quick Start.</li>
+<li><strong>The build’s quality check lets a family share its first
+words,</strong> as Forward Find, Forward Find at Cursor and Forward Find
+with Regex do in EdSharp too. A name inside the middle of another, as
+Page Folder was inside Show Page Folder in FileDir, still fails it; that
+stopped the last build. That command is now Page Folder in FileDir,
+beside Page Folder, which opens the same folder in File Explorer.</li>
+<li>HomerView now needs HomerDev 1.244.0.</li>
+</ul>
 <h2 id="november-2026-two-handoffs-and-regex-in-the-names">17 November
 2026 – Two handoffs, and Regex in the names</h2>
 <ul>
@@ -372,11 +418,11 @@ article, Main.htm, or a web page, Markdown or text copy Save Page wrote
 to Downloads under the page’s name. Several copies are offered newest
 first. With none, NVDA offers Save Page or Extract Main Content first,
 and JAWS says how to make one. Nothing is converted or overwritten.</li>
-<li><strong>Show Page Folder in FileDir,</strong> on the same menus,
-opens this page’s folder in FileDir, as Page Folder (Alt+Shift+F) opens
-it in File Explorer. Both commands find the other app through the Homer
-kit, as DbDo’s and EdSharp’s Show in FileDir do, and say so when it is
-not installed.</li>
+<li><strong>Page Folder in FileDir,</strong> on the same menus, opens
+this page’s folder in FileDir, as Page Folder (Alt+Shift+F) opens it in
+File Explorer. Both commands find the other app through the Homer kit,
+as DbDo’s and EdSharp’s Show in FileDir do, and say so when it is not
+installed.</li>
 <li><strong>Find and Yield say “with Regex”,</strong> as in EdSharp:
 Forward Find with Regex (Control+F3), Reverse Find with Regex
 (Control+Shift+F3), Yield with Regex (Control+Shift+Y) and, under JAWS,

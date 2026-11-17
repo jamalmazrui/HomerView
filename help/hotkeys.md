@@ -57,16 +57,16 @@ category, where every command here can be changed.
 
 - **Go to Percent**, Control+G. Go to percentage point in document, as EdSharp does on the same key.
 - **Go to Percent Again**, Alt+G. Repeat Go command, or move a step further with plus or minus.
-- **Jump to Main**, J, or Alt+NVDA+J. Jumps to the main content the page declares. J for Jump, and it is one of only three letters NVDA leaves free in a page.
-- **Jump to Probable Main**, Shift+J. Finds the main content of a page that declares none, by weighing every part of it, and says that it inferred rather than was told.
-- **Next Different Kind**, Alt+Z. Moves to the next thing of a different kind, which JAWS does with D.
-- **Next Paragraph**, Control+DownArrow. Moves to the next paragraph and reads it. Control with an arrow moves by paragraph in Word and in most editors.
-- **Next Same Kind**, Z. Moves to the next thing of the same kind as the one you are on, whatever that is. Z because NVDA leaves it free, and JAWS does this with S.
-- **Next Sentence**, Alt+DownArrow. Moves to the next sentence and reads it. Alt with an arrow moves by something larger than a line and smaller than a paragraph.
-- **Previous Different Kind**, Alt+Shift+Z. Moves to the previous thing of a different kind.
-- **Previous Paragraph**, Control+UpArrow. Moves to the previous paragraph and reads it.
-- **Previous Same Kind**, Shift+Z. Moves to the previous thing of the same kind as the one you are on.
-- **Previous Sentence**, Alt+UpArrow. Moves to the previous sentence and reads it.
+- **Jump to Main**, J, or Alt+NVDA+J. Jump to the main content the page declares. J for Jump, and it is one of only three letters NVDA leaves free in a page.
+- **Jump to Probable Main**, Shift+J. Find the main content of a page that declares none, by weighing every part of it, and says that it inferred rather than was told.
+- **Next Different Kind**, Alt+Z. Move to the next thing of a different kind, which JAWS does with D.
+- **Next Paragraph**, Control+DownArrow. Move to the next paragraph and reads it. Control with an arrow moves by paragraph in Word and in most editors.
+- **Next Same Kind**, Z. Move to the next thing of the same kind as the one you are on, whatever that is. Z because NVDA leaves it free, and JAWS does this with S.
+- **Next Sentence**, Alt+DownArrow. Move to the next sentence and reads it. Alt with an arrow moves by something larger than a line and smaller than a paragraph.
+- **Previous Different Kind**, Alt+Shift+Z. Move to the previous thing of a different kind.
+- **Previous Paragraph**, Control+UpArrow. Move to the previous paragraph and reads it.
+- **Previous Same Kind**, Shift+Z. Move to the previous thing of the same kind as the one you are on.
+- **Previous Sentence**, Alt+UpArrow. Move to the previous sentence and reads it.
 
 ## Finding text
 
@@ -81,8 +81,8 @@ category, where every command here can be changed.
 
 ## Listing what is on the page
 
-- **Explore Page**, Y, or Alt+NVDA+E. Describes how the page is laid out, including what a sighted person can see that your reading order never mentions. E for Explore. It gave up its bare Y: a single letter in browse mode reads as a navigation key, and this command does not move anywhere.
-- **List Elements**, Alt+NVDA+L. Lists any kind of element, including kinds NVDA's own Elements List does not offer. L for List.
+- **Explore Page**, Y, or Alt+NVDA+E. Describe how the page is laid out, including what a sighted person can see that your reading order never mentions. E for Explore. It gave up its bare Y: a single letter in browse mode reads as a navigation key, and this command does not move anywhere.
+- **List Elements**, Alt+NVDA+L. List any kind of element, including kinds NVDA's own Elements List does not offer. L for List.
 - **List Form Fields**, NVDA+F5. List the form fields on the page, on the key JAWS uses for its form field list.
 - **List Headings**, NVDA+F6. List the headings on the page, on the key JAWS uses for its heading list.
 - **List Links**, NVDA+Shift+F7. List the links on the page, beside the key JAWS uses for its link list.
@@ -91,14 +91,14 @@ category, where every command here can be changed.
 
 - **Link Target**, Alt+L. Ask what is actually at that link without going there: what kind of thing, how big, and whether it ends up where it claims. L for Link.
 - **Page Links to Clipboard**, Alt+Shift+P. Copy every link address on the page to the clipboard, as EdSharp copies a path on the same key.
-- **Say Address**, Alt+A. Says the web address of this page. Twice spells it, three times copies it. A for Address.
-- **Say Address Anywhere**, Alt+NVDA+U. Says the web address from anywhere in the window, including the address bar.
-- **Say Metadata**, Alt+M. Says what the page claims about itself: author, publisher, date and licence. M for Metadata.
+- **Say Address**, Alt+A. Say the web address of this page. Twice spells it, three times copies it. A for Address.
+- **Say Address Anywhere**, Alt+NVDA+U. Say the web address from anywhere in the window, including the address bar.
+- **Say Metadata**, Alt+M. Say what the page claims about itself: author, publisher, date and licence. M for Metadata.
 - **Say Position**, Alt+Delete, or Alt+NumPadDelete. Say the current position: the line, the column and the percent.
 - **Say Time**, Alt+SemiColon. Say the date and time.
 - **Say url**, Alt+U. Say where the link at the cursor would go. U for url.
 - **Say Yield**, Alt+Y. Say how many characters, words and lines are in all or the selected text.
-- **Yield Structure**, Alt+Shift+Y. Says how the page is built: how many headings, links, forms and the rest.
+- **Yield Structure**, Alt+Shift+Y. Say how the page is built: how many headings, links, forms and the rest.
 - **Yield with Regex**, Control+Shift+Y. Count parts of text matching a regular expression, which answers how many rather than where.
 
 ## Reading aloud
@@ -106,7 +106,7 @@ category, where every command here can be changed.
 - **Read All**, Alt+F8. Say all text, without moving the cursor.
 - **Say Chunk**, Shift+Backspace. Say chunk at cursor, or spell if repeated.
 - **Say Selected**, Shift+Space. Say the selected text.
-- **Toggle Reading**, ScrollLock. Starts reading continuously, or stops if it is already reading. Scroll Lock because nothing else in Edge, NVDA or Windows wants it.
+- **Toggle Reading**, ScrollLock. Start reading continuously, or stops if it is already reading. Scroll Lock because nothing else in Edge, NVDA or Windows wants it.
 
 ## Selecting and the clipboard
 
@@ -124,29 +124,29 @@ category, where every command here can be changed.
 
 ## Acting on the page
 
-- **Check Accessibility**, Alt+Shift+A. Tests the page for accessibility problems, asking which engine to use, and offers to report what it finds to whoever publishes the site. A for Accessibility.
-- **Check with Axe**, no key. Tests the page with Deque's axe-core engine. Offered by Check Accessibility.
-- **Check with Equal Access**, no key. Tests the page with IBM's Equal Access engine. Offered by Check Accessibility.
-- **Consult Copilot**, Alt+NVDA+C. Copies the page text and opens Edge's Copilot sidebar, ready for a question. C for Copilot.
-- **Dismiss Dialog**, Alt+Shift+D. Closes a browser dialog that is blocking the window. D for Dismiss, and it works anywhere because a dialog is what has the focus.
-- **Extract Main Content**, Shift+F9. Extracts the readable part of the page into a page of its own that you can search, save or send. F9 is Edge's own reading view, and Shift+F9 is HomerView's, which works on pages Edge will not.
-- **Find Contacts**, Alt+Shift+C. Finds who to tell about this site: email addresses, the accessibility statement, contact pages and social media. Looks at this page, the home page, and the addresses a statement usually lives at.
-- **Instruct Page**, Alt+I. Carries out instructions written in ordinary words, such as click sign in. I for Instruct.
-- **List Names**, Alt+N. Lists the people, places, organisations and dates a page mentions, saved as Names.htm in the page's folder and opened. A rule-based engine reads the text, so it guesses; the report says so.
-- **Open Document**, Control+O. Opens a Word file, spreadsheet, slide deck, PDF or ebook, converting it to a page so every command here works on it. Control+O opens in every program; this one opens more.
+- **Check Accessibility**, Alt+Shift+A. Test the page for accessibility problems, asking which engine to use, and offers to report what it finds to whoever publishes the site. A for Accessibility.
+- **Check with Axe**, no key. Test the page with Deque's axe-core engine. Offered by Check Accessibility.
+- **Check with Equal Access**, no key. Test the page with IBM's Equal Access engine. Offered by Check Accessibility.
+- **Consult Copilot**, Alt+NVDA+C. Copy the page text and opens Edge's Copilot sidebar, ready for a question. C for Copilot.
+- **Dismiss Dialog**, Alt+Shift+D. Close a browser dialog that is blocking the window. D for Dismiss, and it works anywhere because a dialog is what has the focus.
+- **Extract Main Content**, Shift+F9. Extract the readable part of the page into a page of its own that you can search, save or send. F9 is Edge's own reading view, and Shift+F9 is HomerView's, which works on pages Edge will not.
+- **Find Contacts**, Alt+Shift+C. Find who to tell about this site: email addresses, the accessibility statement, contact pages and social media. Looks at this page, the home page, and the addresses a statement usually lives at.
+- **Instruct Page**, Alt+I. Carry out instructions written in ordinary words, such as click sign in. I for Instruct.
+- **List Names**, Alt+N. List the people, places, organisations and dates a page mentions, saved as Names.htm in the page's folder and opened. A rule-based engine reads the text, so it guesses; the report says so.
+- **Open Document**, Control+O. Open a Word file, spreadsheet, slide deck, PDF or ebook, converting it to a page so every command here works on it. Control+O opens in every program; this one opens more.
 - **Open Saved Page in EdSharp**, no key. Open a copy of this page that was saved or extracted earlier in EdSharp, to read or edit it as text. With none saved, it offers to save the page or extract its main content first.
 - **Page Folder in FileDir**, no key. Open this page's folder in FileDir, to work with what was saved from it, as Page Folder opens it in Explorer.
-- **Query Web**, Alt+Q, or Alt+NVDA+Q. Looks something up using free services that need no account: a definition, a place, the weather, a book. Q for Query.
-- **Report Accessibility**, no key. Tests the page and writes a report addressed to whoever publishes the site. Reached by Check Accessibility once an engine is chosen.
-- **Save Page**, Control+S. Saves the page in any of nine formats. Control+S saves in every program; this one saves more ways.
-- **Submit Form**, Control+Enter. Submits the form you are filling in, from any field in it, so you need not find the button.
+- **Query Web**, Alt+Q, or Alt+NVDA+Q. Look something up using free services that need no account: a definition, a place, the weather, a book. Q for Query.
+- **Report Accessibility**, no key. Test the page and write a report addressed to whoever publishes the site. Reached by Check Accessibility once an engine is chosen.
+- **Save Page**, Control+S. Save the page in any of nine formats. Control+S saves in every program; this one saves more ways.
+- **Submit Form**, Control+Enter. Submit the form you are filling in, from any field in it, so you need not find the button.
 - **Web Download**, Alt+Shift+W. Download files linked from a web page.
 
 ## The window and its tabs
 
-- **Tab Close Others**, Control+Shift+F4. Closes every tab but the one you are reading. Control+F4 closes one tab, so Control+Shift+F4 closes the rest.
-- **Tab List**, F4. Lists the HomerView tabs and switches to the one you choose. F4 is the Homer window list, and Edge has two other keys for what F4 does there.
-- **Tab Names**, Shift+F4. Says the names of the open tabs without moving the keyboard anywhere.
+- **Tab Close Others**, Control+Shift+F4. Close every tab but the one you are reading. Control+F4 closes one tab, so Control+Shift+F4 closes the rest.
+- **Tab List**, F4. List the HomerView tabs and switches to the one you choose. F4 is the Homer window list, and Edge has two other keys for what F4 does there.
+- **Tab Names**, Shift+F4. Say the names of the open tabs without moving the keyboard anywhere.
 
 ## Changing how HomerView behaves
 
@@ -158,8 +158,8 @@ category, where every command here can be changed.
 
 - **Elevate Version**, Control+F11, or Alt+NVDA+F11. Download and install the latest HomerView.
 - **Recent Pages**, Alt+R. Open a page from the list of those recently used, on the key EdSharp uses for its recent files.
-- **Report Connection**, no key. Says whether HomerView is connected to the browser, and how.
-- **Self Test**, no key. Checks that all three ways of reaching the browser are working.
+- **Report Connection**, no key. Say whether HomerView is connected to the browser, and how.
+- **Self Test**, no key. Check that all three ways of reaching the browser are working.
 
 ## Everything else
 

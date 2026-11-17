@@ -1,6 +1,11 @@
 ﻿
 
 
+## 17 November 2026 -- Descriptions in the suite's words
+
+- **Every description begins with its verb, as an instruction,** as DbDo's, EdSharp's and FileDir's do: "Say the web address of this page", not "Says the web address of this page". Thirty-six had begun with "Says", "Moves", "Lists" or the like. The rule in commands.py says so now.
+- HomerView now needs HomerDev 1.246.0.
+
 ## 17 November 2026 -- Both keys in the key file, and JAWS names that match
 
 - **configs\Hotkeys.inix lists every NVDA key of a command,** joined by "or", where it gave only the first, and says in the description when JAWS uses another key: "Under JAWS, Shift+Q." It had put both readers' keys in one malformed key field.

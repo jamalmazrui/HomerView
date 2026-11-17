@@ -18,7 +18,7 @@ weights have been published, which is not the same thing as the service being
 open. None of them belong here under this rule.
 """
 
-startPageVersion = "b47e3fd7"
+startPageVersion = "e336ec0f"
 
 startPageText = """<!doctype html>
 <html lang="en">
@@ -86,11 +86,11 @@ for the full list, including the few that differ.</p>
 <li><strong>Copy Append</strong>, Alt+C &mdash; Add the selected text or the current line to the end of the clipboard.</li>
 <li><strong>Copy Line</strong>, Control+C &mdash; Copy selected text to clipboard, or copy current line if no selection.</li>
 <li><strong>Copy Log</strong>, Alt+Shift+L &mdash; Copy the session log to the clipboard as a file.</li>
-<li><strong>Dismiss Dialog</strong>, Alt+Shift+D &mdash; Closes a browser dialog that is blocking the window.</li>
+<li><strong>Dismiss Dialog</strong>, Alt+Shift+D &mdash; Close a browser dialog that is blocking the window.</li>
 <li><strong>Edit Settings</strong>, Alt+Shift+E &mdash; Edit HomerView's settings file.</li>
 <li><strong>Elevate Version</strong>, Control+F11 &mdash; Download and install the latest HomerView.</li>
-<li><strong>Extract Main Content</strong>, Shift+F9 &mdash; Extracts the readable part of the page into a page of its own that you can search, save or send.</li>
-<li><strong>Find Contacts</strong>, Alt+Shift+C &mdash; Finds who to tell about this site: email addresses, the accessibility statement, contact pages and social media.</li>
+<li><strong>Extract Main Content</strong>, Shift+F9 &mdash; Extract the readable part of the page into a page of its own that you can search, save or send.</li>
+<li><strong>Find Contacts</strong>, Alt+Shift+C &mdash; Find who to tell about this site: email addresses, the accessibility statement, contact pages and social media.</li>
 <li><strong>Forward Find</strong>, Control+F &mdash; Search forward for string, using NVDA's own find so the dialog and its behaviour are the ones you already know.</li>
 <li><strong>Forward Find at Cursor</strong>, Alt+F3 &mdash; Search forward for chunk or selected text, on the key EdSharp uses for it.</li>
 <li><strong>Forward Find with Regex</strong>, Control+F3 &mdash; Search forward for regular expression, which NVDA's own find cannot do.</li>
@@ -99,8 +99,8 @@ for the full list, including the few that differ.</p>
 <li><strong>Key Describer Toggle</strong>, Control+F1 &mdash; Turn key describing on or off: a key says its command instead of running it.</li>
 <li><strong>Launch HomerView</strong>, Alt+Control+Shift+H &mdash; Start HomerView, or switch to it, from its desktop shortcut.</li>
 <li><strong>Link Target</strong>, Alt+L &mdash; Ask what is actually at that link without going there: what kind of thing, how big, and whether it ends up where it claims.</li>
-<li><strong>List Names</strong>, Alt+N &mdash; Lists the people, places, organisations and dates a page mentions, saved as Names.htm in the page's folder and opened.</li>
-<li><strong>Open Document</strong>, Control+O &mdash; Opens a Word file, spreadsheet, slide deck, PDF or ebook, converting it to a page so every command here works on it.</li>
+<li><strong>List Names</strong>, Alt+N &mdash; List the people, places, organisations and dates a page mentions, saved as Names.htm in the page's folder and opened.</li>
+<li><strong>Open Document</strong>, Control+O &mdash; Open a Word file, spreadsheet, slide deck, PDF or ebook, converting it to a page so every command here works on it.</li>
 <li><strong>Page Folder</strong>, Alt+Shift+F &mdash; Open this page's folder in File Explorer, to browse what was saved from it.</li>
 <li><strong>Page Links to Clipboard</strong>, Alt+Shift+P &mdash; Copy every link address on the page to the clipboard, as EdSharp copies a path on the same key.</li>
 <li><strong>Read All</strong>, Alt+F8 &mdash; Say all text, without moving the cursor.</li>
@@ -110,15 +110,15 @@ for the full list, including the few that differ.</p>
 <li><strong>Reverse Find at Cursor</strong>, Alt+Shift+F3 &mdash; Search backward for chunk or selected text.</li>
 <li><strong>Reverse Find with Regex</strong>, Control+Shift+F3 &mdash; Search backward for regular expression.</li>
 <li><strong>Save Clipboard</strong>, Control+Apostrophe &mdash; Save the clipboard text to a file you name.</li>
-<li><strong>Save Page</strong>, Control+S &mdash; Saves the page in any of nine formats.</li>
+<li><strong>Save Page</strong>, Control+S &mdash; Save the page in any of nine formats.</li>
 <li><strong>Say Clipboard</strong>, Alt+Apostrophe &mdash; Say the clipboard text.</li>
-<li><strong>Say Metadata</strong>, Alt+M &mdash; Says what the page claims about itself: author, publisher, date and licence.</li>
+<li><strong>Say Metadata</strong>, Alt+M &mdash; Say what the page claims about itself: author, publisher, date and licence.</li>
 <li><strong>Say Yield</strong>, Alt+Y &mdash; Say how many characters, words and lines are in all or the selected text.</li>
 <li><strong>Search Next</strong>, F3 &mdash; Repeat the last search, forward.</li>
 <li><strong>Search Previous</strong>, Shift+F3 &mdash; Repeat the last search, backward.</li>
 <li><strong>Session Log</strong>, Control+Shift+L &mdash; Open a copy of this session's log, for working out what went wrong.</li>
 <li><strong>Start Selection</strong>, F8 &mdash; Mark starting point of text to be selected, so Shift need not be held while you move.</li>
-<li><strong>Tab Names</strong>, Shift+F4 &mdash; Says the names of the open tabs without moving the keyboard anywhere.</li>
+<li><strong>Tab Names</strong>, Shift+F4 &mdash; Say the names of the open tabs without moving the keyboard anywhere.</li>
 <li><strong>Web Download</strong>, Alt+Shift+W &mdash; Download files linked from a web page.</li>
 <li><strong>Yield with Regex</strong>, Control+Shift+Y &mdash; Count parts of text matching a regular expression, which answers how many rather than where.</li>
 </ul>

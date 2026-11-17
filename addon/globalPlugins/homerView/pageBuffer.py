@@ -610,9 +610,6 @@ class HomerViewBuffer:
 
 
     @script(description=_("Say current time and date."), category="HomerView", speakOnDemand=True)
-    def script_sayTime(self, gesture):
-        self.runSafely("sayTime", lambda: homerCommands.sayTime())
-
     @script(description=_("Go to percentage point in document, as EdSharp does on the same key."), category="HomerView")
     def script_goToPercent(self, gesture):
         # Deferred, so NVDA has finished the script before the dialog opens.
@@ -1030,7 +1027,6 @@ class HomerViewBuffer:
             self._homer("describeLinkTarget",
                         _("Ask what is at the link under the cursor, without going there")),
             self._homer("pageUrls", _("Copy every link address on the page to the clipboard")),
-            self._homer("sayTime", _("Say the time, and the date when pressed twice")),
             self._homer("goToPercent", _("Move to a percentage point through the page")),
             self._homer("goToPercentAgain", _("Move to the percentage point used last time")),
             self._homer("quoteClipboard", _("Say the clipboard text")),

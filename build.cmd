@@ -82,7 +82,7 @@ if not defined homerDev (
 set "homerVer=0.0.0"
 if exist "!homerDev!\version.txt" set /p homerVer=<"!homerDev!\version.txt"
 rem 1.65.3: the kit's Python modules work in the add-on's package, and the build copies them in.
-set "kitNeeded=1.246.0"
+set "kitNeeded=1.247.0"
 rem TRIMMED BEFORE IT IS COMPARED. FileDir's build of 25 September stopped
 rem with "kit 1.40.1 is older than 1.40.1": the kit's version.txt carried a
 rem trailing space, [version] would not parse "1.40.1 ", PowerShell threw, and
@@ -183,7 +183,9 @@ rem release. A NAME THE KIT DOES NOT HAVE IS SAID, NOT SKIPPED: this loop used
 rem to copy "if exist", so after a rename every copy would quietly have been
 rem skipped and HomerView kept its stale old-named scripts with nothing in the
 rem log to say so.
-for %%F in (check.cmd check.py fixEncoding.cmd fixEncoding.py kind.cmd kind.py push.cmd release.cmd release.ps1 tidy.cmd tidy.py unpushed.cmd unpushed.py) do (
+rem testSay, runMacro and recordWalk joined on 17 November 2026: every Homer app's Say commands can be heard
+rem with testSay, which plays them through runMacro and recordWalk; run from HomerDev, it tests every app.
+for %%F in (check.cmd check.py fixEncoding.cmd fixEncoding.py kind.cmd kind.py push.cmd release.cmd recordWalk.cmd recordWalk.py release.ps1 runMacro.cmd runMacro.py testSay.cmd testSay.py tidy.cmd tidy.py unpushed.cmd unpushed.py) do (
   if exist "!homerDev!\scripts\%%F" (
     copy /y "!homerDev!\scripts\%%F" scripts\ >nul && echo Refreshed scripts\%%F>> "%log%"
   ) else (

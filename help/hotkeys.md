@@ -95,7 +95,6 @@ category, where every command here can be changed.
 - **Say Address Anywhere**, Alt+NVDA+U. Say the web address from anywhere in the window, including the address bar.
 - **Say Metadata**, Alt+M. Say what the page claims about itself: author, publisher, date and licence. M for Metadata.
 - **Say Position**, Alt+Delete, or Alt+NumPadDelete. Say the current position: the line, the column and the percent.
-- **Say Time**, Alt+SemiColon. Say the date and time.
 - **Say url**, Alt+U. Say where the link at the cursor would go. U for url.
 - **Say Yield**, Alt+Y. Say how many characters, words and lines are in all or the selected text.
 - **Yield Structure**, Alt+Shift+Y. Say how the page is built: how many headings, links, forms and the rest.

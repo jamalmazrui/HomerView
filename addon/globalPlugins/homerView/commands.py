@@ -209,8 +209,6 @@ lCommands = [
     ("pageUrls", "Page Links to Clipboard", ["kb:alt+shift+p"],
      "Copy every link address on the page to the clipboard, as EdSharp copies a "
      "path on the same key."),
-    ("sayTime", "Say Time", ["kb:alt+;"],
-     "Say the date and time."),
 
     # --- Reading -----------------------------------------------------------
     ("readAll", "Read All", ["kb:alt+f8"],
@@ -369,7 +367,7 @@ lGroups = [
     ("Asking about the page", [
         "reportPageAddress", "reportAddressAnywhere", "pageInformation",
         "sayPosition", "sayYield", "sayYieldStructure", "sayYieldPattern",
-        "urlReference", "describeLinkTarget", "pageUrls", "sayTime"]),
+        "urlReference", "describeLinkTarget", "pageUrls"]),
     ("Reading aloud", [
         "readAll", "toggleSayAll", "saySelected", "sayChunk"]),
     ("Selecting and the clipboard", [

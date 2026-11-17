@@ -38,7 +38,7 @@ for k, l in enumerate(jss[i:].split("\r\n")):
 # a key the reader already has.
 native = {
  "next paragraph", "previous paragraph", "next sentence", "previous sentence",
- "say time", "voice faster", "voice louder", "voice slower", "voice softer",
+ "voice faster", "voice louder", "voice slower", "voice softer",
  "toggle punctuation", "toggle reading", "list headings", "list links",
  "list form fields", "list elements", "forward find", "say position",
  "select chunk", "say chunk", "go to percent", "go to percent again",

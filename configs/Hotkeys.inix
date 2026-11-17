@@ -77,7 +77,6 @@ Say Clipboard=Alt+Apostrophe, Say the clipboard text.
 Say Metadata=Alt+M, Say what the page claims about itself: author, publisher, date and licence.
 Say Position=Alt+Delete or Alt+NumPadDelete, Say the current position: the line, the column and the percent.
 Say Selected=Shift+Space, Say the selected text.
-Say Time=Alt+SemiColon, Say the date and time.
 Say url=Alt+U, Say where the link at the cursor would go.
 Say Yield=Alt+Y, Say how many characters, words and lines are in all or the selected text.
 Search Next=F3, Repeat the last search, forward.

@@ -1,6 +1,11 @@
 ﻿
 
 
+## 17 November 2026 -- Say Time retired, and testSay
+
+- **Say Time is gone.** NVDA and JAWS say the time with Insert+F12 (NVDA+F12) in every program, so HomerView's own command only repeated it.
+- **testSay comes to HomerView,** with runMacro and recordWalk from the kit: run scripts\testSay with no argument and every Say command is pressed once, twice and described.
+
 ## 17 November 2026 -- Descriptions in the suite's words
 
 - **Every description begins with its verb, as an instruction,** as DbDo's, EdSharp's and FileDir's do: "Say the web address of this page", not "Says the web address of this page". Thirty-six had begun with "Says", "Moves", "Lists" or the like. The rule in commands.py says so now.

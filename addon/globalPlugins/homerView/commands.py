@@ -107,6 +107,10 @@ lCommands = [
      "commands live because they are used once and then not again for months."),
     ("openSettings", "Edit Settings", ["kb:alt+shift+e"],
      "Edit HomerView's settings file."),
+    # In the table since 17 November 2026: it had been on the Alternate Menu only, so the Hotkeys document and the
+    # suite manifest did not know it.
+    ("chooseActiveBrowsers", "Choose Active Browsers", [],
+     "Choose which other installed browsers HomerView's keys work in, besides the one it drives."),
 
     # --- Moving through a page -------------------------------------------
     ("moveToMainContent", "Jump to Main", ["kb:j", "kb:NVDA+alt+j"],
@@ -145,9 +149,9 @@ lCommands = [
      "behaviour are the ones you already know."),
     ("findTextBackwards", "Reverse Find", ["kb:control+shift+f"],
      "Search backward for string."),
-    ("findByPattern", "Forward Find with Regular Expression", ["kb:control+f3"],
+    ("findByPattern", "Forward Find with Regex", ["kb:control+f3"],
      "Search forward for regular expression, which NVDA's own find cannot do."),
-    ("findByPatternBackwards", "Reverse Find with Regular Expression",
+    ("findByPatternBackwards", "Reverse Find with Regex",
      ["kb:control+shift+f3"],
      "Search backward for regular expression."),
     ("findAgain", "Search Next", ["kb:f3"],
@@ -191,7 +195,7 @@ lCommands = [
      "Say how many characters, words and lines are in all or the selected text."),
     ("sayYieldStructure", "Yield Structure", ["kb:alt+shift+y"],
      "Says how the page is built: how many headings, links, forms and the rest."),
-    ("sayYieldPattern", "Yield with Regular Expression", ["kb:control+shift+y"],
+    ("sayYieldPattern", "Yield with Regex", ["kb:control+shift+y"],
      "Count parts of text matching a regular expression, which answers how many "
      "rather than where."),
     ("urlReference", "Say url", ["kb:alt+u"],
@@ -256,6 +260,13 @@ lCommands = [
      "HomerView's, which works on pages Edge will not."),
     ("downloadFiles", "Web Download", ["kb:alt+shift+w"],
      "Download files linked from a web page."),
+    # HANDING THE PAGE TO ANOTHER HOMER APP (17 November 2026, the keyboard audit's handoffs). Both are on the
+    # Alternate Menu with no key: Page Folder keeps Alt+Shift+F and Explorer, and nothing is converted or overwritten.
+    ("openSavedPageInEdSharp", "Open Saved Page in EdSharp", [],
+     "Open a copy of this page that was saved or extracted earlier in EdSharp, to read or edit it as text. With none "
+     "saved, it offers to save the page or extract its main content first."),
+    ("showPageFolderInFileDir", "Page Folder in FileDir", [],
+     "Open this page's folder in FileDir, to work with what was saved from it, as Page Folder opens it in Explorer."),
     ("openPageFolder", "Page Folder", ["kb:alt+shift+f"],
      "Open this page's folder in File Explorer, to browse what was saved from it. "
      "Nothing is created: if nothing has been saved from this page, it says so. "
@@ -364,13 +375,14 @@ lGroups = [
         "saveClipboard", "appendClipboard", "clearClipboard"]),
     ("Acting on the page", [
         "openOtherFormat", "saveAs", "extractMainContent", "downloadFiles",
+        "openSavedPageInEdSharp", "showPageFolderInFileDir",
         "submitForm", "actOnPage", "runAccessibilityCheck", "openCopilot",
         "webUtilities", "dismissDialog", "runAxe", "runIbmChecker",
         "accessibilityReport", "findContacts", "listNames"]),
     ("The window and its tabs", [
         "chooseTab", "sayTabs", "closeOtherTabs"]),
     ("Changing how HomerView behaves", [
-        "chooseBrowser", "openSettings"]),
+        "chooseBrowser", "chooseActiveBrowsers", "openSettings"]),
     ("Now and then", [
         "elevateVersion", "recentPages", "reportConnection", "selfTest"]),
 ]
@@ -445,7 +457,8 @@ setAnywhereScripts = {
 # chooseBrowser, openSettings and openPageFolder are bound by @script on the global plugin (10 November 2026), so the
 # page's bindings, now made from this table, leave them out rather than bind them twice.
 setGlobalScripts = {
-    "chooseBrowser", "openPageFolder", "openSettings",
+    "chooseActiveBrowsers", "chooseBrowser", "openPageFolder", "openSavedPageInEdSharp", "openSettings",
+    "showPageFolderInFileDir",
     "downloadFiles", "extractMainContent", "logToClipboard", "openDeveloperNotes",
     "openLog",
     "openQuickStart", "saveAs", "submitForm",

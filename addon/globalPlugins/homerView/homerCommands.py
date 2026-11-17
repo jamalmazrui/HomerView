@@ -231,7 +231,7 @@ def _sayYieldPatternNow(treeInterceptor):
     sPrevious = find.restorePattern()
     sPattern = lbc.dialogInput(
         # Translators: Title of the dialog counting pattern matches.
-        _("Yield with pattern"),
+        _("Yield with Regex"),
         # Translators: Label of the field for a regular expression to count.
         _("&Regular expression to count:"),
         sPrevious,
@@ -246,7 +246,7 @@ def _sayYieldPatternNow(treeInterceptor):
         homerLog.warning(f"The pattern would not compile: {exception}")
         lbc.dialogInfo(
             # Translators: Title of the message about a bad pattern.
-            _("Yield with pattern"),
+            _("Yield with Regex"),
             # Translators: Shown when a regular expression is not valid.
             _("That is not a valid regular expression.\n\n{reason}").format(reason=exception))
         return
@@ -296,7 +296,7 @@ def _sayYieldPatternNow(treeInterceptor):
                 # Translators: Shown when more matched than are listed.
                 lLines.append(_("  and {count} more").format(
                     count=len(lMatches) - len(lSamples)))
-    output.lines(_("Yield with pattern"), lLines)
+    output.lines(_("Yield with Regex"), lLines)
 
 
 def countNodes(treeInterceptor, sType):
@@ -1804,6 +1804,96 @@ def openPageFolder(treeInterceptor):
         logError("The page folder could not be opened")
         # Translators: Reported when the folder could not be opened.
         ui.message(_("That folder could not be opened"))
+
+
+def _activePageTitle():
+    """The CDP title of the page in front, which every tool that saves from the page names its folder by."""
+    from .service import service
+
+    dTarget, _sSessionId = service.cdpSession.findActivePageSession()
+    return (dTarget.get("title", "") or dTarget.get("url", "")).strip()
+
+
+def showPageFolderInFileDir():
+    """Open this page's folder in FileDir (17 November 2026), as Page Folder opens it in Explorer.
+
+    The same folder Page Folder opens, found the same way and never created: a command for working with what was
+    saved should not make an empty folder. FileDir is found and started by the Homer kit's openInHomerApp, the
+    Python twin of the C# one DbDo and EdSharp use for Show in FileDir, so every Homer app hands over alike.
+    """
+    from . import paths
+    from .homer import conversion as kitConversion
+    from .service import service
+
+    try:
+        if not service.isConnected():
+            # Translators: Reported when HomerView has no connection.
+            ui.message(needsHomerView)
+            return
+        sTitle = _activePageTitle()
+        if not sTitle:
+            # Translators: Reported when there is no page to find a folder for.
+            ui.message(_("There is no page to find a folder for"))
+            return
+        pathFolder = paths.getDownloadsFolder() / paths.safeStem(sTitle)
+        homerLog.info(f"Show page folder in FileDir: {pathFolder}")
+        if not pathFolder.is_dir():
+            # Translators: Reported when nothing has been saved from this page.
+            ui.message(_("Nothing has been saved from this page yet"))
+            return
+        bOk, sAnswer = kitConversion.openInHomerApp("FileDir", str(pathFolder))
+        homerLog.info(f"Show page folder in FileDir: {bOk}, {sAnswer}")
+        ui.message(sAnswer)
+    except Exception:
+        logError("The page folder could not be shown in FileDir")
+        # Translators: Reported when FileDir could not be given the folder.
+        ui.message(_("That folder could not be shown in FileDir"))
+
+
+# What Open Saved Page in EdSharp may open: text EdSharp reads as it is. A Word copy is not offered, because opening
+# it would mean converting it, and this command never converts.
+lSavedPageExtensions = [".dom.htm", ".htm", ".html", ".md", ".txt"]
+
+
+def savedPageCopies():
+    """The saved and extracted copies of the page in front, newest first, as paths (17 November 2026).
+
+    A copy is IDENTIFIED, never guessed from a loose match: the extracted article, Main.htm, in the page's own folder,
+    and a file in Downloads whose name is the one Save Page suggests for this page, or the page folder's name, with a
+    text extension. Anything else in Downloads is somebody else's file.
+    """
+    from . import mainContent
+    from . import paths
+
+    sTitle = _activePageTitle()
+    if not sTitle:
+        return []
+    pathDownloads = paths.getDownloadsFolder()
+    lCandidates = [pathDownloads / paths.safeStem(sTitle) / mainContent.mainContentFileName]
+    setStems = {paths.safeStem(sTitle), "".join(c for c in sTitle if c not in '\\/*?:"<>|')[:80]}
+    for sStem in setStems:
+        for sExtension in lSavedPageExtensions:
+            lCandidates.append(pathDownloads / (sStem + sExtension))
+    lFound = []
+    for pathCandidate in lCandidates:
+        try:
+            if pathCandidate.is_file() and pathCandidate not in lFound:
+                lFound.append(pathCandidate)
+        except OSError:
+            continue
+    lFound.sort(key=lambda p: p.stat().st_mtime, reverse=True)
+    homerLog.info(f"Saved copies of {sTitle!r}: {[str(p) for p in lFound]}")
+    return lFound
+
+
+def openSavedPageInEdSharp(pathCopy):
+    """Hand one identified copy to EdSharp, through the kit's openInHomerApp."""
+    from .homer import conversion as kitConversion
+
+    bOk, sAnswer = kitConversion.openInHomerApp("EdSharp", str(pathCopy))
+    homerLog.info(f"Open saved page in EdSharp: {pathCopy}, {bOk}, {sAnswer}")
+    ui.message(sAnswer)
+    return bOk
 
 
 def sayTabs():

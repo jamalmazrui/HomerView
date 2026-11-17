@@ -852,6 +852,11 @@ function checkSixteen {
     foreach ($sOne in $lNames) {
         foreach ($sOther in $lNames) {
             if ($sOne -eq $sOther) { continue }
+            # A FAMILY STARTS WITH ITS NAME (17 November 2026): the suite names Forward Find, Forward Find at
+            # Cursor and Forward Find with Regex as one family, as EdSharp does, and a name that begins another
+            # is heard as its family. A name inside another, as Page Folder was inside Show Page Folder in
+            # FileDir, still fails.
+            if ($sOther.StartsWith($sOne + " ")) { continue }
             if ($sOther.Contains($sOne)) {
                 reportFail ("""" + $sOne + """ is inside """ + $sOther + """, so whichever branch comes first will answer for both")
             }

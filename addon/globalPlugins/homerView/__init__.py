@@ -182,6 +182,10 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
              _("List the file types linked from the page and download the ones you choose"), "downloadFiles"),
             (_("Page folder"), "Alt+Shift+F",
              _("Open this page's folder in File Explorer, to browse what was saved"), "openPageFolder"),
+            (_("Show page folder in FileDir"), "",
+             _("Open this page's folder in FileDir, to work with what was saved"), "showPageFolderInFileDir"),
+            (_("Open saved page in EdSharp"), "",
+             _("Open a saved or extracted copy of this page in EdSharp"), "openSavedPageInEdSharp"),
             (_("Dismiss browser dialog"), "Alt+Shift+D",
              _("Close a Microsoft Edge dialog that is blocking the window"), "dismissDialog"),
             (_("Connection status"), "",
@@ -958,6 +962,76 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 
         lbc.afterScript(lambda: homerCommands.openPageFolder(
             getattr(api.getFocusObject(), "treeInterceptor", None)))
+
+    @script(
+        # Translators: Input help mode message for Page Folder in FileDir.
+        description=_("Open this page's folder in FileDir, to work with what was saved from it."),
+        category="HomerView",
+    )
+    def script_showPageFolderInFileDir(self, gesture):
+        homerLog.info("Command: show the page folder in FileDir")
+        from . import homerCommands
+
+        lbc.afterScript(homerCommands.showPageFolderInFileDir)
+
+    @script(
+        # Translators: Input help mode message for Open Saved Page in EdSharp.
+        description=_("Open a saved or extracted copy of this page in EdSharp; with none saved, offer to make one."),
+        category="HomerView",
+    )
+    def script_openSavedPageInEdSharp(self, gesture):
+        homerLog.info("Command: open a saved copy of the page in EdSharp")
+        if not service.isConnected():
+            # Translators: Reported when HomerView has no connection.
+            ui.message(_("Not connected"))
+            return
+        lbc.afterScript(self._openSavedPageNow)
+
+    def _openSavedPageNow(self):
+        """One copy opens at once; several are offered newest first; none brings the two ways to make one. Nothing
+        is converted or overwritten: the choice of saving runs Save Page itself, which asks for its own file name."""
+        from . import homerCommands
+
+        try:
+            lCopies = homerCommands.savedPageCopies()
+        except Exception:
+            logError("The saved copies of the page could not be found")
+            lCopies = []
+        if len(lCopies) == 1:
+            homerCommands.openSavedPageInEdSharp(lCopies[0])
+            return
+        if lCopies:
+            sChoice = lbc.dialogChoose(
+                # Translators: Title of the dialog choosing a saved copy of the page.
+                _("Open Saved Page in EdSharp"),
+                # Translators: Prompt above the saved copies, newest first.
+                _("Saved copies of this page, newest first."),
+                [f"{p.name} - {p.parent.name}" for p in lCopies],
+            )
+            if not sChoice:
+                homerLog.info("Open saved page in EdSharp cancelled")
+                return
+            for pathCopy in lCopies:
+                if sChoice == f"{pathCopy.name} - {pathCopy.parent.name}":
+                    homerCommands.openSavedPageInEdSharp(pathCopy)
+                    return
+            return
+        # Translators: The choice that saves the page before EdSharp can open it.
+        sSave = _("Save Page first")
+        # Translators: The choice that extracts the main content before EdSharp can open it.
+        sExtract = _("Extract Main Content first")
+        sChoice = lbc.dialogChoose(
+            # Translators: Title of the dialog offered when nothing has been saved from the page.
+            _("Open Saved Page in EdSharp"),
+            # Translators: Prompt when the page has no saved copy yet.
+            _("Nothing has been saved from this page yet. Make a copy first, then run this command again."),
+            [sSave, sExtract],
+        )
+        homerLog.info(f"Open saved page in EdSharp, nothing saved: chose {sChoice!r}")
+        if sChoice == sSave:
+            self._saveAsNow()
+        elif sChoice == sExtract:
+            self.script_extractMainContent(None)
 
     @script(
         # Translators: Input help mode message for Web Download.

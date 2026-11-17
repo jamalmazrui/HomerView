@@ -127,7 +127,7 @@ that key alone.
 Try **Control+F3** with a pattern like `\d{4}` to jump between years on a page,
 or `\$[\d,]+` to move between prices.
 
-**Control+Shift+E**, Extract with Regular Expression, answers the other
+**Control+Shift+E**, Extract with Regex, answers the other
 question: not "where is the next one" but "what are they all". It gathers every
 match into a window, each separated by a form feed between blank lines, so they
 read as a series of small pages rather than a run-on list.
@@ -380,10 +380,10 @@ one sentence, and names the key. It does not fail quietly.
 - Append Clipboard, Clear Clipboard, Copy Append, Save Clipboard, Say Clipboard,
   Copy Log
 - Choose Browser, Edit Settings
-- Complete Selection, Copy Selection, Go to Start of Selection, Start Selection
+- Complete Selection, Copy Line, Go to Start of Selection, Start Selection
 - Developer Notes, History of Changes, Project Announcement, ReadMe,
   Session Log, User Guide
-- Forward Find for Text, Search Next, Reverse Find for Text,
+- Forward Find, Search Next, Reverse Find,
   Search Previous
 - Launch HomerView, Link Target
 - **Open Document.** The file is converted the same way whatever browser you
@@ -403,10 +403,10 @@ settled. Each one says which view it used, so you always know.
 
 - Check Accessibility with axe, Check with Equal Access
 - Dismiss Dialog, Say Metadata
-- Extract Main Content, Extract with Regular Expression, Yield with Pattern
+- Extract Main Content, Extract with Regex, Yield with Regex
 - Find Contacts, List Names
 - Forward Find at Cursor, Reverse Find at Cursor,
-  Forward Find with Regular Expression, Reverse Find with Regular Expression
+  Forward Find with Regex, Reverse Find with Regex
 - Save Page, Page Folder, Web Download
 - Recent Pages, Tab List, Tab Names
 - Elevate Version
@@ -434,7 +434,7 @@ on. Each entry gives the NVDA key and the JAWS key.
 #### Changing how HomerView behaves
 
 - **Choose Active Browsers**
-    - NVDA: on the Alternate Menu
+    - NVDA: no key
     - JAWS: set activeBrowsers in the settings file, with Edit Settings
     - Tick the other browsers HomerView's keys should work in, besides the one it drives, so you can change browsers without setting anything up again. In a window HomerView did not open, a key does what the browser itself does.
 - **Choose Browser**
@@ -493,11 +493,11 @@ on. Each entry gives the NVDA key and the JAWS key.
 
 - **Go to Percent**
     - NVDA: Control+G
-    - JAWS: **not yet on JAWS**
+    - JAWS: left to JAWS's own command for this
     - Go to percentage point in document, as EdSharp does on the same key.
 - **Go to Percent Again**
     - NVDA: Alt+G
-    - JAWS: **not yet on JAWS**
+    - JAWS: left to JAWS's own command for this
     - Repeat Go command, or move a step further with plus or minus.
 - **Jump to Main**
     - NVDA: J, or Alt+NVDA+J
@@ -509,46 +509,46 @@ on. Each entry gives the NVDA key and the JAWS key.
     - Finds the main content of a page that declares none, by weighing every part of it, and says that it inferred rather than was told.
 - **Next Different Kind**
     - NVDA: Alt+Z
-    - JAWS: **not yet on JAWS**
+    - JAWS: left to JAWS's own command for this
     - Moves to the next thing of a different kind, which JAWS does with D.
 - **Next Paragraph**
     - NVDA: Control+DownArrow
-    - JAWS: **not yet on JAWS**
+    - JAWS: left to JAWS's own command for this
     - Moves to the next paragraph and reads it. Control with an arrow moves by paragraph in Word and in most editors.
 - **Next Same Kind**
     - NVDA: Z
-    - JAWS: **not yet on JAWS**
+    - JAWS: left to JAWS's own command for this
     - Moves to the next thing of the same kind as the one you are on, whatever that is. Z because NVDA leaves it free, and JAWS does this with S.
 - **Next Sentence**
     - NVDA: Alt+DownArrow
-    - JAWS: **not yet on JAWS**
+    - JAWS: left to JAWS's own command for this
     - Moves to the next sentence and reads it. Alt with an arrow moves by something larger than a line and smaller than a paragraph.
 - **Previous Different Kind**
     - NVDA: Alt+Shift+Z
-    - JAWS: **not yet on JAWS**
+    - JAWS: left to JAWS's own command for this
     - Moves to the previous thing of a different kind.
 - **Previous Paragraph**
     - NVDA: Control+UpArrow
-    - JAWS: **not yet on JAWS**
+    - JAWS: left to JAWS's own command for this
     - Moves to the previous paragraph and reads it.
 - **Previous Same Kind**
     - NVDA: Shift+Z
-    - JAWS: **not yet on JAWS**
+    - JAWS: left to JAWS's own command for this
     - Moves to the previous thing of the same kind as the one you are on.
 - **Previous Sentence**
     - NVDA: Alt+UpArrow
-    - JAWS: **not yet on JAWS**
+    - JAWS: left to JAWS's own command for this
     - Moves to the previous sentence and reads it.
 
 #### Finding text
 
-- **Extract with Regular Expression**
+- **Extract with Regex**
     - NVDA: Control+Shift+E
     - JAWS: Control+Shift+E
     - Gathers every match of a pattern for reading, each separated by a form feed between blank lines.
 - **Forward Find**
     - NVDA: Control+F
-    - JAWS: **not yet on JAWS**
+    - JAWS: left to JAWS's own command for this
     - Search forward for string, using NVDA's own find so the dialog and its behaviour are the ones you already know.
 - **Search Next**
     - NVDA: F3
@@ -556,22 +556,22 @@ on. Each entry gives the NVDA key and the JAWS key.
     - Search forward for next match, of whichever kind of find was used last.
 - **Forward Find at Cursor**
     - NVDA: Alt+F3
-    - JAWS: **not yet on JAWS**
+    - JAWS: Alt+F3
     - Search forward for chunk or selected text, on the key EdSharp uses for it.
-- **Forward Find with Regular Expression**
+- **Forward Find with Regex**
     - NVDA: Control+F3
     - JAWS: Control+F3
     - Search forward for regular expression, which NVDA's own find cannot do.
 - **Forward Find**
     - NVDA: Control+F
-    - JAWS: Control+F (named "Forward Find for Text" there)
+    - JAWS: Control+F
     - Search forward for a string. This searches what your screen reader shows
       you, not what the browser's own find bar searches. The two are not the
       same page: your screen reader builds its own view to make the page easier
       to read and move around, and that is the view you are in.
 - **Reverse Find**
     - NVDA: Control+Shift+F
-    - JAWS: Control+Shift+F (named "Reverse Find for Text" there)
+    - JAWS: Control+Shift+F
     - Search backward for string.
 - **Search Previous**
     - NVDA: Shift+F3
@@ -579,9 +579,9 @@ on. Each entry gives the NVDA key and the JAWS key.
     - Search backward for previous match.
 - **Reverse Find at Cursor**
     - NVDA: Alt+Shift+F3
-    - JAWS: **not yet on JAWS**
+    - JAWS: Alt+Shift+F3
     - Search backward for chunk or selected text.
-- **Reverse Find with Regular Expression**
+- **Reverse Find with Regex**
     - NVDA: Control+Shift+F3
     - JAWS: Control+Shift+F3
     - Search backward for regular expression.
@@ -594,19 +594,19 @@ on. Each entry gives the NVDA key and the JAWS key.
     - Describes how the page is laid out, including what a sighted person can see that your reading order never mentions. E for Explore. It gave up its bare Y: a single letter in browse mode reads as a navigation key, and this command does not move anywhere.
 - **List Elements**
     - NVDA: Alt+NVDA+L
-    - JAWS: **not yet on JAWS**
+    - JAWS: left to JAWS's own command for this
     - Lists any kind of element, including kinds NVDA's own Elements List does not offer. L for List.
 - **List Form Fields**
     - NVDA: NVDA+F5
-    - JAWS: **not yet on JAWS**
+    - JAWS: left to JAWS's own command for this
     - List the form fields on the page, on the key JAWS uses for its form field list.
 - **List Headings**
     - NVDA: NVDA+F6
-    - JAWS: **not yet on JAWS**
+    - JAWS: left to JAWS's own command for this
     - List the headings on the page, on the key JAWS uses for its heading list.
 - **List Links**
     - NVDA: NVDA+Shift+F7
-    - JAWS: **not yet on JAWS**
+    - JAWS: left to JAWS's own command for this
     - List the links on the page, beside the key JAWS uses for its link list.
 
 #### Asking about the page
@@ -625,7 +625,7 @@ on. Each entry gives the NVDA key and the JAWS key.
     - Copy every link address on the page to the clipboard, as EdSharp copies a path on the same key.
 - **Say Address**
     - NVDA: Alt+A
-    - JAWS: **not yet on JAWS**
+    - JAWS: no key, on the menu
     - Says the web address of this page. Twice spells it, three times copies it. A for Address.
 - **Say Address Anywhere**
     - NVDA: Alt+NVDA+U
@@ -637,27 +637,27 @@ on. Each entry gives the NVDA key and the JAWS key.
     - Says what the page claims about itself: author, publisher, date and licence. M for Metadata.
 - **Say Position**
     - NVDA: Alt+Delete, or Alt+NumPadDelete
-    - JAWS: **not yet on JAWS**
+    - JAWS: left to JAWS's own command for this
     - Says the line, column and percentage position of the cursor. Delete sits among the navigation keys, which is where a position question belongs.
 - **Say Time**
     - NVDA: Alt+SemiColon
-    - JAWS: **not yet on JAWS**
+    - JAWS: left to JAWS's own command for this
     - Say current time and date.
 - **Say url**
     - NVDA: Alt+U
-    - JAWS: **not yet on JAWS**
+    - JAWS: Alt+L, where Link Target says the address and describes the page it leads to
     - Say where the link at the cursor would go. U for url.
 - **Say Yield**
     - NVDA: Alt+Y
-    - JAWS: **not yet on JAWS**
+    - JAWS: Alt+Y
     - Say number of characters, words, and lines in all or selected text.
 - **Yield Structure**
     - NVDA: Alt+Shift+Y
-    - JAWS: **not yet on JAWS**
+    - JAWS: no key, on the menu
     - Says how the page is built: how many headings, links, forms and the rest.
-- **Yield with Regular Expression**
+- **Yield with Regex**
     - NVDA: Control+Shift+Y
-    - JAWS: **not yet on JAWS**
+    - JAWS: Control+Shift+Y
     - Count parts of text matching a regular expression, which answers how many rather than where.
 
 #### Reading aloud
@@ -668,11 +668,11 @@ on. Each entry gives the NVDA key and the JAWS key.
     - Say all text, without moving the cursor.
 - **Say Chunk**
     - NVDA: Shift+Backspace
-    - JAWS: **not yet on JAWS**
+    - JAWS: left to JAWS's own command for this
     - Say chunk at cursor, or spell if repeated.
 - **Say Selected**
     - NVDA: Shift+Space
-    - JAWS: **not yet on JAWS**
+    - JAWS: left to JAWS's own command for this
     - Say selected text, or spell if repeated.
 - **Toggle Reading**
     - NVDA: ScrollLock
@@ -703,11 +703,11 @@ on. Each entry gives the NVDA key and the JAWS key.
     - Append selected text to clipboard, or append current line if no selection.
 - **Copy Line**
     - NVDA: Control+C
-    - JAWS: Control+C (named "Copy Selection" there)
+    - JAWS: Control+C
     - Copy selected text to clipboard, or copy current line if no selection.
 - **Go to Start of Selection**
     - NVDA: Alt+Shift+F8
-    - JAWS: **not yet on JAWS**
+    - JAWS: Alt+Shift+F8
     - Return to start position of selection.
 - **Save Clipboard**
     - NVDA: Control+Apostrophe
@@ -719,7 +719,7 @@ on. Each entry gives the NVDA key and the JAWS key.
     - Say clipboard text, or spell if repeated. The apostrophe is a quotation mark, and a clipboard holds a quotation.
 - **Select Chunk**
     - NVDA: Control+Space
-    - JAWS: **not yet on JAWS**
+    - JAWS: left to JAWS's own command for this
     - Select contiguous sequence of non-blank characters at cursor, or select the next chunk if a selection already exists.
 - **Start Selection**
     - NVDA: F8
@@ -734,15 +734,15 @@ on. Each entry gives the NVDA key and the JAWS key.
     - Tests the page for accessibility problems, asking which engine to use, and offers to report what it finds to whoever publishes the site. A for Accessibility.
 - **Check with Axe**
     - NVDA: no key
-    - JAWS: **not yet on JAWS**
+    - JAWS: Alt+Shift+A, as Check Accessibility with axe
     - Tests the page with Deque's axe-core engine. Offered by Check Accessibility.
 - **Check with Equal Access**
     - NVDA: no key
-    - JAWS: Alt+Shift+E (named "Check with Equal Access" there)
+    - JAWS: no key, on the menu
     - Tests the page with IBM's Equal Access engine. Offered by Check Accessibility.
 - **Consult Copilot**
     - NVDA: Alt+NVDA+C
-    - JAWS: **not yet on JAWS**
+    - JAWS: no key, on the menu
     - Copies the page text and opens Edge's Copilot sidebar, ready for a question. C for Copilot.
 - **Dismiss Dialog**
     - NVDA: Alt+Shift+D
@@ -771,6 +771,20 @@ on. Each entry gives the NVDA key and the JAWS key.
       you can look through it in File Explorer. It creates nothing: if you have
       not saved anything from this page yet, it says so. F for Folder, beside
       Alt+Shift+W, which fills the folder.
+- **Open Saved Page in EdSharp**
+    - NVDA: no key
+    - JAWS: no key, on the menu
+    - Opens a copy of this page that you saved or extracted earlier in EdSharp,
+      to read or edit it as text: the extracted article, Main.htm, or a web
+      page, Markdown or text copy Save Page wrote to Downloads under the page's
+      name. Several copies are offered newest first. With none, it offers Save
+      Page or Extract Main Content first. It never converts or overwrites
+      anything.
+- **Page Folder in FileDir**
+    - NVDA: no key
+    - JAWS: no key, on the menu
+    - Opens this page's folder in FileDir, to work with what you saved from it,
+      as Page Folder opens it in File Explorer. It creates nothing.
 - **Query Web**
     - NVDA: Alt+Q, or Alt+NVDA+Q
     - JAWS: **not yet on JAWS**
@@ -785,7 +799,7 @@ on. Each entry gives the NVDA key and the JAWS key.
     - Saves the page in any of nine formats. Control+S saves in every program; this one saves more ways.
 - **Submit Form**
     - NVDA: Control+Enter
-    - JAWS: **not yet on JAWS**
+    - JAWS: no key, on the menu
     - Submits the form you are filling in, from any field in it, so you need not find the button.
 - **Web Download**
     - NVDA: Alt+Shift+W
@@ -796,7 +810,7 @@ on. Each entry gives the NVDA key and the JAWS key.
 
 - **Tab Close Others**
     - NVDA: Control+Shift+F4
-    - JAWS: **not yet on JAWS**
+    - JAWS: no key, on the menu
     - Closes every tab but the one you are reading. Control+F4 closes one tab, so Control+Shift+F4 closes the rest.
 - **Tab List**
     - NVDA: F4
@@ -811,15 +825,15 @@ on. Each entry gives the NVDA key and the JAWS key.
 
 - **Elevate Version**
     - NVDA: Control+F11, or Alt+NVDA+F11
-    - JAWS: **not yet on JAWS**
+    - JAWS: Control+F11
     - Checks whether a newer HomerView exists and installs it.
 - **Recent Pages**
     - NVDA: Alt+R
-    - JAWS: **not yet on JAWS**
+    - JAWS: Alt+R
     - Open a page from the list of those recently used, on the key EdSharp uses for its recent files.
 - **Report Connection**
     - NVDA: no key
-    - JAWS: **not yet on JAWS**
+    - JAWS: no key, on the menu
     - Says whether HomerView is connected to the browser, and how.
 - **Self Test**
     - NVDA: no key

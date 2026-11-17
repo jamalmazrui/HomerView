@@ -251,14 +251,16 @@ def writeHotkeysInix():
     from the same tables as hotkeys.md and the start page, so it cannot be
     wrong on its own.
 
-    Every command is listed. Where the two screen readers share a key it is
-    written once; where they differ, both are written, marked.
+    Every command is listed, with every NVDA key it has, shortest first, as the guide gives them (17 November
+    2026: only the first was written, so Elevate Version lost Alt+NVDA+F11 and Explore Page lost Alt+NVDA+E). The
+    key field holds keys only, so every reader of a Homer key file parses it alike; where JAWS uses another key, the
+    description ends by saying so. It had been "NVDA Shift+J, JAWS Shift+Q", which no key reader understood.
     """
     import re as reModule
     dNvda = {}
     for sScript, dEntry in c.byScript().items():
-        sKey = dEntry["keys"][0].replace("kb:", "") if dEntry["keys"] else ""
-        dNvda[dEntry["name"]] = (sKey, dEntry["description"])
+        lKeys = sorted(set(k.replace("kb:", "") for k in dEntry["keys"]), key=lambda k: (len(k.split("+")), k))
+        dNvda[dEntry["name"]] = (lKeys, dEntry["description"])
     sChain = pathlib.Path("scripts/chainJawsScripts.ps1").read_text(encoding="utf-8-sig")
     dJaws = {m.group(2): m.group(1) for m in reModule.finditer(r'"([^"=]+)=(\w+)"', sChain)}
     sJss = pathlib.Path("scripts/jaws/HomerView.jss").read_text(encoding="utf-8-sig")
@@ -269,17 +271,16 @@ def writeHotkeysInix():
 
     lLines = ["[Hotkeys]",
               "; Written by makeDocs from the command table and the JAWS key list. Do not",
-              "; edit: the next build writes it again. Name=Key, Description. Where JAWS",
-              "; and NVDA differ, both keys are given.", ""]
+              "; edit: the next build writes it again. Name=Keys, Description. The keys are",
+              "; NVDA's; where JAWS uses another, the description says so.", ""]
     for sName in sorted(dNvda, key=str.lower):
-        sNvdaKey, sDescription = dNvda[sName]
-        sNvda = canonicalKey(sNvdaKey)
+        lNvdaKeys, sDescription = dNvda[sName]
+        lNvda = [canonicalKey(k) for k in lNvdaKeys if canonicalKey(k)]
         sJawsKey = canonicalKey(dJawsKeyOfName.get(sName, ""))
-        if sNvda and sJawsKey and sNvda != sJawsKey:
-            sKey = "NVDA %s, JAWS %s" % (sNvda, sJawsKey)
-        else:
-            sKey = sNvda or sJawsKey or "no key"
         sShort = sDescription.split(". ")[0].rstrip(".") + "."
+        if lNvda and sJawsKey and sJawsKey not in lNvda:
+            sShort += " Under JAWS, %s." % sJawsKey
+        sKey = " or ".join(lNvda) or sJawsKey or "no key"
         lLines.append("%s=%s, %s" % (sName, sKey, sShort))
     os.makedirs("configs", exist_ok=True)
     with io.open("configs/Hotkeys.inix", "w", encoding="utf-8-sig", newline="\r\n") as oFile:

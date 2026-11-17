@@ -1,6 +1,23 @@
 ﻿
 
 
+## 17 November 2026 -- Both keys in the key file, and JAWS names that match
+
+- **configs\Hotkeys.inix lists every NVDA key of a command,** joined by "or", where it gave only the first, and says in the description when JAWS uses another key: "Under JAWS, Shift+Q." It had put both readers' keys in one malformed key field.
+- **The guide's JAWS column is right again.** It now gives the keys HomerView's JAWS scripts really bind, such as Alt+F3 and Alt+Shift+F3 for Forward and Reverse Find at Cursor, Alt+Y for Say Yield and Alt+R for Recent Pages; says which commands are on the HomerView menu only under JAWS; and says where HomerView leaves a move, such as by paragraph, to JAWS's own command.
+- **The JAWS scripts use the NVDA names:** Forward Find, Reverse Find, Search Next, Search Previous, Copy Line, Copy Log and ReadMe, where they said Forward Find for Text, Reverse Find for Text, Forward Find Again, Reverse Find Again, Copy Selection, Log to Clipboard and Quick Start.
+- **The build's quality check lets a family share its first words,** as Forward Find, Forward Find at Cursor and Forward Find with Regex do in EdSharp too. A name inside the middle of another, as Page Folder was inside Show Page Folder in FileDir, still fails it; that stopped the last build. That command is now Page Folder in FileDir, beside Page Folder, which opens the same folder in File Explorer.
+- HomerView now needs HomerDev 1.244.0.
+
+## 17 November 2026 -- Two handoffs, and Regex in the names
+
+- **Open Saved Page in EdSharp,** on the Alternate Menu (JAWS: the HomerView menu), opens a copy of this page you saved or extracted earlier in EdSharp, to read or edit it as text: the extracted article, Main.htm, or a web page, Markdown or text copy Save Page wrote to Downloads under the page's name. Several copies are offered newest first. With none, NVDA offers Save Page or Extract Main Content first, and JAWS says how to make one. Nothing is converted or overwritten.
+- **Page Folder in FileDir,** on the same menus, opens this page's folder in FileDir, as Page Folder (Alt+Shift+F) opens it in File Explorer. Both commands find the other app through the Homer kit, as DbDo's and EdSharp's Show in FileDir do, and say so when it is not installed.
+- **Find and Yield say "with Regex",** as in EdSharp: Forward Find with Regex (Control+F3), Reverse Find with Regex (Control+Shift+F3), Yield with Regex (Control+Shift+Y) and, under JAWS, Extract with Regex (Control+Shift+E). The keys are unchanged.
+- **Choose Active Browsers is in the command list** and the Hotkeys page now, not only on the Alternate Menu.
+- **The guide and the JAWS key help catch up:** Check with Equal Access has no key under JAWS either, Yield with Regex is on JAWS at Control+Shift+Y, and Edit Settings is named and keyed as Alt+Shift+E there.
+- HomerView now needs HomerDev 1.243.0.
+
 ## 15 November 2026 -- The kit being developed wins a tie
 
 - When the installed kit in Program Files has the same version as C:\HomerDev, the build now uses C:\HomerDev, the one being developed.

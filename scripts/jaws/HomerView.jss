@@ -2388,6 +2388,69 @@ SayMessage (OT_MESSAGE, hVXmlValue (sAnswer, "/root/value"))
 EndScript
 
 
+; SHOW PAGE FOLDER IN FILEDIR (17 November 2026). The folder Page Folder opens, handed to FileDir instead of
+; Explorer. On the menu, with no key; nothing is created.
+Script hVShowPageFolderInFileDir ()
+Var
+    string sAnswer
+hVLogLine ("hVShowPageFolderInFileDir started")
+Let sAnswer = hVCallBridge ("showPageFolderInFileDir", "")
+If sAnswer == "" Then
+    Return
+EndIf
+If hVXmlValue (sAnswer, "/root/error") != "" Then
+    hVSayOrShow (hVXmlValue (sAnswer, "/root/error"))
+    Return
+EndIf
+SayMessage (OT_MESSAGE, hVXmlValue (sAnswer, "/root/value"))
+EndScript
+
+
+; OPEN SAVED PAGE IN EDSHARP (17 November 2026). The helper finds the copies of this page that were saved or
+; extracted. One opens at once; several are offered by file name, newest first; none is answered with how to make
+; one. Nothing is converted or overwritten.
+Script hVOpenSavedPageInEdSharp ()
+Var
+    int iChoice, int iWhich,
+    string sAnswer, string sItems, string sList, string sPath
+hVLogLine ("hVOpenSavedPageInEdSharp started")
+Let sAnswer = hVCallBridge ("openSavedPage", "")
+If sAnswer == "" Then
+    Return
+EndIf
+If hVXmlValue (sAnswer, "/root/error") != "" Then
+    hVSayOrShow (hVXmlValue (sAnswer, "/root/error"))
+    Return
+EndIf
+Let sList = hVXmlValue (sAnswer, "/root/list")
+If sList == "" Then
+    SayMessage (OT_MESSAGE, hVXmlValue (sAnswer, "/root/value"))
+    Return
+EndIf
+Let iWhich = 1
+Let sPath = Builtin::StringSegment (sList, "\n", iWhich)
+While sPath != ""
+    If iWhich == 1 Then
+        Let sItems = Builtin::StringSegment (sPath, "\\", -1)
+    Else
+        Let sItems = sItems + "\7" + Builtin::StringSegment (sPath, "\\", -1)
+    EndIf
+    Let iWhich = iWhich + 1
+    Let sPath = Builtin::StringSegment (sList, "\n", iWhich)
+EndWhile
+Let iChoice = hVDialogPick ("Open Saved Page in EdSharp", sItems)
+If iChoice == 0 Then
+    Return
+EndIf
+Let sAnswer = hVCallBridge ("openSavedPage", Builtin::StringSegment (sList, "\n", iChoice))
+If hVXmlValue (sAnswer, "/root/error") != "" Then
+    hVSayOrShow (hVXmlValue (sAnswer, "/root/error"))
+    Return
+EndIf
+SayMessage (OT_MESSAGE, hVXmlValue (sAnswer, "/root/value"))
+EndScript
+
+
 ; THE HELPER'S LISTS ARE SEPARATED BY A NEWLINE, NOT BY \7.
 ;
 ; \7 is what JAWS uses in its own menu strings, and copying it here broke Web
@@ -2610,7 +2673,7 @@ Var
     int iOk,
     string sAnswer, string sNeedle
 hVLogLine ("hVYieldByPattern started")
-SayMessage (OT_STATUS, "Yield with Pattern")
+SayMessage (OT_STATUS, "Yield with Regex")
 Let sNeedle = gsLastFind
 Let iOk = Builtin::InputBox ("Count the matches of a pattern", "HomerView", sNeedle)
 If iOk == 0 Then
@@ -2636,7 +2699,7 @@ Var
     int iOk,
     string sAnswer, string sNeedle, string sResult
 hVLogLine ("hVExtractByPattern started")
-SayMessage (OT_STATUS, "Extract with Pattern")
+SayMessage (OT_STATUS, "Extract with Regex")
 Let sNeedle = gsLastFind
 Let iOk = Builtin::InputBox ("Extract every match of a pattern", "HomerView", sNeedle)
 If iOk == 0 Then
@@ -3216,14 +3279,14 @@ Let iAdded = UserBufferAddLink ("  Control+Shift+F1 What changed in each release
 Let iAdded = UserBufferAddLink ("  Every command with its keys", "hVHomerViewLink (\"hVOpenHotkeys\")", "Hotkeys")
 Let iAdded = UserBufferAddLink ("  Control+Shift+L  This session's log, to read", "hVHomerViewLink (\"hVOpenSessionLog\")", "Session Log")
 Let iAdded = UserBufferAddLink ("  Alt+F1          Which build is loaded", "hVHomerViewLink (\"hVShowAbout\")", "About HomerView")
-Let iAdded = UserBufferAddLink ("  Control+F        Find forwards", "hVHomerViewLink (\"hVFindForwards\")", "Forward Find for Text")
-Let iAdded = UserBufferAddLink ("  Control+Shift+F Find backwards", "hVHomerViewLink (\"hVFindBackwards\")", "Reverse Find for Text")
-Let iAdded = UserBufferAddLink ("  Control+F3      Find forward with a pattern", "hVHomerViewLink (\"hVFindByPattern\")", "Forward Find with Regular Expression")
-Let iAdded = UserBufferAddLink ("  Control+Shift+F3 Find backwards with a pattern", "hVHomerViewLink (\"hVFindByPatternBackwards\")", "Reverse Find with Regular Expression")
+Let iAdded = UserBufferAddLink ("  Control+F        Find forwards", "hVHomerViewLink (\"hVFindForwards\")", "Forward Find")
+Let iAdded = UserBufferAddLink ("  Control+Shift+F Find backwards", "hVHomerViewLink (\"hVFindBackwards\")", "Reverse Find")
+Let iAdded = UserBufferAddLink ("  Control+F3      Find forward with a pattern", "hVHomerViewLink (\"hVFindByPattern\")", "Forward Find with Regex")
+Let iAdded = UserBufferAddLink ("  Control+Shift+F3 Find backwards with a pattern", "hVHomerViewLink (\"hVFindByPatternBackwards\")", "Reverse Find with Regex")
 Let iAdded = UserBufferAddLink ("  F3              The next match", "hVHomerViewLink (\"hVFindNext\")", "Search Next")
 Let iAdded = UserBufferAddLink ("  Shift+F3        The previous match", "hVHomerViewLink (\"hVFindPrevious\")", "Search Previous")
-Let iAdded = UserBufferAddLink ("  Control+Shift+E Gather every match of a pattern", "hVHomerViewLink (\"hVExtractByPattern\")", "Extract with Regular Expression")
-Let iAdded = Builtin::UserBufferAddLink ("  Control+Shift+Y Count the matches of a pattern", "hVHomerViewLink (\"hVYieldByPattern\")", "Yield with Pattern")
+Let iAdded = UserBufferAddLink ("  Control+Shift+E Gather every match of a pattern", "hVHomerViewLink (\"hVExtractByPattern\")", "Extract with Regex")
+Let iAdded = Builtin::UserBufferAddLink ("  Control+Shift+Y Count the matches of a pattern", "hVHomerViewLink (\"hVYieldByPattern\")", "Yield with Regex")
 Let iAdded = UserBufferAddLink ("  Shift+F9        Extract the main content into a tab", "hVHomerViewLink (\"hVExtractMainContent\")", "Extract Main Content")
 Let iAdded = UserBufferAddLink ("  Alt+Apostrophe  Say what is on the clipboard", "hVHomerViewLink (\"hVSayClipboard\")", "Say Clipboard")
 Let iAdded = UserBufferAddLink ("  Control+Apostrophe Save the clipboard to a file", "hVHomerViewLink (\"hVSaveClipboard\")", "Save Clipboard")
@@ -3231,7 +3294,7 @@ Let iAdded = UserBufferAddLink ("  Control+Shift+Apostrophe Add the clipboard to
 Let iAdded = UserBufferAddLink ("  Alt+Shift+Apostrophe Empty the clipboard", "hVHomerViewLink (\"hVClearClipboard\")", "Clear Clipboard")
 Let iAdded = UserBufferAddLink ("  F8              Start a selection here; twice, JAWS selects the element", "hVHomerViewLink (\"hVStartSelection\")", "Start Selection")
 Let iAdded = UserBufferAddLink ("  Shift+F8        Select from there to here", "hVHomerViewLink (\"hVCompleteSelection\")", "Complete Selection")
-Let iAdded = UserBufferAddLink ("  Control+C       Copy the selection, or this line", "hVHomerViewLink (\"hVCopySelection\")", "Copy Selection")
+Let iAdded = UserBufferAddLink ("  Control+C       Copy the selection, or this line", "hVHomerViewLink (\"hVCopySelection\")", "Copy Line")
 Let iAdded = UserBufferAddLink ("  Alt+C           Add it to what is on the clipboard", "hVHomerViewLink (\"hVCopyAppend\")", "Copy Append")
 Let iAdded = UserBufferAddLink ("  Control+F8      Put the whole page on the clipboard", "hVHomerViewLink (\"hVCopyAll\")", "Copy All")
 Let iAdded = UserBufferAddLink ("  Alt+F8          Speak the whole page, cursor unmoved", "hVHomerViewLink (\"hVReadAll\")", "Read All")
@@ -3296,17 +3359,17 @@ Let sTable = "About HomerView, Which build is loaded and where everything lives.
     + "\7" + "Consult Copilot, Opens Copilot in the browser, with the page's text on the clipboard to paste.\thVConsultCopilot\tP"
     + "\7" + "Copy All, Puts the whole page on the clipboard. (Control+F8)\thVCopyAll\tP"
     + "\7" + "Copy Append, Adds the selection or the line to what is on the clipboard. (Alt+C)\thVCopyAppend\tA"
-    + "\7" + "Copy Selection, Copies the selection, or the line under the cursor. (Control+C)\thVCopySelection\tP"
+    + "\7" + "Copy Line, Copies the selection, or the line under the cursor. (Control+C)\thVCopySelection\tP"
     + "\7" + "Developer Notes, Notes for anyone working on HomerView itself.\thVOpenDeveloperNotes\tA"
     + "\7" + "Dismiss Dialog, Closes a cookie banner, newsletter offer or consent wall that Escape will not. (Alt+Shift+D)\thVDismissDialog\tA"
     + "\7" + "Elevate Version, Checks for a newer HomerView and installs it. (Control+F11)\thVElevateVersion\tA"
     + "\7" + "Extract Main Content, Extracts the readable part of the page into a tab of its own. (Shift+F9)\thVExtractMainContent\tP"
-    + "\7" + "Extract with Regular Expression, Gathers every match for reading. (Control+Shift+E)\thVExtractByPattern\tP"
+    + "\7" + "Extract with Regex, Gathers every match for reading. (Control+Shift+E)\thVExtractByPattern\tP"
     + "\7" + "Find Contacts, Finds who to tell about this site: email, accessibility statement, contact pages. (Alt+Shift+C)\thVFindContacts\tP"
     + "\7" + "Search Next, The next match of whichever find was done last. (F3)\thVFindNext\tP"
     + "\7" + "Forward Find at Cursor, Searches forward for the word under the cursor, or the selected text, without asking you to type it. (Alt+F3)\thVFindWordAtCursor\tP"
-    + "\7" + "Forward Find for Text, Searches forwards for text, using the JAWS find dialog. (Control+F)\thVFindForwards\tP"
-    + "\7" + "Forward Find with Regular Expression, Searches forward for a pattern. (Control+F3)\thVFindByPattern\tP"
+    + "\7" + "Forward Find, Searches forwards for text, using the JAWS find dialog. (Control+F)\thVFindForwards\tP"
+    + "\7" + "Forward Find with Regex, Searches forward for a pattern. (Control+F3)\thVFindByPattern\tP"
     + "\7" + "Go to Start of Selection, Moves back to where you began a selection, so you can hear the start again before completing it with Shift+F8. (Alt+Shift+F8)\thVGoToSelectionStart\tP"
     + "\7" + "History of Changes, What changed in each release. (Control+Shift+F1)\thVShowHistory\tA"
     + "\7" + "Hotkeys, Every HomerView command with its keys.\thVOpenHotkeys\tA"
@@ -3318,7 +3381,9 @@ Let sTable = "About HomerView, Which build is loaded and where everything lives.
     + "\7" + "List Names, Lists the people, places, organisations and dates a page mentions. (Alt+N)\thVListNames\tP"
     + "\7" + "Copy Log, Puts the HomerView log on the clipboard, ready to attach to a message. (Alt+Shift+L)\thVCopyLogToClipboard\tA"
     + "\7" + "Open Document, Opens a Word file, PDF, ebook or spreadsheet as a page. (Control+O)\thVOpenDocument\tA"
+    + "\7" + "Open Saved Page in EdSharp, Opens a saved or extracted copy of this page in EdSharp.\thVOpenSavedPageInEdSharp\tP"
     + "\7" + "Page Folder, Opens this page's folder in File Explorer, to browse what was saved from it. (Alt+Shift+F)\thVOpenPageFolder\tP"
+    + "\7" + "Page Folder in FileDir, Opens this page's folder in FileDir, to work with what was saved from it.\thVShowPageFolderInFileDir\tP"
     + "\7" + "Page Links to Clipboard, Copies the text and address of every link on the page. (Alt+Shift+P)\thVCopyPageLinks\tP"
     + "\7" + "Project Announcement, What HomerView is for, in its own words.\thVOpenAnnouncement\tA"
     + "\7" + "ReadMe, The short introduction to HomerView. (Alt+Shift+F1)\thVOpenQuickStart\tA"
@@ -3328,8 +3393,8 @@ Let sTable = "About HomerView, Which build is loaded and where everything lives.
     + "\7" + "Report Diagnostics, Says whether the helper, the log folder and the start page are where they should be. (Alt+Shift+R)\thVSayDiagnostics\tA"
     + "\7" + "Search Previous, The previous match of whichever find was done last. (Shift+F3)\thVFindPrevious\tP"
     + "\7" + "Reverse Find at Cursor, Searches backward for the word under the cursor, or the selected text, without asking you to type it. (Alt+Shift+F3)\thVFindWordAtCursorBackwards\tP"
-    + "\7" + "Reverse Find for Text, Searches backwards for text, which JAWS has no key for. (Control+Shift+F)\thVFindBackwards\tP"
-    + "\7" + "Reverse Find with Regular Expression, Searches backwards for a pattern. (Control+Shift+F3)\thVFindByPatternBackwards\tP"
+    + "\7" + "Reverse Find, Searches backwards for text, which JAWS has no key for. (Control+Shift+F)\thVFindBackwards\tP"
+    + "\7" + "Reverse Find with Regex, Searches backwards for a pattern. (Control+Shift+F3)\thVFindByPatternBackwards\tP"
     + "\7" + "Save Clipboard, Saves the clipboard to a text file. (Control+Apostrophe)\thVSaveClipboard\tA"
     + "\7" + "Save Page, Saves this page as html, Word, Markdown or an ebook. (Control+S)\thVSavePage\tP"
     + "\7" + "Say Address, Says the page's web address; press again to show it.\thVSayAddress\tA"
@@ -3346,7 +3411,7 @@ Let sTable = "About HomerView, Which build is loaded and where everything lives.
     + "\7" + "Key Describer Toggle, Turns key describing on or off: a key says its command instead of running it. (Control+F1)\thVKeyDescriber\tA"
     + "\7" + "Web Download, Fetches the files this page links to, with the browser's own cookies. (Alt+Shift+W)\thVDownloadFiles\tP"
     + "\7" + "Yield Structure, Says how many links, headings, landmarks, tables, frames and form fields the page holds.\thVSayYieldStructure\tP"
-    + "\7" + "Yield with Pattern, Says how many times a pattern matches. (Control+Shift+Y)\thVYieldByPattern\tP"
+    + "\7" + "Yield with Regex, Says how many times a pattern matches. (Control+Shift+Y)\thVYieldByPattern\tP"
 ; The list the dialog shows is the first field of every row.
 ; ONLY WHAT APPLIES RIGHT NOW.
 ;

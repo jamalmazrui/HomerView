@@ -1398,6 +1398,20 @@ def homerProgram(sApp):
     return ""
 
 
+def openInHomerApp(sApp, sPath):
+    """Start another Homer app on a path, as SuiteCommands.openInHomerApp does in C# (1.243.0). Each MDI app is a
+    single instance, so a running copy is handed the path. Returns (True, "Opening in <App>") or (False, a sentence to
+    say), and shows nothing itself, so a Python host such as HomerView speaks the answer its own way."""
+    sExe = homerProgram(sApp)
+    if not sExe:
+        return False, "%s is not installed on this computer. The HomerDev dialog lists every Homer project and can install it." % sApp
+    try:
+        subprocess.Popen([sExe, sPath], cwd=os.path.dirname(sExe), close_fds=True)
+    except Exception as oError:
+        return False, "%s could not be started: %s" % (sApp, oError)
+    return True, "Opening in %s" % sApp
+
+
 def runTool(lsCommand, sWhat, iMinutes):
     try: oDone = subprocess.run(lsCommand, capture_output=True, text=True, errors="replace", timeout=iMinutes * 60, creationflags=iNoWindow)
     except FileNotFoundError: raise RuntimeError("%s could not be started: %s was not found" % (sWhat, os.path.basename(lsCommand[0])))

@@ -55,14 +55,14 @@ alias = {
  "hotkey summary": "hot key help",
  "hotkeys": "hot key help",   # the suite name for the hotkey document (19 October 2026)
  "jump to main": "jump to probable main",
- "yield with regular expression": "yield with pattern",
- "reverse find": "reverse find for text",
  # NVDA needs a second command to say the address outside the page; a JAWS script is not tied to the page,
  # so Say Address serves for both (14 October 2026).
  "say address anywhere": "say address",
  # JAWS joined NVDA's Say Url to Link Target on purpose: one key for "where does this link go", which always gives the
  # address and adds a description when it can be fetched; the comment above hVDescribeLinkTarget says why (14 October 2026).
  "say url": "link target",
+ # JAWS users choose the active browsers in the settings file, activeBrowsers, with Edit Settings (17 November 2026).
+ "choose active browsers": "edit settings",
 }
 # THE MENU CANNOT LIST ITSELF (14 October 2026). NVDA's Alternate Menu is the key that opens HomerView's menu;
 # on JAWS the menu is hVShowHomerViewMenu, on Alt+F10, but the table above is the menu's own rows, so the menu

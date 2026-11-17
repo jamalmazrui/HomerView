@@ -785,6 +785,12 @@ namespace Homer
                     case "openpagefolder":
                         sResult = OpenPageFolder();
                         break;
+                    case "showpagefolderinfiledir":
+                        sResult = ShowPageFolderInFileDir();
+                        break;
+                    case "opensavedpage":
+                        sResult = OpenSavedPage(sArgument);
+                        break;
                     case "savedialog":
                         sResult = FileDialog(sArgument, true);
                         break;
@@ -4754,6 +4760,78 @@ namespace Homer
                 Log("  the folder could not be opened: " + oError.Message);
                 return "{\"error\":" + Quote("That folder could not be opened.") + "}";
             }
+        }
+
+        // HANDING THE PAGE TO ANOTHER HOMER APP (17 November 2026), the JAWS half of NVDA's Page Folder in FileDir
+        // and Open Saved Page in EdSharp. The kit's Paths.homerProgram finds the app, as SuiteCommands.openInHomerApp
+        // does for DbDo and EdSharp; the bridge has no window to own a message box, so the answer is spoken instead.
+        private static string OpenInHomerApp(string sApp, string sPath)
+        {
+            string sExe = Homer.Paths.homerProgram(sApp);
+            if (sExe.Length == 0)
+                return "{\"error\":" + Quote(sApp + " is not installed on this computer. The HomerDev dialog lists every Homer project and can install it.") + "}";
+            try
+            {
+                var oStart = new ProcessStartInfo(sExe, "\"" + sPath + "\"");
+                oStart.UseShellExecute = false;
+                oStart.WorkingDirectory = Path.GetDirectoryName(sExe);
+                Process.Start(oStart);
+                Log("  open in " + sApp + ": " + sExe + " " + sPath);
+                return "{\"value\":" + Quote("Opening in " + sApp) + "}";
+            }
+            catch (Exception oError)
+            {
+                Log("  " + sApp + " could not be started: " + oError.Message);
+                return "{\"error\":" + Quote(sApp + " could not be started: " + oError.Message) + "}";
+            }
+        }
+
+        // The page's folder, found as Page Folder finds it and never created, handed to FileDir.
+        private static string ShowPageFolderInFileDir()
+        {
+            string sTitle = Tidy(EvaluateText("(() => document.title)()"));
+            if (sTitle == "" || sTitle.StartsWith("ERROR:"))
+                return "{\"error\":" + Quote("There is no page to find a folder for.") + "}";
+            string sFolder = Path.Combine(DownloadsFolder(), SafeStem(sTitle));
+            Log("  page folder for FileDir: " + sFolder);
+            if (!Directory.Exists(sFolder))
+                return "{\"value\":" + Quote("Nothing has been saved from this page yet.") + "}";
+            return OpenInHomerApp("FileDir", sFolder);
+        }
+
+        // OPEN SAVED PAGE IN EDSHARP. With a path, that identified copy is opened. Without one, the copies of the page
+        // in front are found as NVDA finds them -- Main.htm in the page's folder, and Save Page's web page, Markdown
+        // and text copies in Downloads under the page's name -- newest first. One opens at once; several come back as
+        // a list, one path per line, for the script to offer; none says how to make one. Nothing is converted.
+        private static string OpenSavedPage(string sArgument)
+        {
+            if (!string.IsNullOrEmpty(sArgument))
+            {
+                if (!File.Exists(sArgument))
+                    return "{\"error\":" + Quote("That copy is no longer there.") + "}";
+                return OpenInHomerApp("EdSharp", sArgument);
+            }
+            string sTitle = Tidy(EvaluateText("(() => document.title)()"));
+            if (sTitle == "" || sTitle.StartsWith("ERROR:"))
+                return "{\"error\":" + Quote("There is no page to find a copy of.") + "}";
+            string sDownloads = DownloadsFolder();
+            var lCandidates = new List<string>();
+            lCandidates.Add(Path.Combine(Path.Combine(sDownloads, SafeStem(sTitle)), "Main.htm"));
+            string sPlain = Regex.Replace(sTitle, "[\\\\/*?:\"<>|]", "");
+            if (sPlain.Length > 80) sPlain = sPlain.Substring(0, 80);
+            foreach (string sStem in new string[] { SafeStem(sTitle), sPlain })
+                foreach (string sExtension in new string[] { ".dom.htm", ".htm", ".html", ".md", ".txt" })
+                    lCandidates.Add(Path.Combine(sDownloads, sStem + sExtension));
+            var lFound = new List<string>();
+            foreach (string sCandidate in lCandidates)
+                if (File.Exists(sCandidate) && !lFound.Contains(sCandidate)) lFound.Add(sCandidate);
+            lFound.Sort((sA, sB) => File.GetLastWriteTime(sB).CompareTo(File.GetLastWriteTime(sA)));
+            Log("  saved copies of the page: " + lFound.Count);
+            if (lFound.Count == 0)
+                return "{\"value\":" + Quote("Nothing has been saved from this page yet. Save Page, Control+S, or Extract Main Content, Shift+F9, makes a copy first.") + "}";
+            if (lFound.Count == 1)
+                return OpenInHomerApp("EdSharp", lFound[0]);
+            return "{\"list\":" + Quote(string.Join("\n", lFound.ToArray())) + "}";
         }
 
         private static string ClipboardFile(string sPath)

@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en-US" xml:lang="en-US">
 <head>
   <meta charset="utf-8" />
-  <meta name="generator" content="pandoc 3.13" />
+  <meta name="generator" content="pandoc 3.14" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <title>HomerView User Guide</title>
   <style>
@@ -35,27 +35,6 @@
       }
       h1 {
         font-size: 1.8em;
-      }
-    }
-    @media print {
-      html {
-        color-scheme: light only;
-      }
-      html, body, pre, code {
-        background-color: transparent;
-      }
-      body, a, a:visited, blockquote {
-        color: black;
-      }
-      pre, code {
-        padding: 0;
-      }
-      p, h2, h3 {
-        orphans: 3;
-        widows: 3;
-      }
-      h2, h3, h4 {
-        page-break-after: avoid;
       }
     }
     p {
@@ -163,6 +142,12 @@
       text-decoration: none;
     }
     span.smallcaps{font-variant: small-caps;}
+    em, em em em, em em em em em {
+      font-style: italic;
+    }
+    em em, em em em em {
+      font-style: normal;
+    }
     div.columns{display: flex; gap: 1.5em;}
     div.column{flex: auto;}
     @media screen {
@@ -179,7 +164,27 @@
       margin: 0 0.8em 0.2em -1.6em;
       vertical-align: middle;
     }
-  </style>
+    @media print {
+      html {
+        color-scheme: light only;
+      }
+      html, body, pre, code {
+        background-color: transparent;
+      }
+      body, a, a:visited, blockquote {
+        color: black;
+      }
+      pre, code {
+        padding: 0;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }  </style>
 </head>
 <body>
 <header id="title-block-header">
@@ -358,11 +363,11 @@ and previous match, of whichever kind of find you did last.</li>
 <p>Try <strong>Control+F3</strong> with a pattern like
 <code>\d{4}</code> to jump between years on a page, or
 <code>\$[\d,]+</code> to move between prices.</p>
-<p><strong>Control+Shift+E</strong>, Extract with Regular Expression,
-answers the other question: not “where is the next one” but “what are
-they all”. It gathers every match into a window, each separated by a
-form feed between blank lines, so they read as a series of small pages
-rather than a run-on list.</p>
+<p><strong>Control+Shift+E</strong>, Extract with Regex, answers the
+other question: not “where is the next one” but “what are they all”. It
+gathers every match into a window, each separated by a form feed between
+blank lines, so they read as a series of small pages rather than a
+run-on list.</p>
 <h3 id="selecting-a-passage">Selecting a passage</h3>
 <p>HomerView uses EdSharp’s convention, which is a pair rather than a
 drag:</p>
@@ -640,11 +645,10 @@ guess</li>
 <ul>
 <li>Check Accessibility with axe, Check with Equal Access</li>
 <li>Dismiss Dialog, Say Metadata</li>
-<li>Extract Main Content, Extract with Regular Expression, Yield with
-Pattern</li>
+<li>Extract Main Content, Extract with Regex, Yield with Regex</li>
 <li>Find Contacts, List Names</li>
 <li>Forward Find at Cursor, Reverse Find at Cursor, Forward Find with
-Regular Expression, Reverse Find with Regular Expression</li>
+Regex, Reverse Find with Regex</li>
 <li>Save Page, Page Folder, Web Download</li>
 <li>Recent Pages, Tab List, Tab Names</li>
 <li>Elevate Version</li>
@@ -683,7 +687,7 @@ behaves</h4>
 <ul>
 <li><strong>Choose Active Browsers</strong>
 <ul>
-<li>NVDA: on the Alternate Menu</li>
+<li>NVDA: no key</li>
 <li>JAWS: set activeBrowsers in the settings file, with Edit
 Settings</li>
 <li>Tick the other browsers HomerView’s keys should work in, besides the
@@ -865,7 +869,7 @@ on.</li>
 </ul>
 <h4 id="finding-text">Finding text</h4>
 <ul>
-<li><strong>Extract with Regular Expression</strong>
+<li><strong>Extract with Regex</strong>
 <ul>
 <li>NVDA: Control+Shift+E</li>
 <li>JAWS: Control+Shift+E</li>
@@ -893,7 +897,7 @@ last.</li>
 <li>Search forward for chunk or selected text, on the key EdSharp uses
 for it.</li>
 </ul></li>
-<li><strong>Forward Find with Regular Expression</strong>
+<li><strong>Forward Find with Regex</strong>
 <ul>
 <li>NVDA: Control+F3</li>
 <li>JAWS: Control+F3</li>
@@ -927,7 +931,7 @@ easier to read and move around, and that is the view you are in.</li>
 <li>JAWS: <strong>not yet on JAWS</strong></li>
 <li>Search backward for chunk or selected text.</li>
 </ul></li>
-<li><strong>Reverse Find with Regular Expression</strong>
+<li><strong>Reverse Find with Regex</strong>
 <ul>
 <li>NVDA: Control+Shift+F3</li>
 <li>JAWS: Control+Shift+F3</li>
@@ -1053,10 +1057,10 @@ text.</li>
 <li>Says how the page is built: how many headings, links, forms and the
 rest.</li>
 </ul></li>
-<li><strong>Yield with Regular Expression</strong>
+<li><strong>Yield with Regex</strong>
 <ul>
 <li>NVDA: Control+Shift+Y</li>
-<li>JAWS: <strong>not yet on JAWS</strong></li>
+<li>JAWS: Control+Shift+Y</li>
 <li>Count parts of text matching a regular expression, which answers how
 many rather than where.</li>
 </ul></li>
@@ -1184,7 +1188,7 @@ Accessibility.</li>
 <li><strong>Check with Equal Access</strong>
 <ul>
 <li>NVDA: no key</li>
-<li>JAWS: Alt+Shift+E (named “Check with Equal Access” there)</li>
+<li>JAWS: no key, on the menu</li>
 <li>Tests the page with IBM’s Equal Access engine. Offered by Check
 Accessibility.</li>
 </ul></li>
@@ -1240,6 +1244,25 @@ program; this one opens more.</li>
 page, so you can look through it in File Explorer. It creates nothing:
 if you have not saved anything from this page yet, it says so. F for
 Folder, beside Alt+Shift+W, which fills the folder.</li>
+</ul></li>
+<li><strong>Open Saved Page in EdSharp</strong>
+<ul>
+<li>NVDA: no key</li>
+<li>JAWS: no key, on the menu</li>
+<li>Opens a copy of this page that you saved or extracted earlier in
+EdSharp, to read or edit it as text: the extracted article, Main.htm, or
+a web page, Markdown or text copy Save Page wrote to Downloads under the
+page’s name. Several copies are offered newest first. With none, it
+offers Save Page or Extract Main Content first. It never converts or
+overwrites anything.</li>
+</ul></li>
+<li><strong>Show Page Folder in FileDir</strong>
+<ul>
+<li>NVDA: no key</li>
+<li>JAWS: no key, on the menu</li>
+<li>Opens this page’s folder in FileDir, to work with what you saved
+from it, as Page Folder opens it in File Explorer. It creates
+nothing.</li>
 </ul></li>
 <li><strong>Query Web</strong>
 <ul>

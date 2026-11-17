@@ -72,10 +72,10 @@ category, where every command here can be changed.
 
 - **Forward Find**, Control+F. Search forward for string, using NVDA's own find so the dialog and its behaviour are the ones you already know.
 - **Forward Find at Cursor**, Alt+F3. Search forward for chunk or selected text, on the key EdSharp uses for it.
-- **Forward Find with Regular Expression**, Control+F3. Search forward for regular expression, which NVDA's own find cannot do.
+- **Forward Find with Regex**, Control+F3. Search forward for regular expression, which NVDA's own find cannot do.
 - **Reverse Find**, Control+Shift+F. Search backward for string.
 - **Reverse Find at Cursor**, Alt+Shift+F3. Search backward for chunk or selected text.
-- **Reverse Find with Regular Expression**, Control+Shift+F3. Search backward for regular expression.
+- **Reverse Find with Regex**, Control+Shift+F3. Search backward for regular expression.
 - **Search Next**, F3. Repeat the last search, forward.
 - **Search Previous**, Shift+F3. Repeat the last search, backward.
 
@@ -99,7 +99,7 @@ category, where every command here can be changed.
 - **Say url**, Alt+U. Say where the link at the cursor would go. U for url.
 - **Say Yield**, Alt+Y. Say how many characters, words and lines are in all or the selected text.
 - **Yield Structure**, Alt+Shift+Y. Says how the page is built: how many headings, links, forms and the rest.
-- **Yield with Regular Expression**, Control+Shift+Y. Count parts of text matching a regular expression, which answers how many rather than where.
+- **Yield with Regex**, Control+Shift+Y. Count parts of text matching a regular expression, which answers how many rather than where.
 
 ## Reading aloud
 
@@ -134,6 +134,8 @@ category, where every command here can be changed.
 - **Instruct Page**, Alt+I. Carries out instructions written in ordinary words, such as click sign in. I for Instruct.
 - **List Names**, Alt+N. Lists the people, places, organisations and dates a page mentions, saved as Names.htm in the page's folder and opened. A rule-based engine reads the text, so it guesses; the report says so.
 - **Open Document**, Control+O. Opens a Word file, spreadsheet, slide deck, PDF or ebook, converting it to a page so every command here works on it. Control+O opens in every program; this one opens more.
+- **Open Saved Page in EdSharp**, no key. Open a copy of this page that was saved or extracted earlier in EdSharp, to read or edit it as text. With none saved, it offers to save the page or extract its main content first.
+- **Page Folder in FileDir**, no key. Open this page's folder in FileDir, to work with what was saved from it, as Page Folder opens it in Explorer.
 - **Query Web**, Alt+Q, or Alt+NVDA+Q. Looks something up using free services that need no account: a definition, a place, the weather, a book. Q for Query.
 - **Report Accessibility**, no key. Tests the page and writes a report addressed to whoever publishes the site. Reached by Check Accessibility once an engine is chosen.
 - **Save Page**, Control+S. Saves the page in any of nine formats. Control+S saves in every program; this one saves more ways.
@@ -148,6 +150,7 @@ category, where every command here can be changed.
 
 ## Changing how HomerView behaves
 
+- **Choose Active Browsers**, no key. Choose which other installed browsers HomerView's keys work in, besides the one it drives.
 - **Choose Browser**, Alt+Shift+B. Choose which Chromium browser HomerView drives, from the ones installed here. B for Browser, and Alt+Shift with a letter is where the settings commands live because they are used once and then not again for months.
 - **Edit Settings**, Alt+Shift+E. Edit HomerView's settings file.
 

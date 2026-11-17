@@ -1,6 +1,10 @@
 ﻿
 
 
+## 17 November 2026 -- testSay waits for HomerView's browser
+
+- **testSay says plainly that it cannot test HomerView yet,** rather than waiting thirty seconds for a window: HomerView's Say commands work in its browser window, which belongs to Edge, and testSay cannot find that window yet.
+
 ## 17 November 2026 -- Say Time retired, and testSay
 
 - **Say Time is gone.** NVDA and JAWS say the time with Insert+F12 (NVDA+F12) in every program, so HomerView's own command only repeated it.

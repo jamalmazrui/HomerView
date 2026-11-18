@@ -115,6 +115,17 @@ def writeHotkeys():
         "A command with no key still runs, from the Alternate Menu on Alt+F10.",
         "You can give it a key in NVDA's Input Gestures dialog, under the HomerView",
         "category, where every command here can be changed.", "",
+        # THE SUITE'S HELP KEYS, NAMED (18 November 2026). The kit's "help keys" check, new in 1.258.0, stopped the
+        # release: this page did not name What This Does, Where Am I or Elevate Version with their keys. They are
+        # prose rather than "- **" lines, which are counted as commands.
+        "## In HomerView's dialogs", "",
+        "HomerView's own dialogs answer the same help keys as every Homer program.", "",
+        "What This Does, Shift+F1, says what the control with focus does: once a",
+        "sentence, twice its whole tip, three times its keys.", "",
+        "Where Am I, Control+Slash, says the dialog, what it is for and the control",
+        "with focus; twice, every control and what it holds; three times, the keys.", "",
+        "Elevate Version is on Control+F11 here, rather than the F11 of the other",
+        "Homer programs, because F11 is the browser's own key for full screen.", "",
     ]
     # ONE TOP HEADING (11 October 2026): the title in the front matter is the page's level-one heading, so every
     # section here is level two. At level one they made seventeen top headings, and the kit's check refused the

@@ -1,6 +1,17 @@
 ﻿
 
 
+## 18 November 2026 -- The release check passes, and Where Am I is Control+Slash
+
+- **The release stopped at the push step's check.** The kit's new "help keys" check found that the Hotkeys page did not name What This Does, Where Am I or Elevate Version with their keys. The page, which makeDocs writes on every build, now has a short section on HomerView's dialogs: Shift+F1 says what a control does, Control+Slash says where you are, and Elevate Version is on Control+F11 because F11 is the browser's key for full screen.
+- **Where Am I is Control+Slash in HomerView's dialogs,** as in every other Homer program. It was still Alt+Shift+Slash, from the kit's Python dialog code, which HomerView copies in when it builds.
+- **This needs HomerDev 1.261.0.**
+
+## 18 November 2026 -- HomerView's keys bound in every JAWS version
+
+- **Both sections of a browser's key map are written in one pass.** On 17 November, JAWS 2025's Chrome.jkm lost HomerView's ten [Common Keys] lines, among them the launch key Alt+Control+Shift+H and Alt+F10, when the [Virtual Keys] lines were added in a second read and write; JAWS 2024, 2026 and 2027 kept them. Now the key map is read once, both blocks are placed, and it is written once.
+- **A key map missing a key after writing is kept for review,** as user-<browser>.jkm in the logs' jaws-<version> folder, with its section names in the log. Only JAWS's shipped copies were kept before, so the user's own file, the one that failed, could not be read.
+
 ## 17 November 2026 -- Marked, not ticked
 
 - **A checkbox is marked, never ticked,** in the installer, its finish page, the guides, the tutorials and every message, as Homer has said since 11 November; some forty-five lines still said tick. The kit's check now fails on the word, so it cannot come back.

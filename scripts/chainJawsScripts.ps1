@@ -227,14 +227,24 @@ function auditKeys {
 # Adds lines inside a named section of an ini-style file, rather than at the
 # end of it. A key map is sectioned, so a line appended to the bottom lands in
 # whichever section happens to be last and is never read as a common key.
-function addToSection {
-    param([string] $pathFile, [string] $sSection, [string[]] $lNewLines)
+# addToSections: every section's block placed in one reading and one writing of the key map (18 November 2026).
+# Each section used to be its own read and write, and in JAWS 2025's Chrome.jkm on 17 November the second, for
+# [Virtual Keys], left the file without the ten [Common Keys] lines the first had just written, though the other
+# three versions kept them. One pass leaves no second rewrite to undo the first. $lPairs holds pairs of a section
+# header and its lines.
+function addToSections {
+    param([string] $pathFile, [object[]] $lPairs)
 
     $lLines = @(Get-Content $pathFile)
-    $iSection = -1
-    for ($i = 0; $i -lt $lLines.Count; $i++) {
-        if ($lLines[$i].Trim() -eq $sSection) { $iSection = $i; break }
-    }
+    $lAllNew = @()
+    foreach ($oPair in $lPairs) { $lAllNew += $oPair[1] }
+    $lLines = @(displaceTaken $lLines $lAllNew)
+    foreach ($oPair in $lPairs) { $lLines = @(placeBlock $lLines $oPair[0] $oPair[1]) }
+    Set-Content -Path $pathFile -Value $lLines -Encoding UTF8
+}
+
+function displaceTaken {
+    param([string[]] $lLines, [string[]] $lNewLines)
     # ANY OTHER BINDING FOR A KEY WE TAKE IS REMOVED FIRST.
     #
     # JAWSKey+L was written into [Common Keys], read back correctly, and still
@@ -255,12 +265,16 @@ function addToSection {
         }
         $lKept += $sLine
     }
-    $lLines = $lKept
+    return ,$lKept
+}
+
+function placeBlock {
+    param([string[]] $lLines, [string] $sSection, [string[]] $lNewLines)
+
     $iSection = -1
     for ($i = 0; $i -lt $lLines.Count; $i++) {
-        if ($lLines[$i].Trim() -eq $sSection) { $iSection = $i; break }
+        if ($lLines[$i].Trim().TrimStart([char]0xFEFF) -eq $sSection) { $iSection = $i; break }
     }
-
     $lBlock = @($sMarker) + $lNewLines + @("$sMarker ends")
     if ($iSection -lt 0) {
         writeLog "      the file has no $sSection section, so one is added"
@@ -271,7 +285,7 @@ function addToSection {
         $lOut += $lBlock
         if ($iSection -lt ($lLines.Count - 1)) { $lOut += $lLines[($iSection + 1)..($lLines.Count - 1)] }
     }
-    Set-Content -Path $pathFile -Value $lOut -Encoding UTF8
+    return ,$lOut
 }
 
 # Takes our block back out, leaving whatever was there before it untouched.
@@ -1134,10 +1148,9 @@ foreach ($folderVersion in $lVersions) {
             }
         }
 
-        foreach ($sPair in @(@("[Common Keys]", $lCommonKeys), @("[Virtual Keys]", $lPageKeys))) {
-            addToSection $pathBrowserJkm $sPair[0] $sPair[1]
-            writeLog "    added $($sPair[1].Count) key(s) to $($sPair[0]) in $sConfigBase.jkm"
-        }
+        $lSectionPairs = @(,@("[Common Keys]", $lCommonKeys)) + @(,@("[Virtual Keys]", $lPageKeys))
+        addToSections $pathBrowserJkm $lSectionPairs
+        foreach ($sPair in $lSectionPairs) { writeLog "    added $($sPair[1].Count) key(s) to $($sPair[0]) in $sConfigBase.jkm" }
         writeLog "      these work only while the browser has focus, and nowhere else"
         $lManifest += "browser|$sConfigBase"
 
@@ -1196,6 +1209,17 @@ foreach ($folderVersion in $lVersions) {
         } else {
             writeLog "    ERROR: $sConfigBase.jkm is not there at all after writing it"
             $iMissing += 1
+        }
+        # THE USER'S OWN KEY MAP, KEPT FOR REVIEW WHEN A KEY IS MISSING (18 November 2026): only JAWS's shipped copies
+        # were kept, so the 2025 failure could not be read from the logs.
+        if ($iMissing -gt 0 -and (Test-Path $pathBrowserJkm)) {
+            try {
+                $pathKeep = Join-Path (Split-Path -Parent $pathLog) ("jaws-" + $sVersion)
+                New-Item -ItemType Directory -Force -Path $pathKeep | Out-Null
+                Copy-Item -LiteralPath $pathBrowserJkm -Destination (Join-Path $pathKeep ("user-" + $sConfigBase + ".jkm")) -Force
+                $lHeaders = @(Get-Content $pathBrowserJkm | Where-Object { $_.Trim().StartsWith("[") -or $_.Trim().StartsWith([char]0xFEFF + "[") })
+                writeLog "      its sections now: $($lHeaders -join ', '); the file is kept as $pathKeep\user-$sConfigBase.jkm"
+            } catch { writeLog "      the user key map could not be kept for review: $_" }
         }
 
         $iFolderMissing += $iMissing

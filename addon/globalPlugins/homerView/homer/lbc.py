@@ -54,7 +54,8 @@ from collections import OrderedDict
 import wx
 
 # ---- Where Am I and Shift+F1, as in the C# Lbc (3 November 2026) ----------------------------------------------------
-# Alt+Shift+Slash, Alt and the question mark, says where you are in every Lbc dialog of every Homer app: once, the dialog,
+# Control+Slash says where you are in every Lbc dialog of every Homer app (it was Alt+Shift+Slash until the C# Lbc moved
+# on 9 November 2026, and this copy did not follow until kit 1.260.0): once, the dialog,
 # what it is for and the control with focus; twice, every control and what it holds; three times, the keys. Shift+F1
 # says what a control does: once a sentence, twice its whole tip, three times its keys. A press within 1.2 seconds of
 # the last press of the same key counts as the next, up to three. The C# Lbc's LbcHints holds the same rules.
@@ -986,7 +987,12 @@ class Dialog(wx.Dialog):
         return wx.AcceleratorEntry(wx.ACCEL_SHIFT, wx.WXK_F1, iTipId)
 
     def _bindWhereKey(self):
-        """Alt+Shift+Slash says where you are, the same key as in every Homer app."""
+        """Control+Slash says where you are, the same key as in every Homer app.
+
+        WHERE AM I IS CONTROL+SLASH HERE TOO (kit 1.260.0, 18 November 2026). The C# Lbc moved Where Am I from
+        Alt+Shift+Slash to Control+Slash in kit 1.171.0; this Python copy kept the old key, so HomerView's dialogs
+        and the Python apps' answered a key no Homer guide names any more.
+        """
         iWhereId = wx.NewIdRef()
 
         def onWhere(event):
@@ -994,10 +1000,10 @@ class Dialog(wx.Dialog):
                 from . import say as sayModule
             except ImportError:
                 import say as sayModule
-            sayModule.say(self.whereAmI(self.FindFocus(), pressCount("Alt+Shift+Slash")))
+            sayModule.say(self.whereAmI(self.FindFocus(), pressCount("Control+Slash")))
 
         self.Bind(wx.EVT_MENU, onWhere, id=iWhereId)
-        return wx.AcceleratorEntry(wx.ACCEL_ALT | wx.ACCEL_SHIFT, ord("/"), iWhereId)
+        return wx.AcceleratorEntry(wx.ACCEL_CTRL, ord("/"), iWhereId)
 
     def _controlName(self, sKey, control):
         sName = plainName(control.GetLabel()) if isinstance(control, (wx.Button, wx.CheckBox, wx.RadioButton)) else ""
@@ -1012,7 +1018,7 @@ class Dialog(wx.Dialog):
         if iLevel >= 3:
             return (sTitle + " keys: Control+Enter accepts; Escape cancels; F1 opens help; Tab and Shift+Tab move between the controls, "
                     "and an underlined letter with Alt goes straight to one. Shift+F1 says what a control does, twice its whole description, "
-                    "three times its keys. Alt+Shift+Slash says where you are, twice every control, three times these keys.")
+                    "three times its keys. Control+Slash says where you are, twice every control, three times these keys.")
         if iLevel == 2:
             lParts = []
             for sKey, control in lControls:

@@ -810,7 +810,7 @@ foreach ($folderVersion in $lVersions) {
         $pathHomerJsb = Join-Path $pathUser "HomerView.jsb"
         if (-not (Test-Path $pathHomerJsb)) {
             writeLog "  ERROR: HomerView.jsb is not here. Run the HomerView installer first,"
-            writeLog "         with the JAWS box ticked, then run this again."
+            writeLog "         with the JAWS box marked, then run this again."
             writeLog ""
             $iFailed += 1
             continue

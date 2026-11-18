@@ -436,7 +436,7 @@ on. Each entry gives the NVDA key and the JAWS key.
 - **Choose Active Browsers**
     - NVDA: no key
     - JAWS: set activeBrowsers in the settings file, with Edit Settings
-    - Tick the other browsers HomerView's keys should work in, besides the one it drives, so you can change browsers without setting anything up again. In a window HomerView did not open, a key does what the browser itself does.
+    - Mark the other browsers HomerView's keys should work in, besides the one it drives, so you can change browsers without setting anything up again. In a window HomerView did not open, a key does what the browser itself does.
 - **Choose Browser**
     - NVDA: Alt+Shift+B
     - JAWS: Alt+Shift+B

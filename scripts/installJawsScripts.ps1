@@ -125,7 +125,7 @@ function sourcesFingerprint() {
     }
     # THE SCRIPTS THAT INSTALL THEM COUNT TOO (2 November 2026). A fix to chainJawsScripts.ps1 changed how the scripts
     # are chained but not the scripts themselves, so the fingerprint matched, the installer offered the JAWS scripts as
-    # an unticked Reinstall, and the fix never ran.
+    # an unmarked Reinstall, and the fix never ran.
     foreach ($sName in @("chainJawsScripts.ps1", "installJawsScripts.ps1")) {
         $pathOne = Join-Path $pathHere $sName
         if (Test-Path -LiteralPath $pathOne) {

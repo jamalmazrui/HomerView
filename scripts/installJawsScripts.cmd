@@ -7,7 +7,7 @@ if /i "%~1"=="state" (
 )
 rem installJawsScripts.cmd -- install and hook up the HomerView JAWS scripts
 rem
-rem Normally run by HomerView_setup.exe with the JAWS box ticked. Running it by
+rem Normally run by HomerView_setup.exe with the JAWS box marked. Running it by
 rem hand does the same thing.
 rem
 rem THE LOG IS ONE FILE PER RUN, and it is not here:

@@ -5,7 +5,7 @@
     <link>Tutorials.htm</link>
     <description>Spoken walks through HomerView, the browser companion that does what a screen reader cannot. Ten walks, each under five minutes, in the order a new person meets them.</description>
     <language>en-us</language>
-    <lastBuildDate>Wed, 18 Nov 2026 01:34:36 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 18 Nov 2026 02:50:38 +0000</lastBuildDate>
     <itunes:author>Jamal Mazrui</itunes:author>
     <itunes:explicit>false</itunes:explicit>
     <itunes:category text="Technology"/>
@@ -33,7 +33,7 @@
       <description>HomerView_setup.exe is downloaded from the HomerView page on GitHub. Full transcript: Tutorials.htm#0b-2-install-and-launch</description>
       <link>Tutorials.htm#0b-2-install-and-launch</link>
       <guid isPermaLink="false">homer-tutorial_2_install_and_launch</guid>
-      <enclosure url="tutorials/2_Install_and_Launch.mp3" length="1280758" type="audio/mpeg"/>
+      <enclosure url="tutorials/2_Install_and_Launch.mp3" length="1288065" type="audio/mpeg"/>
       <itunes:duration>00:03:07</itunes:duration>
       <itunes:explicit>false</itunes:explicit>
     </item>
@@ -78,7 +78,7 @@
       <description>HomerView is open on a page with documents on it, such as an agency's publications. Full transcript: Tutorials.htm#0g-7-gather-files-from-a-page</description>
       <link>Tutorials.htm#0g-7-gather-files-from-a-page</link>
       <guid isPermaLink="false">homer-tutorial_7_gather_files_from_a_page</guid>
-      <enclosure url="tutorials/7_Gather_Files_from_a_Page.mp3" length="1235766" type="audio/mpeg"/>
+      <enclosure url="tutorials/7_Gather_Files_from_a_Page.mp3" length="1236313" type="audio/mpeg"/>
       <itunes:duration>00:02:56</itunes:duration>
       <itunes:explicit>false</itunes:explicit>
     </item>

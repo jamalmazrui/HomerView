@@ -124,7 +124,7 @@ class BrowserDialog(wx.Dialog):
 
 
 class ActiveBrowsersDialog(wx.Dialog):
-    """Tick the browsers HomerView's keys work in, besides the one it drives."""
+    """Mark the browsers HomerView's keys work in, besides the one it drives."""
 
     def __init__(self, lFound, sDrivenPath, lActive):
         # Translators: Title of the dialog for choosing the browsers HomerView works in.
@@ -133,7 +133,7 @@ class ActiveBrowsersDialog(wx.Dialog):
         boxOuter = wx.BoxSizer(wx.VERTICAL)
         # Translators: Introduction in the active browsers dialog.
         labelPrompt = wx.StaticText(self, label=_(
-            "HomerView's keys always work in the browser it drives. Tick any other browser to have "
+            "HomerView's keys always work in the browser it drives. Mark any other browser to have "
             "them there too, so you can change the browser it drives without setting anything up "
             "again. In a window HomerView did not open, the keys do what the browser itself does."))
         labelPrompt.Wrap(dialogWidth)
@@ -154,7 +154,7 @@ class ActiveBrowsersDialog(wx.Dialog):
             self.listBrowsers.SetSelection(0)
         self.listBrowsers.SetFocus()
 
-    def ticked(self):
+    def marked(self):
         return [Path(self.lOthers[i]["path"]).name for i in range(len(self.lOthers)) if self.listBrowsers.IsChecked(i)]
 
 
@@ -176,20 +176,20 @@ def chooseActiveBrowsers():
                 _("HomerView active browsers"), wx.OK | wx.ICON_INFORMATION)
             return
         iResult = dialog.ShowModal()
-        lTicked = dialog.ticked()
+        lMarked = dialog.marked()
         dialog.Destroy()
     finally:
         gui.mainFrame.postPopup()
     if iResult != wx.ID_OK:
         homerLog.info("The active browsers were not changed")
         return
-    if sorted(s.lower() for s in lTicked) == sorted(s.lower() for s in lActive):
+    if sorted(s.lower() for s in lMarked) == sorted(s.lower() for s in lActive):
         homerLog.info("The same active browsers were chosen, so nothing is changed")
         return
-    browsers.rememberActiveBrowsers(lTicked)
+    browsers.rememberActiveBrowsers(lMarked)
     bJaws, _sOutput = rewriteJawsKeys(sDriven) if sDriven else (False, "")
     # Translators: Reported after the active browsers have been changed.
-    sMessage = _("HomerView's keys will work in {count} browser(s) besides the one it drives.").format(count=len(lTicked))
+    sMessage = _("HomerView's keys will work in {count} browser(s) besides the one it drives.").format(count=len(lMarked))
     if bJaws:
         # Translators: Told to the user when the JAWS keys have been rewritten.
         sMessage += "\n\n" + _("The JAWS keys have been rewritten. Restart JAWS for them to take effect.")

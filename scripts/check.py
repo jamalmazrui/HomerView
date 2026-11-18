@@ -1920,6 +1920,27 @@ def checkDescriptions():
     return finding("command descriptions", "pass", "every description begins with its verb, as the suite's do")
 
 
+def checkMarkedWord():
+    """MARKED, NOT TICKED (11 November 2026, and again 17 November 2026). Homer says a checkbox is "marked", as records
+    and files are marked, never "ticked"; the rule was set on 11 November and some two hundred "tick" words were still
+    in installers, guides, tutorials and messages six days later. This reads the project's installer, ReadMe, help
+    pages (History, a record of what was, aside), configs and scripts, and fails on any "tick", "ticked" or "untick"
+    as a word; a timer's Tick event and DateTime's Ticks are code, not words, and are not counted."""
+    oWord = re.compile(r"(?<![\w.$])(un)?tick(s|ed|ing)?(?!\w)", re.I)
+    lsFound = []
+    for sDir, lsDirs, lsFiles in os.walk(sRoot):
+        lsDirs[:] = [s for s in lsDirs if s.lower() not in ("logs", ".git", "exec", "results", "work", "notes", "__pycache__", "bin", "obj")]
+        for sFile in lsFiles:
+            if sFile.lower() in ("history.md", "tutorialfeed.xml") or not sFile.lower().endswith((".iss", ".md", ".inix", ".cmd", ".ps1")): continue
+            sPath = os.path.join(sDir, sFile)
+            for iLine, sLine in enumerate(readText(sPath).splitlines(), 1):
+                if oWord.search(sLine): lsFound.append("%s:%d: %s" % (os.path.relpath(sPath, sRoot), iLine, sLine.strip()[:100]))
+    for sNote in lsFound: logLine("TICK: " + sNote)
+    if lsFound:
+        return finding("marked, not ticked", "fail", "%d line%s say tick where Homer says mark; each is in the log" % (len(lsFound), "" if len(lsFound) == 1 else "s"))
+    return finding("marked, not ticked", "pass", "checkboxes are marked, never ticked, in the installer and the guides")
+
+
 def checkSuiteCommands():
     """THE HOMER SUITE SPEAKS WITH ONE VOICE (10 November 2026). A command DbDo, EdSharp and FileDir share has one name,
     one suite key and one sentence, word for word but for the app's own words, as HomerDev\\data\\SuiteCatalog.inix
@@ -2327,6 +2348,7 @@ def main():
         checkKitClasses()
         checkMenuLetters()
         checkDescriptions()
+        checkMarkedWord()
         checkSuiteCommands()
         checkExportedKeys()
         checkAccept()

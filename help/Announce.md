@@ -64,7 +64,7 @@ profile, so your ordinary browsing is untouched.
 - [HomerView executable installer](https://github.com/JamalMazrui/HomerView/releases/latest/download/HomerView_setup.exe)
 - [HomerView project on GitHub](https://github.com/JamalMazrui/HomerView)
 
-Run the installer and tick the box for the screen reader you use; it offers
+Run the installer and mark the box for the screen reader you use; it offers
 whichever it finds. Then press **Alt+Control+Shift+H** in JAWS, or **Alt+Control+Shift+H** in
 NVDA (the JAWS and NVDA modifier keys may be Insert or Caps Lock, whichever
 you have set). From there the menu key lists every command, and hot key help

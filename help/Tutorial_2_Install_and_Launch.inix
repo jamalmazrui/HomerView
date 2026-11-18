@@ -29,14 +29,14 @@ Note=Confirm the wording with a live run: buildTutorials -live.
 
 [step]
 
-Say=The last page offers the scripts for each screen reader it finds on this computer, ticked, each saying Install, Update or Reinstall. For one reader it also compiles the scripts for every version installed and asks the reader to reload them, so no restart is normally needed.
+Say=The last page offers the scripts for each screen reader it finds on this computer, marked, each saying Install, Update or Reinstall. For one reader it also compiles the scripts for every version installed and asks the reader to reload them, so no restart is normally needed.
 Key=Tab
 Hear=Install Pandoc, converts documents, checked, 3 of 3
 Note=Confirm the wording with a live run: buildTutorials -live.
 
 [step]
 
-Say=A planned misstep: clearing that box. HomerView's keys would then do nothing. Space ticks it back.
+Say=A planned misstep: clearing that box. HomerView's keys would then do nothing. Space marks it back.
 Key=Space
 Hear=checked
 Note=Confirm the wording with a live run: buildTutorials -live.

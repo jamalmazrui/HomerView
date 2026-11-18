@@ -122,7 +122,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Messages]
 WelcomeLabel2=This will install [name/ver], which drives Microsoft Edge through the Chrome DevTools Protocol, with commands for NVDA and for JAWS.%n%nHomerView is free software under the MIT License The full text installs as License.txt.%n%nAccepting the defaults throughout installs the NVDA add-on and the JAWS scripts as well as the program files.
-FinishedLabel=Setup has installed [name/ver] on your computer.%n%nThe ticked boxes below install what is missing or out of date. NVDA loads the add-on when it next starts.
+FinishedLabel=Setup has installed [name/ver] on your computer.%n%nThe marked boxes below install what is missing or out of date. NVDA loads the add-on when it next starts.
 
 ; No Tasks section. The one optional step, installing the add-on into NVDA, is
 ; offered as a checkbox on the Finish page through the Run section below, which
@@ -321,8 +321,8 @@ Name: "{autodesktop}\HomerView"; Filename: "{app}\exec\HomerView.exe"; Parameter
 ; which the finish page now explains in every case.
 ; OFFERED ONLY WHERE NVDA IS, AS THE JAWS LINE IS OFFERED ONLY WHERE JAWS IS.
 ; Until 26 September 2026 this line had no Check, so a machine with JAWS alone
-; was offered, ticked, an NVDA add-on it could not install -- and a message
-; box on this page then warned that the ticked box would fail. An installer
+; was offered, marked, an NVDA add-on it could not install -- and a message
+; box on this page then warned that the marked box would fail. An installer
 ; offers the components this machine can use and nothing else. Someone who
 ; installs NVDA later has the Start menu item for the add-on.
 ; (The NVDA entry itself follows the JAWS one below: JAWS first, NVDA second,
@@ -334,7 +334,7 @@ Name: "{autodesktop}\HomerView"; Filename: "{app}\exec\HomerView.exe"; Parameter
 ; Checked by default because the reader who needs it is the reader who cannot
 ; tell in advance that they do: they find out when an ebook will not open. The
 ; script notices a copy already on the machine and copies that instead of
-; downloading, so ticking it when pandoc is present costs a second.
+; downloading, so marking it when pandoc is present costs a second.
 ;
 ; runascurrentuser matters. winget installs per user, into the profile of
 ; whoever is signed in, and this installer is running elevated.
@@ -376,7 +376,7 @@ Name: "{autodesktop}\HomerView"; Filename: "{app}\exec\HomerView.exe"; Parameter
 ;
 ; NOT postinstall, DELIBERATELY: a postinstall entry is a checkbox on the
 ; finish page, and this is not a choice to offer twice. The reader already
-; agreed at the prompt, and a box they could untick would leave BOTH sets
+; agreed at the prompt, and a box they could unmark would leave BOTH sets
 ; of keys installed -- the one outcome this exists to prevent. A comment
 ; cannot sit inside the entry either: a line continuation ends at one.
 ; reader chose to continue. Removing before installing means the two sets
@@ -407,17 +407,17 @@ Filename: "{app}\scripts\installJawsScripts.cmd"; \
   Check: JawsAndSilent
 
 ; THE FINISH PAGE (29 September 2026; HomerDev FinishPage.md). Three groups,
-; Install and Update ticked, Reinstall unticked; within each, alphabetical by
+; Install and Update marked, Reinstall unmarked; within each, alphabetical by
 ; the component's name, ignoring case: JAWS scripts, NVDA add-on, pandoc. The
 ; JAWS scripts and the NVDA add-on are judged like any component, by
 ; installJawsScripts -sState, and the add-on is installed without starting
 ; NVDA, so no second screen reader talks over JAWS.
-; PANDOC IN THE KIT'S THREE SHAPES: "Install pandoc <version>" ticked when it
-; is absent, "Update pandoc from <old> to <new>" ticked when a newer one exists,
-; "Reinstall pandoc <version>" unticked when it is current. So Enter installs
+; PANDOC IN THE KIT'S THREE SHAPES: "Install pandoc <version>" marked when it
+; is absent, "Update pandoc from <old> to <new>" marked when a newer one exists,
+; "Reinstall pandoc <version>" unmarked when it is current. So Enter installs
 ; what is missing, updates what is stale, and reinstalls nothing. Run directly,
 ; not through {cmd} with doubled quotes, which the kit found fails silently.
-; ---- 1. Install, ticked
+; ---- 1. Install, marked
 Filename: "{app}\scripts\installJawsScripts.cmd"; \
   Parameters: "-sVersion {#AppVersion} -bQuiet"; \
   WorkingDir: "{app}"; \
@@ -437,7 +437,7 @@ Filename: "{app}\scripts\installPandoc.cmd"; Parameters: "noPause"; \
   Flags: postinstall skipifsilent runascurrentuser waituntilterminated; \
   Check: isInstallPandoc
 
-; ---- 2. Update, ticked
+; ---- 2. Update, marked
 Filename: "{app}\scripts\installJawsScripts.cmd"; \
   Parameters: "-sVersion {#AppVersion} -bQuiet"; \
   WorkingDir: "{app}"; \
@@ -457,7 +457,7 @@ Filename: "{app}\scripts\installPandoc.cmd"; Parameters: "noPause"; \
   Flags: postinstall skipifsilent runascurrentuser waituntilterminated; \
   Check: isUpdatePandoc
 
-; ---- 3. Reinstall, unticked
+; ---- 3. Reinstall, unmarked
 Filename: "{app}\scripts\installJawsScripts.cmd"; \
   Parameters: "-sVersion {#AppVersion} -bQuiet"; \
   WorkingDir: "{app}"; \
@@ -477,9 +477,9 @@ Filename: "{app}\scripts\installPandoc.cmd"; Parameters: "noPause"; \
   Flags: postinstall skipifsilent runascurrentuser waituntilterminated unchecked; \
   Check: isReinstallPandoc
 ;
-; LAUNCH, TICKED, AFTER THE RESULTS BOX (2 November 2026). This installer had no Launch entry at all, so pressing
+; LAUNCH, MARKED, AFTER THE RESULTS BOX (2 November 2026). This installer had no Launch entry at all, so pressing
 ; Enter on the finish page installed the scripts and closed, and HomerView never started -- the Homer pattern says
-; Launch is ticked and starts the program after the Results box is read. The entry only leaves a marker; the summary
+; Launch is marked and starts the program after the Results box is read. The entry only leaves a marker; the summary
 ; helper shows the Results box and then starts HomerView, as the person who ran Setup. TWO pairs of quotes, since the
 ; value starts with one.
 FileName: "{cmd}"; \
@@ -582,7 +582,7 @@ Type: filesandordirs; Name: "{app}\dist"
 // In [Code] a comment is // or braces: a line beginning with ; stopped the compile on
 // 9 October 2026 ("BEGIN expected" on line 567).
 // THE KIT'S SCREEN READER FUNCTIONS (10 October 2026): asked through HomerView's own script, which chains its
-// JAWS scripts into the defaults; the verbs and ticks are the kit's.
+// JAWS scripts into the defaults; the verbs and marks are the kit's.
 #define HomerReaderScript "installJawsScripts.cmd"
 #include HomerDev + "\Templates\HomerComponents.iss"
 
@@ -892,7 +892,7 @@ end;
   properly by a screen reader, saying where things went, which optional steps
   ran, and how they turned out.
 
-  EVERY LINE IS AN OBSERVED FACT, not a checkbox that was ticked. A ticked box
+  EVERY LINE IS AN OBSERVED FACT, not a checkbox that was marked. A marked box
   says what was ASKED FOR; the folder on disk and the result file say what
   HAPPENED, and those differ often enough to matter -- most of all for the NVDA
   add-on, which silently does nothing when NVDA is not running.
@@ -906,8 +906,8 @@ var
   gsTicked: String;
 
 
-{ THE RESULTS BOX REPORTS WHAT WAS TICKED: where HomerView is and where the logs
-  are, then one line for each box ticked on the finish page. The captions are
+{ THE RESULTS BOX REPORTS WHAT WAS MARKED: where HomerView is and where the logs
+  are, then one line for each box marked on the finish page. The captions are
   written down when Finish is pressed, before any of those steps run. }
 function NextButtonClick(iCurPageID: Integer): Boolean;
 var
@@ -1037,7 +1037,7 @@ begin
   sLogFolder := ExpandConstant('{localappdata}\HomerView\logs');
   ForceDirectories(sLogFolder);
 
-  // Where it is; the ticked boxes are reported by summarizeSetup, which runs
+  // Where it is; the marked boxes are reported by summarizeSetup, which runs
   // after them. pandoc runs here from its own outcome line.
   sMessage := 'HomerView {#AppVersion} is installed in ' + ExpandConstant('{app}') + '.' + sBreak + sBreak;
   if homerOutcomeLine(iPandoc) <> '' then

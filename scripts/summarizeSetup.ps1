@@ -26,7 +26,7 @@ if (Test-Path $pathResults) {
 # outcome can be read off the disk rather than guessed at.
 $sBreak = [Environment]::NewLine
 
-# ONLY WHAT WAS TICKED (29 September 2026). The installer wrote the ticked
+# ONLY WHAT WAS MARKED (29 September 2026). The installer wrote the marked
 # captions to HomerView_ticked.txt when Finish was pressed; each screen reader
 # is reported only when its box was among them, and nothing else is added but
 # where the logs are.
@@ -101,7 +101,7 @@ Add-Type -AssemblyName System.Windows.Forms | Out-Null
     [System.Windows.Forms.MessageBoxButtons]::OK,
     [System.Windows.Forms.MessageBoxIcon]::Information) | Out-Null
 
-# THEN THE LAUNCH, IF ITS BOX WAS TICKED (2 November 2026). The finish page's Launch entry leaves a marker; HomerView
+# THEN THE LAUNCH, IF ITS BOX WAS MARKED (2 November 2026). The finish page's Launch entry leaves a marker; HomerView
 # starts here, after the Results box has been read and closed, so the box is never hidden behind the browser, and
 # with the same "launch" argument the desktop shortcut uses.
 $pathFlag = Join-Path $pathFolder "HomerView_launch.flag"
@@ -112,6 +112,6 @@ if (Test-Path -LiteralPath $pathFlag) {
         Start-Process -FilePath $pathExe -ArgumentList "launch" -WorkingDirectory (Split-Path -Parent $PSScriptRoot)
         Add-Content -LiteralPath $pathLog -Value ("Launched " + $pathExe + " launch, as the Launch box asked") -Encoding UTF8
     } catch {
-        Add-Content -LiteralPath $pathLog -Value ("The Launch box was ticked, but " + $pathExe + " did not start: " + $_) -Encoding UTF8
+        Add-Content -LiteralPath $pathLog -Value ("The Launch box was marked, but " + $pathExe + " did not start: " + $_) -Encoding UTF8
     }
 }

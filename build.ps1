@@ -864,7 +864,7 @@ writeLog ""
 # installed.
 #
 # Every JSL failure so far has been found by building an add-on, compiling an
-# installer, running it, ticking the JAWS box and then opening a log in
+# installer, running it, marking the JAWS box and then opening a log in
 # C:\temp: minutes for an answer the compiler gives in under a second. The
 # check runs here, on the same footing as the setup script check, and for the
 # same reason.

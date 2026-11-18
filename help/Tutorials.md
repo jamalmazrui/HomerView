@@ -317,7 +317,7 @@ Confirm the wording with a live run: buildTutorials -live.
 
 ### Step 4: Tab
 
-The last page offers the scripts for each screen reader it finds on this computer, ticked, each saying Install, Update or Reinstall. For one reader it also compiles the scripts for every version installed and asks the reader to reload them, so no restart is normally needed.
+The last page offers the scripts for each screen reader it finds on this computer, marked, each saying Install, Update or Reinstall. For one reader it also compiles the scripts for every version installed and asks the reader to reload them, so no restart is normally needed.
 
 Screen reader:
 
@@ -327,7 +327,7 @@ Confirm the wording with a live run: buildTutorials -live.
 
 ### Step 5: Space
 
-A planned misstep: clearing that box. HomerView's keys would then do nothing. Space ticks it back.
+A planned misstep: clearing that box. HomerView's keys would then do nothing. Space marks it back.
 
 Screen reader:
 
@@ -1342,7 +1342,7 @@ For many pages at once, urlFido, another Homer program, fetches the same way fro
 
 ### Step 16: Space
 
-Web Download lists the files on the page; Space ticks the ones wanted, and Enter fetches them.
+Web Download lists the files on the page; Space marks the ones wanted, and Enter fetches them.
 
 Screen reader:
 

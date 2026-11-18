@@ -1,6 +1,11 @@
 ﻿
 
 
+## 17 November 2026 -- Marked, not ticked
+
+- **A checkbox is marked, never ticked,** in the installer, its finish page, the guides, the tutorials and every message, as Homer has said since 11 November; some forty-five lines still said tick. The kit's check now fails on the word, so it cannot come back.
+- **runMacro with no macro named says plainly that HomerView has no live tests yet,** and ends without an error.
+
 ## 17 November 2026 -- testSay waits for HomerView's browser
 
 - **testSay says plainly that it cannot test HomerView yet,** rather than waiting thirty seconds for a window: HomerView's Say commands work in its browser window, which belongs to Edge, and testSay cannot find that window yet.

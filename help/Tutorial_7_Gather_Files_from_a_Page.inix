@@ -105,7 +105,7 @@ Key=
 
 [step]
 
-Say=Web Download lists the files on the page; Space ticks the ones wanted, and Enter fetches them.
+Say=Web Download lists the files on the page; Space marks the ones wanted, and Enter fetches them.
 Key=Space
 Hear=checked
 Note=Confirm the wording with a live run: buildTutorials -live.

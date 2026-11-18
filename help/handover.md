@@ -342,8 +342,8 @@ wrapper removes the old root copies once their `scripts\` replacements exist.
 **Pandoc adopts the kit's component table (26 Sep).** The installer
 includes `HomerComponents.iss` (from `/DHomerDev=`, which the build passes,
 defaulting to `C:\\HomerDev`), registers pandoc once with `homerAdd`, and
-offers it in the kit's three shapes — Install and Update ticked, Reinstall
-unticked — run directly as `installPandoc.cmd noPause` rather than through
+offers it in the kit's three shapes — Install and Update marked, Reinstall
+unmarked — run directly as `installPandoc.cmd noPause` rather than through
 `{cmd}` with doubled quotes. `installPandoc.ps1` now installs to pandoc's own
 machine-wide `Program Files\\Pandoc` (winget `--scope machine`, else the
 GitHub release unpacked there) instead of copying `pandoc.exe` into
@@ -366,12 +366,12 @@ was trimmed the same way: HomerView carries `checkHomerApp`, `fixEncoding`,
 and the three tutorial tools until HomerView has a tutorial.
 
 **The NVDA line on the finish page had no Check (26 Sep).** It was offered,
-ticked, on a JAWS-only machine, and a `CurPageChanged` message box then
+marked, on a JAWS-only machine, and a `CurPageChanged` message box then
 warned that it would fail. Now `Check: HaveNvda`, matching the JAWS line's
 `HaveJaws`, and the message box is gone; the Start menu item covers a later
 NVDA install. `summarizeSetup` already reported the add-on only when it was
 installed. The finish page's order already matches the kit's groups: screen
-reader lines and Install pandoc, then Update, then Reinstall unticked.
+reader lines and Install pandoc, then Update, then Reinstall unmarked.
 
 **Uninstall follows the kit's rule (26 Sep).** `[UninstallDelete]` named the
 whole `{localappdata}\\HomerView`, taking `recent.txt` and the browser profile

@@ -2,7 +2,7 @@
 # machine, and say what each compiler said.
 #
 # This exists because of how the last several failures were found: build the
-# add-on, compile the installer, run the installer, tick the JAWS box, wait for
+# add-on, compile the installer, run the installer, mark the JAWS box, wait for
 # it to finish, then open a log in C:\temp to read a syntax error. Minutes for
 # an answer the compiler gives in under a second, and the source was never
 # wrong in a way any of the earlier steps could have noticed.

@@ -1404,7 +1404,19 @@ Confirm the wording with a live run: buildTutorials -live.
 
 ### Step 3: Alt+Shift+A
 
-Alt plus Shift plus A, A for Accessibility, runs Deque's axe-core over the page and opens a readable report.
+Alt plus Shift plus A, A for Accessibility, asks which engine should test the page. The first choice, Deque's axe-core, is the one I want, so Enter.
+
+Screen reader:
+
+- Test this page for accessibility dialog
+- Which engine should test this page?
+- Deque axe-core, with a report and how to reach the publisher
+
+Confirm the wording with a live run: buildTutorials -live.
+
+### Step 4: Enter
+
+Enter runs it and opens a readable report.
 
 Screen reader:
 
@@ -1412,13 +1424,33 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 4
+### Step 5
 
 It starts in plain words: how many problems, and that an automated tool finds only some of them, so a person still checks the rest. Then the worst first, each with its WCAG criterion named and its level.
 
-### Step 5: Alt+Shift+E
+### Step 6: Alt+Shift+A
 
-Alt plus Shift plus E runs IBM's Equal Access instead, where your screen reader leaves that key free; otherwise Check Accessibility offers it, which folds Section 508 and EN 301 549 in with WCAG.
+Alt plus Shift plus A again, and this time Down Arrow to IBM's Equal Access, which folds Section 508 and EN 301 549 in with WCAG. The dialog remembers the last engine chosen.
+
+Screen reader:
+
+- Test this page for accessibility dialog
+
+Confirm the wording with a live run: buildTutorials -live.
+
+### Step 7: Down Arrow
+
+Down Arrow, then Enter.
+
+Screen reader:
+
+- IBM Equal Access, saving JSON, CSV, a spreadsheet and a web page
+
+Confirm the wording with a live run: buildTutorials -live.
+
+### Step 8: Enter
+
+Enter.
 
 Screen reader:
 
@@ -1426,7 +1458,7 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 6: Alt+Shift+C
+### Step 9: Alt+Shift+C
 
 Use both; they disagree usefully. Then Alt plus Shift plus C, Find Contacts, answers who to tell: it looks on this page, the home page, and where accessibility statements usually live.
 
@@ -1436,11 +1468,11 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 7
+### Step 10
 
 A planned misstep: reading a report of no problems as a clean bill of health. An automated check finds only some problems; a person using the page finds the rest.
 
-### Step 8: Alt+Shift+C
+### Step 11: Alt+Shift+C
 
 Alt plus Shift plus C, Find Contacts, finds who to tell: email addresses, the accessibility statement, and contact forms.
 
@@ -1450,7 +1482,7 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 9: Alt+F10
+### Step 12: Alt+F10
 
 Report Accessibility, from the Alternate Menu, tests the page and writes a report addressed to whoever publishes the site.
 
@@ -1460,7 +1492,7 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 10: Enter
+### Step 13: Enter
 
 I type report, and Enter.
 
@@ -1470,11 +1502,11 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 11
+### Step 14
 
 The report is a page of its own, plain and polite, ready to send to the contact just found.
 
-### Step 12: Alt+Shift+Y
+### Step 15: Alt+Shift+Y
 
 Alt plus Shift plus Y, before testing, says how the page is built, which often explains a result: no headings, or a form with unlabelled fields.
 
@@ -1484,19 +1516,19 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 13
+### Step 16
 
 An automated test finds many problems but not all; the report says so, and lists what a person should still check.
 
-### Step 14
+### Step 17
 
 For a whole site, urlCheck, another Homer program, checks a list of pages and drafts a conformance report.
 
-### Step 15
+### Step 18
 
 Checking takes a minute, and a clear report makes a fix far more likely than a complaint.
 
-### Step 16: Alt+Shift+D
+### Step 19: Alt+Shift+D
 
 Alt plus Shift plus D closes a browser dialog that blocks the page, such as a cookie banner, before testing.
 
@@ -1506,7 +1538,7 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 17: Alt+Shift+A
+### Step 20: Alt+Shift+A
 
 Alt plus Shift plus A again, after a site fixes its page, shows whether the fix worked.
 
@@ -1516,7 +1548,7 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 18: Escape
+### Step 21: Escape
 
 Escape, for now.
 
@@ -1526,27 +1558,19 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 19
+### Step 22
 
 What this walk taught. I name the command; the reader gives the key.
 
-### Step 20
+### Step 23
 
-Check with axe-core.
-
-Screen reader:
-
-- Alt plus Shift plus A
-
-### Step 21
-
-Check with Equal Access.
+Check with axe-core, Equal Access or both.
 
 Screen reader:
 
-- Alt plus Shift plus E
+- Alt plus Shift plus A, then choose the engine
 
-### Step 22
+### Step 24
 
 Who to tell.
 
@@ -1612,7 +1636,7 @@ Equal Access.
 
 Screen reader:
 
-- IBM's accessibility engine, run by Alt plus Shift plus E, with Section 508 and EN 301 549 folded in.
+- IBM's accessibility engine, chosen after Alt plus Shift plus A, with Section 508 and EN 301 549 folded in.
 
 ### Step 8
 

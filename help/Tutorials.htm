@@ -1358,29 +1358,54 @@ brings it back.</p>
 </ul>
 <p>Confirm the wording with a live run: buildTutorials -live.</p>
 <h3 id="step-3-altshifta">Step 3: Alt+Shift+A</h3>
-<p>Alt plus Shift plus A, A for Accessibility, runs Deque’s axe-core
-over the page and opens a readable report.</p>
+<p>Alt plus Shift plus A, A for Accessibility, asks which engine should
+test the page. The first choice, Deque’s axe-core, is the one I want, so
+Enter.</p>
+<p>Screen reader:</p>
+<ul>
+<li>Test this page for accessibility dialog</li>
+<li>Which engine should test this page?</li>
+<li>Deque axe-core, with a report and how to reach the publisher</li>
+</ul>
+<p>Confirm the wording with a live run: buildTutorials -live.</p>
+<h3 id="step-4-enter-1">Step 4: Enter</h3>
+<p>Enter runs it and opens a readable report.</p>
 <p>Screen reader:</p>
 <ul>
 <li>Accessibility report for Seattle Parks and Recreation, heading level
 1</li>
 </ul>
 <p>Confirm the wording with a live run: buildTutorials -live.</p>
-<h3 id="step-4-1">Step 4</h3>
+<h3 id="step-5-1">Step 5</h3>
 <p>It starts in plain words: how many problems, and that an automated
 tool finds only some of them, so a person still checks the rest. Then
 the worst first, each with its WCAG criterion named and its level.</p>
-<h3 id="step-5-altshifte">Step 5: Alt+Shift+E</h3>
-<p>Alt plus Shift plus E runs IBM’s Equal Access instead, where your
-screen reader leaves that key free; otherwise Check Accessibility offers
-it, which folds Section 508 and EN 301 549 in with WCAG.</p>
+<h3 id="step-6-altshifta">Step 6: Alt+Shift+A</h3>
+<p>Alt plus Shift plus A again, and this time Down Arrow to IBM’s Equal
+Access, which folds Section 508 and EN 301 549 in with WCAG. The dialog
+remembers the last engine chosen.</p>
+<p>Screen reader:</p>
+<ul>
+<li>Test this page for accessibility dialog</li>
+</ul>
+<p>Confirm the wording with a live run: buildTutorials -live.</p>
+<h3 id="step-7-down-arrow">Step 7: Down Arrow</h3>
+<p>Down Arrow, then Enter.</p>
+<p>Screen reader:</p>
+<ul>
+<li>IBM Equal Access, saving JSON, CSV, a spreadsheet and a web
+page</li>
+</ul>
+<p>Confirm the wording with a live run: buildTutorials -live.</p>
+<h3 id="step-8-enter">Step 8: Enter</h3>
+<p>Enter.</p>
 <p>Screen reader:</p>
 <ul>
 <li>Equal Access report for Seattle Parks and Recreation, heading level
 1</li>
 </ul>
 <p>Confirm the wording with a live run: buildTutorials -live.</p>
-<h3 id="step-6-altshiftc">Step 6: Alt+Shift+C</h3>
+<h3 id="step-9-altshiftc">Step 9: Alt+Shift+C</h3>
 <p>Use both; they disagree usefully. Then Alt plus Shift plus C, Find
 Contacts, answers who to tell: it looks on this page, the home page, and
 where accessibility statements usually live.</p>
@@ -1390,11 +1415,11 @@ where accessibility statements usually live.</p>
 statement; a feedback form, on the home page</li>
 </ul>
 <p>Confirm the wording with a live run: buildTutorials -live.</p>
-<h3 id="step-7-3">Step 7</h3>
+<h3 id="step-10-3">Step 10</h3>
 <p>A planned misstep: reading a report of no problems as a clean bill of
 health. An automated check finds only some problems; a person using the
 page finds the rest.</p>
-<h3 id="step-8-altshiftc">Step 8: Alt+Shift+C</h3>
+<h3 id="step-11-altshiftc">Step 11: Alt+Shift+C</h3>
 <p>Alt plus Shift plus C, Find Contacts, finds who to tell: email
 addresses, the accessibility statement, and contact forms.</p>
 <p>Screen reader:</p>
@@ -1402,7 +1427,7 @@ addresses, the accessibility statement, and contact forms.</p>
 <li>Contacts for this site</li>
 </ul>
 <p>Confirm the wording with a live run: buildTutorials -live.</p>
-<h3 id="step-9-altf10">Step 9: Alt+F10</h3>
+<h3 id="step-12-altf10">Step 12: Alt+F10</h3>
 <p>Report Accessibility, from the Alternate Menu, tests the page and
 writes a report addressed to whoever publishes the site.</p>
 <p>Screen reader:</p>
@@ -1410,17 +1435,17 @@ writes a report addressed to whoever publishes the site.</p>
 <li>Alternate Menu</li>
 </ul>
 <p>Confirm the wording with a live run: buildTutorials -live.</p>
-<h3 id="step-10-enter">Step 10: Enter</h3>
+<h3 id="step-13-enter">Step 13: Enter</h3>
 <p>I type report, and Enter.</p>
 <p>Screen reader:</p>
 <ul>
 <li>Report Accessibility</li>
 </ul>
 <p>Confirm the wording with a live run: buildTutorials -live.</p>
-<h3 id="step-11-2">Step 11</h3>
+<h3 id="step-14-3">Step 14</h3>
 <p>The report is a page of its own, plain and polite, ready to send to
 the contact just found.</p>
-<h3 id="step-12-altshifty">Step 12: Alt+Shift+Y</h3>
+<h3 id="step-15-altshifty-1">Step 15: Alt+Shift+Y</h3>
 <p>Alt plus Shift plus Y, before testing, says how the page is built,
 which often explains a result: no headings, or a form with unlabelled
 fields.</p>
@@ -1429,16 +1454,16 @@ fields.</p>
 <li>0 headings, 112 links, 1 form</li>
 </ul>
 <p>Confirm the wording with a live run: buildTutorials -live.</p>
-<h3 id="step-13-1">Step 13</h3>
+<h3 id="step-16-3">Step 16</h3>
 <p>An automated test finds many problems but not all; the report says
 so, and lists what a person should still check.</p>
-<h3 id="step-14-3">Step 14</h3>
+<h3 id="step-17-6">Step 17</h3>
 <p>For a whole site, urlCheck, another Homer program, checks a list of
 pages and drafts a conformance report.</p>
-<h3 id="step-15-4">Step 15</h3>
+<h3 id="step-18-3">Step 18</h3>
 <p>Checking takes a minute, and a clear report makes a fix far more
 likely than a complaint.</p>
-<h3 id="step-16-altshiftd">Step 16: Alt+Shift+D</h3>
+<h3 id="step-19-altshiftd">Step 19: Alt+Shift+D</h3>
 <p>Alt plus Shift plus D closes a browser dialog that blocks the page,
 such as a cookie banner, before testing.</p>
 <p>Screen reader:</p>
@@ -1446,7 +1471,7 @@ such as a cookie banner, before testing.</p>
 <li>Dialog dismissed</li>
 </ul>
 <p>Confirm the wording with a live run: buildTutorials -live.</p>
-<h3 id="step-17-altshifta">Step 17: Alt+Shift+A</h3>
+<h3 id="step-20-altshifta">Step 20: Alt+Shift+A</h3>
 <p>Alt plus Shift plus A again, after a site fixes its page, shows
 whether the fix worked.</p>
 <p>Screen reader:</p>
@@ -1454,29 +1479,23 @@ whether the fix worked.</p>
 <li>Check Accessibility dialog</li>
 </ul>
 <p>Confirm the wording with a live run: buildTutorials -live.</p>
-<h3 id="step-18-escape">Step 18: Escape</h3>
+<h3 id="step-21-escape-1">Step 21: Escape</h3>
 <p>Escape, for now.</p>
 <p>Screen reader:</p>
 <ul>
 <li>HomerView</li>
 </ul>
 <p>Confirm the wording with a live run: buildTutorials -live.</p>
-<h3 id="step-19-4">Step 19</h3>
+<h3 id="step-22-2">Step 22</h3>
 <p>What this walk taught. I name the command; the reader gives the
 key.</p>
-<h3 id="step-20-4">Step 20</h3>
-<p>Check with axe-core.</p>
+<h3 id="step-23">Step 23</h3>
+<p>Check with axe-core, Equal Access or both.</p>
 <p>Screen reader:</p>
 <ul>
-<li>Alt plus Shift plus A</li>
+<li>Alt plus Shift plus A, then choose the engine</li>
 </ul>
-<h3 id="step-21-4">Step 21</h3>
-<p>Check with Equal Access.</p>
-<p>Screen reader:</p>
-<ul>
-<li>Alt plus Shift plus E</li>
-</ul>
-<h3 id="step-22-2">Step 22</h3>
+<h3 id="step-24">Step 24</h3>
 <p>Who to tell.</p>
 <p>Screen reader:</p>
 <ul>
@@ -1513,10 +1532,10 @@ elsewhere.</p>
 <ul>
 <li>Alt plus Control plus Shift plus H</li>
 </ul>
-<h3 id="step-4-2">Step 4</h3>
+<h3 id="step-4-1">Step 4</h3>
 <p>Now the words, in alphabetical order. I say the term; the reader says
 what it means.</p>
-<h3 id="step-5-1">Step 5</h3>
+<h3 id="step-5-2">Step 5</h3>
 <p>axe-core.</p>
 <p>Screen reader:</p>
 <ul>
@@ -1529,11 +1548,11 @@ what it means.</p>
 <li>Alt plus C: the selection, or the line, added to what is already on
 the clipboard.</li>
 </ul>
-<h3 id="step-7-4">Step 7</h3>
+<h3 id="step-7-3">Step 7</h3>
 <p>Equal Access.</p>
 <p>Screen reader:</p>
 <ul>
-<li>IBM’s accessibility engine, run by Alt plus Shift plus E, with
+<li>IBM’s accessibility engine, chosen after Alt plus Shift plus A, with
 Section 508 and EN 301 549 folded in.</li>
 </ul>
 <h3 id="step-8-3">Step 8</h3>
@@ -1548,14 +1567,14 @@ Section 508 and EN 301 549 folded in.</li>
 <ul>
 <li>Alt plus L: what is at the other end of a link, before you go.</li>
 </ul>
-<h3 id="step-10-3">Step 10</h3>
+<h3 id="step-10-4">Step 10</h3>
 <p>pattern.</p>
 <p>Screen reader:</p>
 <ul>
 <li>A regular expression: a description of text to find, such as any
 four digits.</li>
 </ul>
-<h3 id="step-11-3">Step 11</h3>
+<h3 id="step-11-2">Step 11</h3>
 <p>Probable Main.</p>
 <p>Screen reader:</p>
 <ul>
@@ -1569,7 +1588,7 @@ weighed.</li>
 <li>HomerView’s own browser settings and sign-ins, kept apart from your
 ordinary browsing.</li>
 </ul>
-<h3 id="step-13-2">Step 13</h3>
+<h3 id="step-13-1">Step 13</h3>
 <p>Read All.</p>
 <p>Screen reader:</p>
 <ul>
@@ -1583,7 +1602,7 @@ cursor.</li>
 <li>Alt plus Shift plus W: every document on a page, fetched with the
 browser’s own sign-in.</li>
 </ul>
-<h3 id="step-15-5">Step 15</h3>
+<h3 id="step-15-4">Step 15</h3>
 <p>Last, more information. Every command, by name, and every key with
 the version.</p>
 <p>Screen reader:</p>
@@ -1591,7 +1610,7 @@ the version.</p>
 <li>Alt plus F10</li>
 <li>Alt plus Shift plus H</li>
 </ul>
-<h3 id="step-16-3">Step 16</h3>
+<h3 id="step-16-4">Step 16</h3>
 <p>HomerView dot m d is the guide, with its own tutorial and
 troubleshooting; hotkeys dot m d lists every key; and the HomerView page
 on GitHub, at github dot com slash JamalMazrui slash HomerView, has the

@@ -21,8 +21,17 @@ Note=Confirm the wording with a live run: buildTutorials -live.
 
 [step]
 
-Say=Alt plus Shift plus A, A for Accessibility, runs Deque's axe-core over the page and opens a readable report.
+Say=Alt plus Shift plus A, A for Accessibility, asks which engine should test the page. The first choice, Deque's axe-core, is the one I want, so Enter.
 Key=Alt+Shift+A
+Hear=Test this page for accessibility dialog
+Hear=Which engine should test this page?
+Hear=Deque axe-core, with a report and how to reach the publisher
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Enter runs it and opens a readable report.
+Key=Enter
 Hear=Accessibility report for Seattle Parks and Recreation, heading level 1
 Note=Confirm the wording with a live run: buildTutorials -live.
 
@@ -34,8 +43,22 @@ Hear=
 
 [step]
 
-Say=Alt plus Shift plus E runs IBM's Equal Access instead, where your screen reader leaves that key free; otherwise Check Accessibility offers it, which folds Section 508 and EN 301 549 in with WCAG.
-Key=Alt+Shift+E
+Say=Alt plus Shift plus A again, and this time Down Arrow to IBM's Equal Access, which folds Section 508 and EN 301 549 in with WCAG. The dialog remembers the last engine chosen.
+Key=Alt+Shift+A
+Hear=Test this page for accessibility dialog
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Down Arrow, then Enter.
+Key=Down Arrow
+Hear=IBM Equal Access, saving JSON, CSV, a spreadsheet and a web page
+Note=Confirm the wording with a live run: buildTutorials -live.
+
+[step]
+
+Say=Enter.
+Key=Enter
 Hear=Equal Access report for Seattle Parks and Recreation, heading level 1
 Note=Confirm the wording with a live run: buildTutorials -live.
 
@@ -129,15 +152,10 @@ Hear=
 
 [step]
 
-Say=Check with axe-core.
+Say=Check with axe-core, Equal Access or both.
 Key=
-Hear=Alt plus Shift plus A
+Hear=Alt plus Shift plus A, then choose the engine
 
-[step]
-
-Say=Check with Equal Access.
-Key=
-Hear=Alt plus Shift plus E
 
 [step]
 

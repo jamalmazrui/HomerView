@@ -1,6 +1,11 @@
 ﻿
 
 
+## 22 November 2026 -- The accessibility walk asks for the engine
+
+- **The Check Accessibility tutorial follows today's keys.** It pressed Alt+Shift+E for IBM's Equal Access, which is now Edit Settings. Check Accessibility, Alt+Shift+A, asks which engine should test the page, and the walk now chooses Deque's axe-core and then IBM's Equal Access from that question.
+- **The tutorials speak in the new screen reader voice,** Phonon Russell, once the kit is 1.275.0. Every walk is spoken again once.
+
 ## 22 November 2026 -- Every box decided before the last page
 
 - **The installer asks what is installed before its last page,** through the kit's homerProbeAll, so each box's Install, Update or Reinstall is decided before the page appears and nothing is checked after it.

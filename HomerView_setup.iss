@@ -937,7 +937,13 @@ begin
     backed out would be a plain lie, so the summary is shown only if the files
     were actually copied. }
   if iCurStep = ssPostInstall then
+  begin
     bInstalled := True;
+  //  EVERY VERB BEFORE THE CHECKBOXES (22 November 2026): the kit's homerProbeAll asks the screen readers and every
+  //  component now, with the progress bar still showing, so the finish page's Install, Update and Reinstall are known
+  //  before it appears and nothing is checked after it.
+  homerProbeAll(True);
+  end;
 end;
 
 function NvdaIsRunning(): Boolean;

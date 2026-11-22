@@ -1,6 +1,11 @@
 ﻿
 
 
+## 22 November 2026 -- Every box decided before the last page
+
+- **The installer asks what is installed before its last page,** through the kit's homerProbeAll, so each box's Install, Update or Reinstall is decided before the page appears and nothing is checked after it.
+- **This needs HomerDev 1.270.0.**
+
 ## 18 November 2026 -- The release check passes, and Where Am I is Control+Slash
 
 - **The release stopped at the push step's check.** The kit's new "help keys" check found that the Hotkeys page did not name What This Does, Where Am I or Elevate Version with their keys. The page, which makeDocs writes on every build, now has a short section on HomerView's dialogs: Shift+F1 says what a control does, Control+Slash says where you are, and Elevate Version is on Control+F11 because F11 is the browser's key for full screen.

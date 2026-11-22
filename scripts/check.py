@@ -1209,10 +1209,24 @@ def checkReaderKeys():
     sJkm = os.path.join(sRoot, "scripts", "jaws", appName() + ".jkm")
     if os.path.isfile(sJkm):
         dGlobal = dict((s.lower(), d) for s, d in lsEntries if d.get("kind", "") == "reader global" and "jaws" in d.get("owner", "").lower() and d.get("passthrough", "").lower() != "yes")
+        # A SCRIPT THAT FALLS BACK TO JAWS'S OWN IS NOT A TAKING (22 November 2026). EdSharp's latex-access scripts sit
+        # on Alt+Control+PageUp and PageDown: in a math matrix they read the row or column, and everywhere else they
+        # perform JAWS's own voice-rate script, so JAWS's key still does what JAWS says. A line naming a script of the
+        # app's own whose body ends in PerformScript is logged as kept; TypeCurrentScriptKey and SilentKey, which hand
+        # the key on, still fail.
+        dWraps = {}
+        sJawsDir = os.path.dirname(sJkm)
+        for sJss in os.listdir(sJawsDir):
+            if not sJss.lower().endswith(".jss"): continue
+            for oMatch in re.finditer(r"(?ims)^\s*Script\s+(\w+)\s*\((.*?)^\s*EndScript", readText(os.path.join(sJawsDir, sJss))):
+                if re.search(r"(?i)\bPerformScript\b", oMatch.group(2)) and not re.search(r"(?i)\bTypeCurrentScriptKey\b|\bTypeKey\b", oMatch.group(2)): dWraps[oMatch.group(1).lower()] = True
         for sLine in readText(sJkm).splitlines():
             sTrim = sLine.strip()
             if not sTrim or sTrim.startswith((";", "[")) or "=" not in sTrim: continue
-            sJkmKey = sTrim.split("=", 1)[0].strip()
+            sJkmKey, sScript = [s.strip() for s in sTrim.split("=", 1)]
+            if sJkmKey.lower() in dGlobal and sScript.lower() in dWraps:
+                logLine("reader keys: kept %s=%s, which falls back to JAWS's own %s" % (sJkmKey, sScript, dGlobal[sJkmKey.lower()].get("what", "")))
+                continue
             if sJkmKey.lower() in dGlobal:
                 lsBad.append("%s.jkm hands %s to the app, taking JAWS's %s" % (appName(), sJkmKey, dGlobal[sJkmKey.lower()].get("what", "")))
     if not lsBad: return finding("reader keys", "pass", "no key of Windows's or a reader's own is bound")
@@ -1686,6 +1700,13 @@ def installerFindings(sText):
     # Update or Reinstall already known and nothing is checked after it.
     if re.search(r'(?mi)^\s*#include\b.*HomerComponents\.iss', s) and not re.search(r"(?i)\bhomerProbeAll\s*\(", s):
         lBad.append("never calls homerProbeAll in CurStepChanged(ssPostInstall), so its components are first asked while the finish page is being drawn")
+    # CHECKED IN ALPHABETICAL ORDER (22 November 2026, Jamal's ruling): the kit's homerProbeAll sorts what it asks; an
+    # installer that speaks its own "Checking ..." lines must say them in lowercase alphabetical order too, a leading
+    # "the" set aside, so how far the names have got through the alphabet says how far the checking has got.
+    lsSaid = [m.group(1) for m in re.finditer(r"homerSay\('Checking ([^']+)'", s)]
+    lsKeys = [re.sub(r"^the\s+", "", x.lower()) for x in lsSaid if not x.lower().startswith("which ")]
+    if lsKeys != sorted(lsKeys):
+        lBad.append("says its own Checking lines out of alphabetical order: " + ", ".join(lsKeys))
     return lBad
 
 def checkVersionInTitle():

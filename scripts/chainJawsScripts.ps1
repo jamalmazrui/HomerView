@@ -494,7 +494,7 @@ $lCommonKeys = @(
     # it in every app; it was Alt+Shift+S. Check with Equal Access, which had
     # Alt+Shift+E here, is offered by Check Accessibility, as on NVDA.
     "Alt+Shift+E=hVOpenSettings",
-    "Alt+Shift+H=hVHotKeyHelp",
+    # HOTKEY SUMMARY HAS NO KEY (24 November 2026), as in every Homer app; the Alternate Menu runs it by name.
     "Alt+Shift+L=hVCopyLogToClipboard",
     "Alt+Shift+R=hVSayDiagnostics"
 )
@@ -1272,7 +1272,7 @@ if (-not $bUndo) {
     writeLog "RESTART JAWS. Then press Alt+Control+Shift+H, which is a Windows shortcut"
     writeLog "key on the HomerView desktop icon and works whatever has focus."
     writeLog "Every other key works while the browser is in front: Alt+F10"
-    writeLog "for the menu, Alt+Shift+H for every key."
+    writeLog "for every command and its key."
     writeLog "With HomerView's browser focused, Insert+Q says which scripts are loaded."
     writeLog "Nothing outside the browser was changed: no default.jss, no default.jkm,"
     writeLog "no MyExtensions. To put back what was written: chainJawsScripts -bUndo"

@@ -2,13 +2,19 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en-US" xml:lang="en-US">
 <head>
   <meta charset="utf-8" />
-  <meta name="generator" content="pandoc" />
+  <meta name="generator" content="pandoc 3.14" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <title>HomerView Read Me</title>
   <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
     html {
       color: #1a1a1a;
+      color: light-dark(#1a1a1a, #fdfdfd);
       background-color: #fdfdfd;
+      background-color: light-dark(#fdfdfd, #1a1a1a);
+      color-scheme: light dark;
     }
     body {
       margin: 0 auto;
@@ -31,33 +37,17 @@
         font-size: 1.8em;
       }
     }
-    @media print {
-      html {
-        background-color: white;
-      }
-      body {
-        background-color: transparent;
-        color: black;
-        font-size: 12pt;
-      }
-      p, h2, h3 {
-        orphans: 3;
-        widows: 3;
-      }
-      h2, h3, h4 {
-        page-break-after: avoid;
-      }
-    }
     p {
       margin: 1em 0;
     }
-    a {
-      color: #1a1a1a;
-    }
-    a:visited {
-      color: #1a1a1a;
+    a, a:visited {
+      color: inherit;
     }
     img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
       max-width: 100%;
     }
     h1, h2, h3, h4, h5, h6 {
@@ -80,10 +70,14 @@
     blockquote {
       margin: 1em 0 1em 1.7em;
       padding-left: 1em;
-      border-left: 2px solid #e6e6e6;
+      border-left: 2px solid;
+      border-color: #e6e6e6;
+      border-color: light-dark(#e6e6e6, #4c4c4c);
       color: #606060;
+      color: light-dark(#606060, #b6b6b6);
     }
     code {
+      white-space: pre-wrap;
       font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
       font-size: 85%;
       margin: 0;
@@ -103,8 +97,8 @@
      overflow: visible;
     }
     hr {
-      background-color: #1a1a1a;
       border: none;
+      border-top: 1px solid currentColor;
       height: 1px;
       margin: 1em 0;
     }
@@ -121,11 +115,11 @@
     }
     tbody {
       margin-top: 0.5em;
-      border-top: 1px solid #1a1a1a;
-      border-bottom: 1px solid #1a1a1a;
+      border-top: 1px solid currentColor;
+      border-bottom: 1px solid currentColor;
     }
     th {
-      border-top: 1px solid #1a1a1a;
+      border-top: 1px solid currentColor;
       padding: 0.25em 0.5em 0.25em 0.5em;
     }
     td {
@@ -147,10 +141,19 @@
     #TOC a:not(:hover) {
       text-decoration: none;
     }
-    code{white-space: pre-wrap;}
     span.smallcaps{font-variant: small-caps;}
-    div.columns{display: flex; gap: min(4vw, 1.5em);}
-    div.column{flex: auto; overflow-x: auto;}
+    em, em em em, em em em em em {
+      font-style: italic;
+    }
+    em em, em em em em {
+      font-style: normal;
+    }
+    div.columns{display: flex; gap: 1.5em;}
+    div.column{flex: auto;}
+    @media screen {
+    div.columns{gap: min(4vw, 1.5em);}
+    div.column{overflow-x: auto;}
+    }
     div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
     /* The extra [class] is a hack that increases specificity enough to
        override a similar rule in reveal.js */
@@ -161,8 +164,27 @@
       margin: 0 0.8em 0.2em -1.6em;
       vertical-align: middle;
     }
-    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
-  </style>
+    @media print {
+      html {
+        color-scheme: light only;
+      }
+      html, body, pre, code {
+        background-color: transparent;
+      }
+      body, a, a:visited, blockquote {
+        color: black;
+      }
+      pre, code {
+        padding: 0;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }  </style>
 </head>
 <body>
 <header id="title-block-header">
@@ -200,7 +222,8 @@ same answers, the same pages. Keys differ only where the two screen
 readers themselves differ, so this file gives both keys only where they
 are not the same.</p>
 <p>This is the short version. The full guide is help.htm, which
-<strong>Control+F1</strong> opens from inside HomerView.</p>
+<strong>User Guide</strong>, on the Alternate Menu
+(<strong>Alt+F10</strong>), opens from inside HomerView.</p>
 <h2 id="what-it-is-for">What it is for</h2>
 <ul>
 <li><strong>A browser</strong> — everything Edge already does, read
@@ -223,8 +246,8 @@ links and the clipboard.</li>
 and sets up whichever it finds. On JAWS it also compiles and binds the
 scripts for every JAWS version installed and asks JAWS to reload, so a
 restart is not normally needed.</p>
-<p>To confirm which build is loaded, press <strong>Alt+Shift+H</strong>;
-its first line gives the version and when it was installed.</p>
+<p>To confirm which build is loaded, press <strong>Alt+F1</strong>,
+About HomerView; it gives the version and when it was installed.</p>
 <h3 id="start-it">Start it</h3>
 <p>Throughout this file, JAWS and NVDA name each screen reader’s own
 modifier key, which may be Insert or Caps Lock, whichever you have
@@ -245,14 +268,17 @@ ours can appear where you did not expect it.</p>
 <strong>Alt+Shift+B</strong> lists the browsers on your computer and
 lets you pick another. Chrome, Brave and Vivaldi all work.</p>
 <h3 id="the-one-key-to-remember">The one key to remember</h3>
-<p><strong>Alt+JAWS+F10</strong> (JAWS) or <strong>Alt+F10</strong>
-(NVDA) opens the Alternate Menu. Every command is on it, in alphabetical
-order, with its key beside it, and only the commands that apply where
-you are. Nothing is hidden behind a keystroke you must know in
-advance.</p>
-<p><strong>Alt+Shift+H</strong> is the other one worth knowing: hot key
-help, listing every command in a window where each key is a link — press
-Enter on a line to run it.</p>
+<p><strong>Alt+F10</strong> opens the Alternate Menu, with JAWS and with
+NVDA alike. Every command is on it, in menu, name or key order, with its
+key beside it, and only the commands that apply where you are. Nothing
+is hidden behind a keystroke you must know in advance.</p>
+<p>On it, <strong>Hotkey Summary</strong> lists every command in a
+window where each key is a link — press Enter on a line to run it — and
+<strong>User Guide</strong> opens the full guide.
+<strong>Control+F1</strong> turns the key describer on or off, so a key
+says what it does instead of doing it, as in every Homer app. In
+HomerView’s dialogs, <strong>Shift+F1</strong> says what a control does
+and <strong>Control+Slash</strong> says where you are.</p>
 <h3 id="six-things-to-try">Six things to try</h3>
 <p>Open any article, then:</p>
 <ol type="1">

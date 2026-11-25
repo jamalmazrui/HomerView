@@ -99,7 +99,7 @@ def writeHotkeys():
         "why it is that key.", "",
         "The same list is in the guide, HomerView.md, as one of its sections. This",
         "file is here so you can keep it open beside your work.", "",
-        "Press Alt+Shift+H in HomerView and the program builds this list for itself,",
+        "Choose Hotkey Summary from the Alternate Menu, Alt+F10, and the program builds this list for itself,",
         "from the same source, so it is never out of date.", "",
         "## How to read a key", "",
         "Modifiers come in alphabetical order: Alt, Control, NVDA, Shift. So",
@@ -321,8 +321,13 @@ def checkGuideKeys():
         sName, sKeys = oMatch.group(1), oMatch.group(2)
         if sName not in dTable:
             continue
-        lGuide = sorted(canonicalKey(x.strip()) for x in re.split(r",\s*or\s*|,\s*|\s+or\s+", sKeys)
-                        if x.strip() and "no key" not in x.lower())
+        # "NO KEY, ON THE ALTERNATE MENU" (24 November 2026). A command with no key may say where it is found
+        # instead; the words after "no key" are not keys, so the whole entry means no key.
+        if sKeys.strip().lower().startswith("no key"):
+            lGuide = []
+        else:
+            lGuide = sorted(canonicalKey(x.strip()) for x in re.split(r",\s*or\s*|,\s*|\s+or\s+", sKeys)
+                            if x.strip() and "no key" not in x.lower())
         if lGuide != dTable[sName]:
             lWrong.append("%s: the guide says %s, the command table says %s"
                           % (sName, " or ".join(lGuide) or "no key", " or ".join(dTable[sName]) or "no key"))

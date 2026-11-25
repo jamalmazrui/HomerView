@@ -1,6 +1,13 @@
 ﻿
 
 
+## 24 November 2026 -- Hotkey Summary has no key, and the quick start's help keys are right
+
+- **Hotkey Summary has no key,** as in DbDo, EdSharp and FileDir. Alt+Shift+H is not a general key in the Homer Suite, since a dialog's Help button takes it. The Alternate Menu, Alt+F10, finds Hotkey Summary by name, with both screen readers. The key file, the NVDA command table, the JAWS key map and the JAWS scripts' own help text, the guide, the developer notes, the start page, the window HomerView opens with, the JAWS install messages, the tutorials and the generated documents all say so. That first window also said Alt+Insert+F10 for the menu; it says Alt+F10.
+- **The build accepts a command with no key that says where to find it.** The guide's check read "no key, on the Alternate Menu" as a key named "on the Alternate Menu" and stopped the build; an entry beginning "no key" now means no key.
+- **About HomerView, Alt+F1, is how to confirm which build is loaded.** The guide, the quick start, the developer notes and the install walk used Hotkey Summary's first line for that.
+- **The quick start's help keys match the program.** The guide is User Guide on the Alternate Menu, not Control+F1, which is the key describer, as in every Homer app. The Alternate Menu is Alt+F10 with JAWS too, not Alt+JAWS+F10. Shift+F1 and Control+Slash, in HomerView's dialogs, are now in the quick start. The NVDA add-on's description said NVDA+Alt+F10 for every command; it says Alt+F10.
+
 ## 22 November 2026 -- The accessibility walk asks for the engine
 
 - **The Check Accessibility tutorial follows today's keys.** It pressed Alt+Shift+E for IBM's Equal Access, which is now Edit Settings. Check Accessibility, Alt+Shift+A, asks which engine should test the page, and the walk now chooses Deque's axe-core and then IBM's Equal Access from that question.

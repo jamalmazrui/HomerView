@@ -303,8 +303,7 @@ namespace Homer
                 + "<h2>To begin</h2>\r\n<ul>\r\n"
                 + "<li>Control+O opens a document: Word, PDF, ebook, spreadsheet "
                 + "and more.</li>\r\n"
-                + "<li>Alt+Insert+F10 opens the HomerView menu.</li>\r\n"
-                + "<li>Alt+Shift+H lists every key.</li>\r\n"
+                + "<li>Alt+F10 opens the Alternate Menu: every command and its key.</li>\r\n"
                 + "</ul>\r\n</body>\r\n</html>\r\n";
         }
 

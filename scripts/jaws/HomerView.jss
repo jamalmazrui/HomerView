@@ -2746,7 +2746,7 @@ hVOpenOwnDocument ("Developer.htm", "the developer notes")
 EndScript
 
 
-; Every HomerView command with its keys. No key, as in every Homer app; Alt+Shift+H lists the keys.
+; Every HomerView command with its keys. No key, as in every Homer app; Hotkey Summary, on the Alternate Menu, lists the keys.
 Script hVOpenHotkeys ()
 hVOpenOwnDocument ("Hotkeys.htm", "the hotkeys")
 EndScript
@@ -2784,7 +2784,7 @@ hVSayVirtual ("HomerView " + sVersion + " for JAWS"
     + "\r\n" + "Installed " + sInstalled
     + "\r\n\r\n" + "Program: " + sAppFolder
     + "\r\n" + "Log: " + hVLogPath ()
-    + "\r\n\r\n" + "Alt+F10 opens the menu. Alt+Shift+H lists every key.")
+    + "\r\n\r\n" + "Alt+F10 opens the menu. Hotkey Summary, on it, lists every key.")
 EndScript
 
 
@@ -3159,7 +3159,8 @@ SayMessage (OT_MESSAGE, hVXmlValue (sAnswer, "/root/value"))
 EndScript
 
 
-; Every HomerView command and its key. Alt+Shift+H, the key the NVDA side uses.
+; Every HomerView command and its key. NO KEY (24 November 2026), as on the NVDA side and in every Homer app: Alt+Shift+H
+; is not a general Homer key, since a dialog's Help button takes it. The Alternate Menu, Alt+F10, runs it by name.
 ;
 ; Not a list of what is bound, which JAWS gives on Insert+H, but a list of what
 ; HomerView has — including the commands with no key at all, which are the ones
@@ -3251,7 +3252,6 @@ Let iAdded = UserBufferAddLink ("  Alt+Control+Shift+H  Launch or return to Home
 Let iAdded = UserBufferAddLink ("  Alt+F10 Alternate Menu, every command in one list", "hVHomerViewLink (\"hVShowHomerViewMenu\")", "Alternate Menu")
 Let iAdded = UserBufferAddLink ("  Alt+Shift+A         Check the page with axe and save a report", "hVHomerViewLink (\"hVCheckAccessibility\")", "Check Accessibility with axe")
 Let iAdded = UserBufferAddLink ("  Alt+Shift+D         Close a cookie banner or consent wall", "hVHomerViewLink (\"hVDismissDialog\")", "Dismiss Dialog")
-Let iAdded = UserBufferAddLink ("  Alt+Shift+H     This summary", "hVHomerViewLink (\"hVHotKeyHelp\")", "Hotkey Summary")
 Let iAdded = UserBufferAddLink ("  Alt+Shift+B     Choose which browser HomerView drives", "hVHomerViewLink (\"hVChooseBrowser\")", "Choose Browser")
 Let iAdded = UserBufferAddLink ("  Alt+Shift+E     Open the settings file", "hVHomerViewLink (\"hVOpenSettings\")", "Edit Settings")
 Let iAdded = UserBufferAddLink ("  Shift+F4        Say the names of the open tabs", "hVHomerViewLink (\"hVSayTabNames\")", "Tab Names")
@@ -3374,7 +3374,7 @@ Let sTable = "About HomerView, Which build is loaded and where everything lives.
     + "\7" + "History of Changes, What changed in each release. (Control+Shift+F1)\thVShowHistory\tA"
     + "\7" + "Hotkeys, Every HomerView command with its keys.\thVOpenHotkeys\tA"
     + "\7" + "Edit Settings, Opens the settings file, where every preference lives. (Alt+Shift+E)\thVOpenSettings\tA"
-    + "\7" + "Hot Key Help, Lists every HomerView command and its key. (Alt+Shift+H)\thVHotKeyHelp\tA"
+    + "\7" + "Hotkey Summary, Lists every HomerView command and its key.\thVHotKeyHelp\tA"
     + "\7" + "Jump to Probable Main, Moves to the main content, whether the page declares it or not. (Shift+Q)\thVMoveToProbableMain\tP"
     + "\7" + "Launch HomerView, Launches or reconnects HomerView's copy of Microsoft Edge. (Alt+Control+Shift+H)\thVLaunchHomerView\tA"
     + "\7" + "Link Target, Says where the link under the cursor goes and shows its address. (Alt+L)\thVDescribeLinkTarget\tP"

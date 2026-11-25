@@ -8,6 +8,8 @@ way in JAWS and NVDA (the homer-screen-reader skill's key-handling reference):
   WHAT the script does with it
     capture          the script does the work; the app never sees the key
     passQuietly      the key goes to the app, and the reader says nothing
+    answerWithKey    a reader key whose question the app answers better: the
+                     app's own key for that answer is sent instead
     passThenSpeak    the key goes to the app, then the reader speaks
     speakThenPass    the reader speaks, then the key goes to the app
 
@@ -59,6 +61,18 @@ def passQuietly(gesture):
 	except Exception as oError:
 		log.error("homer keys: passQuietly(%r) failed, so the original key is sent: %s" % (sChord, oError))
 		gesture.send()
+
+
+def answerWithKey(sChord):
+	"""Send the app's own key, by its NVDA name such as alt+shift+f, in place of a reader key whose question the app
+	answers better where the script is bound -- NVDA+F, the font, answered in DbDo's grid by Say Field Type (24 November
+	2026). Bind the script only where the app's answer is the better one; elsewhere NVDA's own command runs."""
+	import keyboardHandler
+	from logHandler import log
+	try:
+		keyboardHandler.KeyboardInputGesture.fromName(sChord).send()
+	except Exception as oError:
+		log.error("homer keys: answerWithKey(%r) failed: %s" % (sChord, oError))
 
 
 def passThenSpeak(gesture, sText, iDelayMs=50):

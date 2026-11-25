@@ -60,15 +60,16 @@ key does nothing here. Your own program gets it instead
 
 ### The Alternate Menu
 
-**Alt+F10** / **Alt+F10** opens a list of every command, each with
+**Alt+F10** opens a list of every command, with JAWS and with NVDA alike, each with
 its key beside it. This is the discovery surface: nothing in HomerView is hidden
 behind a keystroke you must already know. Arrow to a command and press Enter.
 
 ### The Hotkey Summary
 
-**Alt+Shift+H** shows every command in a window where each key line is a link.
-Press Enter on a line to run that command. Its first line gives the version and
-the installation time, which is how you confirm which build is loaded.
+**Hotkey Summary**, on the Alternate Menu, shows every command in a window where each
+key line is a link. Press Enter on a line to run that command. It has no key, as in
+every Homer app. To confirm which build is loaded, press **Alt+F1**, About
+HomerView, which gives the version and the installation time.
 
 ## Tutorial
 
@@ -414,7 +415,7 @@ settled. Each one says which view it used, so you always know.
 ### Hotkeys
 
 This section is also available as a document of its own, Hotkeys.htm, and as the
-Hotkey Summary on **Alt+Shift+H**, where every key is a link you can press Enter
+Hotkey Summary on the Alternate Menu, where every key is a link you can press Enter
 on. Each entry gives the NVDA key and the JAWS key.
 
 #### Starting HomerView
@@ -424,9 +425,9 @@ on. Each entry gives the NVDA key and the JAWS key.
     - JAWS: Alt+F10
     - Present all commands in a single, alphabetized list. F10 opens a menu bar in Windows, and this is the menu HomerView has instead.
 - **Hotkey Summary**
-    - NVDA: Alt+Shift+H
-    - JAWS: Alt+Shift+H
-    - Display this list of command names, hot keys, and descriptions in a new window, as EdSharp does on the same key.
+    - NVDA: no key, on the Alternate Menu
+    - JAWS: no key, on the Alternate Menu
+    - Display this list of command names, hot keys, and descriptions in a new window.
 - **Launch HomerView**
     - Both: Alt+Control+Shift+H, the desktop shortcut
     - Opens the HomerView browser window, or takes you back to it. The key is on the desktop icon. It is a Windows key, not a screen reader key. So it works with JAWS, with NVDA, and with neither.
@@ -463,7 +464,7 @@ on. Each entry gives the NVDA key and the JAWS key.
 - **Hotkeys**
     - NVDA: no key
     - JAWS: no key, on the Alternate Menu
-    - Open the shipped list of every command, key and description. Hotkey Summary on Alt+Shift+H builds the same list from the program itself; this opens the copy that came with it.
+    - Open the shipped list of every command, key and description. Hotkey Summary, on the Alternate Menu, builds the same list from the program itself; this opens the copy that came with it.
 - **Copy Log**
     - NVDA: Alt+Shift+L
     - JAWS: Alt+Shift+L

@@ -57,9 +57,9 @@ Note=Confirm the wording with a live run: buildTutorials -live.
 
 [step]
 
-Say=To confirm which build is loaded: the hotkey summary's first line.
-Key=Alt+Shift+H
-Hear=HomerView 1.49.0, installed October 10, 2026
+Say=To confirm which build is loaded: Alt plus F1, About HomerView, gives the version and when it was installed.
+Key=Alt+F1
+Hear=HomerView, installed
 Note=Confirm the wording with a live run: buildTutorials -live.
 
 [step]
@@ -97,9 +97,9 @@ Note=Confirm the wording with a live run: buildTutorials -live.
 
 [step]
 
-Say=Alt plus Shift plus H, Hotkey Summary, lists every command with its key in a window of its own, the quickest way to learn the keys.
-Key=Alt+Shift+H
-Hear=Hotkey Summary
+Say=Hotkey Summary, on the Alternate Menu, lists every command with its key in a window of its own, the quickest way to learn the keys. Alt plus F10 lists it with every other command.
+Key=Alt+F10
+Hear=Alternate Menu
 Note=Confirm the wording with a live run: buildTutorials -live.
 
 [step]

@@ -148,7 +148,7 @@ def buildAboutText():
     else:
         lLines.append("  Not connected. Press Alt+Control+Shift+H to start HomerView Edge.")
     lLines.extend(["", f"Project: {projectUrl}",
-                   "Press Alt+F10 for every command, or Alt+Shift+H for the same list as a page."])
+                   "Press Alt+F10 for every command; Hotkey Summary, on that list, shows them as a page."])
     return "\n".join(lLines)
 
 
@@ -186,7 +186,7 @@ def buildAbout():
     lParts.append("</ul>")
     lParts.append(
         f'<h2>More</h2><p><a href="{projectUrl}">{projectUrl}</a></p>'
-        "<p>Press Alt+F10 for every command, or Alt+Shift+H for the same list as a document.</p>"
+        "<p>Press Alt+F10 for every command; Hotkey Summary, on that list, shows them as a document.</p>"
     )
     return "\n".join(lParts)
 

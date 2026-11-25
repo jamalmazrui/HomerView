@@ -1323,7 +1323,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 
 
     # THE HOTKEYS DOCUMENT HAS NO KEY (10 November 2026), as in every Homer app: Control+Shift+F1 opens the History of
-    # Changes, and Alt+Shift+H lists every key. The document stays on the menu.
+    # Changes, and Hotkey Summary, on the Alternate Menu, lists every key. The document stays on the menu.
     @script(
         # Translators: Input help mode message for Hotkeys.
         description=_("Open every HomerView command with its keys."),
@@ -1397,7 +1397,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 
     @script(
         # Translators: Input help mode message for Hotkey Document.
-        description=_("Open the shipped list of every command, key and description. Hotkey Summary on Alt+Shift+H builds the same list from the program itself; this opens the copy that came with it."),
+        description=_("Open the shipped list of every command, key and description. Hotkey Summary, on the Alternate Menu, builds the same list from the program itself; this opens the copy that came with it."),
         category="HomerView",
     )
     def script_openHotkeyDocument(self, gesture):

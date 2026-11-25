@@ -42,9 +42,9 @@ Note=Confirm the wording with a live run: buildTutorials -live.
 
 [step]
 
-Say=Escape closes the list. Alt plus Shift plus H is the hotkey summary: every command as a line you can press Enter on to run it. Its first line is the version and when it was installed.
-Key=Alt+Shift+H
-Hear=HomerView 1.49.0, installed October 10, 2026
+Say=Escape closes the list. On it, Hotkey Summary shows every command as a line you can press Enter on to run it. It has no key of its own, as in every Homer app; the Alternate Menu finds it by name.
+Key=
+Hear=Hotkey Summary
 Note=Confirm the wording with a live run: buildTutorials -live.
 
 [step]

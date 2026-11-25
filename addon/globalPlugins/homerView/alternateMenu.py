@@ -2,8 +2,8 @@
 
 The Homer interface has two commands for finding other commands. The Alternate
 Menu, Alt+F10, puts all of them in a single alphabetised list box, so a command
-can be run without remembering its key. The Hotkey Summary, Alt+Shift+H, shows
-the same set as a document that can be read and searched.
+can be run without remembering its key. The Hotkey Summary, which has no key and
+is found on that menu, shows the same set as a document that can be read and searched.
 
 Both read from one table. A command that exists but is unbound still appears,
 with its key shown as none, because a command nobody can find is no better than

@@ -5,7 +5,7 @@
     <link>Tutorials.htm</link>
     <description>Spoken walks through HomerView, the browser companion that does what a screen reader cannot. Ten walks, each under five minutes, in the order a new person meets them.</description>
     <language>en-us</language>
-    <lastBuildDate>Tue, 24 Nov 2026 03:00:37 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 25 Nov 2026 05:13:04 +0000</lastBuildDate>
     <itunes:author>Jamal Mazrui</itunes:author>
     <itunes:explicit>false</itunes:explicit>
     <itunes:category text="Technology"/>
@@ -24,8 +24,8 @@
       <description>HomerView is installed. Full transcript: Tutorials.htm#0a-1-user-interface</description>
       <link>Tutorials.htm#0a-1-user-interface</link>
       <guid isPermaLink="false">homer-tutorial_1_user_interface</guid>
-      <enclosure url="tutorials/1_User_Interface.mp3" length="1179491" type="audio/mpeg"/>
-      <itunes:duration>00:02:52</itunes:duration>
+      <enclosure url="tutorials/1_User_Interface.mp3" length="1145911" type="audio/mpeg"/>
+      <itunes:duration>00:02:48</itunes:duration>
       <itunes:explicit>false</itunes:explicit>
     </item>
     <item>
@@ -33,8 +33,8 @@
       <description>HomerView_setup.exe is downloaded from the HomerView page on GitHub. Full transcript: Tutorials.htm#0b-2-install-and-launch</description>
       <link>Tutorials.htm#0b-2-install-and-launch</link>
       <guid isPermaLink="false">homer-tutorial_2_install_and_launch</guid>
-      <enclosure url="tutorials/2_Install_and_Launch.mp3" length="1256062" type="audio/mpeg"/>
-      <itunes:duration>00:03:09</itunes:duration>
+      <enclosure url="tutorials/2_Install_and_Launch.mp3" length="1277235" type="audio/mpeg"/>
+      <itunes:duration>00:03:11</itunes:duration>
       <itunes:explicit>false</itunes:explicit>
     </item>
     <item>

@@ -76,7 +76,7 @@ elevation. The JAWS scripts install silently; the NVDA add-on and pandoc do not,
 because one needs NVDA's own dialog and the other is a large download nobody
 should be handed unasked.
 
-Afterwards press **Alt+Shift+H**: its first line gives the version and install
+Afterwards press **Alt+F1**, About HomerView: it gives the version and install
 time, which is how you confirm which build JAWS actually has loaded.
 
 ## Removing HomerView

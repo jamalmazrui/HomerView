@@ -651,7 +651,7 @@ class HomerViewBuffer:
     def script_appendClipboard(self, gesture):
         self.runSafely("appendClipboard", lambda: clipboardTools.exportClipboard(True))
 
-    @script(description=_("Display this list of command names, hot keys, and descriptions in a new window, as EdSharp does on the same key."), category="HomerView")
+    @script(description=_("Display this list of command names, hot keys, and descriptions in a new window."), category="HomerView")
     def script_hotkeySummary(self, gesture):
         self.runSafely("hotkeySummary", lambda: alternateMenu.showHotkeySummary(self.buildCommandEntries()))
 

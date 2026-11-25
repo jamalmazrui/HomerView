@@ -10,8 +10,8 @@ The two screen readers do the same things: the same commands, the same
 answers, the same pages. Keys differ only where the two screen readers themselves
 differ, so this file gives both keys only where they are not the same.
 
-This is the short version. The full guide is help\HomerView.htm, which **Control+F1**
-opens from inside HomerView.
+This is the short version. The full guide is help\HomerView.htm, which **User
+Guide**, on the Alternate Menu (**Alt+F10**), opens from inside HomerView.
 
 ## What it is for
 
@@ -35,7 +35,7 @@ Run **HomerView_setup.exe**. It detects JAWS and NVDA and sets up whichever it
 finds. On JAWS it also compiles and binds the scripts for every JAWS version
 installed and asks JAWS to reload, so a restart is not normally needed.
 
-To confirm which build is loaded, press **Alt+Shift+H**; its first line gives the
+To confirm which build is loaded, press **Alt+F1**, About HomerView; it gives the
 version and when it was installed.
 
 ### Start it
@@ -63,13 +63,16 @@ and Vivaldi all work.
 
 ### The one key to remember
 
-**Alt+JAWS+F10** (JAWS) or **Alt+F10** (NVDA) opens the Alternate Menu.
-Every command is on it, in alphabetical order, with its key beside it, and only
+**Alt+F10** opens the Alternate Menu, with JAWS and with NVDA alike. Every
+command is on it, in menu, name or key order, with its key beside it, and only
 the commands that apply where you are. Nothing is hidden behind a keystroke you
 must know in advance.
 
-**Alt+Shift+H** is the other one worth knowing: hot key help, listing every
-command in a window where each key is a link — press Enter on a line to run it.
+On it, **Hotkey Summary** lists every command in a window where each key is a
+link — press Enter on a line to run it — and **User Guide** opens the full guide.
+**Control+F1** turns the key describer on or off, so a key says what it does
+instead of doing it, as in every Homer app. In HomerView's dialogs, **Shift+F1**
+says what a control does and **Control+Slash** says where you are.
 
 ### Six things to try
 

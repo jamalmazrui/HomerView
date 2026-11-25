@@ -13,7 +13,7 @@ why it is that key.
 The same list is in the guide, HomerView.md, as one of its sections. This
 file is here so you can keep it open beside your work.
 
-Press Alt+Shift+H in HomerView and the program builds this list for itself,
+Choose Hotkey Summary from the Alternate Menu, Alt+F10, and the program builds this list for itself,
 from the same source, so it is never out of date.
 
 ## How to read a key
@@ -51,7 +51,7 @@ Homer programs, because F11 is the browser's own key for full screen.
 ## Starting HomerView
 
 - **Alternate Menu**, Alt+F10. Pick any command from one list, in menu, name or key order.
-- **Hotkey Summary**, Alt+Shift+H. List every command with its key and description.
+- **Hotkey Summary**, no key. List every command with its key and description.
 - **Launch HomerView**, Alt+Control+Shift+H. Start HomerView, or switch to it, from its desktop shortcut.
 
 ## Reading the documentation

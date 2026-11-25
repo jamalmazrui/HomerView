@@ -81,7 +81,6 @@ Alt+Shift+A=hVCheckAccessibility
 Alt+Shift+B=hVChooseBrowser
 Alt+Shift+C=hVFindContacts
 Alt+Shift+D=hVDismissDialog
-Alt+Shift+H=hVHotKeyHelp
 Alt+Shift+L=hVCopyLogToClipboard
 Alt+Shift+R=hVSayDiagnostics
 Alt+Shift+E=hVOpenSettings

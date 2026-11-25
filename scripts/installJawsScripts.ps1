@@ -929,7 +929,7 @@ writeLog ""
 # RunFunction returns true when the call was SCHEDULED, not when it finished,
 # so its answer is worth logging and worth nothing else. If a command
 # afterwards behaves like an older build, restarting JAWS is still the certain
-# cure, and Alt+Shift+H says which build is actually loaded.
+# cure, and Alt+F1, About HomerView, says which build is actually loaded.
 # ON REMOVAL TOO, AND THERE FOR A BETTER REASON.
 #
 # On installation a reload saves a restart. On REMOVAL it prevents a fault:
@@ -951,7 +951,7 @@ try {
 if ($bReloaded -and $bUninstall) {
     writeLog "JAWS has been asked to reload, so the removed keys stop responding now."
 } elseif ($bReloaded) {
-    writeLog "No restart should be needed. Press Alt+Shift+H to see which build is loaded;"
+    writeLog "No restart should be needed. Press Alt+F1, About HomerView, to see which build is loaded;"
     writeLog "if it is not this one, restart JAWS."
 } elseif ($bUninstall) {
     writeLog "RESTART JAWS so it forgets the scripts that have just been removed."

@@ -898,7 +898,7 @@ def pageFinish(sPath):
 sSqliteScript = r'''import csv, io, os, re, sqlite3, sys
 sIn, sOut = sys.argv[1], sys.argv[2]
 # A DATABASE IN DBDO'S FORM (kit 1.91.0, the homer-db skill): a plural lower-case table named for the
-# file, <singular>_id, added and edited, the data fields, url, notes, tags, look, prime and marked in
+# file, <singular>_id, added and edited, the data fields, notes, tags, url, look, prime and marked in
 # that order, the edited and maps triggers, a unique prime index, and DbDo's defs and maps (no views table, retired 4 November 2026).
 lsTypes = ['BLOB', 'BOOLEAN', 'INTEGER', 'NUMERIC', 'REAL', 'TEXT', 'BLOBDOCX', 'BLOBEPUB', 'BLOBGIF', 'BLOBJPG', 'BLOBM4A', 'BLOBMP3', 'BLOBMP4', 'BLOBOGG', 'BLOBPDF', 'BLOBPNG', 'BLOBPPTX', 'BLOBWAV', 'BLOBWEBM', 'BLOBWEBP', 'BLOBXLSX', 'BLOBZIP', 'TEXTCSV', 'TEXTDBDO', 'TEXTEMAIL', 'TEXTHTML', 'TEXTICS', 'TEXTINIX', 'TEXTJSCRIPT', 'TEXTJSON', 'TEXTLINE', 'TEXTM3U', 'TEXTMARKDOWN', 'TEXTMEMO', 'TEXTPATH', 'TEXTPHONE', 'TEXTSQL', 'TEXTSRT', 'TEXTSVG', 'TEXTTIME', 'TEXTTSV', 'TEXTURL', 'TEXTVCAL', 'TEXTVCARD', 'TEXTVTT', 'TEXTXML']  # Homer.ColumnTypes, 5 November 2026
 lsKinds = ['affiliated_with', 'located_at', 'member_of', 'part_of', 'related_to']
@@ -940,8 +940,11 @@ def standardTable(oDb, sTable, lsData, dTypes, lsLook, bMaps):
     sId = singular(sTable) + '_id'
     lsColumns = [q(sId) + ' INTEGER PRIMARY KEY AUTOINCREMENT', 'added TEXTTIME NOT NULL DEFAULT CURRENT_TIMESTAMP', 'edited TEXTTIME NOT NULL DEFAULT CURRENT_TIMESTAMP']
     lsColumns += [q(s) + ' ' + dTypes.get(s, 'TEXTLINE') for s in lsData]
-    lsColumns += ['url TEXTLINE', 'notes TEXTMARKDOWN', 'tags TEXTMEMO']
-    lsColumns += ['look TEXT GENERATED ALWAYS AS (%s) STORED' % joined(lsLook, ' | ', True), 'prime TEXT GENERATED ALWAYS AS (%s) STORED' % joined(lsData, '|', False), 'marked INTEGER NOT NULL DEFAULT 0']
+    # notes, tags, url (24 November 2026): the standard order after the data fields. The prime leaves out id columns,
+    # which differ for every record or between databases, when any other field is left.
+    lsColumns += ['notes TEXTMARKDOWN', 'tags TEXTMEMO', 'url TEXTLINE']
+    lsPrime = [s for s in lsData if not (s.lower() == 'id' or s.lower().endswith('_id'))] or lsData
+    lsColumns += ['look TEXT GENERATED ALWAYS AS (%s) STORED' % joined(lsLook, ' | ', True), 'prime TEXT GENERATED ALWAYS AS (%s) STORED' % joined(lsPrime, '|', False), 'marked INTEGER NOT NULL DEFAULT 0']
     oDb.execute('CREATE TABLE %s (%s)' % (q(sTable), ', '.join(lsColumns)))
     lsWatched = lsData + ['notes', 'tags']
     oDb.execute('CREATE TRIGGER %s AFTER UPDATE OF %s ON %s FOR EACH ROW WHEN %s BEGIN UPDATE %s SET edited = CURRENT_TIMESTAMP WHERE %s = NEW.%s; END'
@@ -973,7 +976,7 @@ if open(sIn, 'rb').read(16) != b'SQLite format 3\x00':
     if os.path.exists(sOut): os.remove(sOut)
     oDb = sqlite3.connect(sOut)
     oDb.execute('CREATE TABLE defs (def_id INTEGER PRIMARY KEY AUTOINCREMENT, added TEXTTIME NOT NULL DEFAULT CURRENT_TIMESTAMP, edited TEXTTIME NOT NULL DEFAULT CURRENT_TIMESTAMP, '
-        'src TEXTLINE, tbl TEXTLINE, fld TEXTLINE, val TEXTLINE, ordinal INTEGER, descrip TEXTMEMO, url TEXTLINE, notes TEXTMARKDOWN, tags TEXTMEMO, '
+        'src TEXTLINE, tbl TEXTLINE, fld TEXTLINE, val TEXTLINE, ordinal INTEGER, descrip TEXTMEMO, notes TEXTMARKDOWN, tags TEXTMEMO, url TEXTLINE, '
         "look TEXT GENERATED ALWAYS AS (rtrim(iif(tbl IS NOT NULL AND length(tbl)>0, tbl || ' | ', '') || iif(fld IS NOT NULL AND length(fld)>0, fld || ' | ', '') || iif(val IS NOT NULL AND length(val)>0, val || ' | ', ''), ' | ')) STORED, "
         "prime TEXT GENERATED ALWAYS AS (coalesce(src,'') || '|' || coalesce(tbl,'') || '|' || coalesce(fld,'') || '|' || coalesce(val,'')) STORED, marked INTEGER NOT NULL DEFAULT 0)")
     oDb.execute('CREATE UNIQUE INDEX idx_defs_prime ON defs (prime)')

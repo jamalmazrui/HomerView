@@ -190,13 +190,13 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 6: Alt+Shift+H
+### Step 6
 
-Escape closes the list. Alt plus Shift plus H is the hotkey summary: every command as a line you can press Enter on to run it. Its first line is the version and when it was installed.
+Escape closes the list. On it, Hotkey Summary shows every command as a line you can press Enter on to run it. It has no key of its own, as in every Homer app; the Alternate Menu finds it by name.
 
 Screen reader:
 
-- HomerView 1.49.0, installed October 10, 2026
+- Hotkey Summary
 
 Confirm the wording with a live run: buildTutorials -live.
 
@@ -355,13 +355,13 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 8: Alt+Shift+H
+### Step 8: Alt+F1
 
-To confirm which build is loaded: the hotkey summary's first line.
+To confirm which build is loaded: Alt plus F1, About HomerView, gives the version and when it was installed.
 
 Screen reader:
 
-- HomerView 1.49.0, installed October 10, 2026
+- HomerView, installed
 
 Confirm the wording with a live run: buildTutorials -live.
 
@@ -407,13 +407,13 @@ Screen reader:
 
 Confirm the wording with a live run: buildTutorials -live.
 
-### Step 14: Alt+Shift+H
+### Step 14: Alt+F10
 
-Alt plus Shift plus H, Hotkey Summary, lists every command with its key in a window of its own, the quickest way to learn the keys.
+Hotkey Summary, on the Alternate Menu, lists every command with its key in a window of its own, the quickest way to learn the keys. Alt plus F10 lists it with every other command.
 
 Screen reader:
 
-- Hotkey Summary
+- Alternate Menu
 
 Confirm the wording with a live run: buildTutorials -live.
 
@@ -1713,5 +1713,5 @@ HomerView dot m d is the guide, with its own tutorial and troubleshooting; hotke
 
 ## 1. Where to Go Next
 
-Press F1 for the guide, Alt+Shift+H for the hotkey list, and Alt+F10 for every
-command in one window.
+Press F1 for the guide, and Alt+F10 for every command in one window, the
+Hotkey Summary among them.

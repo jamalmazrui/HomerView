@@ -74,7 +74,10 @@ lCommands = [
      "Start HomerView, or switch to it, from its desktop shortcut."),
     ("alternateMenu", "Alternate Menu", ["kb:alt+f10"],
      "Pick any command from one list, in menu, name or key order."),
-    ("hotkeySummary", "Hotkey Summary", ["kb:alt+shift+h"],
+    # HOTKEY SUMMARY HAS NO KEY (24 November 2026), as in DbDo, EdSharp and FileDir: Alt+Shift+H is not a general key in
+    # the Homer Suite, since a dialog's Help button takes it (Jamal's ruling of 23 November). Alt+F10, the Alternate
+    # Menu, finds it by name, and lists every key in its key order.
+    ("hotkeySummary", "Hotkey Summary", [],
      "List every command with its key and description."),
 
     # --- The documentation, all on F1, as Windows programs have always done
